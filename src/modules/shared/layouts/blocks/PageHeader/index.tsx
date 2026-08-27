@@ -8,8 +8,8 @@
  * Height: 40px (matches PanelHeader)
  * No bottom border by default
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { FC, KeyboardEvent, ReactNode } from "react";
 import { memo, useRef, useState } from "react";
@@ -124,7 +124,7 @@ const SearchInput: FC<SearchInputProps> = memo(
         {!isFocused && !value && (
           <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
             <HugeiconsIcon
-              icon={Search}
+              icon={Search01Icon}
               data-icon="search"
               size={14}
               className="shrink-0 text-text-3"
@@ -137,7 +137,7 @@ const SearchInput: FC<SearchInputProps> = memo(
         {!isFocused && value && (
           <div className="absolute inset-0 flex items-center justify-center gap-2 px-3">
             <HugeiconsIcon
-              icon={Search}
+              icon={Search01Icon}
               data-icon="search"
               size={14}
               className="shrink-0 text-text-3"
@@ -152,7 +152,7 @@ const SearchInput: FC<SearchInputProps> = memo(
         {isFocused && (
           <div className="absolute left-2.5 flex items-center">
             <HugeiconsIcon
-              icon={Search}
+              icon={Search01Icon}
               data-icon="search"
               size={14}
               className="shrink-0 text-text-3"
@@ -190,7 +190,7 @@ const SearchInput: FC<SearchInputProps> = memo(
             className="absolute right-1.5 flex items-center justify-center rounded p-0.5 text-text-3 transition-colors hover:text-text-1"
             title="Clear"
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={12} />
+            <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
           </button>
         )}
 
@@ -205,7 +205,7 @@ const SearchInput: FC<SearchInputProps> = memo(
             className="absolute right-1.5 flex items-center justify-center rounded p-0.5 text-text-3 transition-colors hover:text-text-1"
             title="Clear"
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={12} />
+            <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
           </button>
         )}
       </div>

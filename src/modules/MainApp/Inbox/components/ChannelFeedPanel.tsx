@@ -5,9 +5,9 @@
  * Messages are grouped by date and displayed in a chronological stream.
  * Bottom composer matches session/chat input styling; floating scroll-to-bottom when not at end.
  */
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -89,7 +89,7 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
                 <HugeiconsIcon
-                  icon={CheckCheck}
+                  icon={TickDouble01Icon}
                   data-icon="check-check"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -104,7 +104,7 @@ const ChannelFeedPanel: React.FC<ChannelFeedPanelProps> = ({
             <Input
               prefix={
                 <HugeiconsIcon
-                  icon={Search}
+                  icon={Search01Icon}
                   data-icon="search"
                   size={13}
                   strokeWidth={1.75}
@@ -398,7 +398,9 @@ const FeedMessageWithActions: React.FC<FeedMessageWithActionsProps> = ({
         variant="secondary"
         shape="square"
         iconOnly
-        icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
+        icon={
+          <HugeiconsIcon icon={Delete02Icon} data-icon="trash-2" size={14} />
+        }
         title={t("common:actions.delete")}
         aria-label={t("common:actions.delete")}
         onClick={handleDelete}

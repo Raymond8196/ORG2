@@ -1,4 +1,4 @@
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { FC, ReactNode } from "react";
 
@@ -42,7 +42,7 @@ const ProjectOrganizationSelect: FC<ProjectOrganizationSelectProps> = ({
     radius="pill"
     prefix={
       <HugeiconsIcon
-        icon={Network}
+        icon={HierarchyCircle01Icon}
         data-icon="network"
         size={14}
         strokeWidth={1.75}

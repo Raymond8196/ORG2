@@ -1,6 +1,6 @@
-import FileJson from "@hugeicons/core-free-icons/FileCodeIcon";
-import FolderInput from "@hugeicons/core-free-icons/FolderInputIcon";
-import FolderOutput from "@hugeicons/core-free-icons/FolderOutputIcon";
+import FileCodeIcon from "@hugeicons/core-free-icons/FileCodeIcon";
+import FolderInputIcon from "@hugeicons/core-free-icons/FolderInputIcon";
+import FolderOutputIcon from "@hugeicons/core-free-icons/FolderOutputIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   open as openDialog,
@@ -220,13 +220,13 @@ export function SessionImportExportModal({
           <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-bg-3 text-text-2">
             {mode === "export" ? (
               <HugeiconsIcon
-                icon={FolderOutput}
+                icon={FolderOutputIcon}
                 data-icon="folder-output"
                 size={18}
               />
             ) : (
               <HugeiconsIcon
-                icon={FolderInput}
+                icon={FolderInputIcon}
                 data-icon="folder-input"
                 size={18}
               />
@@ -281,7 +281,7 @@ export function SessionImportExportModal({
             disabled={loading}
           >
             <HugeiconsIcon
-              icon={FileJson}
+              icon={FileCodeIcon}
               data-icon="file-json"
               size={28}
               className="text-text-2"

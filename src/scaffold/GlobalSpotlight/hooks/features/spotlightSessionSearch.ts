@@ -1,4 +1,4 @@
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
@@ -115,7 +115,7 @@ export function resolveSpotlightCloudSessionPresentation({
       }) ?? fallbackLabel,
     icon: localSession
       ? resolveSessionRowIcon(localSession)
-      : (remoteIcon ?? Users),
+      : (remoteIcon ?? UserMultipleIcon),
   };
 }
 
@@ -202,7 +202,7 @@ interface BuildCloudSessionReferenceItemInput {
 export function buildCloudSessionReferenceItem({
   reference,
   label,
-  icon = Users,
+  icon = UserMultipleIcon,
   onSelect,
   idPrefix = "cloud-session-reference",
 }: BuildCloudSessionReferenceItemInput): SpotlightItem {

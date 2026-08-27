@@ -3,9 +3,9 @@
  *
  * Displays unstaged files with stage, discard, stash, and diff actions
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
+import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -97,7 +97,7 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                 title={GIT_LABELS.discardAllChanges}
               >
                 <HugeiconsIcon
-                  icon={Undo2}
+                  icon={Undo02Icon}
                   data-icon="undo-2"
                   size={14}
                   strokeWidth={1.75}
@@ -111,7 +111,7 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                   title={GIT_LABELS.stashAllChanges}
                 >
                   <HugeiconsIcon
-                    icon={Archive}
+                    icon={ArchiveIcon}
                     data-icon="archive"
                     size={14}
                     strokeWidth={1.75}
@@ -124,7 +124,7 @@ export const ChangesSection: React.FC<ChangesSectionProps> = memo(
                 title={GIT_LABELS.stageChanges}
               >
                 <HugeiconsIcon
-                  icon={Plus}
+                  icon={Add01Icon}
                   data-icon="plus"
                   size={14}
                   strokeWidth={1.75}

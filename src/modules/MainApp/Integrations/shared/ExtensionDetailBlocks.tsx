@@ -8,12 +8,12 @@
  *
  * Used by Skills and MCP detail panels.
  */
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import Download from "@hugeicons/core-free-icons/Download01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Star from "@hugeicons/core-free-icons/StarIcon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import StarIcon from "@hugeicons/core-free-icons/StarIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 
@@ -100,7 +100,7 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
                       className="size-4 rounded-full"
                     />
                   ) : (
-                    <HugeiconsIcon icon={User} data-icon="user" size={12} />
+                    <HugeiconsIcon icon={UserIcon} data-icon="user" size={12} />
                   ),
                   label: detail.owner.displayName ?? detail.owner.handle,
                 },
@@ -111,7 +111,7 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
                 {
                   icon: (
                     <HugeiconsIcon
-                      icon={Download}
+                      icon={Download01Icon}
                       data-icon="download"
                       size={12}
                     />
@@ -120,7 +120,7 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
                 },
                 {
                   icon: (
-                    <HugeiconsIcon icon={Star} data-icon="star" size={12} />
+                    <HugeiconsIcon icon={StarIcon} data-icon="star" size={12} />
                   ),
                   label: formatNumber(detail.stats.stars),
                 },
@@ -133,7 +133,7 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
                 {
                   icon: (
                     <HugeiconsIcon
-                      icon={GitCommitHorizontal}
+                      icon={GitCommitHorizontalIcon}
                       data-icon="git-commit-horizontal"
                       size={12}
                     />
@@ -147,7 +147,7 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
                 {
                   icon: (
                     <HugeiconsIcon
-                      icon={Calendar}
+                      icon={Calendar01Icon}
                       data-icon="calendar"
                       size={12}
                     />
@@ -161,7 +161,7 @@ const ExtensionHero: React.FC<ExtensionHeroProps> = ({
                 {
                   icon: (
                     <HugeiconsIcon
-                      icon={RefreshCw}
+                      icon={Refresh04Icon}
                       data-icon="refresh-cw"
                       size={12}
                     />

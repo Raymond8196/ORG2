@@ -1,8 +1,8 @@
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
@@ -24,22 +24,22 @@ const PR_STATUS_PRESENTATION: Record<
   { Icon: IconSvgElement; color: string; label: string }
 > = {
   open: {
-    Icon: GitPullRequest,
+    Icon: GitPullRequestIcon,
     color: "var(--color-success-6)",
     label: "Open PR",
   },
   draft: {
-    Icon: GitPullRequestDraft,
+    Icon: GitPullRequestDraftIcon,
     color: "var(--color-text-3)",
     label: "Draft PR",
   },
   merged: {
-    Icon: GitMerge,
+    Icon: GitMergeIcon,
     color: "var(--color-purple-6)",
     label: "Merged PR",
   },
   closed: {
-    Icon: GitPullRequestClosed,
+    Icon: GitPullRequestClosedIcon,
     color: "var(--color-danger-6)",
     label: "Closed PR",
   },
@@ -71,7 +71,7 @@ export function renderSessionGitIndicator(
   if (!prPresentation && !link.isActiveWorktree) return null;
 
   const { Icon, color, label } = prPresentation ?? {
-    Icon: GitBranch,
+    Icon: WorkflowCircle05Icon,
     color: "var(--color-success-6)",
     label: "Worktree branch",
   };

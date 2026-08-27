@@ -1,12 +1,12 @@
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -77,7 +77,7 @@ function localOrgMenuRow(id: string, label: string): NavigationMenuItem {
     id,
     key: id,
     label,
-    icon: Network,
+    icon: HierarchyCircle01Icon,
     iconName: "network",
     visualTone: "secondary",
   };
@@ -106,7 +106,7 @@ export function groupLoadMoreRow(
     id: `${LOAD_MORE_GROUP_PREFIX}${groupId}`,
     key: `${LOAD_MORE_GROUP_PREFIX}${groupId}`,
     label,
-    icon: MoreHorizontal,
+    icon: MoreHorizontalIcon,
     iconName: "more-horizontal",
     visualTone: "secondary",
   };
@@ -121,11 +121,11 @@ export function linearLoadRow(
     id: `${PROJECTS_LINEAR_LOAD_PREFIX}${orgId}`,
     key: `${PROJECTS_LINEAR_LOAD_PREFIX}${orgId}`,
     label,
-    icon: loading ? undefined : MoreHorizontal,
+    icon: loading ? undefined : MoreHorizontalIcon,
     iconName: loading ? undefined : "more-horizontal",
     iconElement: loading ? (
       <HugeiconsIcon
-        icon={Loader2}
+        icon={Loading03Icon}
         data-icon="loader-2"
         size={14}
         strokeWidth={2}
@@ -146,7 +146,7 @@ export function createWorkItemRow(
     id,
     key: id,
     label,
-    icon: SquarePen,
+    icon: PencilEdit02Icon,
     iconName: "square-pen",
     visualTone: "secondary",
     dataTestId: `projects-work-item-create-${orgId}`,
@@ -165,7 +165,7 @@ export function buildProjectOverviewRow(
     id,
     key: id,
     label: t("projects:orgs.management.overview"),
-    icon: isGitHubProject ? undefined : Box,
+    icon: isGitHubProject ? undefined : BoxIcon,
     iconName: isGitHubProject ? undefined : "box",
     iconElement: isGitHubProject ? (
       <IntegrationIcon type={STORY_SYNC_ADAPTER.GITHUB} size={14} />
@@ -190,7 +190,7 @@ export function pendingSyncIndicator(t: TFunction): React.ReactElement {
       data-testid="sidebar-pending-sync-indicator"
     >
       <HugeiconsIcon
-        icon={Loader2}
+        icon={Loading03Icon}
         data-icon="loader-2"
         size={12}
         strokeWidth={2}
@@ -213,7 +213,7 @@ export function buildProjectRow(
     id,
     key: id,
     label: projectName,
-    icon: isGitHubProject ? undefined : Box,
+    icon: isGitHubProject ? undefined : BoxIcon,
     iconName: isGitHubProject ? undefined : "box",
     iconElement: isGitHubProject ? (
       <IntegrationIcon type={STORY_SYNC_ADAPTER.GITHUB} size={14} />
@@ -271,8 +271,8 @@ export function buildWorkItemRow(
       ? [
           {
             icon: linkedSessionExpansion.expanded
-              ? ChevronsDownUp
-              : ChevronsUpDown,
+              ? ChevronsDownUpIcon
+              : UnfoldMoreIcon,
             label: t("projects:workItems.sessions.linkedSessions"),
             active: linkedSessionExpansion.expanded,
             dataTestId: `sidebar-work-item-linked-sessions-toggle-${workItem.id}`,
@@ -350,7 +350,7 @@ export function buildLinkedSessionRows(
       key: `work-item-linked-session:${workItem.id}:${session.session_id}`,
       label,
       searchText: `${label} ${session.session_id}`,
-      icon: session.session_type === "cli" ? Terminal : Bot,
+      icon: session.session_type === "cli" ? ComputerTerminal01Icon : BotIcon,
       visualTone: "secondary",
       showIndentGuide: true,
       dataTestId: `sidebar-work-item-linked-session-${workItem.id}-${session.session_id}`,

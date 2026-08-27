@@ -6,12 +6,12 @@
  * split-button keeps the full merge-method + auto-merge + draft dropdown;
  * reviewer management lives in the sidebar's Reviewers section.
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useState } from "react";
@@ -222,7 +222,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={GitPullRequest}
+                icon={GitPullRequestIcon}
                 data-icon="git-pull-request"
                 size={DROPDOWN_ITEM.iconSize}
                 aria-hidden
@@ -240,7 +240,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             <DropdownItem
               icon={
                 <HugeiconsIcon
-                  icon={GitMerge}
+                  icon={GitMergeIcon}
                   data-icon="git-merge"
                   size={DROPDOWN_ITEM.iconSize}
                   aria-hidden
@@ -261,7 +261,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
                 key={method}
                 icon={
                   <HugeiconsIcon
-                    icon={GitMerge}
+                    icon={GitMergeIcon}
                     data-icon="git-merge"
                     size={DROPDOWN_ITEM.iconSize}
                     aria-hidden
@@ -325,21 +325,21 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
         icon={
           presentation.status === "draft" ? (
             <HugeiconsIcon
-              icon={GitPullRequestDraft}
+              icon={GitPullRequestDraftIcon}
               data-icon="git-pull-request-draft"
               size={14}
               aria-hidden
             />
           ) : presentation.hasConflicts ? (
             <HugeiconsIcon
-              icon={XCircle}
+              icon={CancelCircleIcon}
               data-icon="xcircle"
               size={14}
               aria-hidden
             />
           ) : (
             <HugeiconsIcon
-              icon={GitMerge}
+              icon={GitMergeIcon}
               data-icon="git-merge"
               size={14}
               aria-hidden
@@ -393,7 +393,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           centerLabel
           icon={
             <HugeiconsIcon
-              icon={GitPullRequestDraft}
+              icon={GitPullRequestDraftIcon}
               data-icon="git-pull-request-draft"
               size={14}
               aria-hidden
@@ -418,14 +418,14 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
           icon={
             nextState === "closed" ? (
               <HugeiconsIcon
-                icon={GitPullRequestClosed}
+                icon={GitPullRequestClosedIcon}
                 data-icon="git-pull-request-closed"
                 size={14}
                 aria-hidden
               />
             ) : (
               <HugeiconsIcon
-                icon={CircleDot}
+                icon={CircleDotIcon}
                 data-icon="circle-dot"
                 size={14}
                 aria-hidden

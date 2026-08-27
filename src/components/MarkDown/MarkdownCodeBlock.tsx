@@ -10,9 +10,9 @@
  * first and gains colour when `MarkdownCodeHighlighter` arrives. If that chunk
  * never arrives, the fence still shows its code.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -98,7 +98,7 @@ const CodeBlock = memo<CodeBlockProps>(
               onClick={handleOpenFile}
             >
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={14}
                 strokeWidth={1.75}
@@ -114,14 +114,14 @@ const CodeBlock = memo<CodeBlockProps>(
           >
             {copied ? (
               <HugeiconsIcon
-                icon={Check}
+                icon={Tick01Icon}
                 data-icon="check"
                 size={14}
                 strokeWidth={1.75}
               />
             ) : (
               <HugeiconsIcon
-                icon={Copy}
+                icon={Copy01Icon}
                 data-icon="copy"
                 size={14}
                 strokeWidth={1.75}

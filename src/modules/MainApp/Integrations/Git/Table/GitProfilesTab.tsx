@@ -1,9 +1,9 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
@@ -274,7 +274,7 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
                     selected={selected}
                     leading={
                       <HugeiconsIcon
-                        icon={UserRound}
+                        icon={UserCircleIcon}
                         data-icon="user-round"
                         size={16}
                       />
@@ -282,7 +282,7 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
                     trailing={
                       active ? (
                         <HugeiconsIcon
-                          icon={Check}
+                          icon={Tick01Icon}
                           data-icon="check"
                           size={15}
                           className="text-success-6"
@@ -301,7 +301,7 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
               })}
               <SectionSidebarItem
                 leading={
-                  <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />
+                  <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
                 }
                 onClick={handleAdd}
                 data-testid="settings-git-profile-add"
@@ -311,7 +311,7 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
               <SectionSidebarItem
                 leading={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={14}
                     className={loading ? "animate-spin" : undefined}
@@ -391,7 +391,11 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
                     <Button
                       size="small"
                       icon={
-                        <HugeiconsIcon icon={Copy} data-icon="copy" size={14} />
+                        <HugeiconsIcon
+                          icon={Copy01Icon}
+                          data-icon="copy"
+                          size={14}
+                        />
                       }
                       onClick={handleDuplicate}
                     >
@@ -403,7 +407,7 @@ const GitProfilesTab: React.FC<GitProfilesTabProps> = ({ connectedEmails }) => {
                         size="small"
                         icon={
                           <HugeiconsIcon
-                            icon={Trash2}
+                            icon={Delete02Icon}
                             data-icon="trash-2"
                             size={14}
                             className="text-danger-6"

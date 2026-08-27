@@ -8,7 +8,7 @@
  * Categories are fully dynamic — the backend defines the list and the
  * frontend renders whatever it receives. No hardcoded tier names.
  */
-import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import type { ORGIIPoolCategory, ORGIIPoolConfig } from "@src/types/model/pool";
@@ -41,7 +41,7 @@ export function parseOrgiiTierId(modelId: string): string {
 }
 
 export function getOrgiiTierIcon(tierId: string): IconSvgElement {
-  return ORGII_TIER_ICONS[tierId] ?? Zap;
+  return ORGII_TIER_ICONS[tierId] ?? FlashIcon;
 }
 
 /**

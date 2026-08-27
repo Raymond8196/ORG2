@@ -1,8 +1,8 @@
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Cpu from "@hugeicons/core-free-icons/CpuIcon";
-import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
-import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import CpuIcon from "@hugeicons/core-free-icons/CpuIcon";
+import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
+import ToolboxIcon from "@hugeicons/core-free-icons/ToolboxIcon";
+import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import type { SlashItemCategory } from "@src/types/extensions";
@@ -20,16 +20,16 @@ export const CATEGORY_LABELS: Record<SlashItemCategory, string> = {
 export const MODE_FLYOUT_LABEL = "Mode";
 export const MODELS_FLYOUT_LABEL = "Models";
 
-export const ModeIcon = Bot;
-export const ModelsIcon = Cpu;
+export const ModeIcon = BotIcon;
+export const ModelsIcon = CpuIcon;
 
 export function categoryIcon(category: SlashItemCategory): IconSvgElement {
   switch (category) {
     case "skill":
-      return Toolbox;
+      return ToolboxIcon;
     case "action":
-      return Zap;
+      return FlashIcon;
     case "tool":
-      return Wrench;
+      return Wrench01Icon;
   }
 }

@@ -9,7 +9,7 @@
  * It is a sibling of the stream-retry indicator in `ChatHeader` and follows
  * the same low-key pill styling so the input area chrome stays consistent.
  */
-import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -38,7 +38,7 @@ const StreamingHud: React.FC<StreamingHudProps> = ({ sessionId }) => {
     <div className="mx-auto mb-1 flex w-full items-center justify-center">
       <div className="flex h-[24px] items-center gap-2 rounded-full border border-solid border-border-2 bg-bg-2 px-3 text-[12px] text-text-2">
         <HugeiconsIcon
-          icon={Gauge}
+          icon={GaugeIcon}
           data-icon="gauge"
           size={12}
           strokeWidth={1.75}

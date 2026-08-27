@@ -11,8 +11,8 @@
  * so the OS legacy-blob pipeline (`extractAgentDefPatch`) and the
  * direct `agentDef.updatePatch` pipeline both receive the edit.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -94,7 +94,7 @@ const PersonalitySection: React.FC<PersonalitySectionProps> = ({
           {activeTab !== "edit" && (
             <Button
               icon={
-                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+                <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={14} />
               }
               iconOnly
               onClick={handleEdit}
@@ -104,7 +104,9 @@ const PersonalitySection: React.FC<PersonalitySectionProps> = ({
             />
           )}
           <Button
-            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
+            icon={
+              <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={14} />
+            }
             iconOnly
             onClick={handleCopy}
             disabled={!draftValue.trim()}

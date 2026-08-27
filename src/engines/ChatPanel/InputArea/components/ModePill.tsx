@@ -16,7 +16,7 @@
  *     Historical missing/unknown values resolve to Build. The creator default
  *     is never consulted for an existing session.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
@@ -261,7 +261,7 @@ const ModePill: React.FC<ModePillProps> = memo(
           hoverIcon={
             resetToDefaultOnClick && mode !== DEFAULT_AGENT_EXEC_MODE ? (
               <HugeiconsIcon
-                icon={X}
+                icon={Cancel01Icon}
                 data-icon="x"
                 size={14}
                 strokeWidth={1.75}

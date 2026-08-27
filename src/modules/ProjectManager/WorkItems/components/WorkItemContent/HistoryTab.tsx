@@ -1,11 +1,11 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CornerUpLeft from "@hugeicons/core-free-icons/CornerUpLeftIcon";
-import Bell from "@hugeicons/core-free-icons/Notification01Icon";
-import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CornerUpLeftIcon from "@hugeicons/core-free-icons/CornerUpLeftIcon";
+import Notification01Icon from "@hugeicons/core-free-icons/Notification01Icon";
+import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -91,7 +91,7 @@ const DiscussionThreads: React.FC<DiscussionThreadsProps> = ({
                 {root.resolved_at ? (
                   <span className="inline-flex items-center gap-1 text-success-6">
                     <HugeiconsIcon
-                      icon={CheckCircle2}
+                      icon={CheckmarkCircle01Icon}
                       data-icon="check-circle-2"
                       size={12}
                       aria-hidden
@@ -111,14 +111,14 @@ const DiscussionThreads: React.FC<DiscussionThreadsProps> = ({
                   icon={
                     root.resolved_at ? (
                       <HugeiconsIcon
-                        icon={RotateCcw}
+                        icon={RotateLeft01Icon}
                         data-icon="rotate-ccw"
                         size={13}
                         aria-hidden
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={CheckCircle2}
+                        icon={CheckmarkCircle01Icon}
                         data-icon="check-circle-2"
                         size={13}
                         aria-hidden
@@ -186,7 +186,7 @@ const DiscussionThreads: React.FC<DiscussionThreadsProps> = ({
                           size="mini"
                           icon={
                             <HugeiconsIcon
-                              icon={CornerUpLeft}
+                              icon={CornerUpLeftIcon}
                               data-icon="corner-up-left"
                               size={13}
                               aria-hidden
@@ -252,13 +252,18 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       icon={
         isSubscribed ? (
           <HugeiconsIcon
-            icon={BellOff}
+            icon={NotificationOff01Icon}
             data-icon="bell-off"
             size={13}
             aria-hidden
           />
         ) : (
-          <HugeiconsIcon icon={Bell} data-icon="bell" size={13} aria-hidden />
+          <HugeiconsIcon
+            icon={Notification01Icon}
+            data-icon="bell"
+            size={13}
+            aria-hidden
+          />
         )
       }
       onClick={onToggleSubscribe}
@@ -352,7 +357,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       iconOnly
       icon={
         <HugeiconsIcon
-          icon={ArrowUp}
+          icon={ArrowUp02Icon}
           data-icon="arrow-up"
           size={16}
           aria-hidden
@@ -396,7 +401,12 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
               shape="circle"
               iconOnly
               icon={
-                <HugeiconsIcon icon={X} data-icon="x" size={12} aria-hidden />
+                <HugeiconsIcon
+                  icon={Cancel01Icon}
+                  data-icon="x"
+                  size={12}
+                  aria-hidden
+                />
               }
               aria-label={t("workItems.activity.cancelReply", {
                 defaultValue: "Cancel reply",
@@ -534,7 +544,7 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
                   })}
                 </span>
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={14}
                   aria-hidden

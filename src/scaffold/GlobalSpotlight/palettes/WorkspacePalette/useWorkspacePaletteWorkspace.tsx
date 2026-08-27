@@ -8,7 +8,7 @@
  *
  * Extracted to keep WorkspacePalette/index.tsx under the UI component line limit.
  */
-import Code from "@hugeicons/core-free-icons/CodeIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
@@ -362,7 +362,7 @@ export function useWorkspacePaletteWorkspace({
           title={`${repoCount} repo${repoCount !== 1 ? "s" : ""}: ${names.join(", ")}`}
         >
           {repoCount}
-          <HugeiconsIcon icon={Code} data-icon="code" size={12} />
+          <HugeiconsIcon icon={CodeIcon} data-icon="code" size={12} />
         </span>
       );
       const manageActions = (

@@ -17,10 +17,10 @@
  * <Select mode="multiple" showSearch options={options} onChange={handleChange} />
  * ```
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
@@ -259,7 +259,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
               <span key={opt.value} className="select-tag">
                 {opt.label}
                 <HugeiconsIcon
-                  icon={X}
+                  icon={Cancel01Icon}
                   data-icon="x"
                   size={DROPDOWN_ITEM.iconSize}
                   onClick={(event) => {
@@ -381,7 +381,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
             <div className="select-suffix">
               {loading && (
                 <HugeiconsIcon
-                  icon={Loader2}
+                  icon={Loading03Icon}
                   data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin"
@@ -389,7 +389,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
               )}
               {showClearButton && !loading && (
                 <HugeiconsIcon
-                  icon={X}
+                  icon={Cancel01Icon}
                   data-icon="x"
                   size={DROPDOWN_ITEM.iconSize}
                   className="select-clear cursor-pointer"
@@ -397,7 +397,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
                 />
               )}
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={appearance === "ghost" ? 12 : 16}
                 className={`select-arrow shrink-0 transition-transform ${
@@ -418,7 +418,7 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
               {showSearch && (
                 <div className={DROPDOWN_CLASSES.searchContainer}>
                   <HugeiconsIcon
-                    icon={Search}
+                    icon={Search01Icon}
                     data-icon="search"
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0 text-text-3"

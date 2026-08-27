@@ -4,9 +4,9 @@
  * Shared tab identifiers, presence-guidance defaults and profile-preset
  * scaffolding for the My Roles section.
  */
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
-import Moon from "@hugeicons/core-free-icons/MoonIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
+import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
 
 import type {
   FamiliarLanguageTechStack,
@@ -79,19 +79,19 @@ export const BUILT_IN_STATUS_OPTIONS = [
   {
     mode: USER_PRESENCE_MODE.ONLINE,
     labelKey: "sidebar.presence.online",
-    icon: Circle,
+    icon: CircleIcon,
     colorClass: "text-success-6",
   },
   {
     mode: USER_PRESENCE_MODE.INVISIBLE,
     labelKey: "sidebar.presence.invisible",
-    icon: HatGlasses,
+    icon: HatGlassesIcon,
     colorClass: "text-text-3",
   },
   {
     mode: USER_PRESENCE_MODE.AWAY,
     labelKey: "sidebar.presence.away",
-    icon: Moon,
+    icon: MoonIcon,
     colorClass: "text-warning-6",
   },
 ] as const;

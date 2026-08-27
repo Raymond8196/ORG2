@@ -22,9 +22,9 @@
  * <Input errorMessage="Name already exists" errorPlacement="left" />
  * ```
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
-import EyeOff from "@hugeicons/core-free-icons/ViewOffIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
+import ViewOffIcon from "@hugeicons/core-free-icons/ViewOffIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
@@ -330,7 +330,7 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               onClick={handleClear}
               tabIndex={-1}
             >
-              <HugeiconsIcon icon={X} data-icon="x" size={16} />
+              <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={16} />
             </button>
           )}
 
@@ -342,9 +342,13 @@ const Input = forwardRef<HTMLInputElement, InputProps>(
               tabIndex={-1}
             >
               {showPassword ? (
-                <HugeiconsIcon icon={EyeOff} data-icon="eye-off" size={16} />
+                <HugeiconsIcon
+                  icon={ViewOffIcon}
+                  data-icon="eye-off"
+                  size={16}
+                />
               ) : (
-                <HugeiconsIcon icon={Eye} data-icon="eye" size={16} />
+                <HugeiconsIcon icon={ViewIcon} data-icon="eye" size={16} />
               )}
             </button>
           )}

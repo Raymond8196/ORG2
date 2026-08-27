@@ -1,6 +1,6 @@
-import AtSign from "@hugeicons/core-free-icons/AtIcon";
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import AtIcon from "@hugeicons/core-free-icons/AtIcon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
@@ -83,7 +83,7 @@ function renderAssigneeIcon(workItem: WorkItemExtended) {
   if (!workItem.assignee)
     return (
       <HugeiconsIcon
-        icon={User}
+        icon={UserIcon}
         data-icon="user"
         size={DROPDOWN_ITEM.iconSize}
       />
@@ -91,7 +91,7 @@ function renderAssigneeIcon(workItem: WorkItemExtended) {
   if (workItem.assigneeType === "agent") {
     return (
       <HugeiconsIcon
-        icon={AtSign}
+        icon={AtIcon}
         data-icon="at-sign"
         size={DROPDOWN_ITEM.iconSize}
         className="text-primary-6"
@@ -101,7 +101,7 @@ function renderAssigneeIcon(workItem: WorkItemExtended) {
   if (workItem.assigneeType === "org") {
     return (
       <HugeiconsIcon
-        icon={Network}
+        icon={HierarchyCircle01Icon}
         data-icon="network"
         size={DROPDOWN_ITEM.iconSize}
         className="text-primary-6"
@@ -129,7 +129,7 @@ function renderExternalAssigneeIcon(
   if (!option)
     return (
       <HugeiconsIcon
-        icon={User}
+        icon={UserIcon}
         data-icon="user"
         size={DROPDOWN_ITEM.iconSize}
       />
@@ -247,7 +247,7 @@ export function AssigneePropertyField({
                 <Option
                   icon={
                     <HugeiconsIcon
-                      icon={User}
+                      icon={UserIcon}
                       data-icon="user"
                       size={DROPDOWN_ITEM.iconSize}
                     />
@@ -324,7 +324,7 @@ export function AssigneePropertyField({
             <Option
               icon={
                 <HugeiconsIcon
-                  icon={User}
+                  icon={UserIcon}
                   data-icon="user"
                   size={DROPDOWN_ITEM.iconSize}
                 />

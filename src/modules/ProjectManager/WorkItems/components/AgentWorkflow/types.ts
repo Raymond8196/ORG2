@@ -1,10 +1,10 @@
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Ban from "@hugeicons/core-free-icons/BanIcon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import FilePen from "@hugeicons/core-free-icons/Edit04Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import BanIcon from "@hugeicons/core-free-icons/BanIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Edit04Icon from "@hugeicons/core-free-icons/Edit04Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 export interface SessionFileChange {
@@ -46,34 +46,34 @@ export interface StatusStyle {
 
 export const STATUS_STYLES: Record<string, StatusStyle> = {
   running: {
-    icon: Loader2,
+    icon: Loading03Icon,
     iconClass: "text-primary-6 animate-spin",
     badgeClass: "bg-primary-1 text-primary-6",
   },
   completed: {
-    icon: CheckCircle2,
+    icon: CheckmarkCircle01Icon,
     iconClass: "text-success-6",
     badgeClass: "bg-success-1 text-success-6",
   },
   failed: {
-    icon: XCircle,
+    icon: CancelCircleIcon,
     iconClass: "text-danger-6",
     badgeClass: "bg-danger-1 text-danger-6",
   },
   error: {
-    icon: AlertCircle,
+    icon: AlertCircleIcon,
     iconClass: "text-danger-6",
     badgeClass: "bg-danger-1 text-danger-6",
   },
   cancelled: {
-    icon: Ban,
+    icon: BanIcon,
     iconClass: "text-text-4",
     badgeClass: "bg-fill-2 text-text-3",
   },
 };
 
 const DEFAULT_STATUS_STYLE: StatusStyle = {
-  icon: Loader2,
+  icon: Loading03Icon,
   iconClass: "text-text-4",
   badgeClass: "bg-fill-2 text-text-3",
 };
@@ -103,6 +103,6 @@ export const TOOL_LABEL_I18N_KEYS: Record<string, string> = {
 };
 
 export const TOOL_ICONS: Record<string, IconSvgElement> = {
-  edit_file: FilePen,
-  apply_patch: Wrench,
+  edit_file: Edit04Icon,
+  apply_patch: Wrench01Icon,
 };

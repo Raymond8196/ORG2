@@ -5,9 +5,9 @@
  * User selects 2+ repos from a checklist; on submit, the selected
  * repos become workspace folders via setWorkspaceFoldersAtom.
  */
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -205,7 +205,7 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
               prefix={
                 <HugeiconsIcon
-                  icon={Search}
+                  icon={Search01Icon}
                   data-icon="search"
                   size={16}
                   className="text-text-2"
@@ -248,7 +248,7 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
                       <div className="flex min-w-0 flex-1 items-center gap-2">
                         {repo.kind === REPO_KIND.FOLDER ? (
                           <HugeiconsIcon
-                            icon={Folder}
+                            icon={FolderClosedIcon}
                             data-icon="folder"
                             size={13}
                             className="shrink-0 text-text-3"
@@ -266,7 +266,7 @@ const CreateWorkspaceForm: React.FC<CreateWorkspaceFormProps> = ({
                         {isCurrent && (
                           <span className="flex items-center gap-0.5 text-[11px] text-primary-6">
                             <HugeiconsIcon
-                              icon={Check}
+                              icon={Tick01Icon}
                               data-icon="check"
                               size={10}
                             />

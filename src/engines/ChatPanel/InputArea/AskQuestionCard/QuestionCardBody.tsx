@@ -8,7 +8,7 @@
  * All interaction state is passed in via props so each consumer can wire its
  * own submission / selection logic.
  */
-import PenLine from "@hugeicons/core-free-icons/PenLineIcon";
+import PenLineIcon from "@hugeicons/core-free-icons/PenLineIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
@@ -156,7 +156,7 @@ export function QuestionCardBody({
                         )}
                       >
                         <HugeiconsIcon
-                          icon={PenLine}
+                          icon={PenLineIcon}
                           data-icon="pen-line"
                           size={12}
                         />

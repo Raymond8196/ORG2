@@ -1,4 +1,4 @@
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -44,7 +44,7 @@ export const ExternalBrowserButton = memo(function ExternalBrowserButton({
         className={className}
         icon={
           <HugeiconsIcon
-            icon={Chrome}
+            icon={InternetIcon}
             data-icon="chrome"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}

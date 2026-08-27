@@ -9,12 +9,12 @@
  * - Debounces rendering during streaming (300ms stability wait)
  * - Click-to-zoom: click diagram to toggle fullscreen overlay
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import Workflow from "@hugeicons/core-free-icons/WorkflowCircle01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import WorkflowCircle01Icon from "@hugeicons/core-free-icons/WorkflowCircle01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -241,7 +241,13 @@ const MermaidBlockHeader: React.FC<MermaidBlockHeaderProps> = ({
     rightContent={rightContent}
   >
     <EventBlockHeaderIcon
-      icon={<HugeiconsIcon icon={Workflow} data-icon="workflow" size={14} />}
+      icon={
+        <HugeiconsIcon
+          icon={WorkflowCircle01Icon}
+          data-icon="workflow"
+          size={14}
+        />
+      }
       isCollapsed={isCollapsed}
       isHeaderHovered={isHeaderHovered}
       onToggle={onToggle}
@@ -509,7 +515,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                 title="Fullscreen"
               >
                 <HugeiconsIcon
-                  icon={Maximize2}
+                  icon={ArrowExpand01Icon}
                   data-icon="maximize-2"
                   size={14}
                 />
@@ -545,7 +551,11 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     onClick={zoomOut}
                     title="Zoom out"
                   >
-                    <HugeiconsIcon icon={Minus} data-icon="minus" size={15} />
+                    <HugeiconsIcon
+                      icon={MinusSignIcon}
+                      data-icon="minus"
+                      size={15}
+                    />
                   </button>
                   <span className="min-w-[3rem] text-center text-xs text-white/70">
                     {Math.round(zoom * 100)}%
@@ -555,7 +565,11 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     onClick={zoomIn}
                     title="Zoom in"
                   >
-                    <HugeiconsIcon icon={Plus} data-icon="plus" size={15} />
+                    <HugeiconsIcon
+                      icon={Add01Icon}
+                      data-icon="plus"
+                      size={15}
+                    />
                   </button>
                   <div className="mx-1 h-4 w-px bg-white/20" />
                   <button
@@ -564,7 +578,7 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     title="Reset (100%)"
                   >
                     <HugeiconsIcon
-                      icon={RotateCcw}
+                      icon={RotateLeft01Icon}
                       data-icon="rotate-ccw"
                       size={15}
                     />
@@ -575,7 +589,11 @@ const MermaidBlock: React.FC<MermaidBlockProps> = memo(
                     onClick={toggleExpand}
                     title="Close"
                   >
-                    <HugeiconsIcon icon={X} data-icon="x" size={15} />
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      data-icon="x"
+                      size={15}
+                    />
                   </button>
                 </div>
               </div>

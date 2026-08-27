@@ -29,7 +29,7 @@
  * BOTH scopes: the cloud RPC refuses the write anyway (`ORG2_CHANNEL_ARCHIVED`),
  * so the composer and the row actions match the local plane exactly.
  */
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -164,7 +164,7 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
           fillParentHeight
           icon={
             <HugeiconsIcon
-              icon={MessagesSquare}
+              icon={MessageMultiple01Icon}
               data-icon="messages-square"
               size={32}
               strokeWidth={1.5}
@@ -213,7 +213,7 @@ const LocalChannelPanel: React.FC<LocalChannelPanelProps> = ({
               placement="detail-panel"
               icon={
                 <HugeiconsIcon
-                  icon={MessagesSquare}
+                  icon={MessageMultiple01Icon}
                   data-icon="messages-square"
                   size={32}
                   strokeWidth={1.5}
@@ -446,7 +446,7 @@ const CloudChannelPanel: React.FC<CloudChannelPanelProps> = ({
                 placement="detail-panel"
                 icon={
                   <HugeiconsIcon
-                    icon={MessagesSquare}
+                    icon={MessageMultiple01Icon}
                     data-icon="messages-square"
                     size={32}
                     strokeWidth={1.5}

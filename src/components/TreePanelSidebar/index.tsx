@@ -30,9 +30,9 @@
  * />
  * ```
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -94,14 +94,14 @@ const DefaultTreeNode: React.FC<TreeNodeProps> = memo(
           <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
             {isExpanded ? (
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={14}
                 className="text-text-3"
               />
             ) : (
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={14}
                 className="text-text-3"
@@ -270,7 +270,7 @@ export function TreePanelSidebar<TTab extends string = string>({
             {sectionCollapsible &&
               (sectionExpanded ? (
                 <HugeiconsIcon
-                  icon={ChevronDown}
+                  icon={ArrowDown01Icon}
                   data-icon="chevron-down"
                   size={12}
                   strokeWidth={2}
@@ -278,7 +278,7 @@ export function TreePanelSidebar<TTab extends string = string>({
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={12}
                   strokeWidth={2}
@@ -323,7 +323,7 @@ export function TreePanelSidebar<TTab extends string = string>({
         <Input
           prefix={
             <HugeiconsIcon
-              icon={SearchIcon}
+              icon={Search01Icon}
               data-icon="search-icon"
               size={14}
               strokeWidth={1.75}

@@ -1,4 +1,4 @@
-import List from "@hugeicons/core-free-icons/ListIcon";
+import ListIcon from "@hugeicons/core-free-icons/ListIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,7 +36,7 @@ const WorkItemsStatusFilterSelect: React.FC<
     if (key === "all") {
       return (
         <HugeiconsIcon
-          icon={List}
+          icon={ListIcon}
           data-icon="list"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}
@@ -49,7 +49,7 @@ const WorkItemsStatusFilterSelect: React.FC<
     if (!option?.icon) {
       return (
         <HugeiconsIcon
-          icon={List}
+          icon={ListIcon}
           data-icon="list"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={1.75}

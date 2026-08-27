@@ -4,8 +4,8 @@
  * Main navigation sidebar with tabs and menu items.
  * Used by Settings and Workstation navigation surfaces.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, {
   type ReactNode,
@@ -495,7 +495,9 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                         <span className="hidden flex-shrink-0 items-center leading-none text-text-2 group-hover/section-title:inline-flex">
                           <NavigationMenuRowActionButton
                             icon={
-                              isSectionCollapsed ? ChevronRight : ChevronDown
+                              isSectionCollapsed
+                                ? ArrowRight01Icon
+                                : ArrowDown01Icon
                             }
                             label={section.title}
                             onClick={() => {
@@ -581,7 +583,9 @@ const NavigationSidebar: React.FC<NavigationSidebarProps> = React.memo(
                         <span className="hidden flex-shrink-0 items-center leading-none text-text-2 group-hover/section-title:inline-flex">
                           <NavigationMenuRowActionButton
                             icon={
-                              isSectionCollapsed ? ChevronRight : ChevronDown
+                              isSectionCollapsed
+                                ? ArrowRight01Icon
+                                : ArrowDown01Icon
                             }
                             label={section.title ?? section.id}
                             onClick={() => {

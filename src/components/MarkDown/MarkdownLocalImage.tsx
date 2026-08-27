@@ -9,8 +9,8 @@
  * swallows the click so a wrapping markdown link can never navigate the
  * webview or reach the browser app with a filesystem path.
  */
-import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
-import ImageOff from "@hugeicons/core-free-icons/ImageNotFound01Icon";
+import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
+import ImageNotFound01Icon from "@hugeicons/core-free-icons/ImageNotFound01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { homeDir, join } from "@tauri-apps/api/path";
 import { readFile, stat } from "@tauri-apps/plugin-fs";
@@ -192,7 +192,7 @@ const MarkdownLocalImage: React.FC<MarkdownLocalImageProps> = memo(
         >
           {failed ? (
             <HugeiconsIcon
-              icon={ImageOff}
+              icon={ImageNotFound01Icon}
               data-icon="image-off"
               size={14}
               strokeWidth={1.5}
@@ -214,7 +214,7 @@ const MarkdownLocalImage: React.FC<MarkdownLocalImageProps> = memo(
           onClick={containClick}
         >
           <HugeiconsIcon
-            icon={ImageIcon}
+            icon={Image01Icon}
             data-icon="image-icon"
             size={16}
             strokeWidth={1.5}

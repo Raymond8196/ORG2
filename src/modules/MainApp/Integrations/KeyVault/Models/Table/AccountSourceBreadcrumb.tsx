@@ -1,4 +1,4 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -29,7 +29,7 @@ export const AccountSourceBreadcrumb: React.FC<
       <span className="flex min-w-0 items-center gap-1 text-xs">
         <span className="shrink-0 text-text-2">{parent}</span>
         <HugeiconsIcon
-          icon={ChevronRight}
+          icon={ArrowRight01Icon}
           data-icon="chevron-right"
           size={12}
           className="shrink-0 text-text-4"

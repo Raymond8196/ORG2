@@ -8,8 +8,8 @@
  * `activeStatusBarCallbacksAtom` because AppShell registers handlers per
  * active app (Code Editor → bottom panel, Browser → DevTools).
  */
-import PencilRuler from "@hugeicons/core-free-icons/PencilRulerIcon";
-import PanelBottom from "@hugeicons/core-free-icons/SidebarBottomIcon";
+import PencilRulerIcon from "@hugeicons/core-free-icons/PencilRulerIcon";
+import SidebarBottomIcon from "@hugeicons/core-free-icons/SidebarBottomIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
@@ -39,7 +39,7 @@ export const TabBarBottomPanelToggle: React.FC = memo(() => {
       onClick={() => callbacks.onToggleBottomPanel?.()}
     >
       <HugeiconsIcon
-        icon={PanelBottom}
+        icon={SidebarBottomIcon}
         data-icon="panel-bottom"
         size={HEADER_ICON_SIZE.md}
         strokeWidth={1.75}
@@ -64,7 +64,7 @@ export const TabBarDevToolsToggle: React.FC = memo(() => {
       onClick={() => callbacks.onToggleDevTools?.()}
     >
       <HugeiconsIcon
-        icon={PencilRuler}
+        icon={PencilRulerIcon}
         data-icon="pencil-ruler"
         size={HEADER_ICON_SIZE.sm}
         strokeWidth={1.75}

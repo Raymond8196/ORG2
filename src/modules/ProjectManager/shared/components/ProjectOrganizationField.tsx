@@ -1,4 +1,4 @@
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { type FC, useEffect, useMemo, useState } from "react";
 
@@ -42,7 +42,7 @@ const ProjectOrganizationField: FC<ProjectOrganizationFieldProps> = ({
   const [open, setOpen] = useState(false);
   const networkIcon = (
     <HugeiconsIcon
-      icon={Network}
+      icon={HierarchyCircle01Icon}
       data-icon="network"
       size={DROPDOWN_ITEM.iconSize}
     />

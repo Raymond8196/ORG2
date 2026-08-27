@@ -3,7 +3,7 @@
  *
  * Small clickable pill rendered alongside the keyboard-shortcuts footer.
  */
-import ArrowUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -25,7 +25,7 @@ export const SpotlightFooterAction: React.FC<SpotlightFooterActionProps> = ({
       >
         <span>{label}</span>
         <HugeiconsIcon
-          icon={ArrowUpRight}
+          icon={SquareArrowUpRightIcon}
           data-icon="arrow-up-right"
           size={10}
           strokeWidth={2.5}

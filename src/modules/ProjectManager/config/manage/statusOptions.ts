@@ -3,12 +3,12 @@
  *
  * Status configurations for work items and projects.
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashed from "@hugeicons/core-free-icons/CircleDashedIcon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -34,7 +34,7 @@ export const GITHUB_ISSUE_STATUS_OPTIONS: DropdownOption<GitHubIssueStatus>[] =
       value: GITHUB_ISSUE_STATUS.OPEN,
       label: "Open",
       icon: React.createElement(HugeiconsIcon, {
-        icon: Circle,
+        icon: CircleIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       color: STATUS_COLORS.in_progress,
@@ -43,7 +43,7 @@ export const GITHUB_ISSUE_STATUS_OPTIONS: DropdownOption<GitHubIssueStatus>[] =
       value: GITHUB_ISSUE_STATUS.CLOSED,
       label: "Closed",
       icon: React.createElement(HugeiconsIcon, {
-        icon: CheckCircle2,
+        icon: CheckmarkCircle01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       color: STATUS_COLORS.completed,
@@ -55,7 +55,7 @@ export const WORK_ITEM_STATUS_OPTIONS: DropdownOption<WorkItemStatus>[] = [
     value: WORK_ITEM_STATUS.PLANNED,
     label: "Todo",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Circle,
+      icon: CircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.planned,
@@ -64,7 +64,7 @@ export const WORK_ITEM_STATUS_OPTIONS: DropdownOption<WorkItemStatus>[] = [
     value: WORK_ITEM_STATUS.IN_PROGRESS,
     label: "In Progress",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Clock,
+      icon: Clock01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.in_progress,
@@ -73,7 +73,7 @@ export const WORK_ITEM_STATUS_OPTIONS: DropdownOption<WorkItemStatus>[] = [
     value: WORK_ITEM_STATUS.IN_REVIEW,
     label: "In Review",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Layers,
+      icon: Layers01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.in_review,
@@ -82,7 +82,7 @@ export const WORK_ITEM_STATUS_OPTIONS: DropdownOption<WorkItemStatus>[] = [
     value: WORK_ITEM_STATUS.COMPLETED,
     label: "Done",
     icon: React.createElement(HugeiconsIcon, {
-      icon: CheckCircle2,
+      icon: CheckmarkCircle01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.completed,
@@ -91,7 +91,7 @@ export const WORK_ITEM_STATUS_OPTIONS: DropdownOption<WorkItemStatus>[] = [
     value: WORK_ITEM_STATUS.BACKLOG,
     label: "Backlog",
     icon: React.createElement(HugeiconsIcon, {
-      icon: CircleDashed,
+      icon: CircleDashedIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.backlog,
@@ -100,7 +100,7 @@ export const WORK_ITEM_STATUS_OPTIONS: DropdownOption<WorkItemStatus>[] = [
     value: WORK_ITEM_STATUS.CANCELLED,
     label: "Cancelled",
     icon: React.createElement(HugeiconsIcon, {
-      icon: XCircle,
+      icon: CancelCircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.cancelled,
@@ -109,7 +109,7 @@ export const WORK_ITEM_STATUS_OPTIONS: DropdownOption<WorkItemStatus>[] = [
     value: WORK_ITEM_STATUS.DUPLICATE,
     label: "Duplicate",
     icon: React.createElement(HugeiconsIcon, {
-      icon: XCircle,
+      icon: CancelCircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.duplicate,
@@ -133,7 +133,7 @@ export const STORY_STATUS_OPTIONS: ProjectStatusOption[] = [
     value: "backlog",
     label: "Backlog",
     icon: React.createElement(HugeiconsIcon, {
-      icon: CircleDashed,
+      icon: CircleDashedIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.backlog,
@@ -143,7 +143,7 @@ export const STORY_STATUS_OPTIONS: ProjectStatusOption[] = [
     value: "planned",
     label: "Planned",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Circle,
+      icon: CircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.planned,
@@ -153,7 +153,7 @@ export const STORY_STATUS_OPTIONS: ProjectStatusOption[] = [
     value: "in_progress",
     label: "In Progress",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Clock,
+      icon: Clock01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.in_progress,
@@ -163,7 +163,7 @@ export const STORY_STATUS_OPTIONS: ProjectStatusOption[] = [
     value: "completed",
     label: "Completed",
     icon: React.createElement(HugeiconsIcon, {
-      icon: CheckCircle2,
+      icon: CheckmarkCircle01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.completed,
@@ -173,7 +173,7 @@ export const STORY_STATUS_OPTIONS: ProjectStatusOption[] = [
     value: "canceled",
     label: "Canceled",
     icon: React.createElement(HugeiconsIcon, {
-      icon: XCircle,
+      icon: CancelCircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: STATUS_COLORS.canceled,

@@ -3,7 +3,7 @@
  *
  * Renders user and agent chat message events inside the Communication simulator.
  */
-import User from "@hugeicons/core-free-icons/UserIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -128,7 +128,7 @@ const ChatBubbleView: React.FC<
               icon={
                 isUser ? (
                   <HugeiconsIcon
-                    icon={User}
+                    icon={UserIcon}
                     data-icon="user"
                     size={AVATAR_ICON_SIZE}
                     className="text-primary-6"

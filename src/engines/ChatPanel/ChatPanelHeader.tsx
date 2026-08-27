@@ -1,7 +1,7 @@
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import MonitorPlay from "@hugeicons/core-free-icons/ComputerVideoIcon";
-import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
-import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ComputerVideoIcon from "@hugeicons/core-free-icons/ComputerVideoIcon";
+import PanelRightIcon from "@hugeicons/core-free-icons/PanelRightIcon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
@@ -175,14 +175,14 @@ export function ChatPanelHeader({
                 icon={
                   tuiMode ? (
                     <HugeiconsIcon
-                      icon={MonitorPlay}
+                      icon={ComputerVideoIcon}
                       data-icon="monitor-play"
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={TerminalSquare}
+                      icon={SquareTerminalIcon}
                       data-icon="terminal-square"
                       size={CHAT_PANEL_HEADER_ICON_SIZE}
                       strokeWidth={2}
@@ -276,14 +276,14 @@ export function ChatPanelHeader({
         >
           {isChatFocus ? (
             <HugeiconsIcon
-              icon={PanelRight}
+              icon={PanelRightIcon}
               data-icon="panel-right"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}
             />
           ) : (
             <HugeiconsIcon
-              icon={Maximize2}
+              icon={ArrowExpand01Icon}
               data-icon="maximize-2"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}

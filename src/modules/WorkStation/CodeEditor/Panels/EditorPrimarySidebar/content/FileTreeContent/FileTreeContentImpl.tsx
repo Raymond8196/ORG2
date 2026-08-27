@@ -20,8 +20,8 @@ import {
   workspaceFileStatusMapAtom,
   workspaceFolderStatusMapAtom,
 } from "@/src/store/git";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -322,14 +322,14 @@ export const FileTreeContent = memo(
               <div className={STICKY_ROW.chevronBox}>
                 {isExpanded ? (
                   <HugeiconsIcon
-                    icon={ChevronDown}
+                    icon={ArrowDown01Icon}
                     data-icon="chevron-down"
                     size={CHEVRON_SIZE}
                     className={STICKY_ROW.chevronIcon}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={ChevronRight}
+                    icon={ArrowRight01Icon}
                     data-icon="chevron-right"
                     size={CHEVRON_SIZE}
                     className={STICKY_ROW.chevronIcon}

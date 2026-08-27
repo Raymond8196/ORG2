@@ -1,4 +1,4 @@
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -393,7 +393,7 @@ const WorkItemRow: React.FC<WorkItemRowProps> = React.memo(
               onClick={handleRestore}
             >
               <HugeiconsIcon
-                icon={RotateCcw}
+                icon={RotateLeft01Icon}
                 data-icon="rotate-ccw"
                 size={13}
               />

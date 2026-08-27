@@ -4,7 +4,7 @@
  * Displays pasted/dropped image thumbnails above the chat input.
  * Click opens fullscreen preview overlay with download/close.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
@@ -68,7 +68,12 @@ const ImageThumbnail: React.FC<ImageThumbnailProps> = memo(
             aria-label={`Remove ${image.fileName}`}
             data-testid="chat-image-attachment-remove"
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={10} strokeWidth={2.5} />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              data-icon="x"
+              size={10}
+              strokeWidth={2.5}
+            />
           </button>
         </div>
         {showOverlay && (

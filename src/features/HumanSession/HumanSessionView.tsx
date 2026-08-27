@@ -1,4 +1,4 @@
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -208,7 +208,7 @@ const HumanSessionView: React.FC<HumanSessionViewProps> = ({ sessionId }) => {
         className="flex h-full items-center justify-center text-text-3"
       >
         <HugeiconsIcon
-          icon={Loader2}
+          icon={Loading03Icon}
           data-icon="loader-2"
           className="animate-spin"
           size={20}

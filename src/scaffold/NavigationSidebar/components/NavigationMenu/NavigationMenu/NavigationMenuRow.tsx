@@ -1,7 +1,7 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 
@@ -219,7 +219,7 @@ export const NavigationMenuParentRow = React.forwardRef<
             {item.disclosureFollowsLabel ? (
               isOpen ? (
                 <HugeiconsIcon
-                  icon={ChevronsDownUp}
+                  icon={ChevronsDownUpIcon}
                   data-icon="chevrons-down-up"
                   size={12}
                   strokeWidth={2}
@@ -227,7 +227,7 @@ export const NavigationMenuParentRow = React.forwardRef<
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={ChevronsUpDown}
+                  icon={UnfoldMoreIcon}
                   data-icon="chevrons-up-down"
                   size={12}
                   strokeWidth={2}
@@ -236,7 +236,7 @@ export const NavigationMenuParentRow = React.forwardRef<
               )
             ) : (
               <NavigationMenuRowActionButton
-                icon={isOpen ? ChevronsDownUp : ChevronsUpDown}
+                icon={isOpen ? ChevronsDownUpIcon : UnfoldMoreIcon}
                 label={t("actions.toggle")}
                 dataTestId={
                   item.dataTestId ? `${item.dataTestId}-toggle` : undefined
@@ -453,7 +453,7 @@ function renderLeadingIcon({
   const action = item.iconAction;
   if (!action) return icon;
 
-  const ActionIcon = action.icon ?? ChevronDown;
+  const ActionIcon = action.icon ?? ArrowDown01Icon;
 
   return (
     <span className="relative inline-flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center leading-none">
@@ -546,7 +546,7 @@ function renderLeafRowAccessory({
           {item.trailingElement}
           {item.showDrillDownIndicator && (
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={12}
               strokeWidth={2}

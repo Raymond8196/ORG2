@@ -9,8 +9,8 @@
  *
  * Design: uses shared secondary buttons so pinned actions match other composer controls.
  */
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, {
@@ -362,7 +362,7 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
         shape="round"
         icon={
           <HugeiconsIcon
-            icon={MoreHorizontal}
+            icon={MoreHorizontalIcon}
             data-icon="ellipsis"
             size={14}
             strokeWidth={1.75}
@@ -383,7 +383,7 @@ const PinnedActionsBar: React.FC<PinnedActionsBarProps> = memo(
             <UserActionButton
               leftIcon={
                 <HugeiconsIcon
-                  icon={Layout}
+                  icon={Layout01Icon}
                   data-icon="layout"
                   size={12}
                   strokeWidth={1.75}

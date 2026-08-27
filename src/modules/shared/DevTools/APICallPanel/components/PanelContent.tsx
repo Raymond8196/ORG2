@@ -1,9 +1,9 @@
 // ============================================
 // PanelContent Component
 // ============================================
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
@@ -415,13 +415,13 @@ const ApiCallRow: React.FC<ApiCallRowProps> = ({
       >
         {expanded ? (
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={13}
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={13}
           />
@@ -486,7 +486,7 @@ const SortHeader: React.FC<SortHeaderProps> = ({
   >
     <span className="truncate">{label}</span>
     <HugeiconsIcon
-      icon={ChevronsUpDown}
+      icon={UnfoldMoreIcon}
       data-icon="chevrons-up-down"
       size={11}
       className={sort?.key === column ? "text-primary-6" : "opacity-50"}

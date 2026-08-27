@@ -9,10 +9,10 @@ import {
   SECTION_PATH_TEXT_CLASSES,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import React from "react";
@@ -135,7 +135,7 @@ export const ImageSection: React.FC<ImageSectionProps> = ({
                   shape="circle"
                   icon={
                     <HugeiconsIcon
-                      icon={X}
+                      icon={Cancel01Icon}
                       data-icon="x"
                       size={9}
                       strokeWidth={2.25}
@@ -174,7 +174,7 @@ export const ImageSection: React.FC<ImageSectionProps> = ({
               }}
             />
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={14}
               strokeWidth={2.25}
@@ -221,7 +221,9 @@ export const ImageSection: React.FC<ImageSectionProps> = ({
                 Message.success(t("storage.copiedPath"));
               });
             }}
-            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
+            icon={
+              <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={14} />
+            }
             iconOnly
             title={t("common:actions.copy")}
           />
@@ -230,7 +232,7 @@ export const ImageSection: React.FC<ImageSectionProps> = ({
             onClick={() => invoke("open_folder", { path: storagePath })}
             icon={
               <HugeiconsIcon
-                icon={FolderOpen}
+                icon={FolderOpenIcon}
                 data-icon="folder-open"
                 size={14}
               />

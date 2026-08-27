@@ -13,9 +13,9 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -270,7 +270,7 @@ const StorageSection: React.FC = () => {
                 onClick={() => handleRevealOrOpen(cat)}
                 icon={
                   <HugeiconsIcon
-                    icon={FolderOpen}
+                    icon={FolderOpenIcon}
                     data-icon="folder-open"
                     size={14}
                   />
@@ -284,7 +284,7 @@ const StorageSection: React.FC = () => {
                 onClick={() => handleClearClick(cat)}
                 icon={
                   <HugeiconsIcon
-                    icon={Trash2}
+                    icon={Delete02Icon}
                     data-icon="trash-2"
                     size={14}
                     className="text-danger-6"
@@ -425,7 +425,13 @@ const StorageSection: React.FC = () => {
           <Button
             variant="secondary"
             size="default"
-            icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={Delete02Icon}
+                data-icon="trash-2"
+                size={14}
+              />
+            }
             loading={isCleaningBrowserStorage}
             disabled={browserStorageUsage.cleanableBytes === 0}
             onClick={handleCleanBrowserStorage}
@@ -462,7 +468,7 @@ const StorageSection: React.FC = () => {
           ) : isScanning ? (
             <div className="flex items-center gap-2 py-2">
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={12}
                 className={`${REFRESH_ICON_TOKENS.spin} text-text-3`}

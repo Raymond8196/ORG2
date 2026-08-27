@@ -3,10 +3,10 @@
  * plaintext secret exactly once — shown until the row reloads, never
  * persisted on the frontend.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -143,7 +143,7 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
     [t]
   );
 
-  const Chevron = expanded ? ChevronDown : ChevronRight;
+  const Chevron = expanded ? ArrowDown01Icon : ArrowRight01Icon;
   const paused = Boolean(status?.pausedAt);
 
   const statusChip = !status ? null : !status.installed ? (
@@ -240,7 +240,7 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
               iconOnly
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={13}
                   strokeWidth={1.75}
@@ -274,7 +274,11 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
                   size="mini"
                   iconOnly
                   icon={
-                    <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
+                    <HugeiconsIcon
+                      icon={Copy01Icon}
+                      data-icon="copy"
+                      size={12}
+                    />
                   }
                   onClick={() => handleCopy(installInfo.urlPath)}
                   data-testid={`routine-webhook-copy-url-${routine.name}`}
@@ -289,7 +293,11 @@ const WebhookRow: React.FC<WebhookRowProps> = ({ routine }) => {
                   size="mini"
                   iconOnly
                   icon={
-                    <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
+                    <HugeiconsIcon
+                      icon={Copy01Icon}
+                      data-icon="copy"
+                      size={12}
+                    />
                   }
                   onClick={() => handleCopy(installInfo.secret)}
                   data-testid={`routine-webhook-copy-secret-${routine.name}`}

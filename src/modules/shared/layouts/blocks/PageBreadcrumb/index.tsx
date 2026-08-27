@@ -5,9 +5,9 @@
  * When sidebar is collapsed, clicking triggers the floating sidebar.
  * Used in split panel headers.
  */
-import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -67,7 +67,7 @@ function getActiveSelectableItem(
 
 const Separator: React.FC = () => (
   <HugeiconsIcon
-    icon={ChevronRight}
+    icon={ArrowRight01Icon}
     data-icon="chevron-right"
     size={13}
     className="shrink-0 text-text-3"
@@ -173,7 +173,7 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
   // Show ArrowLeftRight icon on hover when sidebar is collapsed
   const IconComponent =
     isSidebarCollapsed && isHovered
-      ? ArrowLeftRight
+      ? ArrowLeftRightIcon
       : currentRoute.IconComponent;
   const selectorLabel = currentRoute.activeSelectorItem?.label;
   const dropdown =
@@ -221,7 +221,7 @@ const PageBreadcrumb: React.FC<PageBreadcrumbProps> = ({ className = "" }) => {
                     </span>
                     {isSelected ? (
                       <HugeiconsIcon
-                        icon={Check}
+                        icon={Tick01Icon}
                         data-icon="check"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0 text-primary-6"

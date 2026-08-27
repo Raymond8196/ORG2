@@ -2,9 +2,9 @@
  * State and handlers for McpAddWizard.
  * Extracted to keep the component under the UI line limit.
  */
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import {
   type Dispatch,
@@ -202,17 +202,17 @@ export function useMcpAddWizard({
       {
         key: "stdio" as const,
         label: t("mcp.transportStdio"),
-        icon: Terminal,
+        icon: ComputerTerminal01Icon,
       },
       {
         key: "sse" as const,
         label: t("mcp.transportSse"),
-        icon: Zap,
+        icon: FlashIcon,
       },
       {
         key: "streamableHttp" as const,
         label: t("mcp.transportHttp"),
-        icon: Globe,
+        icon: InternetIcon,
       },
     ],
     [t]

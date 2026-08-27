@@ -4,11 +4,11 @@
  * Main hook that orchestrates branch palette state and behavior.
  * Uses useSelector for common patterns while adding branch-specific logic.
  */
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import GitBranchPlus from "@hugeicons/core-free-icons/GitBranchIcon";
-import GitBranchMinus from "@hugeicons/core-free-icons/GitBranchMinusIcon";
-import Split from "@hugeicons/core-free-icons/SplitIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import GitBranchIcon from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitBranchMinusIcon from "@hugeicons/core-free-icons/GitBranchMinusIcon";
+import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type Dispatch,
@@ -222,7 +222,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
             "flex items-center justify-center rounded-md p-1 text-text-2 transition-colors hover:bg-fill-3 hover:text-text-1",
           title: t("actions.delete", "Delete"),
         },
-        createElement(HugeiconsIcon, { icon: Trash2, size: 14 })
+        createElement(HugeiconsIcon, { icon: Delete02Icon, size: 14 })
       ),
     [handleDeleteBranch, t]
   );
@@ -297,7 +297,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
         actions.push({
           id: "pinned-branch-delete-selected",
           label: `${t("actions.delete", "Delete")} (${selectedBranchCount})`,
-          icon: Trash2,
+          icon: Delete02Icon,
           type: "action",
           action: () => {
             void handleDeleteSelectedBranches();
@@ -307,7 +307,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
       actions.push({
         id: "pinned-branch-remove-done",
         label: t("actions.done", "Done"),
-        icon: Check,
+        icon: Tick01Icon,
         type: "action",
         action: () => {
           setSelectedBranchNames(new Set());
@@ -324,7 +324,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
         {
           id: "pinned-branch-create-new",
           label: t("selectors.branch.actions.createNew", "New Branch"),
-          icon: GitBranchPlus,
+          icon: GitBranchIcon,
           type: "action",
           data: { showDisclosureChevron: true },
           action: () => setActiveMode("add"),
@@ -332,7 +332,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
         {
           id: "pinned-branch-create-from",
           label: t("selectors.branch.actions.createFrom", "New Branch From"),
-          icon: Split,
+          icon: SplitIcon,
           type: "action",
           data: { showDisclosureChevron: true },
           action: () => {
@@ -347,7 +347,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
       actions.push({
         id: "pinned-branch-delete",
         label: t("selectors.branch.actions.deleteBranch", "Delete Branch"),
-        icon: GitBranchMinus,
+        icon: GitBranchMinusIcon,
         type: "action",
         data: { showDisclosureChevron: true },
         action: () => setActiveMode("remove"),

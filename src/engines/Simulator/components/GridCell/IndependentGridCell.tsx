@@ -14,12 +14,12 @@
  * The cell follows the main replay cursor (video-editor clip model) by
  * default, unless the user manually interacts with its controls.
  */
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import Pause from "@hugeicons/core-free-icons/PauseIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
+import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
@@ -214,14 +214,14 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
               >
                 {isExpanded ? (
                   <HugeiconsIcon
-                    icon={Minimize2}
+                    icon={ArrowShrink01Icon}
                     data-icon="minimize-2"
                     size={12}
                     strokeWidth={2}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={Maximize2}
+                    icon={ArrowExpand01Icon}
                     data-icon="maximize-2"
                     size={12}
                     strokeWidth={2}
@@ -279,7 +279,7 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
             >
               {state.isPlaying ? (
                 <HugeiconsIcon
-                  icon={Pause}
+                  icon={PauseIcon}
                   data-icon="pause"
                   size={11}
                   fill="currentColor"
@@ -287,7 +287,7 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={Play}
+                  icon={PlayIcon}
                   data-icon="play"
                   size={11}
                   fill="currentColor"
@@ -308,7 +308,7 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
               className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded text-text-2 ${SURFACE_TOKENS.hover} hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-2`}
             >
               <HugeiconsIcon
-                icon={ChevronLeft}
+                icon={ArrowLeft01Icon}
                 data-icon="chevron-left"
                 size={12}
                 strokeWidth={2}
@@ -324,7 +324,7 @@ const IndependentGridCellComponent: React.FC<GridCellProps> = ({
               className={`flex h-4 w-4 flex-shrink-0 items-center justify-center rounded text-text-2 ${SURFACE_TOKENS.hover} hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-text-2`}
             >
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={12}
                 strokeWidth={2}

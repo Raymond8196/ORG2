@@ -1,6 +1,6 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -108,14 +108,14 @@ const ChangedFilesList: React.FC<ChangedFilesListProps> = ({
           icon={
             expanded ? (
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={13}
                 className="text-text-4"
               />
             ) : (
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={13}
                 className="text-text-4"
@@ -148,7 +148,7 @@ const ChangedFilesList: React.FC<ChangedFilesListProps> = ({
             className="mr-2 shrink-0 rounded-md p-1.5 text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
           >
             <HugeiconsIcon
-              icon={SquareArrowOutUpRight}
+              icon={SquareArrowUpRightIcon}
               data-icon="square-arrow-out-up-right"
               size={13}
             />

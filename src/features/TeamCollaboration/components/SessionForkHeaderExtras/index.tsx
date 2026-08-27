@@ -1,4 +1,4 @@
-import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
+import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React from "react";
@@ -135,7 +135,7 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               bordered
               icon={
                 <HugeiconsIcon
-                  icon={GitFork}
+                  icon={GitForkIcon}
                   data-icon="git-fork"
                   size={10}
                   strokeWidth={1.75}
@@ -167,7 +167,7 @@ const SessionForkHeaderExtras: React.FC<SessionForkHeaderExtrasProps> = ({
               data-testid="session-fork-button"
               icon={
                 <HugeiconsIcon
-                  icon={GitFork}
+                  icon={GitForkIcon}
                   data-icon="git-fork"
                   size={14}
                   strokeWidth={2}

@@ -1,4 +1,4 @@
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 
@@ -62,7 +62,7 @@ export function DueDateCell({
       }}
     >
       <HugeiconsIcon
-        icon={Calendar}
+        icon={Calendar01Icon}
         data-icon="calendar"
         size={14}
         strokeWidth={1.75}

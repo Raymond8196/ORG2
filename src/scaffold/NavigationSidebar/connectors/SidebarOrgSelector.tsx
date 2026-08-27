@@ -1,7 +1,7 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import CircleCheck from "@hugeicons/core-free-icons/CircleCheckIcon";
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import CircleCheckIcon from "@hugeicons/core-free-icons/CircleCheckIcon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
+import Settings02Icon from "@hugeicons/core-free-icons/Settings02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -80,7 +80,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
               data-testid="sidebar-org-manage"
             >
               <HugeiconsIcon
-                icon={Settings2}
+                icon={Settings02Icon}
                 data-icon="settings-2"
                 size={13}
                 strokeWidth={2}
@@ -95,7 +95,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
               data-testid="sidebar-add-org"
             >
               <HugeiconsIcon
-                icon={Plus}
+                icon={Add01Icon}
                 data-icon="plus"
                 size={13}
                 strokeWidth={2}
@@ -109,7 +109,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
                 data-testid="sidebar-cloud-signed-in"
               >
                 <HugeiconsIcon
-                  icon={CircleCheck}
+                  icon={CircleCheckIcon}
                   data-icon="circle-check"
                   size={13}
                   strokeWidth={2}
@@ -132,7 +132,7 @@ const SidebarOrgSelector: React.FC<SidebarOrgSelectorProps> = React.memo(
                 data-testid="sidebar-cloud-sign-in"
               >
                 <HugeiconsIcon
-                  icon={LogIn}
+                  icon={Login01Icon}
                   data-icon="log-in"
                   size={13}
                   strokeWidth={2}

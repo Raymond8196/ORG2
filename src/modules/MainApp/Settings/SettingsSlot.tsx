@@ -25,9 +25,9 @@ import {
   ScrollFadeContainer,
   SettingsBreadcrumb,
 } from "@/src/modules/shared/layouts/blocks";
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import GalleryThumbnails from "@hugeicons/core-free-icons/GalleryThumbnailsIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import GalleryThumbnailsIcon from "@hugeicons/core-free-icons/GalleryThumbnailsIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { Suspense, useCallback, useMemo } from "react";
@@ -355,7 +355,7 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
                   title={tCommon("actions.back")}
                   icon={
                     <HugeiconsIcon
-                      icon={ChevronLeft}
+                      icon={ArrowLeft01Icon}
                       data-icon="chevron-left"
                       size={16}
                       strokeWidth={2}
@@ -386,14 +386,14 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
                     icon={
                       maximized ? (
                         <HugeiconsIcon
-                          icon={GalleryThumbnails}
+                          icon={GalleryThumbnailsIcon}
                           data-icon="gallery-thumbnails"
                           size={14}
                           strokeWidth={2}
                         />
                       ) : (
                         <HugeiconsIcon
-                          icon={Maximize2}
+                          icon={ArrowExpand01Icon}
                           data-icon="maximize-2"
                           size={14}
                           strokeWidth={2}

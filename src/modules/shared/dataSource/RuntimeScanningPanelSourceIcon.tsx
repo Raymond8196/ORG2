@@ -5,7 +5,7 @@
  * detected app/CLI's model icon, or a generic terminal glyph when none is
  * registered.
  */
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -20,7 +20,7 @@ const RuntimeScanningPanelSourceIcon: React.FC<{
     size={16}
     fallback={
       <HugeiconsIcon
-        icon={Terminal}
+        icon={ComputerTerminal01Icon}
         data-icon="terminal"
         size={16}
         className="text-text-3"

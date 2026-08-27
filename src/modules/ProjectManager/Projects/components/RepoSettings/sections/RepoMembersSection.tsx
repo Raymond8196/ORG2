@@ -4,15 +4,15 @@
  *
  * This is the repo-level variant (no Project tab — that lives in WorkItemsSettings).
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, {
@@ -143,14 +143,18 @@ const MemberRowItem: React.FC<{
         {editing ? (
           <>
             <Button
-              icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Tick01Icon} data-icon="check" size={14} />
+              }
               iconOnly
               onClick={() => {
                 if (inputRef.current) handleSave(inputRef.current.value);
               }}
             />
             <Button
-              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
+              }
               iconOnly
               onClick={handleCancel}
             />
@@ -159,7 +163,7 @@ const MemberRowItem: React.FC<{
           <>
             <Button
               icon={
-                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+                <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={14} />
               }
               iconOnly
               onClick={handleStartEdit}
@@ -168,7 +172,7 @@ const MemberRowItem: React.FC<{
               <Button
                 icon={
                   <HugeiconsIcon
-                    icon={UserPlus}
+                    icon={UserAdd01Icon}
                     data-icon="user-plus"
                     size={14}
                   />
@@ -181,9 +185,13 @@ const MemberRowItem: React.FC<{
             <Button
               icon={
                 variant === "active" ? (
-                  <HugeiconsIcon icon={Minus} data-icon="minus" size={14} />
+                  <HugeiconsIcon
+                    icon={MinusSignIcon}
+                    data-icon="minus"
+                    size={14}
+                  />
                 ) : (
-                  <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />
+                  <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
                 )
               }
               iconOnly
@@ -376,7 +384,7 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
               <Button
                 icon={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={14}
                     className={syncSpinClass}
@@ -392,13 +400,13 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
               icon={
                 expanded ? (
                   <HugeiconsIcon
-                    icon={ChevronDown}
+                    icon={ArrowDown01Icon}
                     data-icon="chevron-down"
                     size={14}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={ChevronRight}
+                    icon={ArrowRight01Icon}
                     data-icon="chevron-right"
                     size={14}
                   />
@@ -450,13 +458,13 @@ const RepoMembersSection: React.FC<RepoMembersSectionProps> = ({
                 icon={
                   inactiveExpanded ? (
                     <HugeiconsIcon
-                      icon={ChevronDown}
+                      icon={ArrowDown01Icon}
                       data-icon="chevron-down"
                       size={14}
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={ChevronRight}
+                      icon={ArrowRight01Icon}
                       data-icon="chevron-right"
                       size={14}
                     />

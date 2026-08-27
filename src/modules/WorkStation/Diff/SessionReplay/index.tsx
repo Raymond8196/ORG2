@@ -13,10 +13,10 @@
  * `TurnMetadataFooter` "Review"/file click still scrolls the cumulative list to
  * the clicked file, but never filters it down to a single round.
  */
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Send from "@hugeicons/core-free-icons/MailSend01Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import MailSend01Icon from "@hugeicons/core-free-icons/MailSend01Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -246,7 +246,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
                 title={tCommon("actions.undoAll")}
                 icon={
                   <HugeiconsIcon
-                    icon={RotateCcw}
+                    icon={RotateLeft01Icon}
                     data-icon="rotate-ccw"
                     size={14}
                   />
@@ -264,7 +264,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
               title={tCommon("actions.collapseAll")}
               icon={
                 <HugeiconsIcon
-                  icon={ListChevronsDownUp}
+                  icon={ListChevronsDownUpIcon}
                   data-icon="list-chevrons-down-up"
                   size={14}
                 />
@@ -303,7 +303,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
         title: t("simulator.replay.diffApp.tabLabel"),
         icon: (
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={14}
             className="shrink-0"
@@ -320,7 +320,7 @@ const SessionReplayDiff: React.FC<SimulatorAppProps> = ({
         title: t("simulator.replay.diffApp.submissions.tabLabel"),
         icon: (
           <HugeiconsIcon
-            icon={Send}
+            icon={MailSend01Icon}
             data-icon="send"
             size={14}
             className="shrink-0"

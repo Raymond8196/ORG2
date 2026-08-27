@@ -11,7 +11,7 @@
  * - Fuzzy matching for files and folders
  * - File type specific icons
  */
-import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import AtIcon from "@hugeicons/core-free-icons/AtIcon";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -233,7 +233,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
                   return (
                     <MenuItemRow
                       key={option.id}
-                      icon={AtSign}
+                      icon={AtIcon}
                       label={option.label}
                       description={option.description}
                       isActive={keyboardNavigated && activeIndex === itemIndex}
@@ -308,7 +308,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
                       return (
                         <MenuItemRow
                           key={option.id}
-                          icon={AtSign}
+                          icon={AtIcon}
                           label={option.label}
                           description={option.description}
                           isActive={

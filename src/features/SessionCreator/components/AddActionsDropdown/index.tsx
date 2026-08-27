@@ -7,9 +7,9 @@
  *
  * Uses shared useDropdownEngine hook for consistent behavior.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import AtSign from "@hugeicons/core-free-icons/AtIcon";
-import Paperclip from "@hugeicons/core-free-icons/AttachmentIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import AtIcon from "@hugeicons/core-free-icons/AtIcon";
+import AttachmentIcon from "@hugeicons/core-free-icons/AttachmentIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -97,7 +97,7 @@ const AddActionsDropdown: React.FC<AddActionsDropdownProps> = ({
       aria-haspopup="menu"
     >
       <HugeiconsIcon
-        icon={Plus}
+        icon={Add01Icon}
         data-icon="plus"
         size={INPUT_AREA_BUTTONS.iconSize}
         strokeWidth={1.75}
@@ -130,7 +130,7 @@ const AddActionsDropdown: React.FC<AddActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={AtSign}
+                icon={AtIcon}
                 data-icon="at-sign"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
@@ -154,7 +154,7 @@ const AddActionsDropdown: React.FC<AddActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={Paperclip}
+                icon={AttachmentIcon}
                 data-icon="paperclip"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}

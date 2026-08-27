@@ -13,11 +13,11 @@
  * per-task lifecycle is conveyed on the card's second line (the `description`
  * slot) so the column count reflects "remaining work", not lifecycle phase.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -167,7 +167,7 @@ function buildTodoColumns(): KanbanColumnConfig[] {
     {
       ...openBase,
       title: "sessions:planner.todoList.columnOpen",
-      icon: Circle,
+      icon: CircleIcon,
     },
     {
       ...doneBase,
@@ -474,13 +474,13 @@ export const TodoKanban: React.FC<TodoKanbanProps> = ({
         // describes when the todo entered the list, not its current
         // state — coloring it would imply the creation itself succeeded
         // or failed.
-        let updatedIcon: IconSvgElement = Clock;
+        let updatedIcon: IconSvgElement = Clock01Icon;
         let updatedColor: string = "var(--color-text-2)";
         if (lifecycle === "completed") {
-          updatedIcon = CheckCircle2;
+          updatedIcon = CheckmarkCircle01Icon;
           updatedColor = "var(--color-success-6)";
         } else if (lifecycle === "cancelled") {
-          updatedIcon = XCircle;
+          updatedIcon = CancelCircleIcon;
           updatedColor = "var(--color-danger-6)";
         }
         const metaLines: Array<{
@@ -497,7 +497,7 @@ export const TodoKanban: React.FC<TodoKanbanProps> = ({
         }
         if (createdLabel) {
           metaLines.push({
-            icon: Plus,
+            icon: Add01Icon,
             text: createdLabel,
             color: "var(--color-text-2)",
           });

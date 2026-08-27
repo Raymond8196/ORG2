@@ -1,4 +1,4 @@
-import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import { useMemo } from "react";
@@ -174,7 +174,7 @@ export function useSessionSidebarMenuItems({
         id: `chat-terminal-${tab.id}`,
         key: `chat-terminal-${tab.id}`,
         label: tab.title || "Terminal",
-        icon: TerminalSquare,
+        icon: SquareTerminalIcon,
       });
     }
     return items;

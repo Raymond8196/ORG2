@@ -24,9 +24,9 @@ import {
 } from "@codemirror/search";
 import { Extension, StateEffect, StateField } from "@codemirror/state";
 import { EditorView, Panel } from "@codemirror/view";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { createRoot } from "react-dom/client";
@@ -300,13 +300,13 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
       >
         {localReplaceMode ? (
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={14}
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
           />
@@ -369,7 +369,11 @@ const SearchPanel: React.FC<SearchPanelProps> = ({
             className={HEADER_BUTTON.action}
             title={t("tooltips.closeEsc")}
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              data-icon="x"
+              size={HEADER_ICON_SIZE.sm}
+            />
           </button>
         </div>
       </div>

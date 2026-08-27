@@ -20,8 +20,8 @@
  *      <SectionContainer>...</SectionContainer>
  *    </Section>
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
@@ -100,14 +100,14 @@ const Section: React.FC<SectionProps> = memo(
               >
                 {isCollapsed ? (
                   <HugeiconsIcon
-                    icon={ChevronRight}
+                    icon={ArrowRight01Icon}
                     data-icon="chevron-right"
                     size={16}
                     strokeWidth={2}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={ChevronDown}
+                    icon={ArrowDown01Icon}
                     data-icon="chevron-down"
                     size={16}
                     strokeWidth={2}

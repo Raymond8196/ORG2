@@ -11,9 +11,9 @@
  * heights with a staggered CSS animation, which is exactly what the reference
  * UI does and avoids the cost of an AudioContext just for cosmetics.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -96,7 +96,7 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
           tabIndex={onAddContent ? 0 : -1}
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}
@@ -126,7 +126,7 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
           aria-label={t("common:tooltips.cancelRecording")}
         >
           <HugeiconsIcon
-            icon={X}
+            icon={Cancel01Icon}
             data-icon="x"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}
@@ -142,7 +142,7 @@ const VoiceRecordingBar: React.FC<VoiceRecordingBarProps> = memo(
           aria-label={t("common:tooltips.stopAndTranscribe")}
         >
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}

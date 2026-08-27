@@ -1,4 +1,4 @@
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { SESSION_LIST_CATEGORIES } from "@src/store/session";
@@ -40,7 +40,7 @@ export function loadMoreRow(
     id: `${LOAD_MORE_PREFIX}${category}`,
     key: `${LOAD_MORE_PREFIX}${category}`,
     label,
-    icon: MoreHorizontal,
+    icon: MoreHorizontalIcon,
     iconName: "more-horizontal",
     trailingElement: loading ? renderBreathingStatusDot() : undefined,
     visualTone: "secondary",
@@ -57,7 +57,7 @@ export function groupLoadMoreRow(
     id: `${LOAD_MORE_GROUP_PREFIX}${groupId}`,
     key: `${LOAD_MORE_GROUP_PREFIX}${groupId}`,
     label,
-    icon: MoreHorizontal,
+    icon: MoreHorizontalIcon,
     iconName: "more-horizontal",
     trailingElement: loading ? renderBreathingStatusDot() : undefined,
     visualTone: "secondary",
@@ -73,7 +73,7 @@ export function unifiedLoadMoreRow(
     id: UNIFIED_LOAD_MORE_ID,
     key: UNIFIED_LOAD_MORE_ID,
     label,
-    icon: MoreHorizontal,
+    icon: MoreHorizontalIcon,
     iconName: "more-horizontal",
     trailingElement: state.loading ? renderBreathingStatusDot() : undefined,
     visualTone: "secondary",

@@ -5,8 +5,8 @@
  * WorkStation `agent-config` tab (`variant: "org"`) hosting the existing
  * `OrgDetailView`, so editing semantics stay identical to before.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -130,7 +130,11 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
               appearance="outline"
               size="small"
               icon={
-                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  data-icon="trash-2"
+                  size={14}
+                />
               }
               iconOnly
               data-testid={`agent-orgs-org-delete-row-button-${row.id}`}
@@ -152,7 +156,7 @@ const OrgsTable: React.FC<OrgsTableProps> = ({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+      icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
       iconOnly
       aria-label={addOrgLabel}
       title={addOrgLabel}

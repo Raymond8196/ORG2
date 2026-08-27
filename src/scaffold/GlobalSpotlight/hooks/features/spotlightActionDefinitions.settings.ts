@@ -10,16 +10,16 @@
  * - `buildChatPanelSettingsActions` — chat panel position, pagination, and
  *   model-picker style toggles.
  */
-import ArrowBigLeft from "@hugeicons/core-free-icons/ArrowLeftBigIcon";
-import ArrowBigRight from "@hugeicons/core-free-icons/ArrowRightBigIcon";
-import MonitorCog from "@hugeicons/core-free-icons/ComputerSettingsIcon";
-import Contrast from "@hugeicons/core-free-icons/ContrastIcon";
-import LayoutPanelTop from "@hugeicons/core-free-icons/LayoutTopIcon";
-import Menu from "@hugeicons/core-free-icons/Menu01Icon";
-import Moon from "@hugeicons/core-free-icons/MoonIcon";
-import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import Sun from "@hugeicons/core-free-icons/Sun01Icon";
+import ArrowLeftBigIcon from "@hugeicons/core-free-icons/ArrowLeftBigIcon";
+import ArrowRightBigIcon from "@hugeicons/core-free-icons/ArrowRightBigIcon";
+import ComputerSettingsIcon from "@hugeicons/core-free-icons/ComputerSettingsIcon";
+import ContrastIcon from "@hugeicons/core-free-icons/ContrastIcon";
+import LayoutTopIcon from "@hugeicons/core-free-icons/LayoutTopIcon";
+import Menu01Icon from "@hugeicons/core-free-icons/Menu01Icon";
+import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
+import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
+import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
 
 import { ACTION_ID } from "@src/ActionSystem";
 
@@ -34,7 +34,7 @@ export function buildThemeActions(
     actions.push({
       id: "set-system-theme",
       labelKey: "common:spotlightActions.switchToSystemTheme",
-      icon: MonitorCog,
+      icon: ComputerSettingsIcon,
       keywords: ["system theme", "follow system", "theme", "appearance"],
       actionId: ACTION_ID.THEME_SET_SYSTEM,
       payload: {},
@@ -46,7 +46,7 @@ export function buildThemeActions(
     actions.push({
       id: "set-light-theme",
       labelKey: "common:spotlightActions.switchToLightTheme",
-      icon: Sun,
+      icon: Sun01Icon,
       keywords: ["light theme", "light mode", "theme", "appearance"],
       actionId: ACTION_ID.THEME_SET_LIGHT,
       payload: {},
@@ -58,7 +58,7 @@ export function buildThemeActions(
     actions.push({
       id: "set-dark-theme",
       labelKey: "common:spotlightActions.switchToDarkTheme",
-      icon: Moon,
+      icon: MoonIcon,
       keywords: ["dark theme", "dark mode", "theme", "appearance"],
       actionId: ACTION_ID.THEME_SET_DARK,
       payload: {},
@@ -70,7 +70,7 @@ export function buildThemeActions(
     actions.push({
       id: "set-high-contrast-theme",
       labelKey: "common:spotlightActions.switchToHighContrastTheme",
-      icon: Contrast,
+      icon: ContrastIcon,
       keywords: [
         "high contrast",
         "contrast theme",
@@ -111,7 +111,8 @@ export function buildChatPanelSettingsActions({
       myStationChatPosition === "left"
         ? "common:spotlightActions.moveMyStationChatRight"
         : "common:spotlightActions.moveMyStationChatLeft",
-    icon: myStationChatPosition === "left" ? ArrowBigRight : ArrowBigLeft,
+    icon:
+      myStationChatPosition === "left" ? ArrowRightBigIcon : ArrowLeftBigIcon,
     keywords: [
       "my station chat",
       "chat panel location",
@@ -135,7 +136,10 @@ export function buildChatPanelSettingsActions({
       agentStationChatPosition === "left"
         ? "common:spotlightActions.moveAgentStationChatRight"
         : "common:spotlightActions.moveAgentStationChatLeft",
-    icon: agentStationChatPosition === "left" ? ArrowBigRight : ArrowBigLeft,
+    icon:
+      agentStationChatPosition === "left"
+        ? ArrowRightBigIcon
+        : ArrowLeftBigIcon,
     keywords: [
       "agent station chat",
       "agent chat location",
@@ -156,7 +160,7 @@ export function buildChatPanelSettingsActions({
     labelKey: chatTurnPaginationEnabled
       ? "common:spotlightActions.disableChatPagination"
       : "common:spotlightActions.enableChatPagination",
-    icon: LayoutPanelTop,
+    icon: LayoutTopIcon,
     keywords: ["chat pagination", "turn pagination", "chat rounds"],
     actionId: chatTurnPaginationEnabled
       ? ACTION_ID.CHAT_PANEL_DISABLE_PAGINATION
@@ -174,7 +178,7 @@ export function buildChatPanelSettingsActions({
       modelPickerStyle === "spotlight"
         ? "common:spotlightActions.useModelPickerDropdown"
         : "common:spotlightActions.useModelPickerSpotlight",
-    icon: modelPickerStyle === "spotlight" ? Menu : Sparkles,
+    icon: modelPickerStyle === "spotlight" ? Menu01Icon : SparklesIcon,
     keywords: ["model picker", "model menu", "model spotlight", "picker"],
     actionId:
       modelPickerStyle === "spotlight"
@@ -193,7 +197,7 @@ export function buildChatPanelSettingsActions({
       workstationSidebarPosition === "left"
         ? "common:spotlightActions.moveWorkstationSidebarRight"
         : "common:spotlightActions.moveWorkstationSidebarLeft",
-    icon: PanelLeft,
+    icon: PanelLeftIcon,
     keywords: [
       "workstation sidebar",
       "sidebar position",

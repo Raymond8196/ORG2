@@ -4,17 +4,17 @@
  * Used in: Toolbar search bar, Settings Shortcuts page
  * Replaces text symbols (⌘, ⌥, etc.) with Lucide icons for consistency.
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import ArrowBigUp from "@hugeicons/core-free-icons/ArrowUpBigIcon";
-import Command from "@hugeicons/core-free-icons/CommandIcon";
-import CornerDownLeft from "@hugeicons/core-free-icons/CornerDownLeftIcon";
-import Delete from "@hugeicons/core-free-icons/Delete01Icon";
-import Option from "@hugeicons/core-free-icons/OptionIcon";
-import Space from "@hugeicons/core-free-icons/SaturnIcon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import ArrowUpBigIcon from "@hugeicons/core-free-icons/ArrowUpBigIcon";
+import CommandIcon from "@hugeicons/core-free-icons/CommandIcon";
+import CornerDownLeftIcon from "@hugeicons/core-free-icons/CornerDownLeftIcon";
+import Delete01Icon from "@hugeicons/core-free-icons/Delete01Icon";
+import OptionIcon from "@hugeicons/core-free-icons/OptionIcon";
+import SaturnIcon from "@hugeicons/core-free-icons/SaturnIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -71,13 +71,17 @@ export function renderKeyContent(
     case "↑":
     case "arrowup":
       return (
-        <HugeiconsIcon icon={ArrowUp} data-icon="arrow-up" size={iconSize} />
+        <HugeiconsIcon
+          icon={ArrowUp02Icon}
+          data-icon="arrow-up"
+          size={iconSize}
+        />
       );
     case "↓":
     case "arrowdown":
       return (
         <HugeiconsIcon
-          icon={ArrowDown}
+          icon={ArrowDown02Icon}
           data-icon="arrow-down"
           size={iconSize}
         />
@@ -86,7 +90,7 @@ export function renderKeyContent(
     case "arrowleft":
       return (
         <HugeiconsIcon
-          icon={ArrowLeft}
+          icon={ArrowLeft02Icon}
           data-icon="arrow-left"
           size={iconSize}
         />
@@ -95,7 +99,7 @@ export function renderKeyContent(
     case "arrowright":
       return (
         <HugeiconsIcon
-          icon={ArrowRight}
+          icon={ArrowRight02Icon}
           data-icon="arrow-right"
           size={iconSize}
         />
@@ -107,7 +111,7 @@ export function renderKeyContent(
     case "⮐":
       return (
         <HugeiconsIcon
-          icon={CornerDownLeft}
+          icon={CornerDownLeftIcon}
           data-icon="corner-down-left"
           size={iconSize}
         />
@@ -115,20 +119,26 @@ export function renderKeyContent(
     case "⌫":
     case "backspace":
     case "delete":
-      return <HugeiconsIcon icon={Delete} data-icon="delete" size={iconSize} />;
+      return (
+        <HugeiconsIcon icon={Delete01Icon} data-icon="delete" size={iconSize} />
+      );
     case "space":
-      return <HugeiconsIcon icon={Space} data-icon="space" size={iconSize} />;
+      return (
+        <HugeiconsIcon icon={SaturnIcon} data-icon="space" size={iconSize} />
+      );
     case "⌘":
     case "command":
     case "cmd":
       return (
-        <HugeiconsIcon icon={Command} data-icon="command" size={iconSize} />
+        <HugeiconsIcon icon={CommandIcon} data-icon="command" size={iconSize} />
       );
     case "⌥":
     case "option":
     case "opt":
     case "alt":
-      return <HugeiconsIcon icon={Option} data-icon="option" size={iconSize} />;
+      return (
+        <HugeiconsIcon icon={OptionIcon} data-icon="option" size={iconSize} />
+      );
     case "esc":
     case "escape":
       return "Esc";
@@ -138,7 +148,7 @@ export function renderKeyContent(
     case "shift":
       return (
         <HugeiconsIcon
-          icon={ArrowBigUp}
+          icon={ArrowUpBigIcon}
           data-icon="arrow-big-up"
           size={iconSize}
         />
@@ -148,7 +158,7 @@ export function renderKeyContent(
     case "ctrl":
       return (
         <HugeiconsIcon
-          icon={ChevronUp}
+          icon={ArrowUp01Icon}
           data-icon="chevron-up"
           size={iconSize}
         />

@@ -5,7 +5,7 @@
  * References render as ordinary links; only explicit member mentions retain
  * pill treatment. Session references are lifted into cards before this layer.
  */
-import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import AtIcon from "@hugeicons/core-free-icons/AtIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
@@ -125,7 +125,7 @@ export const MentionPill: React.FC<{ segment: MentionSegment }> = memo(
       <BasePill
         variant="editor"
         iconNode={
-          <HugeiconsIcon icon={AtSign} data-icon="at-sign" {...ICON_PROPS} />
+          <HugeiconsIcon icon={AtIcon} data-icon="at-sign" {...ICON_PROPS} />
         }
         style={{
           position: "relative",

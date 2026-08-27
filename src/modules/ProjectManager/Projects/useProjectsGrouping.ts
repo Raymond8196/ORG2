@@ -4,7 +4,7 @@
  * Derives grouped project lists from a flat filtered list and a group mode.
  * Extracted to keep Projects/index.tsx under the 600-line limit.
  */
-import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -74,7 +74,7 @@ export function useProjectsGrouping({
         key: group,
         label: t(`projects.targetDateGroups.${group}`),
         icon: React.createElement(HugeiconsIcon, {
-          icon: CalendarClock,
+          icon: TimeScheduleIcon,
           size: 14,
           strokeWidth: 1.75,
         }),

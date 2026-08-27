@@ -3,7 +3,7 @@
  *
  * Shared between RepoMembersSection and MyProfileSection.
  */
-import Mail from "@hugeicons/core-free-icons/Mail01Icon";
+import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -46,7 +46,7 @@ const ClaimIdentityModal: React.FC<ClaimIdentityModalProps> = ({
           </div>
           <div className="mt-1 flex items-center gap-2">
             <HugeiconsIcon
-              icon={Mail}
+              icon={Mail01Icon}
               data-icon="mail"
               size={16}
               className="text-text-3"

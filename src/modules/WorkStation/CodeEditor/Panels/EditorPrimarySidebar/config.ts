@@ -4,19 +4,19 @@
  * Centralized configuration for left panel components.
  * Includes icon definitions and constants.
  */
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
-import FilePlus2 from "@hugeicons/core-free-icons/FileAddIcon";
-import FilePlus from "@hugeicons/core-free-icons/FilePlusIcon";
-import Files from "@hugeicons/core-free-icons/Files01Icon";
-import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
-import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import List from "@hugeicons/core-free-icons/ListIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
+import FileAddIcon from "@hugeicons/core-free-icons/FileAddIcon";
+import FilePlusIcon from "@hugeicons/core-free-icons/FilePlusIcon";
+import Files01Icon from "@hugeicons/core-free-icons/Files01Icon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
+import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import ListIcon from "@hugeicons/core-free-icons/ListIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 
 // ============================================
 // Icon Configuration
@@ -24,21 +24,21 @@ import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 
 export const ICON_CONFIG = {
   // Tab icons
-  files: Files,
-  search: SearchIcon,
-  sourceControl: GitBranch,
+  files: Files01Icon,
+  search: Search01Icon,
+  sourceControl: WorkflowCircle05Icon,
 
   // Action icons
-  filter: Filter,
-  addFile: FilePlus,
-  addFolder: FolderPlus,
-  refresh: RefreshCw,
-  collapseAll: ListChevronsDownUp,
-  list: List,
-  listTree: ListTree,
-  group: Layers,
-  openInTab: FilePlus2,
-  moreActions: Ellipsis,
+  filter: FilterIcon,
+  addFile: FilePlusIcon,
+  addFolder: FolderAddIcon,
+  refresh: Refresh04Icon,
+  collapseAll: ListChevronsDownUpIcon,
+  list: ListIcon,
+  listTree: HierarchyFilesIcon,
+  group: Layers01Icon,
+  openInTab: FileAddIcon,
+  moreActions: EllipsisIcon,
 } as const;
 
 // ============================================

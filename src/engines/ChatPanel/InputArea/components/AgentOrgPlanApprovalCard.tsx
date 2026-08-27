@@ -1,4 +1,4 @@
-import FilePenLine from "@hugeicons/core-free-icons/Edit04Icon";
+import Edit04Icon from "@hugeicons/core-free-icons/Edit04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -100,7 +100,7 @@ const AgentOrgPlanApprovalCard: React.FC<AgentOrgPlanApprovalCardProps> = memo(
       >
         <div className="mb-2 flex items-start gap-2">
           <HugeiconsIcon
-            icon={FilePenLine}
+            icon={Edit04Icon}
             data-icon="file-pen-line"
             className="mt-0.5 shrink-0 text-text-3"
             size={14}

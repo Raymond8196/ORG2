@@ -1,6 +1,6 @@
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import MessageSquareText from "@hugeicons/core-free-icons/Message02Icon";
-import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
+import Message02Icon from "@hugeicons/core-free-icons/Message02Icon";
+import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -300,7 +300,7 @@ export default function ModelWikiTableSection() {
               active={entry.supportsTools}
               icon={
                 <HugeiconsIcon
-                  icon={Wrench}
+                  icon={Wrench01Icon}
                   data-icon="wrench"
                   size={12}
                   strokeWidth={2}
@@ -316,7 +316,7 @@ export default function ModelWikiTableSection() {
               active={entry.supportsReasoning}
               icon={
                 <HugeiconsIcon
-                  icon={Brain}
+                  icon={BrainIcon}
                   data-icon="brain"
                   size={12}
                   strokeWidth={2}
@@ -332,7 +332,7 @@ export default function ModelWikiTableSection() {
               active={entry.supportsIncludeReasoning}
               icon={
                 <HugeiconsIcon
-                  icon={MessageSquareText}
+                  icon={Message02Icon}
                   data-icon="message-square-text"
                   size={12}
                   strokeWidth={2}

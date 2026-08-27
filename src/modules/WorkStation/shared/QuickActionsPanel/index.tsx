@@ -18,7 +18,7 @@
  *     actions={EDITOR_QUICK_ACTIONS}
  *   />
  */
-import Box from "@hugeicons/core-free-icons/BoxIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { memo, useCallback, useEffect } from "react";
@@ -123,7 +123,7 @@ const AppLogo = memo(() => (
   <div className="flex justify-center pb-6 pt-2">
     <div className="flex h-[120px] w-[120px] items-center justify-center">
       <HugeiconsIcon
-        icon={Box}
+        icon={BoxIcon}
         data-icon="box"
         size={80}
         strokeWidth={1}

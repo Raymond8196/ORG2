@@ -14,8 +14,8 @@
  *     disabled={!diskUsage?.root_path}
  *   />
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -56,7 +56,9 @@ const PathCopyOpenRow: React.FC<PathCopyOpenRowProps> = memo(
           <span className={SECTION_PATH_TEXT_CLASSES}>{path}</span>
           <Button
             onClick={onCopy}
-            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
+            icon={
+              <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={14} />
+            }
             iconOnly
             title={copyTitle}
             disabled={disabled}
@@ -65,7 +67,7 @@ const PathCopyOpenRow: React.FC<PathCopyOpenRowProps> = memo(
             onClick={onOpen}
             icon={
               <HugeiconsIcon
-                icon={FolderOpen}
+                icon={FolderOpenIcon}
                 data-icon="folder-open"
                 size={14}
               />

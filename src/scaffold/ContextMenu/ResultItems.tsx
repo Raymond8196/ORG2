@@ -4,11 +4,11 @@
  * Reusable item-level components for rendering menu items,
  * search result icons, and empty/loading states.
  */
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -93,7 +93,7 @@ export const ResultItemIcon: React.FC<{
   if (item.iconType === "terminal") {
     return (
       <HugeiconsIcon
-        icon={Terminal}
+        icon={ComputerTerminal01Icon}
         data-icon="terminal"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
@@ -122,7 +122,7 @@ export const ResultItemIcon: React.FC<{
   if (item.iconType === "browser") {
     return (
       <HugeiconsIcon
-        icon={Globe}
+        icon={InternetIcon}
         data-icon="globe"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
@@ -134,7 +134,7 @@ export const ResultItemIcon: React.FC<{
   if (item.iconType === "repo") {
     return (
       <HugeiconsIcon
-        icon={Code}
+        icon={CodeIcon}
         data-icon="code"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
@@ -146,7 +146,7 @@ export const ResultItemIcon: React.FC<{
   if (item.iconType === "project") {
     return (
       <HugeiconsIcon
-        icon={FolderKanban}
+        icon={FolderKanbanIcon}
         data-icon="folder-kanban"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
@@ -158,7 +158,7 @@ export const ResultItemIcon: React.FC<{
   if (item.iconType === "workitem") {
     return (
       <HugeiconsIcon
-        icon={ListChecks}
+        icon={ListChecksIcon}
         data-icon="list-checks"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}

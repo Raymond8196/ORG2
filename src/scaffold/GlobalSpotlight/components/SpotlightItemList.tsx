@@ -8,7 +8,7 @@
  *
  * Row rendering is delegated to SpotlightItemRow.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -264,7 +264,7 @@ export const SpotlightItemList: React.FC<SpotlightItemListProps> = ({
         {hasMore && !isLoadingMore && (
           <div className="flex items-center justify-center gap-1 py-3">
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               className="text-text-4"
               size={14}
@@ -328,7 +328,7 @@ export const SpotlightItemList: React.FC<SpotlightItemListProps> = ({
       {hasMore && !isLoadingMore && (
         <div className="flex items-center justify-center gap-1 py-3">
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             className="text-text-4"
             size={14}

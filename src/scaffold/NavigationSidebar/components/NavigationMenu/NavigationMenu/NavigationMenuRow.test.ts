@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -79,7 +79,7 @@ describe("NavigationMenuRow", () => {
           showMoreActions: true,
           rowActions: [
             {
-              icon: RefreshCw,
+              icon: Refresh04Icon,
               dataIcon: "refresh-cw",
               iconClassName: REFRESH_ICON_TOKENS.oneShot,
               label: "Refresh",

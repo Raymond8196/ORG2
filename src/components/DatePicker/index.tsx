@@ -31,8 +31,8 @@
  * />
  * ```
  */
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -243,7 +243,7 @@ const DatePicker: React.FC<DatePickerProps> & {
   return (
     <div className={pickerClasses} style={style}>
       <HugeiconsIcon
-        icon={Calendar}
+        icon={Calendar01Icon}
         data-icon="calendar"
         size={16}
         className="datepicker-icon"
@@ -261,7 +261,7 @@ const DatePicker: React.FC<DatePickerProps> & {
       />
       {allowClear && value && !disabled && (
         <HugeiconsIcon
-          icon={X}
+          icon={Cancel01Icon}
           data-icon="x"
           size={14}
           className="datepicker-clear cursor-pointer"
@@ -342,7 +342,7 @@ const RangePicker: React.FC<RangePickerProps> = ({
   return (
     <div className={pickerClasses} style={style}>
       <HugeiconsIcon
-        icon={Calendar}
+        icon={Calendar01Icon}
         data-icon="calendar"
         size={16}
         className="datepicker-icon"
@@ -366,7 +366,7 @@ const RangePicker: React.FC<RangePickerProps> = ({
       />
       {allowClear && hasValue && !disabled && (
         <HugeiconsIcon
-          icon={X}
+          icon={Cancel01Icon}
           data-icon="x"
           size={14}
           className="datepicker-clear cursor-pointer"

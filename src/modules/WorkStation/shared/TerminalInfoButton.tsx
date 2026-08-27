@@ -1,4 +1,4 @@
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -41,7 +41,7 @@ const TerminalInfoButtonComponent: React.FC<TerminalInfoButtonProps> = ({
         title={t("tooltips.showTerminalProcessInfo")}
         icon={
           <HugeiconsIcon
-            icon={Info}
+            icon={InformationCircleIcon}
             data-icon="info"
             size={HEADER_ICON_SIZE.md}
           />

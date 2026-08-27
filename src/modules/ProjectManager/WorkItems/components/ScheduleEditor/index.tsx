@@ -1,8 +1,8 @@
-import CalendarDays from "@hugeicons/core-free-icons/Calendar02Icon";
-import CalendarOff from "@hugeicons/core-free-icons/CalendarBlock01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
-import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import Calendar02Icon from "@hugeicons/core-free-icons/Calendar02Icon";
+import CalendarBlock01Icon from "@hugeicons/core-free-icons/CalendarBlock01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import RepeatIcon from "@hugeicons/core-free-icons/RepeatIcon";
+import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
@@ -47,11 +47,15 @@ const MODE_OPTIONS: {
   labelKey: string;
   Icon: IconSvgElement;
 }[] = [
-  { value: "none", labelKey: "common:schedule.noSchedule", Icon: CalendarOff },
+  {
+    value: "none",
+    labelKey: "common:schedule.noSchedule",
+    Icon: CalendarBlock01Icon,
+  },
   {
     value: "one-shot",
     labelKey: "common:schedule.oneShot",
-    Icon: CalendarClock,
+    Icon: TimeScheduleIcon,
   },
 ];
 
@@ -139,7 +143,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
         label: (
           <span className="inline-flex items-center gap-2">
             <HugeiconsIcon
-              icon={Repeat}
+              icon={RepeatIcon}
               data-icon="repeat"
               size={DROPDOWN_ITEM.iconSize}
               className="shrink-0"
@@ -340,7 +344,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
               onClick={() => onChange(null)}
               className="flex h-6 w-6 shrink-0 items-center justify-center rounded-md border-none bg-transparent text-text-3 transition-colors hover:bg-fill-3 hover:text-text-1"
             >
-              <HugeiconsIcon icon={X} data-icon="x" size={12} />
+              <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
             </button>
           )}
         </div>
@@ -359,7 +363,7 @@ const ScheduleEditor: React.FC<ScheduleEditorProps> = ({
                 onClick={() => setOneShotDateOpen((open) => !open)}
               >
                 <HugeiconsIcon
-                  icon={CalendarDays}
+                  icon={Calendar02Icon}
                   data-icon="calendar-days"
                   size={DROPDOWN_ITEM.iconSize}
                   className="shrink-0 text-text-3"

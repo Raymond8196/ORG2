@@ -1,7 +1,7 @@
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -17,12 +17,12 @@ export function PrStatusIcon({ status }: { status: string }): React.ReactNode {
   const iconName = getPrStatusIconName(status);
   const [StatusIcon, dataIcon] =
     iconName === "draft"
-      ? [GitPullRequestDraft, "git-pull-request-draft"]
+      ? [GitPullRequestDraftIcon, "git-pull-request-draft"]
       : iconName === "merge"
-        ? [GitMerge, "git-merge"]
+        ? [GitMergeIcon, "git-merge"]
         : iconName === "closed"
-          ? [GitPullRequestClosed, "git-pull-request-closed"]
-          : [GitPullRequest, "git-pull-request"];
+          ? [GitPullRequestClosedIcon, "git-pull-request-closed"]
+          : [GitPullRequestIcon, "git-pull-request"];
 
   return (
     <AnyIcon

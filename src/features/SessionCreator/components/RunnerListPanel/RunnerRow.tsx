@@ -15,8 +15,8 @@
  * line. The line duplicated the pill it sat under ("Pick a harness" twice),
  * and on a narrow panel it had no width left and rendered as a bare triangle.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -115,7 +115,7 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
             className: "block",
           })
         : React.createElement(HugeiconsIcon, {
-            icon: InfinityIcon,
+            icon: Infinity01Icon,
             size: PILL_SM_ICON_SIZE,
             className: "block",
           });
@@ -165,7 +165,7 @@ const RunnerRow: React.FC<RunnerRowProps> = memo(
               shape="round"
               icon={
                 <HugeiconsIcon
-                  icon={X}
+                  icon={Cancel01Icon}
                   data-icon="x"
                   size={14}
                   strokeWidth={1.85}

@@ -6,7 +6,7 @@
  * exits edit mode WITHOUT approving/building. "Build" approves the (persisted)
  * plan and starts execution; "Skip" rejects it without starting Build.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -399,7 +399,12 @@ const CreatePlanCard: React.FC<CreatePlanCardProps> = memo(
           data-testid="create-plan-collapse"
           onClick={() => onCollapse()}
           icon={
-            <HugeiconsIcon icon={X} data-icon="x" size={12} strokeWidth={2} />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              data-icon="x"
+              size={12}
+              strokeWidth={2}
+            />
           }
           title={t("planDoc.collapse")}
         />

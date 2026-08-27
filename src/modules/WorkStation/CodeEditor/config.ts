@@ -3,18 +3,18 @@
  *
  * Configuration constants and icons for the CodeEditor component.
  */
-import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 
 // ============================================
 // Icon Configuration
 // ============================================
 
 export const CODE_EDITOR_ICONS = {
-  fileCode: FileCode,
-  folderOpen: FolderOpen,
-  search: Search,
+  fileCode: FileScriptIcon,
+  folderOpen: FolderOpenIcon,
+  search: Search01Icon,
 } as const;
 
 // ============================================

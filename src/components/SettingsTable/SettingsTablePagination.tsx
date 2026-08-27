@@ -9,10 +9,10 @@
  * `openEndedPageCount`: jumps stay enabled across loaded pages and the total
  * renders as "N+" while more remote pages exist.
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronsLeft from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeftDoubleIcon from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -102,7 +102,7 @@ export function SettingsTablePagination({
             title={t("pagination.firstPage")}
           >
             <HugeiconsIcon
-              icon={ChevronsLeft}
+              icon={ArrowLeftDoubleIcon}
               data-icon="chevrons-left"
               size={14}
             />
@@ -116,7 +116,7 @@ export function SettingsTablePagination({
           title={t("pagination.previousPage")}
         >
           <HugeiconsIcon
-            icon={ChevronLeft}
+            icon={ArrowLeft01Icon}
             data-icon="chevron-left"
             size={14}
           />
@@ -142,7 +142,7 @@ export function SettingsTablePagination({
           title={t("pagination.nextPage")}
         >
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
           />
@@ -156,7 +156,7 @@ export function SettingsTablePagination({
             title={t("pagination.lastPage")}
           >
             <HugeiconsIcon
-              icon={ChevronsRight}
+              icon={ArrowRightDoubleIcon}
               data-icon="chevrons-right"
               size={14}
             />

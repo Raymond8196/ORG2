@@ -1,5 +1,5 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 
@@ -44,14 +44,14 @@ const SymbolTreeNode: React.FC<SymbolTreeNodeProps> = memo(
           <div className="flex h-4 w-4 items-center justify-center">
             {symbol.expanded ? (
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={CHEVRON_SIZE}
                 className="text-text-3"
               />
             ) : (
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={CHEVRON_SIZE}
                 className="text-text-3"

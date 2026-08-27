@@ -9,10 +9,10 @@
  * relevant edit actions (Cancel + Save) are shown; the unrelated actions
  * (Edit toggle, Open in My Station) are hidden.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -52,7 +52,9 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           data-testid="plan-approval-cancel"
           onClick={onEditToggle}
           disabled={submitting}
-          icon={<HugeiconsIcon icon={X} data-icon="x" size={ICON_SIZE} />}
+          icon={
+            <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={ICON_SIZE} />
+          }
         >
           {t("planDoc.cancelEdit")}
         </Button>
@@ -64,7 +66,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           disabled={saveDisabled}
           icon={
             <HugeiconsIcon
-              icon={CheckCircle2}
+              icon={CheckmarkCircle01Icon}
               data-icon="check-circle-2"
               size={ICON_SIZE}
             />
@@ -84,7 +86,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
         onClick={onEditToggle}
         disabled={saveDisabled}
         icon={
-          <HugeiconsIcon icon={Pencil} data-icon="pencil" size={ICON_SIZE} />
+          <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={ICON_SIZE} />
         }
       >
         {t("planDoc.edit")}
@@ -96,7 +98,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           onClick={onOpenInMyStation}
           icon={
             <HugeiconsIcon
-              icon={SquareArrowOutUpRight}
+              icon={SquareArrowUpRightIcon}
               data-icon="square-arrow-out-up-right"
               size={ICON_SIZE}
             />

@@ -1,8 +1,8 @@
 /**
  * Combined diff view for multiple edits on the same file in session replay.
  */
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
@@ -75,14 +75,14 @@ const EditSection: React.FC<{
       >
         {isCollapsed ? (
           <HugeiconsIcon
-            icon={ChevronsUpDown}
+            icon={UnfoldMoreIcon}
             data-icon="chevrons-up-down"
             size={14}
             className="shrink-0 text-text-3"
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronsDownUp}
+            icon={ChevronsDownUpIcon}
             data-icon="chevrons-down-up"
             size={14}
             className="shrink-0 text-text-3"
@@ -199,7 +199,7 @@ export const CombinedDiffView: React.FC<{
             size="small"
             icon={
               <HugeiconsIcon
-                icon={ChevronsUpDown}
+                icon={UnfoldMoreIcon}
                 data-icon="chevrons-up-down"
                 size={14}
               />

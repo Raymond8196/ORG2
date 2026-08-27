@@ -14,12 +14,12 @@ import {
   PrimarySidebarLayout,
   type PrimarySidebarTab,
 } from "@/src/modules/WorkStation/shared";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
 import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -168,7 +168,9 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           ? [
               {
                 key: "new-session",
-                icon: <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />,
+                icon: (
+                  <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
+                ),
                 tooltip: t("common:controlTower.sidebar.newTab"),
                 onClick: onNewSession,
               },
@@ -204,7 +206,9 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           ? [
               {
                 key: "new-private-session",
-                icon: <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />,
+                icon: (
+                  <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
+                ),
                 tooltip: t("common:controlTower.sidebar.newPrivateTab"),
                 onClick: onNewPrivateSession || onNewSession,
               },
@@ -241,7 +245,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
         label: t("tabs.sessions"),
         icon: (
           <HugeiconsIcon
-            icon={Globe}
+            icon={InternetIcon}
             data-icon="globe"
             size={16}
             strokeWidth={1.75}
@@ -269,7 +273,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
             title: t("labels.privateBrowsing"),
             icon: (
               <HugeiconsIcon
-                icon={Globe}
+                icon={InternetIcon}
                 data-icon="globe"
                 size={14}
                 strokeWidth={1.75}
@@ -301,7 +305,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           label: t("tabs.history"),
           icon: (
             <HugeiconsIcon
-              icon={History}
+              icon={WorkHistoryIcon}
               data-icon="history"
               size={16}
               strokeWidth={1.75}
@@ -313,7 +317,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
               title: t("labels.history"),
               icon: (
                 <HugeiconsIcon
-                  icon={History}
+                  icon={WorkHistoryIcon}
                   data-icon="history"
                   size={14}
                   strokeWidth={1.75}
@@ -335,7 +339,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
           label: t("tabs.design"),
           icon: (
             <HugeiconsIcon
-              icon={Pencil}
+              icon={Pen01Icon}
               data-icon="pencil"
               size={16}
               strokeWidth={1.75}
@@ -347,7 +351,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
               title: t("labels.globalTokens"),
               icon: (
                 <HugeiconsIcon
-                  icon={Code2}
+                  icon={CodeIcon}
                   data-icon="code-2"
                   size={14}
                   strokeWidth={1.75}

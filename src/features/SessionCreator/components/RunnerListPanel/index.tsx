@@ -9,7 +9,7 @@
  * launcher's global model never leaks into a row for the same reason — it was
  * picked for a different harness and may be one this row cannot serve.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -220,7 +220,7 @@ const RunnerListPanel: React.FC<RunnerListPanelProps> = memo(
             shape="round"
             icon={
               <HugeiconsIcon
-                icon={Plus}
+                icon={Add01Icon}
                 data-icon="plus"
                 size={14}
                 strokeWidth={1.85}

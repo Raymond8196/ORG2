@@ -16,8 +16,8 @@
  *     <SettingsTable ... />
  *   </ExpandableTableRow>
  */
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -57,13 +57,13 @@ const ExpandableTableRow: React.FC<ExpandableTableRowProps> = memo(
               icon={
                 expanded ? (
                   <HugeiconsIcon
-                    icon={ChevronsDownUp}
+                    icon={ChevronsDownUpIcon}
                     data-icon="chevrons-down-up"
                     size={14}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={ChevronsUpDown}
+                    icon={UnfoldMoreIcon}
                     data-icon="chevrons-up-down"
                     size={14}
                   />

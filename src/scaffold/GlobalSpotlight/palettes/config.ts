@@ -8,19 +8,19 @@
  * - Labels and icons
  * - Palette mode configurations
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Command from "@hugeicons/core-free-icons/CommandIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import File from "@hugeicons/core-free-icons/File01Icon";
-import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
-import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitBranchPlus from "@hugeicons/core-free-icons/GitBranchIcon";
-import GitBranchMinus from "@hugeicons/core-free-icons/GitBranchMinusIcon";
-import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
-import Grip from "@hugeicons/core-free-icons/GripIcon";
-import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
-import Variable from "@hugeicons/core-free-icons/VariableIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import CommandIcon from "@hugeicons/core-free-icons/CommandIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import File01Icon from "@hugeicons/core-free-icons/File01Icon";
+import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
+import GitBranchIcon from "@hugeicons/core-free-icons/GitBranchIcon";
+import GitBranchMinusIcon from "@hugeicons/core-free-icons/GitBranchMinusIcon";
+import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
+import GripIcon from "@hugeicons/core-free-icons/GripIcon";
+import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
+import VariableIcon from "@hugeicons/core-free-icons/VariableIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
@@ -123,11 +123,11 @@ export const REPO_PALETTE_CONFIG: SelectorConfig = {
       id: "switch",
       label: "Switch",
       title: "Switch to repo (use Tab to navigate tabs)",
-      icon: FolderTree,
+      icon: FolderTreeIcon,
       path: {
         id: "switch-repo",
         label: "Switch to",
-        icon: FolderTree,
+        icon: FolderTreeIcon,
         template: "Switch to {workspace}",
         requiredParams: ["workspace"],
         i18nLabel: "selectors.repo.path.switchTo",
@@ -140,11 +140,11 @@ export const REPO_PALETTE_CONFIG: SelectorConfig = {
       id: "add",
       label: "Add",
       title: "Add workspace...",
-      icon: FolderPlus,
+      icon: FolderAddIcon,
       path: {
         id: "add-workspace",
         label: "Add workspace by",
-        icon: FolderPlus,
+        icon: FolderAddIcon,
         template: "Add workspace by {source}",
         requiredParams: ["source"],
         i18nLabel: "selectors.repo.path.addBy",
@@ -157,11 +157,11 @@ export const REPO_PALETTE_CONFIG: SelectorConfig = {
       id: "remove",
       label: "Remove",
       title: "Remove linkage to ORGII",
-      icon: Trash2,
+      icon: Delete02Icon,
       path: {
         id: "remove-repo",
         label: "Remove",
-        icon: Trash2,
+        icon: Delete02Icon,
         template: "Remove {repo} linkage to ORGII",
         requiredParams: ["repo"],
       },
@@ -181,7 +181,7 @@ export const CURSOR_MODEL_PALETTE_CONFIG: SelectorConfig = {
   path: {
     id: "cursor-model",
     label: "Model",
-    icon: Grip,
+    icon: GripIcon,
     template: "Select {model} for Cursor",
     requiredParams: ["model"],
   },
@@ -195,7 +195,7 @@ export const DISPATCH_CATEGORY_PALETTE_CONFIG: SelectorConfig = {
   path: {
     id: "session-agent-or-org",
     label: "Session agent",
-    icon: Grip,
+    icon: GripIcon,
     template: "Select {agent}",
     requiredParams: ["agent"],
     i18nLabel: "filters.agentOrAgentOrg",
@@ -214,11 +214,11 @@ export const BRANCH_PALETTE_CONFIG: SelectorConfig = {
       id: "checkout",
       label: "Checkout",
       title: "Checkout branch",
-      icon: GitBranch,
+      icon: WorkflowCircle05Icon,
       path: {
         id: "checkout-branch",
         label: "Checkout branch",
-        icon: GitBranch,
+        icon: WorkflowCircle05Icon,
         template: "Checkout {branch}",
         requiredParams: ["branch"],
         i18nLabel: "selectors.branch.path.checkoutBranch",
@@ -231,11 +231,11 @@ export const BRANCH_PALETTE_CONFIG: SelectorConfig = {
       id: "add",
       label: "Add",
       title: "Create new branch",
-      icon: Plus,
+      icon: Add01Icon,
       path: {
         id: "create-branch",
         label: "Create branch called",
-        icon: Plus,
+        icon: Add01Icon,
         template: "Create branch called {name}",
         requiredParams: ["name"],
         i18nLabel: "selectors.branch.path.createBranchCalled",
@@ -248,11 +248,11 @@ export const BRANCH_PALETTE_CONFIG: SelectorConfig = {
       id: "add-from",
       label: "Add",
       title: "Create new branch from ref",
-      icon: GitBranchPlus,
+      icon: GitBranchIcon,
       path: {
         id: "create-branch-from",
         label: "Create a new branch based on",
-        icon: GitBranchPlus,
+        icon: GitBranchIcon,
         template: "Create a new branch based on {branch}",
         requiredParams: ["branch"],
         i18nLabel: "selectors.branch.path.createBranchFrom",
@@ -265,11 +265,11 @@ export const BRANCH_PALETTE_CONFIG: SelectorConfig = {
       id: "remove",
       label: "Remove",
       title: "Delete branch",
-      icon: GitBranchMinus,
+      icon: GitBranchMinusIcon,
       path: {
         id: "remove-branch",
         label: "Delete",
-        icon: GitBranchMinus,
+        icon: GitBranchMinusIcon,
         template: "Delete {branch}",
         requiredParams: ["branch"],
         i18nLabel: "selectors.branch.path.delete",
@@ -281,12 +281,12 @@ export const BRANCH_PALETTE_CONFIG: SelectorConfig = {
   ],
   // Icons used by branch selector items
   icons: {
-    branch: GitBranch,
-    worktree: GitFork,
-    create: Plus,
-    createFrom: GitBranchPlus,
-    delete: GitBranchMinus,
-    detached: Link2Off,
+    branch: WorkflowCircle05Icon,
+    worktree: GitForkIcon,
+    create: Add01Icon,
+    createFrom: GitBranchIcon,
+    delete: GitBranchMinusIcon,
+    detached: Unlink02Icon,
   },
   // Labels for action items and headers
   labels: {
@@ -325,9 +325,9 @@ export interface SpotlightModeConfig {
 
 export const EDITOR_PALETTE_CONFIG = {
   modes: {
-    file: { id: "file", icon: File, color: "primary" },
-    command: { id: "command", icon: Command, color: "success" },
-    symbol: { id: "symbol", icon: Variable, color: "primary" },
+    file: { id: "file", icon: File01Icon, color: "primary" },
+    command: { id: "command", icon: CommandIcon, color: "success" },
+    symbol: { id: "symbol", icon: VariableIcon, color: "primary" },
   } as Record<string, SpotlightModeConfig>,
   /** Prefix to mode mapping */
   prefixes: {

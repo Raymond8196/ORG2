@@ -5,13 +5,13 @@
  * and ChatPanel (engines/). Moved from features/SessionCreator/config.ts
  * to break the cross-feature dependency.
  */
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
-import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Split from "@hugeicons/core-free-icons/SplitIcon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
+import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
 
 // ============================================
 // Session Configuration
@@ -100,7 +100,7 @@ export function isAgentExecMode(value: unknown): value is AgentExecMode {
 
 export interface AgentExecModeEntry {
   id: AgentExecMode;
-  icon: typeof Infinity;
+  icon: typeof Infinity01Icon;
   i18nKey: string;
   name: string;
   description: string;
@@ -109,21 +109,21 @@ export interface AgentExecModeEntry {
 export const AGENT_EXEC_MODES: AgentExecModeEntry[] = [
   {
     id: "build",
-    icon: Infinity,
+    icon: Infinity01Icon,
     i18nKey: "planner.modes.build",
     name: "Build",
     description: "Full tool access — read, write, execute",
   },
   {
     id: "plan",
-    icon: ListTodo,
+    icon: ListTodoIcon,
     i18nKey: "planner.modes.plan",
     name: "Plan",
     description: "Draft a plan file for user review — no direct edits",
   },
   {
     id: "ask",
-    icon: Search,
+    icon: Search01Icon,
     i18nKey: "planner.modes.ask",
     name: "Ask",
     description: "Read-only research — search + read + ask",
@@ -150,7 +150,7 @@ export const PRODUCT_MODE_PROJECT = "project" as const;
 
 export interface ComposerModeEntry {
   id: AgentExecMode | typeof PRODUCT_MODE_PROJECT;
-  icon: typeof Infinity;
+  icon: typeof Infinity01Icon;
   i18nKey: string;
   name: string;
   description: string;
@@ -161,7 +161,7 @@ export const COMPOSER_MODES: ComposerModeEntry[] = [
   ...AGENT_EXEC_MODES,
   {
     id: PRODUCT_MODE_PROJECT,
-    icon: FolderKanban,
+    icon: FolderKanbanIcon,
     i18nKey: "planner.modes.project",
     name: "Project",
     description:
@@ -186,7 +186,7 @@ export const DEFAULT_RUNNING_LOCATION: RunningLocation = "local";
 
 export interface RunningLocationEntry {
   id: RunningLocation;
-  icon: typeof Laptop;
+  icon: typeof LaptopIcon;
   iconClassName?: string;
   i18nKey: string;
   name: string;
@@ -197,14 +197,14 @@ export interface RunningLocationEntry {
 export const RUNNING_LOCATIONS: RunningLocationEntry[] = [
   {
     id: "local",
-    icon: Laptop,
+    icon: LaptopIcon,
     i18nKey: "planner.runningLocation.local",
     name: "This Mac",
     description: "Run on this device",
   },
   {
     id: "worktree",
-    icon: Split,
+    icon: SplitIcon,
     iconClassName: "rotate-90",
     i18nKey: "planner.runningLocation.worktree",
     name: "New Worktree",
@@ -212,7 +212,7 @@ export const RUNNING_LOCATIONS: RunningLocationEntry[] = [
   },
   {
     id: "cloud",
-    icon: Cloud,
+    icon: CloudIcon,
     i18nKey: "planner.runningLocation.cloud",
     name: "Cloud",
     description: "Run in the cloud",

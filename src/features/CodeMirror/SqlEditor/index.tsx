@@ -11,9 +11,9 @@
  */
 import { SQLite, sql } from "@codemirror/lang-sql";
 import { EditorView, keymap } from "@codemirror/view";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
-import AlignLeft from "@hugeicons/core-free-icons/TextAlignLeftIcon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
+import TextAlignLeftIcon from "@hugeicons/core-free-icons/TextAlignLeftIcon";
+import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import CodeMirror from "@uiw/react-codemirror";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
@@ -166,7 +166,7 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
               className="sql-query-editor__btn"
             >
               <HugeiconsIcon
-                icon={AlignLeft}
+                icon={TextAlignLeftIcon}
                 data-icon="align-left"
                 size={14}
                 strokeWidth={1.75}
@@ -183,7 +183,7 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
                   className="sql-query-editor__btn"
                 >
                   <HugeiconsIcon
-                    icon={History}
+                    icon={WorkHistoryIcon}
                     data-icon="history"
                     size={14}
                     strokeWidth={1.75}
@@ -226,7 +226,7 @@ export const SqlQueryEditor: React.FC<SqlQueryEditorProps> = memo(
               className="sql-query-editor__btn sql-query-editor__btn--primary"
             >
               <HugeiconsIcon
-                icon={Play}
+                icon={PlayIcon}
                 data-icon="play"
                 size={14}
                 strokeWidth={1.75}

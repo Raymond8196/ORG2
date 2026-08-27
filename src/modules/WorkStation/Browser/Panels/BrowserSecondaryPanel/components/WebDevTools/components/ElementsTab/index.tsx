@@ -3,9 +3,9 @@
  *
  * Displays selected element details with copy functionality.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -60,13 +60,13 @@ export const ElementsTab: React.FC<ElementsTabProps> = memo(
           icon={
             copiedField === field ? (
               <HugeiconsIcon
-                icon={Check}
+                icon={Tick01Icon}
                 data-icon="check"
                 size={10}
                 className="text-success-6"
               />
             ) : (
-              <HugeiconsIcon icon={Copy} data-icon="copy" size={10} />
+              <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={10} />
             )
           }
           iconOnly
@@ -89,7 +89,9 @@ export const ElementsTab: React.FC<ElementsTabProps> = memo(
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={X} data-icon="x" size={12} />}
+                icon={
+                  <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
+                }
                 iconOnly
                 onClick={onClear}
                 aria-label={t("tooltips.clearSelection")}

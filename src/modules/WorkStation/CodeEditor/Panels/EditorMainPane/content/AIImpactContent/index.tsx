@@ -7,11 +7,11 @@
  *
  * Ratio bars compare AI-attributed metrics against total git activity.
  */
-import FileCode2 from "@hugeicons/core-free-icons/FileCodeIcon";
-import FunctionSquare from "@hugeicons/core-free-icons/FunctionSquareIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import FileCodeIcon from "@hugeicons/core-free-icons/FileCodeIcon";
+import FunctionSquareIcon from "@hugeicons/core-free-icons/FunctionSquareIcon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
@@ -202,7 +202,7 @@ const SessionRow: React.FC<SessionRowProps> = memo(({ sessionId, impact }) => (
   <div className="group flex items-center justify-between overflow-hidden rounded-lg border border-border-1 bg-fill-1 p-3 transition-colors hover:bg-fill-2">
     <div className="flex min-w-0 flex-1 items-center gap-3">
       <HugeiconsIcon
-        icon={Sparkles}
+        icon={SparklesIcon}
         data-icon="sparkles"
         size={14}
         className="flex-shrink-0 text-primary-6"
@@ -213,12 +213,12 @@ const SessionRow: React.FC<SessionRowProps> = memo(({ sessionId, impact }) => (
     </div>
     <div className="flex items-center gap-4 text-[11px]">
       <span className="flex items-center gap-1 text-text-3">
-        <HugeiconsIcon icon={FileCode2} data-icon="file-code-2" size={11} />
+        <HugeiconsIcon icon={FileCodeIcon} data-icon="file-code-2" size={11} />
         {impact.filesTouched.length}
       </span>
       <span className="flex items-center gap-1 text-text-3">
         <HugeiconsIcon
-          icon={FunctionSquare}
+          icon={FunctionSquareIcon}
           data-icon="function-square"
           size={11}
         />
@@ -226,14 +226,14 @@ const SessionRow: React.FC<SessionRowProps> = memo(({ sessionId, impact }) => (
       </span>
       <span className="flex items-center gap-1 text-text-3">
         <HugeiconsIcon
-          icon={GitCommitHorizontal}
+          icon={GitCommitHorizontalIcon}
           data-icon="git-commit-horizontal"
           size={11}
         />
         {impact.commitsInfluenced.length}
       </span>
       <span className="flex items-center gap-1 text-text-3">
-        <HugeiconsIcon icon={Hash} data-icon="hash" size={11} />
+        <HugeiconsIcon icon={HashtagIcon} data-icon="hash" size={11} />
         {impact.totalLinesAttributed}
       </span>
     </div>
@@ -350,7 +350,7 @@ const AIImpactContent: React.FC = () => {
   return (
     <div className="flex h-full flex-col overflow-hidden">
       <PanelHeader
-        icon={Sparkles}
+        icon={SparklesIcon}
         title={t("aiImpact.title")}
         background="transparent"
         actions={
@@ -384,7 +384,7 @@ const AIImpactContent: React.FC = () => {
               <StatItem
                 icon={
                   <HugeiconsIcon
-                    icon={Sparkles}
+                    icon={SparklesIcon}
                     data-icon="sparkles"
                     size={12}
                   />
@@ -395,7 +395,7 @@ const AIImpactContent: React.FC = () => {
               <StatItem
                 icon={
                   <HugeiconsIcon
-                    icon={FileCode2}
+                    icon={FileCodeIcon}
                     data-icon="file-code-2"
                     size={12}
                   />
@@ -408,7 +408,7 @@ const AIImpactContent: React.FC = () => {
               <StatItem
                 icon={
                   <HugeiconsIcon
-                    icon={FunctionSquare}
+                    icon={FunctionSquareIcon}
                     data-icon="function-square"
                     size={12}
                   />
@@ -419,7 +419,7 @@ const AIImpactContent: React.FC = () => {
               <StatItem
                 icon={
                   <HugeiconsIcon
-                    icon={GitCommitHorizontal}
+                    icon={GitCommitHorizontalIcon}
                     data-icon="git-commit-horizontal"
                     size={12}
                   />
@@ -430,7 +430,13 @@ const AIImpactContent: React.FC = () => {
                 totalLabel={t("aiImpact.human")}
               />
               <StatItem
-                icon={<HugeiconsIcon icon={Hash} data-icon="hash" size={12} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={HashtagIcon}
+                    data-icon="hash"
+                    size={12}
+                  />
+                }
                 label={t("aiImpact.lines")}
                 value={aggregated.totalLinesAttributed}
                 total={baseline?.totalInsertions}

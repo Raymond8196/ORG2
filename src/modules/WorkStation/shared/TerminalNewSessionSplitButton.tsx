@@ -1,5 +1,5 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -154,7 +154,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
           title={terminalTitle}
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
@@ -177,7 +177,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
           title={terminalTitle}
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
@@ -194,7 +194,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
           title={terminalTitle}
         >
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={SIDEBAR_ICON_STROKE_WIDTH}
@@ -219,7 +219,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
         title={terminalTitle}
         icon={
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={2}
@@ -245,7 +245,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
       title={terminalTitle}
       icon={
         <HugeiconsIcon
-          icon={Plus}
+          icon={Add01Icon}
           data-icon="plus"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2}

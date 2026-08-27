@@ -6,7 +6,7 @@
  * ("{author} wants to merge {n} commits into {base} from {head}") with the
  * branch names as code pills, a copy-branch action, and the +/− diff stat.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -131,7 +131,7 @@ export function PrFlowHeader({
         data-testid="pr-flow-copy-branch"
       >
         <HugeiconsIcon
-          icon={Copy}
+          icon={Copy01Icon}
           data-icon="copy"
           size={12}
           strokeWidth={1.75}

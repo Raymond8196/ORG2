@@ -5,8 +5,8 @@
  * their counts, labels, active state, and session handlers.
  * Extracted from SessionReplayBrowser to keep index.tsx under 600 lines.
  */
-import Compass from "@hugeicons/core-free-icons/CompassIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import CompassIcon from "@hugeicons/core-free-icons/CompassIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import {
@@ -197,7 +197,7 @@ export function useBrowserReplayTabs({
         ),
         title: agentBrowserLabel,
         icon: createElement(HugeiconsIcon, {
-          icon: Compass,
+          icon: CompassIcon,
           size: TAB_ICON_SIZE,
           className: TAB_ICON_CLASS,
         }),
@@ -215,7 +215,7 @@ export function useBrowserReplayTabs({
         ),
         title: searchFetchLabel,
         icon: createElement(HugeiconsIcon, {
-          icon: Search,
+          icon: Search01Icon,
           size: TAB_ICON_SIZE,
           className: TAB_ICON_CLASS,
         }),

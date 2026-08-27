@@ -3,14 +3,14 @@
  *
  * Icons and constants for the outline view
  */
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
-import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
-import FunctionSquare from "@hugeicons/core-free-icons/FunctionSquareIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Type from "@hugeicons/core-free-icons/TypeIcon";
-import Variable from "@hugeicons/core-free-icons/VariableIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
+import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
+import FunctionSquareIcon from "@hugeicons/core-free-icons/FunctionSquareIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import TypeIcon from "@hugeicons/core-free-icons/TypeIcon";
+import VariableIcon from "@hugeicons/core-free-icons/VariableIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import type { SymbolKind } from "./types";
@@ -19,18 +19,18 @@ import type { SymbolKind } from "./types";
  * Icon configuration for different symbol kinds
  */
 export const SYMBOL_ICONS: Record<SymbolKind, IconSvgElement> = {
-  function: FunctionSquare,
-  class: Box,
-  interface: Braces,
-  type: Type,
-  const: Variable,
-  let: Variable,
-  var: Variable,
-  export: FileCode,
-  import: FileCode,
-  method: Code,
-  property: Hash,
-  enum: Braces,
+  function: FunctionSquareIcon,
+  class: BoxIcon,
+  interface: FirstBracketIcon,
+  type: TypeIcon,
+  const: VariableIcon,
+  let: VariableIcon,
+  var: VariableIcon,
+  export: FileScriptIcon,
+  import: FileScriptIcon,
+  method: CodeIcon,
+  property: HashtagIcon,
+  enum: FirstBracketIcon,
 };
 
 /**

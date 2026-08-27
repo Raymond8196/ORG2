@@ -1,4 +1,4 @@
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -10,7 +10,7 @@ export function isCanvasCommandPillPath(path: string): boolean {
 
 const CanvasCommandPillIcon: React.FC = memo(() => (
   <HugeiconsIcon
-    icon={Layout}
+    icon={Layout01Icon}
     data-icon="panels-top-left"
     size={PILL_SIZE.iconSize}
     strokeWidth={1.75}

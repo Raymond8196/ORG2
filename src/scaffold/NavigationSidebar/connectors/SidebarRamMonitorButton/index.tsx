@@ -1,4 +1,4 @@
-import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
+import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
 import React, { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -325,7 +325,7 @@ export const SidebarRamMonitorButton: React.FC = React.memo(() => {
           onMouseEnter={(event) => triggerIconAnimation(event.currentTarget)}
         >
           <HoverAnimatedIcon
-            icon={Gauge}
+            icon={GaugeIcon}
             iconName="gauge"
             size={16}
             strokeWidth={2}

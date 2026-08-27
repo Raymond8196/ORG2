@@ -5,12 +5,12 @@
  * branch + working diff, CI, git sync, session-repo hint, ports and the
  * indexing indicator. Presentational only — every value is passed in.
  */
-import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { ExtractAtomValue } from "jotai";
@@ -121,14 +121,14 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         >
           {isMultiRoot ? (
             <HugeiconsIcon
-              icon={FolderTree}
+              icon={FolderTreeIcon}
               data-icon="folder-tree"
               size={13}
               className="shrink-0 text-text-1"
             />
           ) : (
             <HugeiconsIcon
-              icon={Code}
+              icon={CodeIcon}
               data-icon="code"
               size={13}
               className="shrink-0 text-text-1"
@@ -146,7 +146,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         dataTestId="status-bar-no-repo"
       >
         <HugeiconsIcon
-          icon={Code}
+          icon={CodeIcon}
           data-icon="code"
           size={13}
           className="text-primary-6"
@@ -163,7 +163,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         title={t("workstation.notGitInitializedTooltip")}
       >
         <HugeiconsIcon
-          icon={GitBranch}
+          icon={WorkflowCircle05Icon}
           data-icon="git-branch"
           size={13}
           className="text-text-2"
@@ -185,7 +185,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
           dataTestId="status-bar-worktree"
         >
           <HugeiconsIcon
-            icon={Folder}
+            icon={FolderClosedIcon}
             data-icon="folder"
             size={13}
             className="shrink-0 text-text-1"
@@ -225,14 +225,14 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         >
           {checkoutLoading ? (
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={SPINNER_TOKENS.small}
               className="shrink-0 animate-spin text-text-1"
             />
           ) : (
             <HugeiconsIcon
-              icon={GitBranch}
+              icon={WorkflowCircle05Icon}
               data-icon="git-branch"
               size={13}
               className="shrink-0 text-text-1"
@@ -291,7 +291,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         dataTestId="status-bar-switch-to-session-repo"
       >
         <HugeiconsIcon
-          icon={ArrowRightLeft}
+          icon={ArrowLeftRightIcon}
           data-icon="arrow-right-left"
           size={13}
         />
@@ -338,7 +338,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         }
       >
         <HugeiconsIcon
-          icon={FolderTree}
+          icon={FolderTreeIcon}
           data-icon="folder-tree"
           size={13}
           className={isIndexingActive ? "animate-pulse" : ""}

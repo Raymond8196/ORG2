@@ -1,4 +1,4 @@
-import AtSign from "@hugeicons/core-free-icons/AtIcon";
+import AtIcon from "@hugeicons/core-free-icons/AtIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -80,7 +80,7 @@ const WorkItemMentionPicker: React.FC<WorkItemMentionPickerProps> = ({
       options={options}
       prefix={
         <HugeiconsIcon
-          icon={AtSign}
+          icon={AtIcon}
           data-icon="at-sign"
           size={13}
           aria-hidden

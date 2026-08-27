@@ -1,4 +1,4 @@
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
@@ -31,7 +31,7 @@ describe("SectionHeading", () => {
           headingLevel: 1,
           title: "Choose a tutorial",
           description: "Learn on the product surface.",
-          icon: Circle,
+          icon: CircleIcon,
         },
         React.createElement("div", null, "Tutorial choices")
       )

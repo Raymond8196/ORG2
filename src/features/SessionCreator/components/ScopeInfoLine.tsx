@@ -7,10 +7,10 @@
  * Categories: Repo | Session | Projects | Work items
  * Scope varies based on category (multi-select supported)
  */
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -55,21 +55,25 @@ export interface ScopeInfoLineProps {
 
 // Category options
 const CATEGORY_OPTION_KEYS = [
-  { value: "repo" as const, i18nKey: "scope.categories.repo", icon: Folder },
+  {
+    value: "repo" as const,
+    i18nKey: "scope.categories.repo",
+    icon: FolderClosedIcon,
+  },
   {
     value: "session" as const,
     i18nKey: "scope.categories.session",
-    icon: GitBranch,
+    icon: WorkflowCircle05Icon,
   },
   {
     value: "project" as const,
     i18nKey: "scope.categories.projects",
-    icon: Box,
+    icon: BoxIcon,
   },
   {
     value: "workitem" as const,
     i18nKey: "scope.categories.workItems",
-    icon: Layers,
+    icon: Layers01Icon,
   },
 ];
 
@@ -172,7 +176,7 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             label: repo.name,
             icon: (
               <HugeiconsIcon
-                icon={Folder}
+                icon={FolderClosedIcon}
                 data-icon="folder"
                 size={14}
                 className="shrink-0"
@@ -188,7 +192,7 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             label: session.name,
             icon: (
               <HugeiconsIcon
-                icon={GitBranch}
+                icon={WorkflowCircle05Icon}
                 data-icon="git-branch"
                 size={14}
                 className="shrink-0"
@@ -204,7 +208,7 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             label: project.name,
             icon: (
               <HugeiconsIcon
-                icon={Box}
+                icon={BoxIcon}
                 data-icon="box"
                 size={14}
                 className="shrink-0"
@@ -220,7 +224,7 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             label: item.name,
             icon: (
               <HugeiconsIcon
-                icon={Layers}
+                icon={Layers01Icon}
                 data-icon="layers"
                 size={14}
                 className="shrink-0"

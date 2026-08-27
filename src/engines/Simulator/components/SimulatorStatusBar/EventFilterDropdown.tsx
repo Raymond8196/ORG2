@@ -1,4 +1,4 @@
-import ListFilter from "@hugeicons/core-free-icons/ListFilterIcon";
+import ListFilterIcon from "@hugeicons/core-free-icons/ListFilterIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
@@ -129,7 +129,7 @@ export const EventFilterDropdown: React.FC<EventFilterDropdownProps> = ({
         } ${triggerToneClass}`}
       >
         <HugeiconsIcon
-          icon={ListFilter}
+          icon={ListFilterIcon}
           data-icon="list-filter"
           size={12}
           strokeWidth={2}

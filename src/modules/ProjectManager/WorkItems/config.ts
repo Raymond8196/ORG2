@@ -3,19 +3,19 @@
  *
  * Re-exports from centralized config and additional WorkItem-specific configs.
  */
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Diamond from "@hugeicons/core-free-icons/DiamondIcon";
-import Flag from "@hugeicons/core-free-icons/Flag01Icon";
-import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import SignalHigh from "@hugeicons/core-free-icons/SignalFull01Icon";
-import Tag from "@hugeicons/core-free-icons/Tag01Icon";
-import User from "@hugeicons/core-free-icons/UserIcon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import DiamondIcon from "@hugeicons/core-free-icons/DiamondIcon";
+import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import SignalFull01Icon from "@hugeicons/core-free-icons/SignalFull01Icon";
+import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -65,7 +65,7 @@ export const MILESTONE_OPTIONS: DropdownOption<string>[] = [
     value: "none",
     label: MILESTONE_OPTIONS_KEY,
     icon: React.createElement(HugeiconsIcon, {
-      icon: Diamond,
+      icon: DiamondIcon,
       size: DROPDOWN_ITEM.iconSize,
       opacity: 0.5,
     }),
@@ -98,7 +98,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "workItemStatus",
     label: "workItems.propertyFields.status",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Circle,
+      icon: CircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "status",
@@ -108,7 +108,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "priority",
     label: "workItems.propertyFields.priority",
     icon: React.createElement(HugeiconsIcon, {
-      icon: SignalHigh,
+      icon: SignalFull01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "priority",
@@ -118,7 +118,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "assignee",
     label: "workItems.propertyFields.assignee",
     icon: React.createElement(HugeiconsIcon, {
-      icon: User,
+      icon: UserIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "person",
@@ -128,7 +128,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "labels",
     label: "workItems.propertyFields.labels",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Tag,
+      icon: Tag01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "label",
@@ -138,7 +138,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "project",
     label: "workItems.propertyFields.project",
     icon: React.createElement(HugeiconsIcon, {
-      icon: BookOpen,
+      icon: BookOpen01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "project",
@@ -148,7 +148,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "milestone",
     label: "workItems.propertyFields.milestone",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Diamond,
+      icon: DiamondIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "milestone",
@@ -158,7 +158,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "endDate",
     label: "workItems.propertyFields.dueDate",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Calendar,
+      icon: Calendar01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "date",
@@ -203,7 +203,7 @@ export function createProjectOption(
     value: project.id,
     label: project.name,
     icon: React.createElement(HugeiconsIcon, {
-      icon: BookOpen,
+      icon: BookOpen01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: project.color || ENTITY_COLORS.blue,
@@ -217,7 +217,7 @@ export function createMilestoneOption(
     value: milestone.id,
     label: milestone.name,
     icon: React.createElement(HugeiconsIcon, {
-      icon: Diamond,
+      icon: DiamondIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: MILESTONE_COLORS.active,
@@ -267,7 +267,7 @@ function createAssigneeSubmenu(
       id: "assignee-none",
       label: tr("workItems.properties.noAssignee", "No assignee"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: User,
+        icon: UserIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       action: () => onAction("assignee", "none"),
@@ -276,7 +276,7 @@ function createAssigneeSubmenu(
       id: `assignee-${member.id}`,
       label: member.name,
       icon: React.createElement(HugeiconsIcon, {
-        icon: User,
+        icon: UserIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: workItem?.assignee?.id === member.id ? "✓" : undefined,
@@ -296,7 +296,7 @@ function createLeadSubmenu(
       id: "lead-none",
       label: tr("workItems.properties.noAssignee", "No assignee"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: User,
+        icon: UserIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       action: () => onAction("lead", "none"),
@@ -305,7 +305,7 @@ function createLeadSubmenu(
       id: `lead-${member.id}`,
       label: member.name,
       icon: React.createElement(HugeiconsIcon, {
-        icon: User,
+        icon: UserIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: workItem?.lead?.some((person) => person.id === member.id)
@@ -335,7 +335,7 @@ function createMembersSubmenu(
     id: `member-${member.id}`,
     label: member.name,
     icon: React.createElement(HugeiconsIcon, {
-      icon: User,
+      icon: UserIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     secondary: workItem?.members?.some((person) => person.id === member.id)
@@ -364,7 +364,7 @@ function createLabelsSubmenu(
     id: `label-${label.id}`,
     label: label.name,
     icon: React.createElement(HugeiconsIcon, {
-      icon: Tag,
+      icon: Tag01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     iconColor: label.color,
@@ -385,7 +385,7 @@ function createProjectSubmenu(
       id: `project-${project.id}`,
       label: project.name,
       icon: React.createElement(HugeiconsIcon, {
-        icon: BookOpen,
+        icon: BookOpen01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       iconColor: project.color,
@@ -406,7 +406,7 @@ function createMilestoneSubmenu(
       id: "milestone-none",
       label: tr("workItems.properties.noMilestone", "No milestone"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: Diamond,
+        icon: DiamondIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       action: () => onAction("milestone", "none"),
@@ -415,7 +415,7 @@ function createMilestoneSubmenu(
       id: `milestone-${milestone.id}`,
       label: milestone.name,
       icon: React.createElement(HugeiconsIcon, {
-        icon: Diamond,
+        icon: DiamondIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: workItem?.milestone?.id === milestone.id ? "✓" : undefined,
@@ -456,7 +456,7 @@ export const getContextMenuItems = (
       id: "status",
       label: tr("workItems.contextMenu.status", "Status"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: CircleDot,
+        icon: CircleDotIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: getTranslatedOptionLabel(
@@ -479,7 +479,7 @@ export const getContextMenuItems = (
       id: "priority",
       label: tr("workItems.contextMenu.priority", "Priority"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: Flag,
+        icon: Flag01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: getTranslatedOptionLabel(
@@ -502,7 +502,7 @@ export const getContextMenuItems = (
       id: "assignee",
       label: tr("workItems.contextMenu.assignee", "Assignee"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: User,
+        icon: UserIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary:
@@ -515,7 +515,7 @@ export const getContextMenuItems = (
       id: "due-date",
       label: tr("workItems.contextMenu.setDueDate", "Set due date"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: Calendar,
+        icon: Calendar01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: formatMenuDate(
@@ -529,7 +529,7 @@ export const getContextMenuItems = (
       id: "labels",
       label: tr("workItems.contextMenu.labels", "Labels"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: Tag,
+        icon: Tag01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: labelsValue,
@@ -540,7 +540,7 @@ export const getContextMenuItems = (
       id: "project",
       label: tr("workItems.contextMenu.project", "Project"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: BookOpen,
+        icon: BookOpen01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary:
@@ -553,7 +553,7 @@ export const getContextMenuItems = (
       id: "more-properties",
       label: tr("workItems.contextMenu.moreProperties", "More properties"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: ListChevronsUpDown,
+        icon: ListChevronsDownUpIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       submenu: [
@@ -561,7 +561,7 @@ export const getContextMenuItems = (
           id: "lead",
           label: tr("workItems.contextMenu.lead", "Lead"),
           icon: React.createElement(HugeiconsIcon, {
-            icon: User,
+            icon: UserIcon,
             size: DROPDOWN_ITEM.iconSize,
           }),
           secondary: leadValue,
@@ -571,7 +571,7 @@ export const getContextMenuItems = (
           id: "members",
           label: tr("workItems.contextMenu.members", "Members"),
           icon: React.createElement(HugeiconsIcon, {
-            icon: Users,
+            icon: UserMultipleIcon,
             size: DROPDOWN_ITEM.iconSize,
           }),
           secondary: membersValue,
@@ -586,7 +586,7 @@ export const getContextMenuItems = (
           id: "milestone",
           label: tr("workItems.contextMenu.milestone", "Milestone"),
           icon: React.createElement(HugeiconsIcon, {
-            icon: Diamond,
+            icon: DiamondIcon,
             size: DROPDOWN_ITEM.iconSize,
           }),
           secondary:
@@ -607,7 +607,7 @@ export const getContextMenuItems = (
       id: "rename",
       label: tr("workItems.contextMenu.rename", "Rename..."),
       icon: React.createElement(HugeiconsIcon, {
-        icon: Pencil,
+        icon: Pen01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       shortcutId: "workitem_rename",
@@ -618,7 +618,7 @@ export const getContextMenuItems = (
       id: "delete",
       label: tr("common:actions.delete", "Delete"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: Trash2,
+        icon: Delete02Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       shortcutId: "workitem_delete",

@@ -1,12 +1,12 @@
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Fingerprint from "@hugeicons/core-free-icons/FingerPrintIcon";
-import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import Pin from "@hugeicons/core-free-icons/PinIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import FingerPrintIcon from "@hugeicons/core-free-icons/FingerPrintIcon";
+import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
+import PinIcon from "@hugeicons/core-free-icons/PinIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
+import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -132,7 +132,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={Users}
+              icon={UserMultipleIcon}
               data-icon="users"
               size={13}
               strokeWidth={1.75}
@@ -153,7 +153,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={Pin}
+              icon={PinIcon}
               data-icon="pin"
               size={13}
               strokeWidth={1.75}
@@ -200,7 +200,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={GitFork}
+                icon={GitForkIcon}
                 data-icon="git-fork"
                 size={13}
                 strokeWidth={1.75}
@@ -219,7 +219,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Eye}
+                icon={ViewIcon}
                 data-icon="eye"
                 size={13}
                 strokeWidth={1.75}
@@ -239,7 +239,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={GitBranch}
+                icon={WorkflowCircle05Icon}
                 data-icon="git-branch"
                 size={13}
                 strokeWidth={1.75}
@@ -287,7 +287,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={GitFork}
+                icon={GitForkIcon}
                 data-icon="git-fork"
                 size={13}
                 strokeWidth={1.75}
@@ -306,7 +306,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={Fingerprint}
+              icon={FingerPrintIcon}
               data-icon="fingerprint"
               size={13}
               strokeWidth={1.75}
@@ -329,7 +329,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
             <span>{formatCompactSessionId(row.sourceSessionId)}</span>
             {copiedSessionId === row.sourceSessionId && (
               <HugeiconsIcon
-                icon={Check}
+                icon={Tick01Icon}
                 data-icon="check"
                 size={12}
                 strokeWidth={2}
@@ -343,7 +343,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={MessageSquare}
+                icon={Message01Icon}
                 data-icon="message-square"
                 size={13}
                 strokeWidth={1.75}
@@ -361,7 +361,7 @@ export const CloudSessionHoverCardContent: React.FC<CloudSessionHoverCardContent
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Clock}
+                icon={Clock01Icon}
                 data-icon="clock"
                 size={13}
                 strokeWidth={1.75}

@@ -1,12 +1,12 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashed from "@hugeicons/core-free-icons/CircleDashedIcon";
-import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
-import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
+import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
+import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -35,40 +35,48 @@ const PrCiStatusIndicator: React.FC<PrCiStatusIndicatorProps> = ({
   const icon =
     appearance === "simple" ? (
       status === "success" ? (
-        <HugeiconsIcon icon={Check} data-icon="check" {...iconProps} />
+        <HugeiconsIcon icon={Tick01Icon} data-icon="check" {...iconProps} />
       ) : status === "failure" ? (
-        <HugeiconsIcon icon={X} data-icon="x" {...iconProps} />
+        <HugeiconsIcon icon={Cancel01Icon} data-icon="x" {...iconProps} />
       ) : status === "pending" ? (
         <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning-6" />
       ) : status === "none" ? (
-        <HugeiconsIcon icon={Minus} data-icon="minus" {...iconProps} />
+        <HugeiconsIcon icon={MinusSignIcon} data-icon="minus" {...iconProps} />
       ) : (
-        <HugeiconsIcon icon={Ellipsis} data-icon="ellipsis" {...iconProps} />
+        <HugeiconsIcon
+          icon={EllipsisIcon}
+          data-icon="ellipsis"
+          {...iconProps}
+        />
       )
     ) : status === "success" ? (
       <HugeiconsIcon
-        icon={CheckCircle2}
+        icon={CheckmarkCircle01Icon}
         data-icon="check-circle-2"
         {...iconProps}
       />
     ) : status === "failure" ? (
-      <HugeiconsIcon icon={XCircle} data-icon="xcircle" {...iconProps} />
+      <HugeiconsIcon
+        icon={CancelCircleIcon}
+        data-icon="xcircle"
+        {...iconProps}
+      />
     ) : status === "pending" ? (
       <HugeiconsIcon
-        icon={LoaderCircle}
+        icon={LoaderCircleIcon}
         data-icon="loader-circle"
         {...iconProps}
         className="animate-spin"
       />
     ) : status === "none" ? (
       <HugeiconsIcon
-        icon={CircleSlash}
+        icon={CircleSlashIcon}
         data-icon="circle-slash"
         {...iconProps}
       />
     ) : (
       <HugeiconsIcon
-        icon={CircleDashed}
+        icon={CircleDashedIcon}
         data-icon="circle-dashed"
         {...iconProps}
       />

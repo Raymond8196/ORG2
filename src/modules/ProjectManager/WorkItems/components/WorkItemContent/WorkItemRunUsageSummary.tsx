@@ -1,4 +1,4 @@
-import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
+import RepeatIcon from "@hugeicons/core-free-icons/RepeatIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -120,7 +120,7 @@ const WorkItemRunUsageSummary: React.FC<WorkItemRunUsageSummaryProps> = ({
         statusColor: RUN_STATUS_COLOR[run.status],
         agentIcon: (
           <HugeiconsIcon
-            icon={Repeat}
+            icon={RepeatIcon}
             data-icon="repeat"
             size={14}
             strokeWidth={1.75}

@@ -9,10 +9,10 @@
  * allow-forms, no allow-popups-to-escape-sandbox. No eval bridge is injected
  * into the document. External URLs are never loaded.
  */
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -121,13 +121,13 @@ const CodePreview: React.FC<CodePreviewProps> = ({
           >
             {isMaxHeight ? (
               <HugeiconsIcon
-                icon={Minimize2}
+                icon={ArrowShrink01Icon}
                 data-icon="minimize-2"
                 size={12}
               />
             ) : (
               <HugeiconsIcon
-                icon={Maximize2}
+                icon={ArrowExpand01Icon}
                 data-icon="maximize-2"
                 size={12}
               />
@@ -140,7 +140,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             title={t("codePreview.openExternal")}
           >
             <HugeiconsIcon
-              icon={SquareArrowOutUpRight}
+              icon={SquareArrowUpRightIcon}
               data-icon="square-arrow-out-up-right"
               size={12}
             />
@@ -151,7 +151,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             className="rounded p-1 text-text-4 transition-colors hover:bg-fill-3 hover:text-text-2"
             title={t("codePreview.close")}
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={12} />
+            <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
           </button>
         </div>
       </div>

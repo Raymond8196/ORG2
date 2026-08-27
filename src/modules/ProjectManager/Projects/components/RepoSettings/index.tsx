@@ -8,9 +8,9 @@
  * - Members: manage repo-wide active/inactive team members
  * - Labels: add/edit/remove repo-wide labels
  */
-import Tags from "@hugeicons/core-free-icons/TagsIcon";
-import User from "@hugeicons/core-free-icons/UserIcon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import TagsIcon from "@hugeicons/core-free-icons/TagsIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -70,7 +70,7 @@ const SECTIONS: SettingsSectionConfig[] = [
   {
     id: SETTINGS_SECTION_IDS.PROFILE,
     labelKey: "settings.sidebarMyProfile",
-    icon: User,
+    icon: UserIcon,
     render: (props) => (
       <MyProfileSection
         members={props.members}
@@ -81,7 +81,7 @@ const SECTIONS: SettingsSectionConfig[] = [
   {
     id: SETTINGS_SECTION_IDS.MEMBERS,
     labelKey: "settings.sidebarMembers",
-    icon: Users,
+    icon: UserMultipleIcon,
     render: (props) => (
       <RepoMembersSection
         members={props.members}
@@ -93,7 +93,7 @@ const SECTIONS: SettingsSectionConfig[] = [
   {
     id: SETTINGS_SECTION_IDS.LABELS,
     labelKey: "settings.sidebarLabels",
-    icon: Tags,
+    icon: TagsIcon,
     render: (props) => (
       <LabelsSection
         labels={props.labels}

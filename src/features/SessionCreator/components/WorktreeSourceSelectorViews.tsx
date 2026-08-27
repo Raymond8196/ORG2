@@ -1,5 +1,5 @@
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -94,7 +94,7 @@ function SelectorError({
         size="small"
         icon={
           <HugeiconsIcon
-            icon={RefreshCw}
+            icon={Refresh04Icon}
             data-icon="refresh-cw"
             size={14}
             strokeWidth={1.8}
@@ -306,7 +306,7 @@ function WorktreeSourceDropdownRow({
       )}
       {selected && (
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}

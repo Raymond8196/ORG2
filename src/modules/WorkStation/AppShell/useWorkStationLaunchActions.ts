@@ -11,15 +11,15 @@
  * request a session (the Browser host is pre-mounted via `visitedModes`
  * seeding) instead of adding a `mainPane` tab.
  */
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import FileSearch from "@hugeicons/core-free-icons/FileSearchIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import ShieldOff from "@hugeicons/core-free-icons/Shield02Icon";
-import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
+import FileSearchIcon from "@hugeicons/core-free-icons/FileSearchIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import Shield02Icon from "@hugeicons/core-free-icons/Shield02Icon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
@@ -107,27 +107,27 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
     () => [
       {
         id: "explorer",
-        icon: Folder,
+        icon: FolderClosedIcon,
         label: t("common:labels.files"),
         shortcut: getShortcutKeys("open_file_folder_tab"),
         onClick: () => openTabInMainPane(createExplorerTab()),
       },
       {
         id: "searchFile",
-        icon: FileSearch,
+        icon: FileSearchIcon,
         label: t("workstation.plusMenu.searchFile"),
         shortcut: "⌘P",
         onClick: () => openEditorSpotlight(""),
       },
       {
         id: "searchSessions",
-        icon: LayoutGrid,
+        icon: DashboardSquare01Icon,
         label: t("workstation.plusMenu.searchSessions"),
         onClick: () => openTabInMainPane(createSearchSessionsTab()),
       },
       {
         id: "sourceControl",
-        icon: FileDiff,
+        icon: FileDiffIcon,
         label: t("common:actions.review"),
         shortcut: getShortcutKeys("open_source_control_tab"),
         onClick: () =>
@@ -135,7 +135,7 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       },
       {
         id: "terminal",
-        icon: SquareTerminal,
+        icon: SquareTerminalIcon,
         label: t("common:tabs.terminal"),
         shortcut: getShortcutKeys("open_terminal_tab"),
         onClick: () =>
@@ -148,19 +148,19 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       },
       {
         id: "newBrowserTab",
-        icon: Globe,
+        icon: InternetIcon,
         label: t("labels.browser"),
         onClick: () => openBrowser(false),
       },
       {
         id: "newPrivateBrowserTab",
-        icon: ShieldOff,
+        icon: Shield02Icon,
         label: t("workstation.plusMenu.newPrivateBrowserTab"),
         onClick: () => openBrowser(true),
       },
       {
         id: "workItems",
-        icon: ListTodo,
+        icon: ListTodoIcon,
         label: t("workstation.plusMenu.workItems"),
         onClick: () =>
           openTabInMainPane(
@@ -169,7 +169,7 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       },
       {
         id: "projects",
-        icon: Box,
+        icon: BoxIcon,
         label: t("workstation.plusMenu.projects"),
         onClick: () =>
           openTabInMainPane(

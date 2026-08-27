@@ -2,11 +2,11 @@
  * Dock-aligned title bar center: icon + label for Workstation and simulator AppType.
  * Icons match Dock (My Station) and DockReplayControl / getAppById (Chat).
  */
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Chromium from "@hugeicons/core-free-icons/InternetIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import MonitorDot from "@hugeicons/core-free-icons/MonitorDotIcon";
-import Package2 from "@hugeicons/core-free-icons/Package01Icon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import MonitorDotIcon from "@hugeicons/core-free-icons/MonitorDotIcon";
+import Package01Icon from "@hugeicons/core-free-icons/Package01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 
@@ -19,17 +19,17 @@ export function getWorkStationStationTitleCenter(
 ): { icon: IconSvgElement; label: string } {
   switch (appMode) {
     case "code":
-      return { icon: Code, label: t("labels.codeEditor") };
+      return { icon: CodeIcon, label: t("labels.codeEditor") };
     case "browser":
-      return { icon: Chromium, label: t("labels.browser") };
+      return { icon: InternetIcon, label: t("labels.browser") };
     case "chat":
-      return { icon: Package2, label: t("labels.session") };
+      return { icon: Package01Icon, label: t("labels.session") };
     case "project":
-      return { icon: ListTodo, label: t("labels.projectManager") };
+      return { icon: ListTodoIcon, label: t("labels.projectManager") };
     case "other":
-      return { icon: MonitorDot, label: t("labels.other") };
+      return { icon: MonitorDotIcon, label: t("labels.other") };
     default:
-      return { icon: Code, label: t("labels.codeEditor") };
+      return { icon: CodeIcon, label: t("labels.codeEditor") };
   }
 }
 
@@ -42,7 +42,7 @@ export function getSimulatorDockTitleCenter(
   }
 
   const dockApp = getAppById(appType);
-  const icon = dockApp?.icon ?? Code;
+  const icon = dockApp?.icon ?? CodeIcon;
 
   switch (appType) {
     case AppType.CODE_EDITOR:
@@ -52,7 +52,7 @@ export function getSimulatorDockTitleCenter(
     case AppType.CHANNELS:
       return { icon, label: t("labels.session") };
     case APP_TYPE_PROJECT:
-      return { icon: icon ?? ListTodo, label: t("labels.projectManager") };
+      return { icon: icon ?? ListTodoIcon, label: t("labels.projectManager") };
     case AppType.DIFF:
       return { icon, label: t("labels.diff") };
     case AppType.BACKGROUND_TASKS:
@@ -82,7 +82,7 @@ export function getSimulatorDockTitleCenterEnglish(appType: AppType | null): {
   }
 
   const dockApp = getAppById(appType);
-  const icon = dockApp?.icon ?? Code;
+  const icon = dockApp?.icon ?? CodeIcon;
   return {
     icon,
     label: dockApp?.name ?? "Other",

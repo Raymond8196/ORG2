@@ -1,8 +1,8 @@
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import Funnel from "@hugeicons/core-free-icons/FunnelIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Link2 from "@hugeicons/core-free-icons/Link02Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
+import FunnelIcon from "@hugeicons/core-free-icons/FunnelIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 
@@ -54,7 +54,7 @@ export function IssuePersonalFilterDropdown({
         variant="secondary"
         icon={
           <HugeiconsIcon
-            icon={Funnel}
+            icon={FunnelIcon}
             data-icon="funnel"
             size={13}
             strokeWidth={1.8}
@@ -78,7 +78,7 @@ export function ManagedIssueContextMeta({
       {issue.linkedPullRequests > 0 ? (
         <span className="flex items-center gap-1">
           <HugeiconsIcon
-            icon={GitPullRequest}
+            icon={GitPullRequestIcon}
             data-icon="git-pull-request"
             size={12}
             strokeWidth={1.8}
@@ -89,7 +89,7 @@ export function ManagedIssueContextMeta({
       {issue.comments > 0 ? (
         <span className="flex items-center gap-1">
           <HugeiconsIcon
-            icon={MessageCircle}
+            icon={BubbleChatIcon}
             data-icon="message-circle"
             size={12}
             strokeWidth={1.8}
@@ -205,7 +205,7 @@ export function ManagedIssueActionsCell({
         variant="tertiary"
         appearance="ghost"
         size="mini"
-        icon={<HugeiconsIcon icon={Link2} data-icon="link-2" size={12} />}
+        icon={<HugeiconsIcon icon={Link02Icon} data-icon="link-2" size={12} />}
         onClick={() => onAddIssue(issue)}
         aria-label={`${addLabel} #${issue.id}`}
       >
@@ -227,7 +227,7 @@ export function ManagedIssueActionsCell({
           size="mini"
           icon={
             <HugeiconsIcon
-              icon={MoreHorizontal}
+              icon={MoreHorizontalIcon}
               data-icon="ellipsis"
               size={13}
             />
@@ -257,7 +257,7 @@ export function ManagedPrActionsCell({
         variant="tertiary"
         appearance="ghost"
         size="mini"
-        icon={<HugeiconsIcon icon={Link2} data-icon="link-2" size={12} />}
+        icon={<HugeiconsIcon icon={Link02Icon} data-icon="link-2" size={12} />}
         onClick={() => onAddPr(pr)}
         aria-label={`${addLabel} #${pr.id}`}
       >

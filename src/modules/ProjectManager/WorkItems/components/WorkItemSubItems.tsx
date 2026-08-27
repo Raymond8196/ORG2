@@ -1,10 +1,10 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleSlash2 from "@hugeicons/core-free-icons/CircleSlashTwoIcon";
-import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import CircleSlashTwoIcon from "@hugeicons/core-free-icons/CircleSlashTwoIcon";
+import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -198,21 +198,21 @@ const SubItemStateIcon: React.FC<SubItemStateIconProps> = ({
     <span className={WORK_ITEM_THREAD_TOKENS.leadingIconSlot} title={label}>
       {state === "completed" ? (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           {...commonProps}
           className="text-purple-6"
         />
       ) : state === "cancelled" ? (
         <HugeiconsIcon
-          icon={CircleSlash2}
+          icon={CircleSlashTwoIcon}
           data-icon="circle-slash-2"
           {...commonProps}
           className="text-text-4"
         />
       ) : (
         <HugeiconsIcon
-          icon={CircleDot}
+          icon={CircleDotIcon}
           data-icon="circle-dot"
           {...commonProps}
           className="text-success-6"
@@ -383,7 +383,12 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           shape="square"
           iconOnly
           icon={
-            <HugeiconsIcon icon={Plus} data-icon="plus" size={13} aria-hidden />
+            <HugeiconsIcon
+              icon={Add01Icon}
+              data-icon="plus"
+              size={13}
+              aria-hidden
+            />
           }
           aria-label={t("common:actions.create")}
           disabled={!draftTitle.trim()}
@@ -397,7 +402,14 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           size="small"
           shape="square"
           iconOnly
-          icon={<HugeiconsIcon icon={X} data-icon="x" size={13} aria-hidden />}
+          icon={
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              data-icon="x"
+              size={13}
+              aria-hidden
+            />
+          }
           aria-label={t("common:actions.cancel")}
           disabled={creating}
           onClick={closeComposer}
@@ -418,7 +430,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
       testId="work-item-sub-items"
       icon={
         <HugeiconsIcon
-          icon={ListTree}
+          icon={HierarchyFilesIcon}
           data-icon="list-tree"
           size={14}
           strokeWidth={1.8}
@@ -443,7 +455,12 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
       action={
         <ActivityHeaderActionButton
           icon={
-            <HugeiconsIcon icon={Plus} data-icon="plus" size={12} aria-hidden />
+            <HugeiconsIcon
+              icon={Add01Icon}
+              data-icon="plus"
+              size={12}
+              aria-hidden
+            />
           }
           label={t("workItems.subItems.add", {
             defaultValue: "Add sub-item",
@@ -474,7 +491,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           {onOpenWorkItem ? (
             <span className={WORK_ITEM_THREAD_TOKENS.trailingActionSlot}>
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={14}
                 className="text-text-4 transition-colors group-hover:text-text-2"
@@ -528,7 +545,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
                         className={WORK_ITEM_THREAD_TOKENS.trailingActionSlot}
                       >
                         <HugeiconsIcon
-                          icon={ChevronRight}
+                          icon={ArrowRight01Icon}
                           data-icon="chevron-right"
                           size={14}
                           className="text-text-4 opacity-0 transition-opacity group-hover:opacity-100 group-focus-visible:opacity-100"
@@ -553,7 +570,7 @@ const WorkItemSubItems: React.FC<WorkItemSubItemsProps> = ({
           <ActivityHeaderActionButton
             icon={
               <HugeiconsIcon
-                icon={Plus}
+                icon={Add01Icon}
                 data-icon="plus"
                 size={12}
                 aria-hidden

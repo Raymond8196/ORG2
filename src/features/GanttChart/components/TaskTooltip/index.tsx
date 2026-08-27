@@ -4,13 +4,13 @@
  * Hover tooltip for task bars showing detailed information and quick actions.
  * Uses useDropdownEngine + portal with DROPDOWN_CLASSES tokens.
  */
-import TrendingDown from "@hugeicons/core-free-icons/AnalyticsDownIcon";
-import TrendingUp from "@hugeicons/core-free-icons/AnalyticsUpIcon";
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Edit2 from "@hugeicons/core-free-icons/Edit02Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import AnalyticsDownIcon from "@hugeicons/core-free-icons/AnalyticsDownIcon";
+import AnalyticsUpIcon from "@hugeicons/core-free-icons/AnalyticsUpIcon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Edit02Icon from "@hugeicons/core-free-icons/Edit02Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -126,18 +126,24 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
     switch (health) {
       case "ahead":
         return (
-          <HugeiconsIcon icon={TrendingUp} data-icon="trending-up" size={14} />
+          <HugeiconsIcon
+            icon={AnalyticsUpIcon}
+            data-icon="trending-up"
+            size={14}
+          />
         );
       case "behind":
         return (
           <HugeiconsIcon
-            icon={TrendingDown}
+            icon={AnalyticsDownIcon}
             data-icon="trending-down"
             size={14}
           />
         );
       default:
-        return <HugeiconsIcon icon={Minus} data-icon="minus" size={14} />;
+        return (
+          <HugeiconsIcon icon={MinusSignIcon} data-icon="minus" size={14} />
+        );
     }
   };
 
@@ -219,7 +225,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
               <div className="gantt-task-tooltip__body">
                 <div className="gantt-task-tooltip__row">
                   <HugeiconsIcon
-                    icon={Calendar}
+                    icon={Calendar01Icon}
                     data-icon="calendar"
                     size={14}
                     className="gantt-task-tooltip__icon"
@@ -232,7 +238,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                 {task.assignee && (
                   <div className="gantt-task-tooltip__row">
                     <HugeiconsIcon
-                      icon={User}
+                      icon={UserIcon}
                       data-icon="user"
                       size={14}
                       className="gantt-task-tooltip__icon"
@@ -304,7 +310,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                       title="Edit task"
                     >
                       <HugeiconsIcon
-                        icon={Edit2}
+                        icon={Edit02Icon}
                         data-icon="edit-2"
                         size={14}
                       />
@@ -321,7 +327,7 @@ const GanttTaskTooltip: React.FC<GanttTaskTooltipProps> = ({
                       title="Delete task"
                     >
                       <HugeiconsIcon
-                        icon={Trash2}
+                        icon={Delete02Icon}
                         data-icon="trash-2"
                         size={14}
                       />

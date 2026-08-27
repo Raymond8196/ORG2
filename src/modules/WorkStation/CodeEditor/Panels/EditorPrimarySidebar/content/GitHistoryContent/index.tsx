@@ -7,7 +7,7 @@
  * Graph mode renders a metro-style SVG lane visualization using parent_shas
  * to compute branch/merge topology.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
@@ -553,7 +553,7 @@ const GitHistoryContentInner: React.FC<GitHistoryContentInnerProps> = ({
         <div className="flex h-8 shrink-0 items-center justify-center">
           {loadingMore && (
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={SPINNER_TOKENS.default}
               className="animate-spin text-text-3"

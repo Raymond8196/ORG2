@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -488,10 +488,10 @@ describe("TeamInboxView split layout", () => {
       }>
     >;
     expect(browserAction.props.label).toBe("previews.openInExternalBrowser");
-    expect(browserAction.props.icon.props.icon).toBe(Chrome);
+    expect(browserAction.props.icon.props.icon).toBe(InternetIcon);
     expect(browserAction.props.testId).toBe("team-inbox-open-github-pr");
     expect(tabAction.props.label).toBe("teamInbox.actions.openPullRequest");
-    expect(tabAction.props.icon.props.icon).toBe(SquareArrowOutUpRight);
+    expect(tabAction.props.icon.props.icon).toBe(SquareArrowUpRightIcon);
     expect(tabAction.props.testId).toBe("team-inbox-open-pr-tab");
     act(() => browserAction.props.onClick());
     expect(openExternalLink).toHaveBeenCalledWith(

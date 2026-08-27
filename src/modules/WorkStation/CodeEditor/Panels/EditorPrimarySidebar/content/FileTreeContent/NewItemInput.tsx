@@ -8,7 +8,7 @@
  * - Click outside to cancel (unlike rename which confirms)
  * - Dynamic file type icon based on typed extension
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
@@ -126,7 +126,7 @@ export function NewItemInput({
       {isFolder ? (
         <div className="flex h-4 w-4 flex-shrink-0 items-center justify-center">
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={CHEVRON_SIZE}
             className="text-text-3"

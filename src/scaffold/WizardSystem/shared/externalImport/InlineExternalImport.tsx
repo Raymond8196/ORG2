@@ -1,6 +1,6 @@
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import Download from "@hugeicons/core-free-icons/Download01Icon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -107,13 +107,13 @@ const InlineExternalImport: React.FC<InlineExternalImportProps> = ({
           icon={
             expanded ? (
               <HugeiconsIcon
-                icon={ChevronsDownUp}
+                icon={ChevronsDownUpIcon}
                 data-icon="chevrons-down-up"
                 size={14}
               />
             ) : (
               <HugeiconsIcon
-                icon={ChevronsUpDown}
+                icon={UnfoldMoreIcon}
                 data-icon="chevrons-up-down"
                 size={14}
               />
@@ -195,7 +195,7 @@ const InlineExternalImport: React.FC<InlineExternalImportProps> = ({
                   size="small"
                   icon={
                     <HugeiconsIcon
-                      icon={Download}
+                      icon={Download01Icon}
                       data-icon="download"
                       size={14}
                     />

@@ -1,4 +1,4 @@
-import Link2 from "@hugeicons/core-free-icons/Link02Icon";
+import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import Tag from "@src/components/Tag";
@@ -52,7 +52,7 @@ export function MetadataCells({
         <div className="shrink-0">
           {workItem.linkedSessions && workItem.linkedSessions.length > 0 && (
             <span className="flex items-center gap-1 text-xs text-text-3">
-              <HugeiconsIcon icon={Link2} data-icon="link-2" size={12} />
+              <HugeiconsIcon icon={Link02Icon} data-icon="link-2" size={12} />
               {workItem.linkedSessions.length}
             </span>
           )}

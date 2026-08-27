@@ -6,10 +6,10 @@
  *
  * Workstation-specific service status badge.
  */
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -53,27 +53,27 @@ interface VariantConfig {
 
 const VARIANT_CONFIG: Record<StatusVariant, VariantConfig> = {
   error: {
-    icon: AlertCircle,
+    icon: AlertCircleIcon,
     colorClass: "text-danger-6",
     defaultLabel: "error",
   },
   warning: {
-    icon: AlertTriangle,
+    icon: Alert01Icon,
     colorClass: "text-warning-6",
     defaultLabel: "warning",
   },
   success: {
-    icon: Check,
+    icon: Tick01Icon,
     colorClass: "text-success-6",
     defaultLabel: "passed",
   },
   info: {
-    icon: Info,
+    icon: InformationCircleIcon,
     colorClass: "text-primary-6",
     defaultLabel: "info",
   },
   neutral: {
-    icon: Info,
+    icon: InformationCircleIcon,
     colorClass: "text-text-3",
     defaultLabel: "",
   },

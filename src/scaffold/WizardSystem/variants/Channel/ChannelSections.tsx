@@ -1,7 +1,7 @@
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
-import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
+import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
+import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -127,12 +127,12 @@ export const ProjectContent: React.FC<ProjectContentProps> = ({
       {
         key: STORY_SYNC_AUTH_METHOD.OAUTH,
         label: t("keyVault.guidedSetup"),
-        icon: Globe,
+        icon: InternetIcon,
       },
       {
         key: STORY_SYNC_AUTH_METHOD.PAT,
         label: t("keyVault.enterToken"),
-        icon: Keyboard,
+        icon: KeyboardIcon,
       },
     ],
     [t]
@@ -285,22 +285,22 @@ export const GitContent: React.FC<GitContentProps> = ({
       {
         key: STORY_SYNC_AUTH_METHOD.SCAN,
         label: t("gitConnections.methodScan", "Auto Detect"),
-        icon: ScanSearch,
+        icon: SearchAreaIcon,
       },
       {
         key: STORY_SYNC_AUTH_METHOD.OAUTH,
         label: t("gitConnections.methodOAuth", "Sign in with GitHub"),
-        icon: Globe,
+        icon: InternetIcon,
       },
       {
         key: STORY_SYNC_AUTH_METHOD.PAT,
         label: "PAT",
-        icon: Keyboard,
+        icon: KeyboardIcon,
       },
       {
         key: STORY_SYNC_AUTH_METHOD.SSH,
         label: "SSH key",
-        icon: KeyRound,
+        icon: Key02Icon,
       },
     ],
     [t]

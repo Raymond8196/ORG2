@@ -5,9 +5,9 @@
  * same container, textarea, bottom bar with CompoundPill + AddActionsDropdown.
  * Uses creatorDefaultModelSelectionAtom for model persistence (same as main session creator).
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Grip from "@hugeicons/core-free-icons/GripIcon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import GripIcon from "@hugeicons/core-free-icons/GripIcon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -172,7 +172,7 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
             className="pointer-events-auto flex h-8 shrink-0 cursor-pointer items-center gap-1.5 rounded-full bg-primary-6 px-3 text-[12px] font-medium text-white shadow-md transition-colors hover:bg-primary-7"
           >
             <HugeiconsIcon
-              icon={Sparkles}
+              icon={SparklesIcon}
               data-icon="sparkles"
               size={14}
               strokeWidth={1.75}
@@ -201,7 +201,7 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
               className="absolute right-2 top-2 flex h-6 w-6 items-center justify-center rounded-full text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
             >
               <HugeiconsIcon
-                icon={X}
+                icon={Cancel01Icon}
                 data-icon="x"
                 size={13}
                 strokeWidth={1.75}
@@ -240,7 +240,7 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={Grip}
+                        icon={GripIcon}
                         data-icon="grip"
                         size={iconSize}
                         strokeWidth={1.75}
@@ -272,7 +272,7 @@ const AgentLauncherSection: React.FC<AgentLauncherSectionProps> = ({
                 size="small"
                 icon={
                   <HugeiconsIcon
-                    icon={Sparkles}
+                    icon={SparklesIcon}
                     data-icon="sparkles"
                     size={13}
                   />

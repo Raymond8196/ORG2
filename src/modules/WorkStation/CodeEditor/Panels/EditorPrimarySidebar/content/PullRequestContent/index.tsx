@@ -4,12 +4,12 @@
  * Sidebar PR list using TreeRowBase rows grouped under a collapsible
  * "OPEN" section header (same pattern as IssuesContent).
  */
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import TriangleAlertIcon from "@hugeicons/core-free-icons/TriangleAlertIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
@@ -124,12 +124,12 @@ const PrRow: React.FC<PrRowProps> = memo(
       const iconName = getPrStatusIconName(statusKey);
       const PrIcon =
         iconName === "draft"
-          ? GitPullRequestDraft
+          ? GitPullRequestDraftIcon
           : iconName === "merge"
-            ? GitMerge
+            ? GitMergeIcon
             : iconName === "closed"
-              ? GitPullRequestClosed
-              : GitPullRequest;
+              ? GitPullRequestClosedIcon
+              : GitPullRequestIcon;
       return {
         id: String(pr.number),
         name: pr.title,
@@ -490,7 +490,7 @@ const PullRequestContent: React.FC<PullRequestContentProps> = ({
               className={`flex items-center gap-2 ${TYPOGRAPHY.secondary} text-text-3`}
             >
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={SPINNER_TOKENS.default}
                 className="animate-spin text-text-3"
@@ -510,7 +510,7 @@ const PullRequestContent: React.FC<PullRequestContentProps> = ({
           {localCreateError && (
             <div className="flex items-start gap-1.5 rounded-md bg-fill-2 px-2 py-1.5">
               <HugeiconsIcon
-                icon={TriangleAlert}
+                icon={TriangleAlertIcon}
                 data-icon="triangle-alert"
                 size={12}
                 className="mt-0.5 shrink-0 text-warning-6"

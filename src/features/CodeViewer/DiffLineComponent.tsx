@@ -2,12 +2,12 @@
  * DiffLineComponent - Renders individual diff lines with syntax highlighting.
  * Extracted from VirtualizedModernDiff for reuse and file size management.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowDownFromLine from "@hugeicons/core-free-icons/ArrowDownFromLineIcon";
-import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
-import FoldVertical from "@hugeicons/core-free-icons/FoldVerticalIcon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowDownFromLineIcon from "@hugeicons/core-free-icons/ArrowDownFromLineIcon";
+import ArrowUpFromLineIcon from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
+import FoldVerticalIcon from "@hugeicons/core-free-icons/FoldVerticalIcon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -95,7 +95,7 @@ const CherryPickCheckbox: React.FC<CherryPickCheckboxProps> = ({
     >
       {checked && (
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={14}
           strokeWidth={2.5}
@@ -153,10 +153,10 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
       // Determine icon based on collapse position
       const CollapseIcon =
         line.collapsePosition === "start"
-          ? ArrowUpFromLine
+          ? ArrowUpFromLineIcon
           : line.collapsePosition === "end"
-            ? ArrowDownFromLine
-            : FoldVertical;
+            ? ArrowDownFromLineIcon
+            : FoldVerticalIcon;
 
       const isClickable = allowExpand && onExpand;
 
@@ -204,14 +204,14 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
     const icon =
       line.type === "add" ? (
         <HugeiconsIcon
-          icon={Plus}
+          icon={Add01Icon}
           data-icon="plus"
           size={12}
           strokeWidth={2.5}
         />
       ) : line.type === "remove" ? (
         <HugeiconsIcon
-          icon={Minus}
+          icon={MinusSignIcon}
           data-icon="minus"
           size={12}
           strokeWidth={2.5}
@@ -236,7 +236,7 @@ export const DiffLineComponent = React.memo<DiffLineComponentProps>(
             >
               {isRangeStart && rangeSelected && (
                 <HugeiconsIcon
-                  icon={Check}
+                  icon={Tick01Icon}
                   data-icon="check"
                   size={14}
                   strokeWidth={2.5}

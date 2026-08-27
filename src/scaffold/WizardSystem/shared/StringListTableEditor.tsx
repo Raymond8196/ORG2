@@ -2,7 +2,7 @@
  * Single-column string list editor for wizard forms (required binaries, env names, etc.).
  * Matches SettingsTable styling used by KvTableEditor (dense + noPx).
  */
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
@@ -77,7 +77,7 @@ export const StringListTableEditor: React.FC<StringListTableEditorProps> = ({
             size="default"
             icon={
               <HugeiconsIcon
-                icon={Trash2}
+                icon={Delete02Icon}
                 data-icon="trash-2"
                 size={14}
                 className="text-danger-6"

@@ -1,4 +1,4 @@
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -128,7 +128,7 @@ const SessionOpenInAppHeaderExtras: React.FC<
           data-testid="session-open-in-app-button"
           icon={
             <HugeiconsIcon
-              icon={SquareArrowOutUpRight}
+              icon={SquareArrowUpRightIcon}
               data-icon="square-arrow-out-up-right"
               size={14}
               strokeWidth={2}

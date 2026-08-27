@@ -1,11 +1,11 @@
-import ListFilter from "@hugeicons/core-free-icons/FilterMailIcon";
-import FolderInput from "@hugeicons/core-free-icons/FolderInputIcon";
-import FolderOutput from "@hugeicons/core-free-icons/FolderOutputIcon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SlidersHorizontal from "@hugeicons/core-free-icons/SlidersHorizontalIcon";
-import ArrowUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
+import FilterMailIcon from "@hugeicons/core-free-icons/FilterMailIcon";
+import FolderInputIcon from "@hugeicons/core-free-icons/FolderInputIcon";
+import FolderOutputIcon from "@hugeicons/core-free-icons/FolderOutputIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SlidersHorizontalIcon from "@hugeicons/core-free-icons/SlidersHorizontalIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type FC, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -161,7 +161,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
               }
             >
               <HoverAnimatedIcon
-                icon={ListFilter}
+                icon={FilterMailIcon}
                 iconName="list-filter"
                 size={16}
                 strokeWidth={2}
@@ -216,7 +216,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                         dataTestId="sidebar-refresh-sessions"
                         icon={
                           <HugeiconsIcon
-                            icon={RefreshCw}
+                            icon={Refresh04Icon}
                             data-icon="refresh-cw"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
@@ -231,7 +231,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       <DropdownItem
                         icon={
                           <HugeiconsIcon
-                            icon={FolderOutput}
+                            icon={FolderOutputIcon}
                             data-icon="folder-output"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
@@ -247,7 +247,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       <DropdownItem
                         icon={
                           <HugeiconsIcon
-                            icon={FolderInput}
+                            icon={FolderInputIcon}
                             data-icon="folder-input"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
@@ -262,7 +262,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       <DropdownItem
                         icon={
                           <HugeiconsIcon
-                            icon={ListChevronsDownUp}
+                            icon={ListChevronsDownUpIcon}
                             data-icon="list-chevrons-down-up"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
@@ -277,7 +277,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       <DropdownItem
                         icon={
                           <HugeiconsIcon
-                            icon={CheckCheck}
+                            icon={TickDouble01Icon}
                             data-icon="check-check"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={2}
@@ -300,7 +300,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       dataTestId="sidebar-configure-external-sources"
                       icon={
                         <HugeiconsIcon
-                          icon={SlidersHorizontal}
+                          icon={SlidersHorizontalIcon}
                           data-icon="sliders-horizontal"
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}
@@ -308,7 +308,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       }
                       suffix={
                         <HugeiconsIcon
-                          icon={ArrowUpRight}
+                          icon={SquareArrowUpRightIcon}
                           data-icon="arrow-up-right"
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}

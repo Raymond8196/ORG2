@@ -1,5 +1,5 @@
-import Mail from "@hugeicons/core-free-icons/Mail01Icon";
-import Send from "@hugeicons/core-free-icons/MailSend01Icon";
+import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
+import MailSend01Icon from "@hugeicons/core-free-icons/MailSend01Icon";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,8 +24,8 @@ const EmailForm: React.FC<ChannelFormProps> = ({ config, onChange }) => {
   const [method, setMethod] = useState<"imap" | "smtp">("imap");
 
   const EMAIL_METHODS: SelectionGridOption[] = [
-    { key: "imap", label: "IMAP", icon: Mail },
-    { key: "smtp", label: "SMTP", icon: Send },
+    { key: "imap", label: "IMAP", icon: Mail01Icon },
+    { key: "smtp", label: "SMTP", icon: MailSend01Icon },
   ];
 
   return (

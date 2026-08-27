@@ -9,9 +9,9 @@
  * Data comes from shellProcessMapAtom (status "running" | "background") and
  * subagentJobMapAtom (status "running"), both filtered by the active session.
  */
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -78,7 +78,7 @@ const ProcessRow: React.FC<ProcessRowProps> = memo(({ process, onStop }) => {
     <div className={`${COMPOSER_STACK_ROW_BASE} ${COMPOSER_STACK_ROW_HOVER}`}>
       <div className="flex h-[14px] w-[14px] shrink-0 items-center justify-center">
         <HugeiconsIcon
-          icon={SquareTerminal}
+          icon={SquareTerminalIcon}
           data-icon="square-terminal"
           size={14}
           className="text-text-2"
@@ -90,7 +90,9 @@ const ProcessRow: React.FC<ProcessRowProps> = memo(({ process, onStop }) => {
           htmlType="button"
           variant="tertiary"
           size="mini"
-          icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />}
+          icon={
+            <HugeiconsIcon icon={Delete02Icon} data-icon="trash-2" size={12} />
+          }
           iconOnly
           className="enabled:hover:bg-fill-3 enabled:hover:text-danger-6"
           onClick={handleStop}
@@ -131,7 +133,7 @@ const SubagentRow: React.FC<SubagentRowProps> = memo(({ job, now, onStop }) => {
     <div className={`${COMPOSER_STACK_ROW_BASE} ${COMPOSER_STACK_ROW_HOVER}`}>
       <div className="flex h-[14px] w-[14px] shrink-0 items-center justify-center">
         <HugeiconsIcon
-          icon={Bot}
+          icon={BotIcon}
           data-icon="bot"
           size={14}
           className="text-text-2"
@@ -148,7 +150,9 @@ const SubagentRow: React.FC<SubagentRowProps> = memo(({ job, now, onStop }) => {
           htmlType="button"
           variant="tertiary"
           size="mini"
-          icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />}
+          icon={
+            <HugeiconsIcon icon={Delete02Icon} data-icon="trash-2" size={12} />
+          }
           iconOnly
           className="enabled:hover:bg-fill-3 enabled:hover:text-danger-6"
           onClick={handleStop}
@@ -256,7 +260,7 @@ const ActiveProcesses: React.FC<ActiveProcessesProps> = memo(
         <ComposerStackHeader
           icon={
             <HugeiconsIcon
-              icon={SquareTerminal}
+              icon={SquareTerminalIcon}
               data-icon="square-terminal"
               size={14}
             />

@@ -9,7 +9,7 @@
  * construction. Loading / failed / completed states are handled by
  * each event component natively.
  */
-import Waypoints from "@hugeicons/core-free-icons/WaypointsIcon";
+import WaypointsIcon from "@hugeicons/core-free-icons/WaypointsIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -225,7 +225,7 @@ const ActionSummaryGroup: React.FC<ActionSummaryGroupProps> = ({
         items={orderedItems}
         icon={
           <HugeiconsIcon
-            icon={Waypoints}
+            icon={WaypointsIcon}
             data-icon="waypoints"
             size={14}
             className="text-text-2"

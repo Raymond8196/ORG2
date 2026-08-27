@@ -12,9 +12,9 @@
  *   - CreateProjectView (create)
  *   - CreateWorkItemView (create)
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -132,7 +132,7 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
           <React.Fragment key={index}>
             {index > 0 && (
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={14}
                 strokeWidth={1.75}
@@ -178,7 +178,7 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
             title={t("actions.previous")}
             icon={
               <HugeiconsIcon
-                icon={ChevronUp}
+                icon={ArrowUp01Icon}
                 data-icon="chevron-up"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -194,7 +194,7 @@ const DetailSplitLayout: React.FC<DetailSplitLayoutProps> = ({
             title={t("actions.next")}
             icon={
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={HEADER_ICON_SIZE.sm}
               />

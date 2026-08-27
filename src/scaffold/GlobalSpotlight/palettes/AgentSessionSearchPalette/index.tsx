@@ -4,7 +4,7 @@
  * Spotlight sub-mode for opening existing Agent sessions from the cached
  * workstation sidebar session list.
  */
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -202,7 +202,7 @@ export const AgentSessionSearchPalette: React.FC<
           "selectors.spotlight.actions.searchAgentSessions.pillLabel",
           "Search Sessions"
         ),
-        icon: Search,
+        icon: Search01Icon,
         color: "primary",
       },
     ],

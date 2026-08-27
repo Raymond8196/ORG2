@@ -7,7 +7,7 @@
  * Includes a "Test Connection" probe button that validates credentials
  * against the channel's service API before allowing creation.
  */
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -88,7 +88,7 @@ const ChannelSetupStep: React.FC<ChannelSetupStepProps> = ({
         probeResult?.ok ? (
           <div className="flex items-center gap-1.5">
             <HugeiconsIcon
-              icon={Check}
+              icon={Tick01Icon}
               data-icon="check"
               size={14}
               className="text-success-6"

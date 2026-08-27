@@ -9,9 +9,9 @@
  *
  * Each pill shows icon + numeric count only. gap-1 between pills.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import BrushCleaning from "@hugeicons/core-free-icons/BrushCleaningIcon";
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
@@ -107,7 +107,7 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
                 shape="round"
                 icon={
                   <HugeiconsIcon
-                    icon={Plus}
+                    icon={Add01Icon}
                     data-icon="plus"
                     size={13}
                     strokeWidth={2}
@@ -127,7 +127,7 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
                 shape="round"
                 icon={
                   <HugeiconsIcon
-                    icon={BrushCleaning}
+                    icon={BrushCleaningIcon}
                     data-icon="brush-cleaning"
                     size={13}
                     strokeWidth={2}
@@ -201,7 +201,7 @@ const CollapsedInlineRow: React.FC<CollapsedInlineRowProps> = memo(
             shape="round"
             icon={
               <HugeiconsIcon
-                icon={Layout}
+                icon={Layout01Icon}
                 data-icon="layout"
                 size={13}
                 strokeWidth={2}

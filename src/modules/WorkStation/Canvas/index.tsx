@@ -12,11 +12,11 @@
  * - canvas:a2ui_push   — Push A2UI JSONL content (accumulated incrementally)
  * - canvas:a2ui_reset  — Reset A2UI state
  */
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -187,7 +187,11 @@ function CanvasApp(props: SimulatorAppProps) {
     >
       <div className="flex items-center justify-between border-b border-border-2 bg-workstation-bg px-3 py-1.5">
         <div className="flex items-center gap-2 text-sm text-text-2">
-          <HugeiconsIcon icon={Layout} data-icon="layout" className="h-4 w-4" />
+          <HugeiconsIcon
+            icon={Layout01Icon}
+            data-icon="layout"
+            className="h-4 w-4"
+          />
           <span>{t("simulator.replay.canvas.toolbarTitle")}</span>
           {state.mode === "url" && state.url && (
             <span className="max-w-[200px] truncate text-xs text-text-3">
@@ -204,7 +208,7 @@ function CanvasApp(props: SimulatorAppProps) {
               size="sm"
             >
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 className="h-3.5 w-3.5"
               />
@@ -226,13 +230,13 @@ function CanvasApp(props: SimulatorAppProps) {
           >
             {isFullscreen ? (
               <HugeiconsIcon
-                icon={Minimize2}
+                icon={ArrowShrink01Icon}
                 data-icon="minimize-2"
                 className="h-3.5 w-3.5"
               />
             ) : (
               <HugeiconsIcon
-                icon={Maximize2}
+                icon={ArrowExpand01Icon}
                 data-icon="maximize-2"
                 className="h-3.5 w-3.5"
               />
@@ -244,7 +248,11 @@ function CanvasApp(props: SimulatorAppProps) {
             aria-label={t("simulator.replay.canvas.tooltipCloseCanvas")}
             size="sm"
           >
-            <HugeiconsIcon icon={X} data-icon="x" className="h-3.5 w-3.5" />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              data-icon="x"
+              className="h-3.5 w-3.5"
+            />
           </IconButton>
         </div>
       </div>

@@ -1,5 +1,5 @@
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Split from "@hugeicons/core-free-icons/SplitIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
 import type { TFunction } from "i18next";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
@@ -20,19 +20,19 @@ describe("buildSessionInfoSegments", () => {
 
     // Icons render through HugeiconsIcon now, so the glyph is a prop
     // rather than the element type.
-    expect(icon.props.icon).toBe(Split);
+    expect(icon.props.icon).toBe(SplitIcon);
     expect(icon.props.className).toContain("rotate-90");
 
     const dropdownEntry = RUNNING_LOCATIONS.find(
       (entry) => entry.id === "worktree"
     );
-    expect(dropdownEntry?.icon).toBe(Split);
+    expect(dropdownEntry?.icon).toBe(SplitIcon);
     expect(dropdownEntry?.iconClassName).toBe("rotate-90");
   });
 
   it("orders setup as repository, running location, then branch", () => {
     const segments = buildSessionInfoSegments({
-      SourceIcon: Code,
+      SourceIcon: CodeIcon,
       hasSource: true,
       sourceDisplayName: "ORGII",
       showBranchRow: true,
@@ -61,7 +61,7 @@ describe("buildSessionInfoSegments", () => {
 
   it("shows the worktree source on the branch segment", () => {
     const segments = buildSessionInfoSegments({
-      SourceIcon: Code,
+      SourceIcon: CodeIcon,
       hasSource: true,
       sourceDisplayName: "ORGII",
       showBranchRow: true,

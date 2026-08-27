@@ -5,8 +5,8 @@
  * Shows the markdown content, a copy button, and an edit button
  * that opens a full-screen modal with an inline MarkdownEditor.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -72,13 +72,17 @@ const MemoryContentViewer = ({
                   Message.error(t("common:status.copyFailed"));
                 });
             }}
-            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={11} />}
+            icon={
+              <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={11} />
+            }
             iconOnly
             title={t("common:actions.copy")}
           />
           <Button
             onClick={() => setEditModalOpen(true)}
-            icon={<HugeiconsIcon icon={Pencil} data-icon="pencil" size={11} />}
+            icon={
+              <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={11} />
+            }
             iconOnly
             title={t("common:actions.edit")}
           />

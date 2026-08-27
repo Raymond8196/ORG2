@@ -2,7 +2,7 @@
  * One run inside a run group: which harness ran, how it is doing, what you can
  * do about it.
  */
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -148,7 +148,7 @@ const RunGroupRunRow: React.FC<RunGroupRunRowProps> = memo(
             {session?.worktreeBranch && (
               <span className="flex items-center gap-1 truncate">
                 <HugeiconsIcon
-                  icon={GitBranch}
+                  icon={WorkflowCircle05Icon}
                   data-icon="git-branch"
                   size={12}
                   strokeWidth={1.75}

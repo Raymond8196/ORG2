@@ -1,5 +1,5 @@
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import RepeatIcon from "@hugeicons/core-free-icons/RepeatIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useMemo, useRef, useState } from "react";
@@ -235,7 +235,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
       <ActivityHeaderActionButton
         icon={
           <HugeiconsIcon
-            icon={Pencil}
+            icon={Pen01Icon}
             data-icon="pencil"
             size={12}
             aria-hidden
@@ -340,7 +340,7 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
               title={workItem.routineSource.firedAt}
             >
               <HugeiconsIcon
-                icon={Repeat}
+                icon={RepeatIcon}
                 data-icon="repeat"
                 size={11}
                 className="shrink-0"

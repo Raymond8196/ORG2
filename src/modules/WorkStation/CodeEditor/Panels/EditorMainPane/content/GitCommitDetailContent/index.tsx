@@ -7,7 +7,7 @@
  *
  * Uses the existing getGitCommitDiff API to fetch commit details.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, {
@@ -381,7 +381,7 @@ const GitCommitDetailContent: React.FC<GitCommitDetailContentProps> = ({
                 title={t("tooltips.showFileList")}
               >
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={14}
                   className="text-text-3"

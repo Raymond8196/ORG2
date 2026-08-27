@@ -1,5 +1,5 @@
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import OsAgent from "@hugeicons/core-free-icons/RecordIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import RecordIcon from "@hugeicons/core-free-icons/RecordIcon";
 
 import { SETTINGS_SECTION_SLOT_IDS } from "@src/config/settingsUiManifest/slotIds";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";
@@ -23,7 +23,7 @@ export const AGENT_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     tab: "agent",
     labelKey: "osAgentConfig",
     headingTitleKey: "sections.osAgentConfig",
-    icon: OsAgent,
+    icon: RecordIcon,
     customSectionSlotId: SETTINGS_SECTION_SLOT_IDS.AGENT_OS_CONFIG,
     coveredKeys: [],
   },
@@ -32,7 +32,7 @@ export const AGENT_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     tab: "agent",
     labelKey: "sdeAgentConfig",
     headingTitleKey: "sections.sdeAgentConfig",
-    icon: Code,
+    icon: CodeIcon,
     customSectionSlotId: SETTINGS_SECTION_SLOT_IDS.AGENT_SDE_CONFIG,
     coveredKeys: [],
   },

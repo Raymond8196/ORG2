@@ -1,6 +1,6 @@
-import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ClipboardListIcon from "@hugeicons/core-free-icons/ClipboardListIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -353,7 +353,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
     <TeamInboxDetailLayout
       title={detailTitle}
       subtitle={t("teamInbox.detail.assignedSubtitle")}
-      icon={ClipboardList}
+      icon={ClipboardListIcon}
       headerContent={githubIssueHeader}
       contentLayout="fill"
       unread={item.readAt === null}
@@ -362,7 +362,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       openLabel={t("teamInbox.actions.openWorkItem")}
       openIcon={
         <HugeiconsIcon
-          icon={SquareArrowOutUpRight}
+          icon={SquareArrowUpRightIcon}
           data-icon="square-arrow-out-up-right"
           size={14}
           strokeWidth={1.75}
@@ -375,7 +375,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
               label: t("previews.openInExternalBrowser"),
               icon: (
                 <HugeiconsIcon
-                  icon={Chrome}
+                  icon={InternetIcon}
                   data-icon="chrome"
                   size={14}
                   strokeWidth={1.75}

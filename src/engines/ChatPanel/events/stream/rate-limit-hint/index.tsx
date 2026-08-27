@@ -5,7 +5,7 @@
  *
  * Rendered via the event registry under `rate_limit_hint`.
  */
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -38,7 +38,7 @@ export const RateLimitHintEvent: React.FC<RateLimitHintEventProps> = (
 
   const icon = (
     <HugeiconsIcon
-      icon={AlertTriangle}
+      icon={Alert01Icon}
       data-icon="alert-triangle"
       size={SESSION_UI_TOKENS.ICON.SIZE_SM}
       className="text-warning-6"

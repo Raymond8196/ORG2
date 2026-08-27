@@ -4,10 +4,10 @@
  * Always renders the standard collapsible todo list using the same
  * EventBlockHeader + vertical-line pattern as other tool blocks.
  */
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -101,7 +101,7 @@ const TodoCheckbox: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={8}
           strokeWidth={3}
@@ -114,7 +114,7 @@ const TodoCheckbox: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
-          icon={Lock}
+          icon={LockIcon}
           data-icon="lock"
           size={6}
           strokeWidth={2.5}
@@ -274,7 +274,7 @@ const StandardTodoBlock: React.FC<StandardTodoBlockProps> = memo(
                     {blocked && todo.blockedBy && (
                       <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-text-3/70">
                         <HugeiconsIcon
-                          icon={Lock}
+                          icon={LockIcon}
                           data-icon="lock"
                           size={8}
                           strokeWidth={2}
@@ -297,14 +297,14 @@ const StandardTodoBlock: React.FC<StandardTodoBlockProps> = memo(
                   <div className="flex h-3.5 w-3.5 shrink-0 items-center justify-center text-text-3 transition-colors group-hover:text-text-1">
                     {isListExpanded ? (
                       <HugeiconsIcon
-                        icon={ChevronsDownUp}
+                        icon={ChevronsDownUpIcon}
                         data-icon="chevrons-down-up"
                         size={14}
                         strokeWidth={2}
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={ChevronsUpDown}
+                        icon={UnfoldMoreIcon}
                         data-icon="chevrons-up-down"
                         size={14}
                         strokeWidth={2}

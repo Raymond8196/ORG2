@@ -4,9 +4,9 @@
  * Visual design editor for the selected element.
  * Shows position, layout (flow, size, padding, margin), box model, and effects.
  */
-import Eclipse from "@hugeicons/core-free-icons/EclipseIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import SquareRoundCorner from "@hugeicons/core-free-icons/SquareRoundCornerIcon";
+import EclipseIcon from "@hugeicons/core-free-icons/EclipseIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import SquareRoundCornerIcon from "@hugeicons/core-free-icons/SquareRoundCornerIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -105,7 +105,11 @@ export const DesignPanel: React.FC<DesignPanelProps> = memo(
         }`}
         title={isLinked ? "Unlink values" : "Link values"}
       >
-        <HugeiconsIcon icon={MoreHorizontal} data-icon="ellipsis" size={12} />
+        <HugeiconsIcon
+          icon={MoreHorizontalIcon}
+          data-icon="ellipsis"
+          size={12}
+        />
       </button>
     );
 
@@ -242,7 +246,11 @@ export const DesignPanel: React.FC<DesignPanelProps> = memo(
             <SubSection title="Opacity">
               <EditableField
                 icon={
-                  <HugeiconsIcon icon={Eclipse} data-icon="eclipse" size={14} />
+                  <HugeiconsIcon
+                    icon={EclipseIcon}
+                    data-icon="eclipse"
+                    size={14}
+                  />
                 }
                 value={Math.round((parseFloat(styles.opacity) || 1) * 100)}
                 unit="%"
@@ -273,7 +281,7 @@ export const DesignPanel: React.FC<DesignPanelProps> = memo(
                   }
                 >
                   <HugeiconsIcon
-                    icon={MoreHorizontal}
+                    icon={MoreHorizontalIcon}
                     data-icon="ellipsis"
                     size={12}
                   />
@@ -323,7 +331,7 @@ export const DesignPanel: React.FC<DesignPanelProps> = memo(
                 <EditableField
                   icon={
                     <HugeiconsIcon
-                      icon={SquareRoundCorner}
+                      icon={SquareRoundCornerIcon}
                       data-icon="square-round-corner"
                       size={14}
                     />

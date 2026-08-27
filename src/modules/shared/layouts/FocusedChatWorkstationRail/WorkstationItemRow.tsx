@@ -2,8 +2,8 @@
  * WorkstationItemRow — one actionable rail row (open tab, terminal session,
  * Review, PR link, …) with its optional diff stats, CI status and close button.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ArrowUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -72,7 +72,7 @@ export function WorkstationItemRow({
       {item.status ? <RailItemStatus status={item.status} /> : null}
       {item.external ? (
         <HugeiconsIcon
-          icon={ArrowUpRight}
+          icon={SquareArrowUpRightIcon}
           data-icon="arrow-up-right"
           aria-hidden
           className="shrink-0 text-text-3"
@@ -125,7 +125,7 @@ export function WorkstationItemRow({
           aria-label={item.closeLabel}
           role={compact ? "menuitem" : undefined}
         >
-          <HugeiconsIcon icon={X} data-icon="x" size={12} />
+          <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
         </IconButton>
       )}
     </div>

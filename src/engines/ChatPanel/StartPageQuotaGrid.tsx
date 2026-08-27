@@ -1,4 +1,4 @@
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -326,7 +326,7 @@ export function StartPageQuotaGrid({
             onClick={handleRefreshClick}
             icon={
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={14}
                 className={spinClass}

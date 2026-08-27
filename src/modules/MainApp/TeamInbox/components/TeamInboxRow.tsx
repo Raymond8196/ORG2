@@ -1,5 +1,5 @@
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import MessageSquareMore from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import MessageSquareMoreIcon from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -137,7 +137,7 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
         leading={
           isMention ? (
             <HugeiconsIcon
-              icon={MessageSquareMore}
+              icon={MessageSquareMoreIcon}
               data-icon="message-square-more"
               size={14}
               strokeWidth={1.8}
@@ -146,7 +146,7 @@ const TeamInboxRow = forwardRef<HTMLButtonElement, TeamInboxRowProps>(
             <IntegrationIcon type="github" size={14} />
           ) : (
             <HugeiconsIcon
-              icon={ListChecks}
+              icon={ListChecksIcon}
               data-icon="list-checks"
               size={14}
               strokeWidth={1.8}

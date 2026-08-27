@@ -1,10 +1,10 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -169,7 +169,7 @@ const LinearWorkflowStatesSection: React.FC<
           onClick={resetDraft}
           className="inline-flex h-7 items-center gap-1 rounded-md px-2 text-xs text-text-2 hover:bg-fill-2"
         >
-          <HugeiconsIcon icon={X} data-icon="x" size={13} />
+          <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={13} />
           {t("common:actions.cancel")}
         </button>
         <button
@@ -178,7 +178,7 @@ const LinearWorkflowStatesSection: React.FC<
           disabled={!canSaveDraft || savingStateId !== null}
           className="inline-flex h-7 items-center gap-1 rounded-md bg-primary-6 px-2 text-xs text-white disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <HugeiconsIcon icon={Check} data-icon="check" size={13} />
+          <HugeiconsIcon icon={Tick01Icon} data-icon="check" size={13} />
           {t("common:actions.save")}
         </button>
       </div>
@@ -201,7 +201,7 @@ const LinearWorkflowStatesSection: React.FC<
             title={t("common:actions.refresh")}
             icon={
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={13}
                 className={loadingStates ? "animate-spin" : ""}
@@ -215,7 +215,7 @@ const LinearWorkflowStatesSection: React.FC<
             className="inline-flex h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-fill-2 hover:text-text-1 disabled:cursor-not-allowed disabled:opacity-50"
             title={t("linearProjects.statusPanel.addStatus")}
           >
-            <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />
+            <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
           </button>
         </div>
       </div>
@@ -239,7 +239,7 @@ const LinearWorkflowStatesSection: React.FC<
               <div key={state.id}>
                 <div className="group flex min-h-8 items-center gap-2 rounded-md px-2 py-1 hover:bg-fill-1">
                   <HugeiconsIcon
-                    icon={Circle}
+                    icon={CircleIcon}
                     data-icon="circle"
                     size={12}
                     fill={state.color ?? DEFAULT_STATE_COLOR}
@@ -262,7 +262,11 @@ const LinearWorkflowStatesSection: React.FC<
                     className="hidden h-6 w-6 items-center justify-center rounded-md text-text-3 hover:bg-fill-2 hover:text-text-1 group-hover:inline-flex"
                     title={t("common:actions.edit")}
                   >
-                    <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />
+                    <HugeiconsIcon
+                      icon={Pen01Icon}
+                      data-icon="pencil"
+                      size={12}
+                    />
                   </button>
                   <button
                     type="button"
@@ -272,7 +276,7 @@ const LinearWorkflowStatesSection: React.FC<
                     title={t("linearProjects.statusPanel.archiveStatus")}
                   >
                     <HugeiconsIcon
-                      icon={Trash2}
+                      icon={Delete02Icon}
                       data-icon="trash-2"
                       size={12}
                     />

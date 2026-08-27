@@ -1,4 +1,4 @@
-import ExternalLink from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -135,7 +135,7 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
             >
               {t("routineFields.openSession")}
               <HugeiconsIcon
-                icon={ExternalLink}
+                icon={SquareArrowUpRightIcon}
                 data-icon="external-link"
                 size={11}
               />
@@ -161,7 +161,7 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
             >
               {t("routineFields.openWorkItem")}
               <HugeiconsIcon
-                icon={ExternalLink}
+                icon={SquareArrowUpRightIcon}
                 data-icon="external-link"
                 size={11}
               />

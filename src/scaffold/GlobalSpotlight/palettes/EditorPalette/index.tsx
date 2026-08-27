@@ -7,7 +7,7 @@
  * - : - Go to line
  * - @ - Symbols
  */
-import File from "@hugeicons/core-free-icons/File01Icon";
+import File01Icon from "@hugeicons/core-free-icons/File01Icon";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -161,7 +161,7 @@ export const EditorPalette: React.FC<EditorPaletteProps> = ({
     }),
     // SpotlightModeConfig.icon is optional, so fall through to the File
     // glyph the `file` mode itself uses rather than widening PathSegment.
-    icon: modeConfig?.icon ?? EDITOR_PALETTE_MODES.file.icon ?? File,
+    icon: modeConfig?.icon ?? EDITOR_PALETTE_MODES.file.icon ?? File01Icon,
     color: modeConfig?.color ?? "primary",
     data: {
       pillLabelKey: `selectors.editorSpotlight.modes.${state.mode}.pillLabel`,

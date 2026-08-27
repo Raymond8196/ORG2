@@ -1,4 +1,4 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -536,7 +536,7 @@ export default function ModelVariantInlineCard({
             >
               <span className="truncate">{triggerLabel}</span>
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={12}
                 className="text-text-3"

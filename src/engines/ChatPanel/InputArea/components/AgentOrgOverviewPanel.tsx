@@ -1,12 +1,12 @@
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import Pause from "@hugeicons/core-free-icons/PauseIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
+import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
+import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
@@ -125,7 +125,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
     const badges = error ? (
       <span className="text-error-6 ml-1 inline-flex items-center gap-1 text-[13px] font-medium">
         <HugeiconsIcon
-          icon={XCircle}
+          icon={CancelCircleIcon}
           data-icon="xcircle"
           size={11}
           strokeWidth={2}
@@ -142,7 +142,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
           >
             {view?.runPhase === AGENT_ORG_RUN_PHASE.FINALIZING && (
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={9}
                 strokeWidth={2}
@@ -173,7 +173,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
           label={view?.context.orgName ?? t("planner.agentOrgOverview.title")}
           icon={
             <HugeiconsIcon
-              icon={Network}
+              icon={HierarchyCircle01Icon}
               data-icon="network"
               size={13}
               strokeWidth={1.75}
@@ -199,7 +199,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                   data-testid="agent-org-overview-coordinator-history-button"
                   icon={
                     <HugeiconsIcon
-                      icon={History}
+                      icon={WorkHistoryIcon}
                       data-icon="history"
                       size={11}
                       strokeWidth={2}
@@ -220,7 +220,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                   data-testid="agent-org-overview-pause-button"
                   icon={
                     <HugeiconsIcon
-                      icon={Pause}
+                      icon={PauseIcon}
                       data-icon="pause"
                       size={11}
                       strokeWidth={2}
@@ -241,7 +241,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                   data-testid="agent-org-overview-resume-button"
                   icon={
                     <HugeiconsIcon
-                      icon={Play}
+                      icon={PlayIcon}
                       data-icon="play"
                       size={11}
                       strokeWidth={2}
@@ -260,7 +260,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                 data-testid="agent-org-overview-refresh-button"
                 icon={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={12}
                     strokeWidth={2}
@@ -281,7 +281,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
               <div className="rounded-md bg-bg-1 px-2 py-1.5">
                 <div className="flex items-center gap-1 text-text-2">
                   <HugeiconsIcon
-                    icon={CheckCircle2}
+                    icon={CheckmarkCircle01Icon}
                     data-icon="check-circle-2"
                     size={11}
                     strokeWidth={2}
@@ -298,7 +298,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
               <div className="rounded-md bg-bg-1 px-2 py-1.5">
                 <div className="flex items-center gap-1 text-text-2">
                   <HugeiconsIcon
-                    icon={UserRound}
+                    icon={UserCircleIcon}
                     data-icon="user-round"
                     size={11}
                     strokeWidth={2}
@@ -315,7 +315,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
               <div className="rounded-md bg-bg-1 px-2 py-1.5">
                 <div className="flex items-center gap-1 text-text-2">
                   <HugeiconsIcon
-                    icon={Inbox}
+                    icon={InboxIcon}
                     data-icon="inbox"
                     size={11}
                     strokeWidth={2}
@@ -356,7 +356,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
               <div className="space-y-1" data-testid="agent-org-overview-tasks">
                 <div className="mb-1 flex items-center gap-1 px-1 text-[11px] font-medium text-text-2">
                   <HugeiconsIcon
-                    icon={CheckCircle2}
+                    icon={CheckmarkCircle01Icon}
                     data-icon="check-circle-2"
                     size={11}
                     strokeWidth={2}
@@ -375,7 +375,7 @@ const AgentOrgOverviewPanel: React.FC<AgentOrgOverviewPanelProps> = memo(
                     data-testid="agent-org-overview-refresh-button"
                     icon={
                       <HugeiconsIcon
-                        icon={RefreshCw}
+                        icon={Refresh04Icon}
                         data-icon="refresh-cw"
                         size={10}
                         strokeWidth={2}

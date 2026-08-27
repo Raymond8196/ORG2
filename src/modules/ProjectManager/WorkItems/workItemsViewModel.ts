@@ -1,4 +1,4 @@
-import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
+import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
 
 import {
   DEFAULT_KANBAN_COLUMNS,
@@ -389,7 +389,7 @@ export function getPersonKanbanColumns(
       return {
         id: `person:${id}` as KanbanTask["status"],
         title: person.name,
-        icon: UserRound,
+        icon: UserCircleIcon,
         color,
         bgColor: `color-mix(in srgb, ${color} 10%, transparent)`,
         dotColor: color,
@@ -404,7 +404,7 @@ export function getPersonKanbanColumns(
         {
           id: UNASSIGNED_PERSON_COLUMN_ID,
           title: unassignedTitle,
-          icon: UserRound,
+          icon: UserCircleIcon,
           color: "var(--color-text-3)",
           bgColor: "color-mix(in srgb, var(--color-text-3) 10%, transparent)",
           dotColor: "var(--color-text-3)",

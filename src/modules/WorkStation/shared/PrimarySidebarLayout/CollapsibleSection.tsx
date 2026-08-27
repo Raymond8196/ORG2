@@ -7,8 +7,8 @@
  *
  * Shared by: CodeEditor, DatabaseManager, Browser
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
@@ -150,14 +150,14 @@ export const CollapsibleSection: React.FC<CollapsibleSectionProps> = memo(
               >
                 {effectiveCollapsed ? (
                   <HugeiconsIcon
-                    icon={ChevronRight}
+                    icon={ArrowRight01Icon}
                     data-icon="chevron-right"
                     size={14}
                     className="text-text-3"
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={ChevronDown}
+                    icon={ArrowDown01Icon}
                     data-icon="chevron-down"
                     size={14}
                     className="text-text-3"

@@ -21,10 +21,10 @@
  * Edit is inline (`Textarea` + Save / Cancel), the shape the comment plane
  * already uses — no dialog, no separate route.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom, useStore } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -215,7 +215,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
               data-testid="channel-message-edit"
               icon={
                 <HugeiconsIcon
-                  icon={Pencil}
+                  icon={Pen01Icon}
                   data-icon="pencil"
                   size={12}
                   strokeWidth={2}
@@ -236,7 +236,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
               data-testid="channel-message-delete"
               icon={
                 <HugeiconsIcon
-                  icon={Trash2}
+                  icon={Delete02Icon}
                   data-icon="trash-2"
                   size={12}
                   strokeWidth={2}
@@ -331,7 +331,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 size="mini"
                 icon={
                   <HugeiconsIcon
-                    icon={X}
+                    icon={Cancel01Icon}
                     data-icon="x"
                     size={12}
                     strokeWidth={2}
@@ -349,7 +349,7 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
                 disabled={draft.trim().length === 0}
                 icon={
                   <HugeiconsIcon
-                    icon={Check}
+                    icon={Tick01Icon}
                     data-icon="check"
                     size={12}
                     strokeWidth={2}

@@ -1,4 +1,4 @@
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -9,7 +9,7 @@ describe("SidebarHeaderNavButton", () => {
   it("uses the shared 32px sidebar row height", () => {
     const markup = renderToStaticMarkup(
       createElement(SidebarHeaderNavButton, {
-        icon: ChevronLeft,
+        icon: ArrowLeft01Icon,
         label: "Work Items",
         onClick: vi.fn(),
       })

@@ -6,11 +6,11 @@
  * for collapse state. Body padding follows `EVENT_SNIPPET_INNER_PADDING_CLASS`
  * (`px-3 py-1.5`) to match every other tool block.
  */
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import PlayCircleIcon from "@hugeicons/core-free-icons/PlayCircleIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -73,7 +73,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
         data-testid="org-task-card-id"
       >
         <HugeiconsIcon
-          icon={CircleDot}
+          icon={CircleDotIcon}
           data-icon="circle-dot"
           size={11}
           strokeWidth={1.75}
@@ -89,7 +89,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
           data-testid="org-task-card-owner"
         >
           <HugeiconsIcon
-            icon={CircleDot}
+            icon={CircleDotIcon}
             data-icon="circle-dot"
             size={11}
             strokeWidth={1.75}
@@ -106,7 +106,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
           data-testid="org-task-card-active"
         >
           <HugeiconsIcon
-            icon={ListChecks}
+            icon={ListChecksIcon}
             data-icon="list-checks"
             size={11}
             strokeWidth={1.75}
@@ -123,7 +123,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
           data-testid="org-task-card-blocks"
         >
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={11}
             strokeWidth={1.75}
@@ -140,7 +140,7 @@ function TaskDetailRows({ card }: { card: TaskUpdateCardData }) {
           data-testid="org-task-card-blocked-by"
         >
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={11}
             strokeWidth={1.75}
@@ -181,7 +181,7 @@ function TaskStatusBadges({ card }: { card: TaskUpdateCardData }) {
           data-testid="org-task-card-assigned"
         >
           <HugeiconsIcon
-            icon={CheckCircle2}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle-2"
             size={10}
           />{" "}
@@ -250,7 +250,7 @@ function getListRowStatusIcon(status?: string): React.ReactNode {
   if (status === "completed") {
     return (
       <HugeiconsIcon
-        icon={CheckCircle2}
+        icon={CheckmarkCircle01Icon}
         data-icon="check-circle-2"
         size={13}
         strokeWidth={2}
@@ -261,7 +261,7 @@ function getListRowStatusIcon(status?: string): React.ReactNode {
   if (status === "in_progress") {
     return (
       <HugeiconsIcon
-        icon={PlayCircle}
+        icon={PlayCircleIcon}
         data-icon="play-circle"
         size={13}
         strokeWidth={2}
@@ -272,7 +272,7 @@ function getListRowStatusIcon(status?: string): React.ReactNode {
   if (status === "pending") {
     return (
       <HugeiconsIcon
-        icon={CircleDot}
+        icon={CircleDotIcon}
         data-icon="circle-dot"
         size={13}
         strokeWidth={2}

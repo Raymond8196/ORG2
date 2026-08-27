@@ -4,12 +4,12 @@
  * Memoized row renderer for spotlight items.
  * Handles icons, labels, status indicators, git badges, and keyboard shortcuts.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CornerDownRight from "@hugeicons/core-free-icons/CornerDownRightIcon";
-import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CornerDownRightIcon from "@hugeicons/core-free-icons/CornerDownRightIcon";
+import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import React, { memo, useCallback } from "react";
@@ -198,7 +198,7 @@ const DescLine = memo<{ desc: string; descTitle: unknown }>(
         >
           <span className="inline-flex flex-shrink-0 cursor-default items-center gap-0.5 rounded-full bg-fill-2 px-1.5 py-px text-[10px] text-text-3 hover:bg-fill-2 hover:text-text-2">
             <HugeiconsIcon
-              icon={Info}
+              icon={InformationCircleIcon}
               data-icon="info"
               size={10}
               strokeWidth={2}
@@ -262,7 +262,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
     const hasDisclosureChevron = !!data.showDisclosureChevron && !isDisabled;
     const ArrowRightIcon = ICONS.arrowRight;
     const DisclosureIcon =
-      data.disclosureIcon === "arrowRight" ? ArrowRightIcon : ChevronRight;
+      data.disclosureIcon === "arrowRight" ? ArrowRightIcon : ArrowRight01Icon;
     const itemTextClassName = isDanger ? "text-danger-6" : "text-text-1";
     const iconTone =
       typeof data.iconTone === "string" ? data.iconTone : undefined;
@@ -396,7 +396,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
         {isChildItem && (
           <div className="flex w-5 flex-shrink-0 items-center justify-center">
             <HugeiconsIcon
-              icon={CornerDownRight}
+              icon={CornerDownRightIcon}
               data-icon="corner-down-right"
               className="text-text-2"
               size={10}
@@ -408,7 +408,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
           <div className="flex h-6 w-6 flex-shrink-0 items-center justify-center">
             {isCurrentSelection ? (
               <HugeiconsIcon
-                icon={Check}
+                icon={Tick01Icon}
                 data-icon="check"
                 size={SPOTLIGHT_TOKENS.iconSize}
                 className="text-primary-6"
@@ -498,7 +498,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                     title={`${data.gitStatus.uncommittedFiles} file${data.gitStatus.uncommittedFiles !== 1 ? "s" : ""} uncommitted`}
                   >
                     {data.gitStatus.uncommittedFiles}
-                    <HugeiconsIcon icon={Diff} data-icon="diff" size={12} />
+                    <HugeiconsIcon icon={DiffIcon} data-icon="diff" size={12} />
                   </span>
                 )}
 
@@ -558,7 +558,7 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                 }`}
               >
                 {isDisabled && (
-                  <HugeiconsIcon icon={Lock} data-icon="lock" size={10} />
+                  <HugeiconsIcon icon={LockIcon} data-icon="lock" size={10} />
                 )}
                 {data.tagLabel}
               </span>

@@ -8,12 +8,12 @@
  * Button shows primary-6 selected state while dropdown is open.
  * Dropdown is right-aligned to the trigger button.
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import ArrowUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
-import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import ArrowUpDownIcon from "@hugeicons/core-free-icons/ArrowUpDownIcon";
+import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -133,7 +133,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
           disabled={isLoading}
         >
           <HugeiconsIcon
-            icon={Ellipsis}
+            icon={EllipsisIcon}
             data-icon="ellipsis"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -164,7 +164,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                       onClick={() => handleItemClick(onPull)}
                     >
                       <HugeiconsIcon
-                        icon={ArrowDown}
+                        icon={ArrowDown02Icon}
                         data-icon="arrow-down"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
@@ -176,7 +176,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                       onClick={() => handleItemClick(onPush)}
                     >
                       <HugeiconsIcon
-                        icon={ArrowUp}
+                        icon={ArrowUp02Icon}
                         data-icon="arrow-up"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
@@ -188,7 +188,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                       onClick={() => handleItemClick(onFetch)}
                     >
                       <HugeiconsIcon
-                        icon={RefreshCw}
+                        icon={Refresh04Icon}
                         data-icon="refresh-cw"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
@@ -201,7 +201,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                       onClick={() => handleItemClick(onSync)}
                     >
                       <HugeiconsIcon
-                        icon={ArrowUpDown}
+                        icon={ArrowUpDownIcon}
                         data-icon="arrow-up-down"
                         size={DROPDOWN_ITEM.iconSize}
                         className="shrink-0"
@@ -215,7 +215,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                     onClick={() => handleItemClick(onPublish ?? onSync)}
                   >
                     <HugeiconsIcon
-                      icon={CloudUpload}
+                      icon={CloudUploadIcon}
                       data-icon="cloud-upload"
                       size={DROPDOWN_ITEM.iconSize}
                       className="shrink-0"

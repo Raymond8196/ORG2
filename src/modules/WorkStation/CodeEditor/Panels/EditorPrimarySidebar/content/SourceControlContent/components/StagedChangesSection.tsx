@@ -3,8 +3,8 @@
  *
  * Displays staged files with unstage and diff actions
  */
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -71,7 +71,7 @@ export const StagedChangesSection: React.FC<StagedChangesSectionProps> = memo(
                 title={`Unstage All Changes\n\nShortcut: ${SHORTCUTS.unstageAll}`}
               >
                 <HugeiconsIcon
-                  icon={Minus}
+                  icon={MinusSignIcon}
                   data-icon="minus"
                   size={14}
                   strokeWidth={1.75}
@@ -83,7 +83,7 @@ export const StagedChangesSection: React.FC<StagedChangesSectionProps> = memo(
                 title={GIT_LABELS.openStagedChanges}
               >
                 <HugeiconsIcon
-                  icon={FileDiff}
+                  icon={FileDiffIcon}
                   data-icon="file-diff"
                   size={14}
                   strokeWidth={1.75}

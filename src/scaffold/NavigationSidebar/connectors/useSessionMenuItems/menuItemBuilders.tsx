@@ -1,5 +1,5 @@
-import Pin from "@hugeicons/core-free-icons/PinIcon";
-import EyeOff from "@hugeicons/core-free-icons/ViewOffIcon";
+import PinIcon from "@hugeicons/core-free-icons/PinIcon";
+import ViewOffIcon from "@hugeicons/core-free-icons/ViewOffIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
@@ -34,7 +34,7 @@ export function separator(id: string, title = ""): NavigationMenuItem {
 export function renderPinnedSectionIndicator(): ReactNode {
   return (
     <HugeiconsIcon
-      icon={Pin}
+      icon={PinIcon}
       data-icon="pin"
       size={10}
       strokeWidth={2}
@@ -54,7 +54,7 @@ export function renderPinnedSectionIndicator(): ReactNode {
 export function renderHiddenSectionIndicator(): ReactNode {
   return (
     <HugeiconsIcon
-      icon={EyeOff}
+      icon={ViewOffIcon}
       data-icon="eye-off"
       size={10}
       strokeWidth={2}
@@ -113,7 +113,7 @@ export function buildSessionMenuItem({
   // legible in every scope and every grouping mode.
   const pinIndicator = session.pinned ? (
     <HugeiconsIcon
-      icon={Pin}
+      icon={PinIcon}
       data-icon="pin"
       size={11}
       strokeWidth={2}

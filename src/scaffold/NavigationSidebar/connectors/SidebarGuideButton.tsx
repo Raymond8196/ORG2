@@ -1,8 +1,8 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Rocket from "@hugeicons/core-free-icons/RocketIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import RocketIcon from "@hugeicons/core-free-icons/RocketIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type FC, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -61,14 +61,14 @@ const GuideTaskRow: FC<GuideTaskRowProps> = ({
     icon={
       completed ? (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           size={DROPDOWN_ITEM.iconSize}
           className="text-success-6"
         />
       ) : (
         <HugeiconsIcon
-          icon={Circle}
+          icon={CircleIcon}
           data-icon="circle"
           size={DROPDOWN_ITEM.iconSize}
         />
@@ -200,7 +200,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
             onClick={toggle}
           >
             <HugeiconsIcon
-              icon={Rocket}
+              icon={RocketIcon}
               data-icon="rocket"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
@@ -243,7 +243,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                   onClick={() => runAction(onDismiss)}
                 >
                   <HugeiconsIcon
-                    icon={X}
+                    icon={Cancel01Icon}
                     data-icon="x"
                     size={HEADER_ICON_SIZE.sm}
                   />
@@ -255,7 +255,7 @@ const SidebarGuideButton: FC<SidebarGuideButtonProps> = ({
                   onClick={close}
                 >
                   <HugeiconsIcon
-                    icon={ChevronDown}
+                    icon={ArrowDown01Icon}
                     data-icon="chevron-down"
                     size={HEADER_ICON_SIZE.sm}
                   />

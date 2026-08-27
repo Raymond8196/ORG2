@@ -1,6 +1,6 @@
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -171,7 +171,7 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
           {activeTab !== "edit" && (
             <Button
               icon={
-                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+                <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={14} />
               }
               iconOnly
               onClick={handleEdit}
@@ -181,7 +181,9 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
             />
           )}
           <Button
-            icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
+            icon={
+              <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={14} />
+            }
             iconOnly
             onClick={handleCopy}
             disabled={!value.trim()}
@@ -191,7 +193,7 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
           <Button
             icon={
               <HugeiconsIcon
-                icon={FolderOpen}
+                icon={FolderOpenIcon}
                 data-icon="folder-open"
                 size={14}
               />

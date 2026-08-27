@@ -1,7 +1,7 @@
-import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
+import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -426,7 +426,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
               data-testid="work-item-delete"
               icon={
                 <HugeiconsIcon
-                  icon={Trash2}
+                  icon={Delete02Icon}
                   data-icon="trash-2"
                   size={HEADER_ICON_SIZE.sm}
                 />
@@ -454,7 +454,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
             data-testid="chat-panel-work-item-properties-toggle"
             icon={
               <HugeiconsIcon
-                icon={Info}
+                icon={InformationCircleIcon}
                 data-icon="info"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -489,7 +489,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
             />
           ) : (
             <HugeiconsIcon
-              icon={ListChecks}
+              icon={ListChecksIcon}
               data-icon="list-checks"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
@@ -551,7 +551,7 @@ export const WorkItemPanelView: React.FC<WorkItemPanelViewProps> = ({
                 data-testid="chat-panel-work-item-properties-collapse"
               >
                 <HugeiconsIcon
-                  icon={ChevronsRight}
+                  icon={ArrowRightDoubleIcon}
                   data-icon="chevrons-right"
                   size={14}
                   strokeWidth={1.75}

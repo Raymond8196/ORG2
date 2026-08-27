@@ -2,8 +2,8 @@
  * Status, Health, and Priority field rows for ProjectPropertyFields.
  * Extracted to keep the parent component under the UI line limit.
  */
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Flag from "@hugeicons/core-free-icons/Flag01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -70,7 +70,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         <FieldRow
           icon={
             <HugeiconsIcon
-              icon={Circle}
+              icon={CircleIcon}
               data-icon="circle"
               size={DROPDOWN_ITEM.iconSize}
             />
@@ -104,7 +104,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
                   key={option.value}
                   icon={
                     <HugeiconsIcon
-                      icon={Circle}
+                      icon={CircleIcon}
                       data-icon="circle"
                       size={DROPDOWN_ITEM.iconSize}
                     />
@@ -133,7 +133,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         <FieldRow
           icon={
             <HugeiconsIcon
-              icon={Circle}
+              icon={CircleIcon}
               data-icon="circle"
               size={DROPDOWN_ITEM.iconSize}
             />
@@ -169,7 +169,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
                   key={option.value}
                   icon={
                     <HugeiconsIcon
-                      icon={Circle}
+                      icon={CircleIcon}
                       data-icon="circle"
                       size={DROPDOWN_ITEM.iconSize}
                     />
@@ -198,7 +198,7 @@ const StatusHealthPriorityFields: React.FC<StatusHealthPriorityFieldsProps> = ({
         <FieldRow
           icon={
             <HugeiconsIcon
-              icon={Flag}
+              icon={Flag01Icon}
               data-icon="flag"
               size={DROPDOWN_ITEM.iconSize}
             />

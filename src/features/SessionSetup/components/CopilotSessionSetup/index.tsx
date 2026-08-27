@@ -9,10 +9,10 @@
  * 2. User logs in and creates PAT with Copilot permission
  * 3. User copies token and pastes it in the input field
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
@@ -312,7 +312,7 @@ const CopilotSessionSetup: React.FC<CopilotSessionSetupProps> = ({
                 size="mini"
                 icon={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={12}
                   />
@@ -323,7 +323,9 @@ const CopilotSessionSetup: React.FC<CopilotSessionSetupProps> = ({
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
+                }
                 iconOnly
                 onClick={handleCloseBrowser}
               />
@@ -339,7 +341,7 @@ const CopilotSessionSetup: React.FC<CopilotSessionSetupProps> = ({
                   completed={isTokenValid}
                 />
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={14}
                   className="text-text-3"
@@ -377,7 +379,7 @@ const CopilotSessionSetup: React.FC<CopilotSessionSetupProps> = ({
               {error && (
                 <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
                   <HugeiconsIcon
-                    icon={AlertCircle}
+                    icon={AlertCircleIcon}
                     data-icon="alert-circle"
                     size={32}
                     className="mb-3 text-danger-6"

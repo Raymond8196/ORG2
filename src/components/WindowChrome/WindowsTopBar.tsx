@@ -1,6 +1,6 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Square from "@hugeicons/core-free-icons/SquareIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { open } from "@tauri-apps/plugin-shell";
@@ -338,7 +338,7 @@ const WindowsTopBarComponent: React.FC = () => {
           title={t("windowChrome.items.minimize")}
         >
           <HugeiconsIcon
-            icon={Minus}
+            icon={MinusSignIcon}
             data-icon="minus"
             size={ICON_SIZE}
             strokeWidth={2}
@@ -352,7 +352,7 @@ const WindowsTopBarComponent: React.FC = () => {
           title={t("windowChrome.items.maximizeRestore")}
         >
           <HugeiconsIcon
-            icon={Square}
+            icon={SquareIcon}
             data-icon="square"
             size={12}
             strokeWidth={2}
@@ -366,7 +366,7 @@ const WindowsTopBarComponent: React.FC = () => {
           title={t("windowChrome.items.closeWindow")}
         >
           <HugeiconsIcon
-            icon={X}
+            icon={Cancel01Icon}
             data-icon="x"
             size={ICON_SIZE}
             strokeWidth={2}

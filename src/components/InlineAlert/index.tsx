@@ -12,12 +12,12 @@
  * body (children) and subtitle render below the header.
  * When action is an object, InlineAlert builds a secondary Button at 28px height.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import TriangleAlertIcon from "@hugeicons/core-free-icons/TriangleAlertIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -36,7 +36,7 @@ const ALERT_RADIUS_CLASS = "rounded-xl";
 const DEFAULT_ICONS: Record<string, React.ReactNode> = {
   success: (
     <HugeiconsIcon
-      icon={Check}
+      icon={Tick01Icon}
       data-icon="check"
       size={14}
       className="flex-shrink-0"
@@ -44,7 +44,7 @@ const DEFAULT_ICONS: Record<string, React.ReactNode> = {
   ),
   danger: (
     <HugeiconsIcon
-      icon={TriangleAlert}
+      icon={TriangleAlertIcon}
       data-icon="triangle-alert"
       size={14}
       className="flex-shrink-0"
@@ -52,7 +52,7 @@ const DEFAULT_ICONS: Record<string, React.ReactNode> = {
   ),
   warning: (
     <HugeiconsIcon
-      icon={TriangleAlert}
+      icon={TriangleAlertIcon}
       data-icon="triangle-alert"
       size={14}
       className="flex-shrink-0"
@@ -60,7 +60,7 @@ const DEFAULT_ICONS: Record<string, React.ReactNode> = {
   ),
   info: (
     <HugeiconsIcon
-      icon={Info}
+      icon={InformationCircleIcon}
       data-icon="info"
       size={14}
       className="flex-shrink-0"
@@ -168,14 +168,14 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
     (isPill ? (
       expanded ? (
         <HugeiconsIcon
-          icon={ChevronsDownUp}
+          icon={ChevronsDownUpIcon}
           data-icon="chevrons-down-up"
           size={14}
           className="flex-shrink-0"
         />
       ) : (
         <HugeiconsIcon
-          icon={ChevronsUpDown}
+          icon={UnfoldMoreIcon}
           data-icon="chevrons-up-down"
           size={14}
           className="flex-shrink-0"
@@ -185,7 +185,12 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
       DEFAULT_ICONS[type]
     ));
   const resolvedCloseIcon = closeIcon ?? (
-    <HugeiconsIcon icon={X} data-icon="x" size={14} className="flex-shrink-0" />
+    <HugeiconsIcon
+      icon={Cancel01Icon}
+      data-icon="x"
+      size={14}
+      className="flex-shrink-0"
+    />
   );
   const hasTitle = Boolean(title);
 

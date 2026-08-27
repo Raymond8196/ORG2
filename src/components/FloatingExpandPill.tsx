@@ -12,8 +12,8 @@
  * Visibility is driven by a parent with the Tailwind `group` class
  * (opacity-0 → group-hover:opacity-100).
  */
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -37,7 +37,7 @@ const FloatingExpandPill: React.FC<FloatingExpandPillProps> = ({
   const text =
     label ?? (expanded ? t("common:showLess") : t("common:showMore"));
 
-  const Icon = expanded ? ChevronsDownUp : ChevronsUpDown;
+  const Icon = expanded ? ChevronsDownUpIcon : UnfoldMoreIcon;
 
   return (
     <Button

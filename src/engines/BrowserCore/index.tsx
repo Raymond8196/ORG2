@@ -12,10 +12,10 @@
  * - Error handling
  * - Native webview rendering
  */
-import CloudOff from "@hugeicons/core-free-icons/CloudLoadingIcon";
-import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import CloudLoadingIcon from "@hugeicons/core-free-icons/CloudLoadingIcon";
+import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
@@ -330,7 +330,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
             <div className="browser-native-info">
               <div className="browser-native-placeholder">
                 <HugeiconsIcon
-                  icon={Monitor}
+                  icon={MonitorIcon}
                   data-icon="monitor"
                   size={48}
                   className="text-text-2 opacity-60"
@@ -391,7 +391,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
               <div className="browser-native-info browser-embedded-fallback">
                 <div className="browser-native-placeholder">
                   <HugeiconsIcon
-                    icon={CloudOff}
+                    icon={CloudLoadingIcon}
                     data-icon="cloud-off"
                     size={64}
                     strokeWidth={1.5}
@@ -413,7 +413,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                       size="small"
                       icon={
                         <HugeiconsIcon
-                          icon={SquareArrowOutUpRight}
+                          icon={SquareArrowUpRightIcon}
                           data-icon="square-arrow-out-up-right"
                           size={14}
                           strokeWidth={1.75}
@@ -437,7 +437,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                       size="small"
                       icon={
                         <HugeiconsIcon
-                          icon={RefreshCw}
+                          icon={Refresh04Icon}
                           data-icon="refresh-cw"
                           size={14}
                           strokeWidth={1.75}
@@ -465,7 +465,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
             <div className="browser-native-info">
               <div className="browser-native-placeholder">
                 <HugeiconsIcon
-                  icon={CloudOff}
+                  icon={CloudLoadingIcon}
                   data-icon="cloud-off"
                   size={64}
                   strokeWidth={1.5}
@@ -483,7 +483,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                     size="small"
                     icon={
                       <HugeiconsIcon
-                        icon={RefreshCw}
+                        icon={Refresh04Icon}
                         data-icon="refresh-cw"
                         size={14}
                         strokeWidth={1.75}

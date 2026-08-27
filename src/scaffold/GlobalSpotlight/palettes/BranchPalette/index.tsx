@@ -9,11 +9,11 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
-import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderMinus from "@hugeicons/core-free-icons/FolderMinusIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import FolderMinusIcon from "@hugeicons/core-free-icons/FolderMinusIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -128,7 +128,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
             id: `worktree:${path}`,
             label,
             desc: compactRepoPathForDisplay({ path }),
-            icon: Folder,
+            icon: FolderClosedIcon,
             type: "option" as const,
             data: {
               isSelector: true,
@@ -219,7 +219,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     () => ({
       id: "worktree:new",
       label: t("selectors.branch.actions.newWorktree", "New Worktree..."),
-      icon: FolderPlus,
+      icon: FolderAddIcon,
       type: "action",
       data: { showDisclosureChevron: true },
       action: () => setCreateModalOpen(true),
@@ -232,7 +232,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
         {
           id: "worktree:remove-done",
           label: t("actions.done", "Done"),
-          icon: Check,
+          icon: Tick01Icon,
           type: "action",
           action: () => setMode("switch"),
         },
@@ -245,7 +245,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       actions.push({
         id: "worktree:remove",
         label: t("selectors.branch.actions.removeWorktree", "Remove Worktree"),
-        icon: FolderMinus,
+        icon: FolderMinusIcon,
         type: "action",
         data: { showDisclosureChevron: true },
         action: () => setMode("remove"),
@@ -253,7 +253,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     }
     const RefreshIcon = (props: { size?: number; className?: string }) =>
       React.createElement(HugeiconsIcon, {
-        icon: RefreshCw,
+        icon: Refresh04Icon,
         ...props,
         className:
           `${props.className ?? ""} ${isRefreshing ? "spotlight-refresh-spin" : ""}`.trim(),
@@ -341,7 +341,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
             mode === "remove"
               ? t("selectors.branch.actions.removeWorktree", "Remove Worktree")
               : t("selectors.branch.path.switchWorktree", "Switch worktree"),
-          icon: mode === "remove" ? FolderMinus : Folder,
+          icon: mode === "remove" ? FolderMinusIcon : FolderClosedIcon,
           color: "",
           data:
             mode === "switch"

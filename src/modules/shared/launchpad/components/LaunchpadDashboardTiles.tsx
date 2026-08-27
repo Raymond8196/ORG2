@@ -7,7 +7,7 @@
  *
  * Extracted from LaunchpadDashboard.tsx to keep it under 600 lines.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useLayoutEffect, useRef, useState } from "react";
 
@@ -183,7 +183,7 @@ export const LaunchpadAddTile: React.FC<LaunchpadAddTileProps> = memo(
       <div className={LAUNCHPAD_TILE_ICON_CLASS}>
         <span className="flex h-8 w-8 items-center justify-center rounded-full bg-bg-1">
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={18}
             strokeWidth={1.75}

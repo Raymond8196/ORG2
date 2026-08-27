@@ -4,8 +4,8 @@
  * A single CSS property row with editable value.
  * Shows property name on left, value on right.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -136,14 +136,14 @@ export const EditableStyleRow: React.FC<EditableStyleRowProps> = memo(
             icon={
               copied ? (
                 <HugeiconsIcon
-                  icon={Check}
+                  icon={Tick01Icon}
                   data-icon="check"
                   size={10}
                   className="text-success-6"
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={Copy}
+                  icon={Copy01Icon}
                   data-icon="copy"
                   size={10}
                   className="text-text-3"

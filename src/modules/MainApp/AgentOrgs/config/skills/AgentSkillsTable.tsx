@@ -8,7 +8,7 @@
  * shared formatting parts as the Integrations Skills table, while this
  * surface keeps per-agent enablement as its own action.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,7 +90,7 @@ const AgentSkillsTable: React.FC<AgentSkillsTableProps> = ({
       <Button
         variant="secondary"
         size="default"
-        icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+        icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
         onClick={onAddSkill}
         data-testid="agent-orgs-add-skill-button"
       >

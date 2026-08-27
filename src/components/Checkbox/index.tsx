@@ -31,8 +31,8 @@
  * </Checkbox.Group>
  * ```
  */
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   createContext,
@@ -305,7 +305,7 @@ const Checkbox: React.FC<CheckboxProps> & {
       <span className={iconClassName} data-checkbox-icon>
         {indeterminate ? (
           <HugeiconsIcon
-            icon={Minus}
+            icon={MinusSignIcon}
             data-icon="minus"
             size={iconPixelSize}
             strokeWidth={3}
@@ -313,7 +313,7 @@ const Checkbox: React.FC<CheckboxProps> & {
           />
         ) : (
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={iconPixelSize}
             strokeWidth={3}

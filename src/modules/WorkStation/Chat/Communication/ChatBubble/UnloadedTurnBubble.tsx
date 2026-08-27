@@ -39,8 +39,8 @@
  * eviction is confirmed, retries a bounded number of times before falling
  * back to a manual "tap to retry" affordance instead of spinning forever.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RotateCw from "@hugeicons/core-free-icons/RotateClockwiseIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import RotateClockwiseIcon from "@hugeicons/core-free-icons/RotateClockwiseIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -237,7 +237,7 @@ const UnloadedTurnBubbleContent: React.FC<UnloadedTurnBubbleContentProps> = ({
             className={`flex w-full items-center gap-2 rounded border-0 bg-transparent p-0 text-left italic text-text-3 transition-colors hover:text-text-1 ${SESSION_UI_TOKENS.TEXT.BODY_BASE}`}
           >
             <HugeiconsIcon
-              icon={RotateCw}
+              icon={RotateClockwiseIcon}
               data-icon="rotate-cw"
               size={13}
               strokeWidth={2}
@@ -250,7 +250,7 @@ const UnloadedTurnBubbleContent: React.FC<UnloadedTurnBubbleContentProps> = ({
             className={`flex items-center gap-2 italic text-text-3 ${SESSION_UI_TOKENS.TEXT.BODY_BASE}`}
           >
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={13}
               strokeWidth={2}

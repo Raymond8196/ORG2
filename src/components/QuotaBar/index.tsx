@@ -6,7 +6,7 @@
  * - "compact": Label + bar
  * - "full": Used/limit + bar
  */
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -217,7 +217,7 @@ export const QuotaStatusBar: React.FC<QuotaStatusBarProps> = ({
         <>
           <div className="flex items-center gap-1.5">
             <HugeiconsIcon
-              icon={Check}
+              icon={Tick01Icon}
               data-icon="check"
               size={12}
               className="text-success-6"

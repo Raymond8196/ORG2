@@ -19,7 +19,7 @@
  * <ModelIcon modelName="claude-3-sonnet" />
  * ```
  */
-import Box from "@hugeicons/core-free-icons/BoxIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 
@@ -151,7 +151,7 @@ const ModelIcon: React.FC<ModelIconProps> = memo(
       const fallbackColor = isSelected ? "text-primary-6" : "text-text-2";
       return (
         <HugeiconsIcon
-          icon={Box}
+          icon={BoxIcon}
           data-icon="box"
           size={numericSize}
           className={`${fallbackColor} ${className}`.trim()}

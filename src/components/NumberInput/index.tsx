@@ -25,10 +25,10 @@
  * <NumberInput value={500} controlsPosition="sides" />
  * ```
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
@@ -294,7 +294,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               tabIndex={-1}
             >
               <HugeiconsIcon
-                icon={Minus}
+                icon={MinusSignIcon}
                 data-icon="minus"
                 size={14}
                 strokeWidth={1.5}
@@ -330,7 +330,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               tabIndex={-1}
             >
               <HugeiconsIcon
-                icon={Plus}
+                icon={Add01Icon}
                 data-icon="plus"
                 size={14}
                 strokeWidth={1.5}
@@ -371,7 +371,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               tabIndex={-1}
             >
               <HugeiconsIcon
-                icon={ChevronUp}
+                icon={ArrowUp01Icon}
                 data-icon="chevron-up"
                 size={12}
                 strokeWidth={2}
@@ -385,7 +385,7 @@ const NumberInput = forwardRef<HTMLInputElement, NumberInputProps>(
               tabIndex={-1}
             >
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={12}
                 strokeWidth={2}

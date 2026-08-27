@@ -7,7 +7,7 @@
  * a plain builder function (not a hook/useMemo) since the panel recomputed
  * this array on every render before extraction — same behavior here.
  */
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { type Dispatch, type SetStateAction } from "react";
@@ -192,7 +192,7 @@ export function buildRuntimeScanningPanelColumns({
                   loadingSpinIcon
                   icon={
                     <HugeiconsIcon
-                      icon={RefreshCw}
+                      icon={Refresh04Icon}
                       data-icon="refresh-cw"
                       size={14}
                     />
@@ -253,7 +253,7 @@ export function buildRuntimeScanningPanelColumns({
                   loading={row.rescanning}
                   icon={
                     <HugeiconsIcon
-                      icon={RefreshCw}
+                      icon={Refresh04Icon}
                       data-icon="refresh-cw"
                       size={14}
                     />

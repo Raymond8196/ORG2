@@ -11,9 +11,9 @@
  * `targetRepoPath`, so one ORGII workspace can import into multiple repos
  * without collapsing them into a single import destination.
  */
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import ShieldAlert from "@hugeicons/core-free-icons/ShieldAlertIcon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import ShieldAlertIcon from "@hugeicons/core-free-icons/ShieldAlertIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -432,7 +432,7 @@ export function useExternalImport({
                   )}
                 >
                   <HugeiconsIcon
-                    icon={ShieldAlert}
+                    icon={ShieldAlertIcon}
                     data-icon="shield-alert"
                     size={12}
                     aria-hidden
@@ -460,7 +460,7 @@ export function useExternalImport({
           return labelA.localeCompare(labelB);
         },
         renderCell: (row) => {
-          const Icon = row.targetRepoPath ? Code2 : User;
+          const Icon = row.targetRepoPath ? CodeIcon : UserIcon;
           return (
             <span
               className={`${SETTINGS_TABLE_CELL.muted} inline-flex items-center gap-2 whitespace-nowrap`}

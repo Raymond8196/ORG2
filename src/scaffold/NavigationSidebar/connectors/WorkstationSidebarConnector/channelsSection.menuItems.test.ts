@@ -1,5 +1,5 @@
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
@@ -116,9 +116,9 @@ describe("channel rows", () => {
     );
     const [orgRow, privateRow] = items.slice(1);
     expect(orgRow.id).toBe(buildCloudChannelRowId("org-1", "ch-org"));
-    expect(orgRow.icon).toBe(Hash);
+    expect(orgRow.icon).toBe(HashtagIcon);
     expect(orgRow.dataTestId).toBe("sidebar-cloud-channel-ch-org");
-    expect(privateRow.icon).toBe(Lock);
+    expect(privateRow.icon).toBe(LockIcon);
     expect(privateRow.label).toBe("secrets");
   });
 

@@ -5,7 +5,7 @@
  * Uses PrimarySidebarLayout (same as Code Editor, Browser, etc.) with a single
  * pill containing Messages / Interactions sections.
  */
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -122,7 +122,7 @@ export const MessagesSidebar: React.FC<MessagesSidebarProps> = memo(
           label: t("simulator.replay.channelsSidebar.chatHistoryTab"),
           icon: (
             <HugeiconsIcon
-              icon={MessageCircle}
+              icon={BubbleChatIcon}
               data-icon="message-circle"
               size={16}
               strokeWidth={1.75}

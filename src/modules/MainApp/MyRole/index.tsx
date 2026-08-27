@@ -13,11 +13,11 @@
  * drill-down. This module is a full-width detail panel and has no
  * sub-tabs — the single visible heading is "My Roles".
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
-import Moon from "@hugeicons/core-free-icons/MoonIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
+import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
@@ -80,21 +80,21 @@ const BUILT_IN_ROLES: BuiltInRoleConfig[] = [
     mode: USER_PRESENCE_MODE.ONLINE,
     labelKey: "sidebar.presence.online",
     settingsKey: "general.presenceGuidanceOnline",
-    icon: Circle,
+    icon: CircleIcon,
     colorClass: "text-success-6",
   },
   {
     mode: USER_PRESENCE_MODE.INVISIBLE,
     labelKey: "sidebar.presence.invisible",
     settingsKey: "general.presenceGuidanceInvisible",
-    icon: HatGlasses,
+    icon: HatGlassesIcon,
     colorClass: "text-text-3",
   },
   {
     mode: USER_PRESENCE_MODE.AWAY,
     labelKey: "sidebar.presence.away",
     settingsKey: "general.presenceGuidanceAway",
-    icon: Moon,
+    icon: MoonIcon,
     colorClass: "text-warning-6",
   },
 ];
@@ -545,7 +545,7 @@ const MyRolePage: React.FC = () => {
                           iconOnly
                           icon={
                             <HugeiconsIcon
-                              icon={Trash2}
+                              icon={Delete02Icon}
                               data-icon="trash-2"
                               size={14}
                             />
@@ -594,7 +594,9 @@ const MyRolePage: React.FC = () => {
               <Button
                 variant="secondary"
                 size="default"
-                icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
+                }
                 onClick={handleAddRole}
               >
                 {t("myRole.addRole", { defaultValue: "Add custom role" })}

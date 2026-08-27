@@ -1,4 +1,4 @@
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -97,7 +97,7 @@ export function CliAgentHeaderSwitcher({
       {showSearch ? (
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
-            icon={Search}
+            icon={Search01Icon}
             data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"

@@ -8,7 +8,7 @@
  * chip can render identically without any conditional branching at the view
  * layer.
  */
-import Code from "@hugeicons/core-free-icons/CodeIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
@@ -84,7 +84,7 @@ export function useSimulatorAppSwitcher(): AppSwitcherChipData {
   );
 
   return {
-    icon: titleCenter.icon ?? Code,
+    icon: titleCenter.icon ?? CodeIcon,
     label: titleCenter.label ?? "",
     activeId: effectiveDockApp ?? "",
     items,

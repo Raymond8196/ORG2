@@ -7,10 +7,10 @@
  *
  * Uses shared TreeRow components for base rendering.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -150,7 +150,7 @@ const GitFileTreeItem: React.FC<GitFileTreeItemProps> = React.memo(
             {/* Discard action button */}
             {onDiscard && (
               <TreeRowAction
-                icon={Undo2}
+                icon={Undo02Icon}
                 variant="danger"
                 onClick={handleDiscard}
                 title={t("workstation.discardChanges")}
@@ -159,7 +159,13 @@ const GitFileTreeItem: React.FC<GitFileTreeItemProps> = React.memo(
             {/* Stage/Unstage action button */}
             {onStageToggle && (
               <TreeRowAction
-                icon={isConflictFile ? Check : isStaged ? Minus : Plus}
+                icon={
+                  isConflictFile
+                    ? Tick01Icon
+                    : isStaged
+                      ? MinusSignIcon
+                      : Add01Icon
+                }
                 variant={isConflictFile ? "success" : "default"}
                 onClick={handleStageToggle}
                 title={

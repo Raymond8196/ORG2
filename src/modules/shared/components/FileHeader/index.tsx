@@ -15,8 +15,8 @@
  *   - `FileHeaderMoreMenu`    → the trailing ellipsis dropdown menu.
  *   - `FileHeaderShell`       → inline vs teleport-to-workstation wrapper.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import FileSymlinkIcon from "@hugeicons/core-free-icons/FileSymlinkIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -595,7 +595,7 @@ export const FileHeader: React.FC<FileHeaderProps> = memo(
                     className="flex-shrink-0"
                     icon={
                       <HugeiconsIcon
-                        icon={FileSymlink}
+                        icon={FileSymlinkIcon}
                         data-icon="file-symlink"
                         size={HEADER_ICON_SIZE.sm}
                         strokeWidth={1.75}
@@ -616,7 +616,7 @@ export const FileHeader: React.FC<FileHeaderProps> = memo(
                     className="flex-shrink-0"
                     icon={
                       <HugeiconsIcon
-                        icon={X}
+                        icon={Cancel01Icon}
                         data-icon="x"
                         size={HEADER_ICON_SIZE.sm}
                         strokeWidth={1.75}

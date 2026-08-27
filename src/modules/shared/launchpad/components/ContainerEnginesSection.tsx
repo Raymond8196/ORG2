@@ -1,4 +1,4 @@
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -134,7 +134,7 @@ const ContainerEnginesSection: React.FC<ContainerEnginesSectionProps> = ({
           size="mini"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={13}
               className={spinClass}

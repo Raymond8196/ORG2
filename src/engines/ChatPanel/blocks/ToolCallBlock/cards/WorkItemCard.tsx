@@ -1,11 +1,11 @@
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -26,13 +26,13 @@ function getStatusConfig(status: WorkItemStatus | string): StatusConfig {
   switch (status) {
     case "todo":
       return {
-        icon: <HugeiconsIcon icon={Circle} data-icon="circle" size={12} />,
+        icon: <HugeiconsIcon icon={CircleIcon} data-icon="circle" size={12} />,
         label: "Todo",
         className: "text-text-4",
       };
     case "in_progress":
       return {
-        icon: <HugeiconsIcon icon={Clock} data-icon="clock" size={12} />,
+        icon: <HugeiconsIcon icon={Clock01Icon} data-icon="clock" size={12} />,
         label: "In Progress",
         className: "text-primary-6",
       };
@@ -40,7 +40,7 @@ function getStatusConfig(status: WorkItemStatus | string): StatusConfig {
       return {
         icon: (
           <HugeiconsIcon
-            icon={AlertCircle}
+            icon={AlertCircleIcon}
             data-icon="alert-circle"
             size={12}
           />
@@ -52,7 +52,7 @@ function getStatusConfig(status: WorkItemStatus | string): StatusConfig {
       return {
         icon: (
           <HugeiconsIcon
-            icon={CheckCircle2}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle-2"
             size={12}
           />
@@ -62,7 +62,13 @@ function getStatusConfig(status: WorkItemStatus | string): StatusConfig {
       };
     case "cancelled":
       return {
-        icon: <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={12} />,
+        icon: (
+          <HugeiconsIcon
+            icon={CancelCircleIcon}
+            data-icon="xcircle"
+            size={12}
+          />
+        ),
         label: "Cancelled",
         className: "text-text-4",
       };
@@ -70,7 +76,7 @@ function getStatusConfig(status: WorkItemStatus | string): StatusConfig {
       return {
         icon: (
           <HugeiconsIcon
-            icon={Circle}
+            icon={CircleIcon}
             data-icon="circle"
             size={12}
             className="opacity-40"
@@ -81,7 +87,7 @@ function getStatusConfig(status: WorkItemStatus | string): StatusConfig {
       };
     default:
       return {
-        icon: <HugeiconsIcon icon={Circle} data-icon="circle" size={12} />,
+        icon: <HugeiconsIcon icon={CircleIcon} data-icon="circle" size={12} />,
         label: String(status),
         className: "text-text-4",
       };
@@ -102,7 +108,7 @@ function getPriorityConfig(
       return {
         icon: (
           <HugeiconsIcon
-            icon={AlertCircle}
+            icon={AlertCircleIcon}
             data-icon="alert-circle"
             size={11}
           />
@@ -112,20 +118,28 @@ function getPriorityConfig(
       };
     case "high":
       return {
-        icon: <HugeiconsIcon icon={ArrowUp} data-icon="arrow-up" size={11} />,
+        icon: (
+          <HugeiconsIcon icon={ArrowUp02Icon} data-icon="arrow-up" size={11} />
+        ),
         label: "High",
         className: "text-warning-6",
       };
     case "medium":
       return {
-        icon: <HugeiconsIcon icon={Minus} data-icon="minus" size={11} />,
+        icon: (
+          <HugeiconsIcon icon={MinusSignIcon} data-icon="minus" size={11} />
+        ),
         label: "Medium",
         className: "text-text-3",
       };
     case "low":
       return {
         icon: (
-          <HugeiconsIcon icon={ArrowDown} data-icon="arrow-down" size={11} />
+          <HugeiconsIcon
+            icon={ArrowDown02Icon}
+            data-icon="arrow-down"
+            size={11}
+          />
         ),
         label: "Low",
         className: "text-text-4",

@@ -1,4 +1,4 @@
-import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -214,7 +214,7 @@ const SessionContinueCliHeaderExtras: React.FC<
           data-testid="session-continue-cli-button"
           icon={
             <HugeiconsIcon
-              icon={TerminalSquare}
+              icon={SquareTerminalIcon}
               data-icon="terminal-square"
               size={14}
               strokeWidth={2}

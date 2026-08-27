@@ -4,8 +4,8 @@
  * Reusable collapsible section with chevron toggle.
  * Used in detail panels for Code Accounts, Channels, Memory Browser, etc.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -77,7 +77,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
 
   const chevronIcon = isOpen ? (
     <HugeiconsIcon
-      icon={ChevronDown}
+      icon={ArrowDown01Icon}
       data-icon="chevron-down"
       size={chevronSize}
       strokeWidth={chevronStrokeWidth}
@@ -85,7 +85,7 @@ const CollapsibleSection: React.FC<CollapsibleSectionProps> = ({
     />
   ) : (
     <HugeiconsIcon
-      icon={ChevronRight}
+      icon={ArrowRight01Icon}
       data-icon="chevron-right"
       size={chevronSize}
       strokeWidth={chevronStrokeWidth}

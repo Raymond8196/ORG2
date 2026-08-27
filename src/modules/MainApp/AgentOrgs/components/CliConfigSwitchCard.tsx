@@ -1,7 +1,7 @@
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import SecurityCheckIcon from "@hugeicons/core-free-icons/SecurityCheckIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -393,7 +393,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
           align="start"
         >
           <HugeiconsIcon
-            icon={AlertTriangle}
+            icon={Alert01Icon}
             data-icon="alert-triangle"
             size={16}
             className="shrink-0 text-warning-6"
@@ -475,7 +475,13 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
             <Button
               variant="primary"
               size="small"
-              icon={<HugeiconsIcon icon={Save} data-icon="save" size={14} />}
+              icon={
+                <HugeiconsIcon
+                  icon={FloppyDiskIcon}
+                  data-icon="save"
+                  size={14}
+                />
+              }
               disabled={!canApplyManaged || isBusy}
               loading={pendingAction === "apply"}
               onClick={() => void applyManaged(false)}
@@ -487,7 +493,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
             size="small"
             icon={
               <HugeiconsIcon
-                icon={RotateCcw}
+                icon={RotateLeft01Icon}
                 data-icon="rotate-ccw"
                 size={14}
               />
@@ -504,7 +510,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={ShieldCheck}
+                  icon={SecurityCheckIcon}
                   data-icon="shield-check"
                   size={14}
                 />
@@ -522,7 +528,7 @@ const CliConfigSwitchCard: React.FC<CliConfigSwitchCardProps> = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={ShieldCheck}
+                  icon={SecurityCheckIcon}
                   data-icon="shield-check"
                   size={14}
                 />

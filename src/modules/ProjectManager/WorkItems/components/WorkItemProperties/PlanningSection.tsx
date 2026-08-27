@@ -1,6 +1,6 @@
-import BookDashed from "@hugeicons/core-free-icons/Book02Icon";
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Diamond from "@hugeicons/core-free-icons/DiamondIcon";
+import Book02Icon from "@hugeicons/core-free-icons/Book02Icon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
+import DiamondIcon from "@hugeicons/core-free-icons/DiamondIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
@@ -74,14 +74,14 @@ export function PlanningSection({
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={BookOpen}
+                  icon={BookOpen01Icon}
                   data-icon="book-open"
                   size={DROPDOWN_ITEM.iconSize}
                 />
               )
             ) : (
               <HugeiconsIcon
-                icon={BookDashed}
+                icon={Book02Icon}
                 data-icon="book-dashed"
                 size={DROPDOWN_ITEM.iconSize}
               />
@@ -115,7 +115,7 @@ export function PlanningSection({
                   <Option
                     icon={
                       <HugeiconsIcon
-                        icon={BookDashed}
+                        icon={Book02Icon}
                         data-icon="book-dashed"
                         size={DROPDOWN_ITEM.iconSize}
                       />
@@ -142,7 +142,7 @@ export function PlanningSection({
                         />
                       ) : (
                         <HugeiconsIcon
-                          icon={BookOpen}
+                          icon={BookOpen01Icon}
                           data-icon="book-open"
                           size={DROPDOWN_ITEM.iconSize}
                         />
@@ -171,7 +171,7 @@ export function PlanningSection({
           <FieldRow
             icon={
               <HugeiconsIcon
-                icon={Diamond}
+                icon={DiamondIcon}
                 data-icon="diamond"
                 size={DROPDOWN_ITEM.iconSize}
               />
@@ -213,7 +213,7 @@ export function PlanningSection({
                         key={milestone.id}
                         icon={
                           <HugeiconsIcon
-                            icon={Diamond}
+                            icon={DiamondIcon}
                             data-icon="diamond"
                             size={DROPDOWN_ITEM.iconSize}
                           />

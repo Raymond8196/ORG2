@@ -1,5 +1,5 @@
-import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
-import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
+import FolderGitTwoIcon from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import RepeatIcon from "@hugeicons/core-free-icons/RepeatIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
@@ -130,7 +130,7 @@ const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({
           <ReferenceCardMetaItem
             icon={
               <HugeiconsIcon
-                icon={Repeat}
+                icon={RepeatIcon}
                 data-icon="repeat"
                 size={11}
                 strokeWidth={1.75}
@@ -145,7 +145,7 @@ const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({
           <ReferenceCardMetaItem
             icon={
               <HugeiconsIcon
-                icon={FolderGit2}
+                icon={FolderGitTwoIcon}
                 data-icon="folder-git-2"
                 size={11}
                 strokeWidth={1.75}

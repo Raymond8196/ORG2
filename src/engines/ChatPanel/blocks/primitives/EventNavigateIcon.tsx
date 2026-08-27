@@ -8,8 +8,8 @@
  *   Uses `fill-3` hover because it sits inside a `fill-2` container.
  * - "footer": always visible, same token-button styling.
  */
-import CircleArrowOutUpRight from "@hugeicons/core-free-icons/CircleArrowOutUpRightIcon";
-import ArrowUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import CircleArrowOutUpRightIcon from "@hugeicons/core-free-icons/CircleArrowOutUpRightIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -46,7 +46,9 @@ const EventNavigateIcon: React.FC<EventNavigateIconProps> = memo(
           : FOOTER_VISIBILITY;
     const className = `${variant === "footer-hover" ? CIRCLE_CLASSES : BASE_CLASSES} ${visibilityClass}`;
     const Icon =
-      variant === "footer-hover" ? CircleArrowOutUpRight : ArrowUpRight;
+      variant === "footer-hover"
+        ? CircleArrowOutUpRightIcon
+        : SquareArrowUpRightIcon;
 
     return (
       <button

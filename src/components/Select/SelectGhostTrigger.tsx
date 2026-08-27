@@ -12,7 +12,7 @@
  * Renders via design-system `Button` (not a raw `<button>`). Select SCSS
  * classes provide the compact trigger dimensions and text-state styling.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
@@ -104,7 +104,7 @@ const SelectGhostTrigger = forwardRef<
         <span className="select-value">{value}</span>
         <div className="select-suffix">
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={12}
             className={`select-arrow shrink-0 text-text-3 transition-transform ${

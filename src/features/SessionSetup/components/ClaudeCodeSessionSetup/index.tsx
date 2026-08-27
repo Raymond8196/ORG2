@@ -1,10 +1,10 @@
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -185,7 +185,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={12}
                 />
@@ -196,7 +196,9 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
             <Button
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
+              }
               iconOnly
               onClick={handleCloseBrowser}
               data-testid="claude-code-oauth-browser-close"
@@ -212,7 +214,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
                 completed={hasToken}
               />
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={14}
                 className="text-text-3"
@@ -239,7 +241,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
             {(isSigningIn || isWebviewLoading) && (
               <div className="absolute inset-0 flex items-center justify-center bg-bg-1">
                 <HugeiconsIcon
-                  icon={Loader2}
+                  icon={Loading03Icon}
                   data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin text-primary-6"
@@ -252,7 +254,7 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
             {displayError && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
                 <HugeiconsIcon
-                  icon={AlertCircle}
+                  icon={AlertCircleIcon}
                   data-icon="alert-circle"
                   size={32}
                   className="mb-3 text-danger-6"
@@ -272,14 +274,14 @@ const ClaudeCodeSessionSetup: React.FC<ClaudeCodeSessionSetupProps> = ({
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
                 {hasToken ? (
                   <HugeiconsIcon
-                    icon={CheckCircle}
+                    icon={CheckmarkCircle01Icon}
                     data-icon="check-circle"
                     size={32}
                     className="mb-3 text-success-6"
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={LogIn}
+                    icon={Login01Icon}
                     data-icon="log-in"
                     size={32}
                     className="mb-3 text-text-3"

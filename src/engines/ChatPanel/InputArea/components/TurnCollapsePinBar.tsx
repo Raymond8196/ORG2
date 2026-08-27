@@ -21,8 +21,8 @@
  * records explicit user toggles. The currently active (tail) turn is
  * never collapsed while the agent is still streaming.
  */
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -146,7 +146,7 @@ const TurnCollapsePinBar: React.FC<TurnCollapsePinBarProps> = memo(
 
     // Static chevron: ChevronsUpDown → "click to expand" (collapsed state),
     // ChevronsDownUp → "click to collapse" (expanded state). No hover swap.
-    const ChevronIcon = expanded ? ChevronsDownUp : ChevronsUpDown;
+    const ChevronIcon = expanded ? ChevronsDownUpIcon : UnfoldMoreIcon;
 
     return (
       <div className="mt-1">

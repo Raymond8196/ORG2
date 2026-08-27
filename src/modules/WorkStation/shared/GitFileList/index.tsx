@@ -11,12 +11,12 @@
  * - VirtualizedStickyTree with sticky directory headers (tree mode)
  * - Hidden scrollbar
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import List from "@hugeicons/core-free-icons/ListIcon";
-import SearchIcon from "@hugeicons/core-free-icons/Search01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import ListIcon from "@hugeicons/core-free-icons/ListIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -401,14 +401,14 @@ const GitFileList: React.FC<GitFileListProps> = ({
           <div className={STICKY_ROW.chevronBox}>
             {isExpanded ? (
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={CHEVRON_SIZE}
                 className={STICKY_ROW.chevronIcon}
               />
             ) : (
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={CHEVRON_SIZE}
                 className={STICKY_ROW.chevronIcon}
@@ -457,7 +457,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
             }
           >
             <HugeiconsIcon
-              icon={Filter}
+              icon={FilterIcon}
               data-icon="filter"
               size={14}
               strokeWidth={1.75}
@@ -476,7 +476,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
         >
           {viewMode === "list" ? (
             <HugeiconsIcon
-              icon={ListTree}
+              icon={HierarchyFilesIcon}
               data-icon="list-tree"
               size={14}
               strokeWidth={1.75}
@@ -484,7 +484,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
             />
           ) : (
             <HugeiconsIcon
-              icon={List}
+              icon={ListIcon}
               data-icon="list"
               size={14}
               strokeWidth={1.75}
@@ -528,7 +528,7 @@ const GitFileList: React.FC<GitFileListProps> = ({
               <Input
                 prefix={
                   <HugeiconsIcon
-                    icon={SearchIcon}
+                    icon={Search01Icon}
                     data-icon="search-icon"
                     size={14}
                     strokeWidth={1.75}

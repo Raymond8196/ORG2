@@ -12,11 +12,11 @@
  * clone form uses — so cloned repos automatically register as ORGII
  * workspaces.
  */
-import Download from "@hugeicons/core-free-icons/Download01Icon";
-import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Star from "@hugeicons/core-free-icons/StarIcon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
+import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import StarIcon from "@hugeicons/core-free-icons/StarIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { useAtomValue } from "jotai";
@@ -125,7 +125,7 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
             {repo.language ? <span>{repo.language}</span> : null}
             <span className="inline-flex items-center gap-1">
               <HugeiconsIcon
-                icon={Star}
+                icon={StarIcon}
                 data-icon="star"
                 size={11}
                 strokeWidth={1.75}
@@ -134,7 +134,7 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
             </span>
             <span className="inline-flex items-center gap-1">
               <HugeiconsIcon
-                icon={GitFork}
+                icon={GitForkIcon}
                 data-icon="git-fork"
                 size={11}
                 strokeWidth={1.75}
@@ -167,7 +167,7 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
             iconOnly
             icon={
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={13}
               />
@@ -181,7 +181,11 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
             shape="circle"
             iconOnly
             icon={
-              <HugeiconsIcon icon={Download} data-icon="download" size={13} />
+              <HugeiconsIcon
+                icon={Download01Icon}
+                data-icon="download"
+                size={13}
+              />
             }
             onClick={() => onClone(repo)}
             disabled={cloning}
@@ -343,7 +347,7 @@ const WorkspaceExplorePanelView: React.FC = () => {
       style={{ lineHeight: 0 }}
     >
       <HugeiconsIcon
-        icon={Search}
+        icon={Search01Icon}
         data-icon="search"
         size={INPUT_AREA_BUTTONS.iconSize}
         strokeWidth={2}

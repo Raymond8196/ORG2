@@ -8,8 +8,8 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
+import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -54,9 +54,9 @@ const KiroSetup: React.FC<KiroSetupProps> = ({
       {
         key: "autodetect",
         label: t("keyVault.autodetect"),
-        icon: ScanSearch,
+        icon: SearchAreaIcon,
       },
-      { key: "signin", label: t("keyVault.signIn"), icon: LogIn },
+      { key: "signin", label: t("keyVault.signIn"), icon: Login01Icon },
     ],
     [t]
   );

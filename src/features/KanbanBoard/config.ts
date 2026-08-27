@@ -3,12 +3,12 @@
  *
  * Defines task statuses, column settings, and icons for the Kanban board.
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashed from "@hugeicons/core-free-icons/CircleDashedIcon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
 
 import {
   GITHUB_ISSUE_STATUS,
@@ -28,7 +28,7 @@ export const DEFAULT_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: WORK_ITEM_STATUS.BACKLOG,
     title: "projects:workItems.statusLabels.backlog",
-    icon: CircleDashed,
+    icon: CircleDashedIcon,
     color: "var(--color-neutral-6)",
     bgColor: "color-mix(in srgb, var(--color-neutral-6) 10%, transparent)",
     dotColor: "var(--color-neutral-6)",
@@ -37,7 +37,7 @@ export const DEFAULT_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: WORK_ITEM_STATUS.PLANNED,
     title: "projects:workItems.statusLabels.planned",
-    icon: Circle,
+    icon: CircleIcon,
     color: "var(--color-neutral-6)",
     bgColor: "color-mix(in srgb, var(--color-neutral-6) 10%, transparent)",
     dotColor: "var(--color-neutral-6)",
@@ -46,7 +46,7 @@ export const DEFAULT_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: WORK_ITEM_STATUS.IN_PROGRESS,
     title: "projects:workItems.statusLabels.in_progress",
-    icon: Clock,
+    icon: Clock01Icon,
     color: "var(--color-primary-6)",
     bgColor: "color-mix(in srgb, var(--color-primary-6) 10%, transparent)",
     dotColor: "var(--color-primary-6)",
@@ -55,7 +55,7 @@ export const DEFAULT_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: WORK_ITEM_STATUS.IN_REVIEW,
     title: "projects:workItems.statusLabels.in_review",
-    icon: Layers,
+    icon: Layers01Icon,
     color: "var(--color-warning-6)",
     bgColor: "color-mix(in srgb, var(--color-warning-6) 10%, transparent)",
     dotColor: "var(--color-warning-6)",
@@ -64,7 +64,7 @@ export const DEFAULT_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: WORK_ITEM_STATUS.COMPLETED,
     title: "projects:workItems.statusLabels.completed",
-    icon: CheckCircle2,
+    icon: CheckmarkCircle01Icon,
     color: "var(--color-success-6)",
     bgColor: "color-mix(in srgb, var(--color-success-6) 10%, transparent)",
     dotColor: "var(--color-success-6)",
@@ -73,7 +73,7 @@ export const DEFAULT_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: WORK_ITEM_STATUS.CANCELLED,
     title: "projects:workItems.statusLabels.cancelled",
-    icon: XCircle,
+    icon: CancelCircleIcon,
     color: "var(--color-danger-6)",
     bgColor: "color-mix(in srgb, var(--color-danger-6) 10%, transparent)",
     dotColor: "var(--color-danger-6)",
@@ -82,7 +82,7 @@ export const DEFAULT_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: WORK_ITEM_STATUS.DUPLICATE,
     title: "projects:workItems.statusLabels.duplicate",
-    icon: XCircle,
+    icon: CancelCircleIcon,
     color: "var(--color-text-3)",
     bgColor: "color-mix(in srgb, var(--color-text-3) 10%, transparent)",
     dotColor: "var(--color-text-3)",
@@ -94,7 +94,7 @@ export const GITHUB_ISSUE_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: GITHUB_ISSUE_STATUS.OPEN,
     title: "projects:workItems.statusLabels.open",
-    icon: Circle,
+    icon: CircleIcon,
     color: "var(--color-success-6)",
     bgColor: "color-mix(in srgb, var(--color-success-6) 10%, transparent)",
     dotColor: "var(--color-success-6)",
@@ -103,7 +103,7 @@ export const GITHUB_ISSUE_KANBAN_COLUMNS: KanbanColumnConfig[] = [
   {
     id: GITHUB_ISSUE_STATUS.CLOSED,
     title: "projects:workItems.statusLabels.closed",
-    icon: CheckCircle2,
+    icon: CheckmarkCircle01Icon,
     color: "var(--color-text-3)",
     bgColor: "color-mix(in srgb, var(--color-text-3) 10%, transparent)",
     dotColor: "var(--color-text-3)",

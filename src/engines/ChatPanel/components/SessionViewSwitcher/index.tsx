@@ -11,8 +11,8 @@
  *   in play, so neither the raw document nor the turn index is held while the
  *   reader is back in the transcript.
  */
-import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -127,7 +127,7 @@ export const SessionRawToolbarActions: React.FC<SessionRawToolbarActionsProps> =
           variant="tertiary"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={RAW_ACTION_ICON_SIZE}
               strokeWidth={2}
@@ -145,7 +145,7 @@ export const SessionRawToolbarActions: React.FC<SessionRawToolbarActionsProps> =
           variant="tertiary"
           icon={
             <HugeiconsIcon
-              icon={Clipboard}
+              icon={ClipboardIcon}
               data-icon="clipboard"
               size={RAW_ACTION_ICON_SIZE}
               strokeWidth={2}

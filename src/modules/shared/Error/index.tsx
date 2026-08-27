@@ -1,7 +1,7 @@
 import Button from "@/src/components/Button";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -233,7 +233,7 @@ const ErrorPageContent: React.FC<{ error?: unknown }> = ({ error }) => {
               shape="round"
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={16}
                 />
@@ -248,9 +248,13 @@ const ErrorPageContent: React.FC<{ error?: unknown }> = ({ error }) => {
               shape="round"
               icon={
                 copied ? (
-                  <HugeiconsIcon icon={Check} data-icon="check" size={16} />
+                  <HugeiconsIcon
+                    icon={Tick01Icon}
+                    data-icon="check"
+                    size={16}
+                  />
                 ) : (
-                  <HugeiconsIcon icon={Copy} data-icon="copy" size={16} />
+                  <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={16} />
                 )
               }
               onClick={handleCopy}

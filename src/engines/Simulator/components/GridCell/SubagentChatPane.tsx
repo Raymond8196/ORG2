@@ -62,7 +62,7 @@
  * The pane never renders an `InputArea` — composing replies to subagents
  * is a separate, deferred concern. The cell stays read-only.
  */
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
@@ -178,7 +178,7 @@ const SubagentChatPaneComponent: React.FC<SubagentChatPaneProps> = ({
         aria-label={t("chat.collapseAll")}
         icon={
           <HugeiconsIcon
-            icon={ListChevronsDownUp}
+            icon={ListChevronsDownUpIcon}
             data-icon="list-chevrons-down-up"
             size={16}
             strokeWidth={2}

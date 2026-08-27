@@ -7,11 +7,11 @@
  *
  * Similar to Zoom's status bar at the bottom of meetings
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
-import Pause from "@hugeicons/core-free-icons/PauseIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
+import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
@@ -154,7 +154,7 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                   className="flex h-5 w-5 transform-gpu items-center justify-center rounded-full text-white hover:bg-white/15 hover:text-white"
                 >
                   {React.createElement(HugeiconsIcon, {
-                    icon: MousePointer2,
+                    icon: Cursor02Icon,
                     size: 12,
                     strokeWidth: 1.75,
                   })}
@@ -172,7 +172,7 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                 title={t("simulator.replay.previousEvent")}
               >
                 {React.createElement(HugeiconsIcon, {
-                  icon: ChevronLeft,
+                  icon: ArrowLeft01Icon,
                   size: 14,
                   strokeWidth: 1.5,
                 })}
@@ -193,7 +193,7 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                 }
               >
                 {React.createElement(HugeiconsIcon, {
-                  icon: isReplaying ? Pause : Play,
+                  icon: isReplaying ? PauseIcon : PlayIcon,
                   size: 12,
                   fill: "currentColor",
                   strokeWidth: 0,
@@ -207,7 +207,7 @@ export const SimulatorStatusBar: React.FC<SimulatorStatusBarProps> = memo(
                 title={t("simulator.replay.nextEvent")}
               >
                 {React.createElement(HugeiconsIcon, {
-                  icon: ChevronRight,
+                  icon: ArrowRight01Icon,
                   size: 14,
                   strokeWidth: 1.5,
                 })}

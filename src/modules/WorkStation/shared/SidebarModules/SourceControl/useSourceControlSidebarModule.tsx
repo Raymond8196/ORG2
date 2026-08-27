@@ -10,10 +10,10 @@
  * Returns a `PrimarySidebarTab` ready to be passed to
  * `PrimarySidebarLayoutWithSections`.
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -262,7 +262,7 @@ export function useSourceControlSidebarModule({
       key: "undo-all-changes",
       icon: (
         <HugeiconsIcon
-          icon={RotateCcw}
+          icon={RotateLeft01Icon}
           data-icon="rotate-ccw"
           size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
           strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -315,7 +315,7 @@ export function useSourceControlSidebarModule({
         key: "refresh-issues",
         icon: (
           <HugeiconsIcon
-            icon={RefreshCw}
+            icon={Refresh04Icon}
             data-icon="refresh-cw"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -329,7 +329,7 @@ export function useSourceControlSidebarModule({
         key: "new-issue",
         icon: (
           <HugeiconsIcon
-            icon={CircleDot}
+            icon={CircleDotIcon}
             data-icon="circle-dot"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -371,7 +371,7 @@ export function useSourceControlSidebarModule({
         key: "refresh-prs",
         icon: (
           <HugeiconsIcon
-            icon={RefreshCw}
+            icon={Refresh04Icon}
             data-icon="refresh-cw"
             size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -417,7 +417,7 @@ export function useSourceControlSidebarModule({
     >
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         <HugeiconsIcon
-          icon={ArrowLeft}
+          icon={ArrowLeft02Icon}
           data-icon="arrow-left"
           size={14}
           className="text-text-3"

@@ -12,9 +12,9 @@
  * Exposes methods via ref:
  * - collapseAll(): Collapse all search result file headers
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowUpRightFromSquare from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -315,13 +315,13 @@ export const SearchContent = forwardRef<
           >
             {showReplace ? (
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={14}
               />
             ) : (
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={14}
               />
@@ -391,7 +391,7 @@ export const SearchContent = forwardRef<
                   title={t("tooltips.openInEditorTab")}
                 >
                   <HugeiconsIcon
-                    icon={ArrowUpRightFromSquare}
+                    icon={SquareArrowUpRightIcon}
                     data-icon="arrow-up-right-from-square"
                     size={14}
                     strokeWidth={1.75}

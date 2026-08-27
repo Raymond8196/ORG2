@@ -1,7 +1,7 @@
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useEffect, useMemo, useReducer, useRef } from "react";
@@ -199,21 +199,21 @@ const MiniCPMStepExplanationPanel: React.FC<MiniCPMStepExplanationPanelProps> =
     const icon =
       status === "loading" ? (
         <HugeiconsIcon
-          icon={Loader2}
+          icon={Loading03Icon}
           data-icon="loader-2"
           size={15}
           className="animate-spin text-primary-6"
         />
       ) : status === "fallback" ? (
         <HugeiconsIcon
-          icon={AlertCircle}
+          icon={AlertCircleIcon}
           data-icon="alert-circle"
           size={15}
           className="text-danger-6"
         />
       ) : (
         <HugeiconsIcon
-          icon={Sparkles}
+          icon={SparklesIcon}
           data-icon="sparkles"
           size={15}
           className={hasStep ? "text-primary-6" : "text-text-4"}
@@ -238,7 +238,7 @@ const MiniCPMStepExplanationPanel: React.FC<MiniCPMStepExplanationPanelProps> =
             title="关闭 MiniCPM 步骤解析"
           >
             <HugeiconsIcon
-              icon={X}
+              icon={Cancel01Icon}
               data-icon="x"
               size={14}
               strokeWidth={1.75}

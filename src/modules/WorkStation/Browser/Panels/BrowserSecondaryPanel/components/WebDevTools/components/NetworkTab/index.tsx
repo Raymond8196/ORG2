@@ -3,7 +3,7 @@
  *
  * Displays network request entries with filtering capabilities.
  */
-import BrushCleaning from "@hugeicons/core-free-icons/BrushCleaningIcon";
+import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -166,7 +166,7 @@ export const NetworkTab: React.FC<NetworkTabProps> = memo(
               aria-label={t("tooltips.clearNetworkLogs")}
             >
               <HugeiconsIcon
-                icon={BrushCleaning}
+                icon={BrushCleaningIcon}
                 data-icon="brush-cleaning"
                 size={HEADER_ICON_SIZE.sm}
               />

@@ -3,10 +3,10 @@
  *
  * Display type selector (block, flex, grid, inline) as full-width TabPill.
  */
-import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import Rows2 from "@hugeicons/core-free-icons/LayoutTwoRowIcon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Square from "@hugeicons/core-free-icons/SquareIcon";
+import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
+import LayoutTwoRowIcon from "@hugeicons/core-free-icons/LayoutTwoRowIcon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
 import React, { memo, useMemo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -30,10 +30,10 @@ export interface LayoutButtonsProps {
 // ============================================
 
 const DISPLAY_OPTIONS = [
-  { value: "block", label: "Block", icon: Square },
-  { value: "flex", label: "Flex", icon: Rows2 },
-  { value: "grid", label: "Grid", icon: LayoutGrid },
-  { value: "inline", label: "Inline", icon: Minus },
+  { value: "block", label: "Block", icon: SquareIcon },
+  { value: "flex", label: "Flex", icon: LayoutTwoRowIcon },
+  { value: "grid", label: "Grid", icon: DashboardSquare01Icon },
+  { value: "inline", label: "Inline", icon: MinusSignIcon },
 ] as const;
 
 // ============================================

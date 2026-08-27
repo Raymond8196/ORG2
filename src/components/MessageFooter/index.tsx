@@ -5,7 +5,7 @@
  * message body. The primitive is deliberately conversation-agnostic so chat,
  * replay, and inbox surfaces can share it without importing turn state.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
@@ -69,7 +69,7 @@ export const MessageFooterCopyButton: React.FC<MessageFooterCopyButtonProps> =
         onClick={handleCopy}
       >
         <HugeiconsIcon
-          icon={Copy}
+          icon={Copy01Icon}
           data-icon="copy"
           size={13}
           strokeWidth={1.75}

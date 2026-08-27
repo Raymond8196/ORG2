@@ -6,8 +6,8 @@
  *
  * Used for Padding and Margin in property panels.
  */
-import AlignHorizontalSpaceAround from "@hugeicons/core-free-icons/AlignHorizontalSpaceAroundIcon";
-import AlignVerticalSpaceAround from "@hugeicons/core-free-icons/AlignVerticalSpaceAroundIcon";
+import AlignHorizontalSpaceAroundIcon from "@hugeicons/core-free-icons/AlignHorizontalSpaceAroundIcon";
+import AlignVerticalSpaceAroundIcon from "@hugeicons/core-free-icons/AlignVerticalSpaceAroundIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 
@@ -169,7 +169,7 @@ export const LinkedInputPair: React.FC<LinkedInputPairProps> = memo(
             disabled={disabled}
             icon={
               <HugeiconsIcon
-                icon={AlignVerticalSpaceAround}
+                icon={AlignVerticalSpaceAroundIcon}
                 data-icon="align-vertical-space-around"
                 size={14}
               />
@@ -182,7 +182,7 @@ export const LinkedInputPair: React.FC<LinkedInputPairProps> = memo(
             disabled={disabled}
             icon={
               <HugeiconsIcon
-                icon={AlignHorizontalSpaceAround}
+                icon={AlignHorizontalSpaceAroundIcon}
                 data-icon="align-horizontal-space-around"
                 size={14}
               />

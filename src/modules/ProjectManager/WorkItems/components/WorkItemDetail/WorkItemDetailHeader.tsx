@@ -1,9 +1,9 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useRef, useState } from "react";
 
@@ -207,14 +207,14 @@ export function WorkItemDetailHeaderBreadcrumb({
         identityIcon ??
         (parentSegments.length > 0 ? (
           <HugeiconsIcon
-            icon={Box}
+            icon={BoxIcon}
             data-icon="box"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}
           />
         ) : (
           <HugeiconsIcon
-            icon={ListChecks}
+            icon={ListChecksIcon}
             data-icon="list-checks"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}
@@ -259,7 +259,7 @@ export function WorkItemDetailHeaderActions({
           aria-label={t("common:actions.previous")}
           icon={
             <HugeiconsIcon
-              icon={ArrowUp}
+              icon={ArrowUp02Icon}
               data-icon="arrow-up"
               size={HEADER_ICON_SIZE.sm}
             />
@@ -277,7 +277,7 @@ export function WorkItemDetailHeaderActions({
           aria-label={t("common:actions.next")}
           icon={
             <HugeiconsIcon
-              icon={ArrowDown}
+              icon={ArrowDown02Icon}
               data-icon="arrow-down"
               size={HEADER_ICON_SIZE.sm}
             />
@@ -303,7 +303,7 @@ export function WorkItemDetailHeaderActions({
             data-testid="work-item-delete"
             icon={
               <HugeiconsIcon
-                icon={Trash2}
+                icon={Delete02Icon}
                 data-icon="trash-2"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -335,7 +335,7 @@ export function WorkItemDetailHeaderActions({
             }
             icon={
               <HugeiconsIcon
-                icon={Info}
+                icon={InformationCircleIcon}
                 data-icon="info"
                 size={HEADER_ICON_SIZE.sm}
               />

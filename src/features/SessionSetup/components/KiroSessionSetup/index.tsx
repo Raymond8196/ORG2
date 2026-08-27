@@ -16,12 +16,12 @@
  *   }}
  * />
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -229,7 +229,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-full bg-success-6">
               <HugeiconsIcon
-                icon={CheckCircle}
+                icon={CheckmarkCircle01Icon}
                 data-icon="check-circle"
                 size={20}
                 className="text-text-white"
@@ -261,7 +261,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
         <div className="rounded-xl border border-danger-6 bg-danger-1 p-4">
           <div className="flex items-start gap-3">
             <HugeiconsIcon
-              icon={AlertCircle}
+              icon={AlertCircleIcon}
               data-icon="alert-circle"
               size={20}
               className="mt-0.5 text-danger-6"
@@ -300,7 +300,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
               variant="default"
             >
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={12}
               />
@@ -311,7 +311,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
               size="sm"
               variant="default"
             >
-              <HugeiconsIcon icon={X} data-icon="x" size={14} />
+              <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
             </IconButton>
           </div>
 
@@ -331,7 +331,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
                   size="sm"
                   variant="default"
                 >
-                  <HugeiconsIcon icon={Copy} data-icon="copy" size={14} />
+                  <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={14} />
                 </IconButton>
               </div>
             </div>
@@ -361,7 +361,7 @@ const KiroSessionSetup: React.FC<KiroSessionSetupProps> = ({
             <div className="flex items-center justify-center gap-2 border-t border-border-2 bg-fill-1 p-2">
               <span className="flex items-center gap-2 text-[13px] text-text-3">
                 <HugeiconsIcon
-                  icon={Loader2}
+                  icon={Loading03Icon}
                   data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin"

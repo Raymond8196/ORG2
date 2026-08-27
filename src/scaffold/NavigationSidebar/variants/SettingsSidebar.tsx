@@ -6,10 +6,10 @@
  * Agents / Teams / CLIs switcher lives inside the page, not in a drill-down
  * sidebar level.
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -83,7 +83,7 @@ const SettingsFooterBackButton: React.FC<SettingsFooterBackButtonProps> = ({
     onMouseEnter={(event) => triggerIconAnimation(event.currentTarget)}
   >
     <HoverAnimatedIcon
-      icon={Settings}
+      icon={Settings01Icon}
       iconName="settings"
       size={16}
       strokeWidth={2}
@@ -155,7 +155,7 @@ const SettingsSidebar: React.FC = () => {
   const settingsReturnItem = useMemo(
     () => (
       <SidebarHeaderNavButton
-        icon={ChevronLeft}
+        icon={ArrowLeft01Icon}
         label={t("labels.settings")}
         onClick={handleBack}
       />
@@ -166,7 +166,7 @@ const SettingsSidebar: React.FC = () => {
   return (
     <SidebarBase
       onAddNew={handleOpenSpotlight}
-      addIcon={Search}
+      addIcon={Search01Icon}
       addLabel={t("common:actions.search")}
       addTooltipContent={
         <SidebarSearchShortcutTooltip
@@ -249,7 +249,7 @@ const SettingsRootBody: React.FC<SettingsRootBodyProps> = ({
               id,
               key: id,
               label: t("navigation:labels.agentOrgs"),
-              icon: InfinityIcon,
+              icon: Infinity01Icon,
               dataTestId: "settings-core-item-agent-orgs",
             };
           }

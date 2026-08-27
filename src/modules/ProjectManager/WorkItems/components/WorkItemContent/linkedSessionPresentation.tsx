@@ -2,8 +2,8 @@
  * Presentation helpers for the Work Item linked-session table: status colors,
  * agent labels and the per-session agent icon.
  */
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import React from "react";
 
 import Org2SessionIcon from "@src/assets/modelIcons/org2-session.svg";
@@ -60,7 +60,7 @@ export function renderSessionAgentIcon(
     );
   }
 
-  const AgentIcon = sessionType === "cli" ? Terminal : Bot;
+  const AgentIcon = sessionType === "cli" ? ComputerTerminal01Icon : BotIcon;
   return (
     <AnyIcon
       icon={AgentIcon}

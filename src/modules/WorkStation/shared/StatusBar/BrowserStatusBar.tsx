@@ -8,10 +8,10 @@
  *
  * Uses BaseStatusBar for consistent layout.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import BrushCleaning from "@hugeicons/core-free-icons/BrushCleaningIcon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -87,7 +87,11 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
             >
               {errorCount > 0 && (
                 <span className={`flex items-center gap-1 ${itemTextClass}`}>
-                  <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={13} />
+                  <HugeiconsIcon
+                    icon={CancelCircleIcon}
+                    data-icon="xcircle"
+                    size={13}
+                  />
                   <StatusBarLabel emphasis numeric>
                     {errorCount}
                   </StatusBarLabel>
@@ -96,7 +100,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
               {warningCount > 0 && (
                 <span className={`flex items-center gap-1 ${itemTextClass}`}>
                   <HugeiconsIcon
-                    icon={AlertTriangle}
+                    icon={Alert01Icon}
                     data-icon="alert-triangle"
                     size={13}
                   />
@@ -136,7 +140,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
               className="text-text-2"
             >
               <HugeiconsIcon
-                icon={BrushCleaning}
+                icon={BrushCleaningIcon}
                 data-icon="brush-cleaning"
                 size={13}
               />
@@ -147,7 +151,7 @@ const BrowserStatusBar: React.FC<BrowserStatusBarProps> = memo(
             onClick={onSendSelectedElementToChat}
             title={sendLabel}
           >
-            <HugeiconsIcon icon={Plus} data-icon="plus" size={13} />
+            <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={13} />
             <span>{sendLabel}</span>
           </StatusBarButton>
         </div>

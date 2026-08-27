@@ -1,11 +1,11 @@
 /** Hover-card presentation owned by Project Manager work items. */
-import Building2 from "@hugeicons/core-free-icons/Building02Icon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Flag from "@hugeicons/core-free-icons/Flag01Icon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitCommitVertical from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
-import Tags from "@hugeicons/core-free-icons/TagsIcon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import Building02Icon from "@hugeicons/core-free-icons/Building02Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import GitCommitVerticalIcon from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
+import TagsIcon from "@hugeicons/core-free-icons/TagsIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -88,7 +88,7 @@ function WorkItemPriorityRow({ priority }: { priority: string }) {
       icon={
         config.icon ?? (
           <HugeiconsIcon
-            icon={Flag}
+            icon={Flag01Icon}
             data-icon="flag"
             size={13}
             strokeWidth={1.75}
@@ -135,7 +135,7 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={FolderKanban}
+                icon={FolderKanbanIcon}
                 data-icon="folder-kanban"
                 size={13}
                 strokeWidth={1.75}
@@ -149,7 +149,7 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Building2}
+                icon={Building02Icon}
                 data-icon="building-2"
                 size={13}
                 strokeWidth={1.75}
@@ -163,7 +163,7 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={User}
+                icon={UserIcon}
                 data-icon="user"
                 size={13}
                 strokeWidth={1.75}
@@ -177,7 +177,7 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Tags}
+                icon={TagsIcon}
                 data-icon="tags"
                 size={13}
                 strokeWidth={1.75}
@@ -193,7 +193,7 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Clock}
+                icon={Clock01Icon}
                 data-icon="clock"
                 size={13}
                 strokeWidth={1.75}
@@ -213,7 +213,7 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={GitCommitVertical}
+                icon={GitCommitVerticalIcon}
                 data-icon="git-commit-vertical"
                 size={13}
                 strokeWidth={1.75}

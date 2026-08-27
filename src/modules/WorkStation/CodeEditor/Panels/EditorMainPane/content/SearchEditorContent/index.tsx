@@ -12,7 +12,7 @@
  *
  * This is the content rendered when a "search" tab is active in the editor.
  */
-import Filter from "@hugeicons/core-free-icons/FilterIcon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -218,7 +218,7 @@ export const SearchEditorContent: React.FC<SearchEditorContentProps> = memo(
               iconOnly
               icon={
                 <HugeiconsIcon
-                  icon={Filter}
+                  icon={FilterIcon}
                   data-icon="filter"
                   size={14}
                   className={showFilters ? "text-primary-6" : "text-text-3"}

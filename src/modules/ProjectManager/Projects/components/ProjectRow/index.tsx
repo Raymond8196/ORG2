@@ -3,10 +3,10 @@
  *
  * Individual row for displaying a project in the list view.
  */
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
-import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -179,7 +179,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
               />
             ) : (
               <HugeiconsIcon
-                icon={FolderKanban}
+                icon={FolderKanbanIcon}
                 data-icon="folder-kanban"
                 size={14}
                 strokeWidth={1.75}
@@ -207,7 +207,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={Link2Off}
+                  icon={Unlink02Icon}
                   data-icon="link-2-off"
                   size={13}
                   strokeWidth={1.75}
@@ -230,7 +230,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
           )}
           <span className="inline-flex items-center gap-1 whitespace-nowrap">
             <HugeiconsIcon
-              icon={ListChecks}
+              icon={ListChecksIcon}
               data-icon="list-checks"
               size={13}
               strokeWidth={1.75}
@@ -240,7 +240,7 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
           {project.targetDate && (
             <span className="inline-flex items-center gap-1 whitespace-nowrap">
               <HugeiconsIcon
-                icon={CalendarClock}
+                icon={TimeScheduleIcon}
                 data-icon="calendar-clock"
                 size={13}
                 strokeWidth={1.75}

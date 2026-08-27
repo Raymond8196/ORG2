@@ -3,11 +3,11 @@
  *
  * Uses CollapsibleSections for Status / Info / Tools / Resources sections.
  */
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Edit from "@hugeicons/core-free-icons/Edit01Icon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Edit01Icon from "@hugeicons/core-free-icons/Edit01Icon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import ServerStack01Icon from "@hugeicons/core-free-icons/ServerStack01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -117,7 +117,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
         value: isConnecting ? (
           <span className="flex items-center gap-1.5">
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={SPINNER_TOKENS.small}
               className="animate-spin text-primary-6"
@@ -161,7 +161,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
   return (
     <DetailPanelContainer>
       <PanelHeader
-        icon={Server}
+        icon={ServerStack01Icon}
         breadcrumb={{
           parent: t("mcp.tab"),
           current: server.name,
@@ -188,7 +188,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
               <span className={STATUS_BAR_TOKENS.label}>
                 {isConnecting ? (
                   <HugeiconsIcon
-                    icon={Loader2}
+                    icon={Loading03Icon}
                     data-icon="loader-2"
                     size={STATUS_ICON_SIZE}
                     className="animate-spin text-primary-6"
@@ -251,7 +251,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                   >
                     <div className="flex items-center gap-2 text-sm font-medium text-text-1">
                       <HugeiconsIcon
-                        icon={Terminal}
+                        icon={ComputerTerminal01Icon}
                         data-icon="terminal"
                         size={12}
                         className="flex-shrink-0 text-text-3"
@@ -287,7 +287,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
                   >
                     <div className="flex items-center gap-2 text-sm font-medium text-text-1">
                       <HugeiconsIcon
-                        icon={FileText}
+                        icon={File02Icon}
                         data-icon="file-text"
                         size={12}
                         className="flex-shrink-0 text-text-3"
@@ -318,7 +318,7 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
         primaryAction={{
           label: t("common:actions.edit"),
           onClick: () => onEdit(server.name),
-          icon: <HugeiconsIcon icon={Edit} data-icon="edit" size={14} />,
+          icon: <HugeiconsIcon icon={Edit01Icon} data-icon="edit" size={14} />,
           variant: "secondary",
         }}
         secondaryActions={[

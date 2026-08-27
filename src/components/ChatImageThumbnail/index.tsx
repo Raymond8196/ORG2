@@ -12,8 +12,8 @@
  *                       and read directly via `readFile`
  *   3. absolute path  — read directly via `readFile`
  */
-import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
-import ImageOff from "@hugeicons/core-free-icons/ImageNotFound01Icon";
+import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
+import ImageNotFound01Icon from "@hugeicons/core-free-icons/ImageNotFound01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { readFile } from "@tauri-apps/plugin-fs";
 import React, { memo, useCallback, useEffect, useState } from "react";
@@ -105,7 +105,7 @@ export const ChatImageThumbnail: React.FC<ChatImageThumbnailProps> = memo(
             />
           ) : loadFailed ? (
             <HugeiconsIcon
-              icon={ImageOff}
+              icon={ImageNotFound01Icon}
               data-icon="image-off"
               size={16}
               strokeWidth={1.5}
@@ -113,7 +113,7 @@ export const ChatImageThumbnail: React.FC<ChatImageThumbnailProps> = memo(
             />
           ) : (
             <HugeiconsIcon
-              icon={ImageIcon}
+              icon={Image01Icon}
               data-icon="image-icon"
               size={16}
               strokeWidth={1.5}

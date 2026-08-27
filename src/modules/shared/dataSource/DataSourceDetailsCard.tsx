@@ -7,8 +7,8 @@
  * "keys" inline cards use (`InlineInfoCard` + `INFO_CARD_TOKENS`), so the two
  * expanded-row surfaces read identically.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -70,7 +70,11 @@ const DataSourceDetailsCard: React.FC<DataSourceDetailsCardProps> = ({
                     size="small"
                     iconOnly
                     icon={
-                      <HugeiconsIcon icon={Copy} data-icon="copy" size={13} />
+                      <HugeiconsIcon
+                        icon={Copy01Icon}
+                        data-icon="copy"
+                        size={13}
+                      />
                     }
                     title={t("details.copyPath")}
                     onClick={() => handleCopy(path)}
@@ -81,7 +85,7 @@ const DataSourceDetailsCard: React.FC<DataSourceDetailsCardProps> = ({
                     iconOnly
                     icon={
                       <HugeiconsIcon
-                        icon={FolderOpen}
+                        icon={FolderOpenIcon}
                         data-icon="folder-open"
                         size={13}
                       />

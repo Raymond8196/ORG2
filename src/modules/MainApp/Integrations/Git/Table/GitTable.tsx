@@ -1,4 +1,4 @@
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -211,7 +211,7 @@ export const GitTable: React.FC<GitTableProps> = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={Trash2}
+                  icon={Delete02Icon}
                   data-icon="trash-2"
                   size={14}
                   className="text-danger-6"

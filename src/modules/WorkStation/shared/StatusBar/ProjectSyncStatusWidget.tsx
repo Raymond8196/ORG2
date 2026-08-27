@@ -25,10 +25,10 @@
  * the Settings view opens even when no consumer of the deep-link atom
  * is currently mounted.
  */
-import CloudAlert from "@hugeicons/core-free-icons/CloudAlertIcon";
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import CloudOff from "@hugeicons/core-free-icons/CloudLoadingIcon";
-import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
+import CloudAlertIcon from "@hugeicons/core-free-icons/CloudAlertIcon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import CloudLoadingIcon from "@hugeicons/core-free-icons/CloudLoadingIcon";
+import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
@@ -87,7 +87,7 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
         return {
           icon: (
             <HugeiconsIcon
-              icon={CloudOff}
+              icon={CloudLoadingIcon}
               data-icon="cloud-off"
               size={13}
               className="text-danger-6"
@@ -109,7 +109,7 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
         return {
           icon: (
             <HugeiconsIcon
-              icon={CloudAlert}
+              icon={CloudAlertIcon}
               data-icon="cloud-alert"
               size={13}
               className="text-warning-6"
@@ -125,7 +125,7 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
         return {
           icon: (
             <HugeiconsIcon
-              icon={CloudUpload}
+              icon={CloudUploadIcon}
               data-icon="cloud-upload"
               size={13}
               className="text-text-1"
@@ -142,7 +142,7 @@ const ProjectSyncStatusWidget: React.FC<ProjectSyncStatusWidgetProps> = memo(
       return {
         icon: (
           <HugeiconsIcon
-            icon={Cloud}
+            icon={CloudIcon}
             data-icon="cloud"
             size={13}
             className="text-text-1"

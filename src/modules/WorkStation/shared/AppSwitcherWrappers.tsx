@@ -5,7 +5,7 @@
  * the shared {@link AppSwitcherChip} view. Use these directly at call sites —
  * they hide the data hook plumbing behind a zero-prop component.
  */
-import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
+import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
 import { useAtomValue } from "jotai";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -225,7 +225,7 @@ const SimulatorAgentChipComponent: React.FC = () => {
 
   return (
     <AppSwitcherChip
-      icon={Monitor}
+      icon={MonitorIcon}
       label={chipLabel}
       activeId={sessionId ?? "agent-workstation"}
       items={items}

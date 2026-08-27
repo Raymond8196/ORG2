@@ -6,9 +6,9 @@
  * connected (green), reconnecting (yellow), error (red), disabled (gray).
  * On error, shows a "Reconnect" button to re-toggle the channel.
  */
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Wifi01Icon from "@hugeicons/core-free-icons/Wifi01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,7 +90,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={14}
                 />
@@ -124,7 +124,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
       {/* Action cards */}
       <div className="grid grid-cols-2 gap-2 max-[480px]:grid-cols-1">
         <ActionCard
-          icon={Wifi}
+          icon={Wifi01Icon}
           title={t("integrations.testConnection")}
           description={t("channels.quickActions.testConnectionDesc")}
           variant="default"
@@ -134,7 +134,7 @@ const QuickActionsSection: React.FC<QuickActionsSectionProps> = ({
         />
 
         <ActionCard
-          icon={Trash2}
+          icon={Delete02Icon}
           title={t("channels.quickActions.remove")}
           description={t("channels.quickActions.removeDesc")}
           variant="default"

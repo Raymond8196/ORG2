@@ -1,8 +1,8 @@
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import Home from "@hugeicons/core-free-icons/Home01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
+import Home01Icon from "@hugeicons/core-free-icons/Home01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -36,7 +36,11 @@ interface SessionInfoDisplayParams {
 
 export interface SessionInfoDisplayState {
   sourceDisplayName: string;
-  SourceIcon: typeof FolderTree | typeof Code | typeof Home | typeof Folder;
+  SourceIcon:
+    | typeof FolderTreeIcon
+    | typeof CodeIcon
+    | typeof Home01Icon
+    | typeof FolderClosedIcon;
   hasSource: boolean;
   showBranchRow: boolean;
 }
@@ -56,12 +60,12 @@ export function getSessionInfoDisplayState({
       (isMultiRoot ? workspaceName : repoName) ||
       t("selectors.sessionInfo.sourcePlaceholder"),
     SourceIcon: isSystemHomeSource
-      ? Home
+      ? Home01Icon
       : isSystemPathSource
-        ? Folder
+        ? FolderClosedIcon
         : isMultiRoot
-          ? FolderTree
-          : Code,
+          ? FolderTreeIcon
+          : CodeIcon,
     hasSource: !!repoName || isMultiRoot,
     showBranchRow:
       !hideBranch &&
@@ -173,7 +177,7 @@ export function buildSessionInfoSegments({
       id: "branch",
       icon: (
         <HugeiconsIcon
-          icon={GitBranch}
+          icon={WorkflowCircle05Icon}
           data-icon="git-branch"
           size={14}
           strokeWidth={1.75}

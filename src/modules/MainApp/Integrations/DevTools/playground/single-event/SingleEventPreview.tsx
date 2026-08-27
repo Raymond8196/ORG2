@@ -1,4 +1,4 @@
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -517,7 +517,7 @@ export function SingleEventPreview({ mode, onModeChange }: ModeControlProps) {
                 allowClear
                 prefix={
                   <HugeiconsIcon
-                    icon={Search}
+                    icon={Search01Icon}
                     data-icon="search"
                     size={14}
                     className="text-text-3"

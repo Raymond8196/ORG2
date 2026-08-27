@@ -1,7 +1,7 @@
-import Boxes from "@hugeicons/core-free-icons/BoxesIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
+import BoxesIcon from "@hugeicons/core-free-icons/BoxesIcon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,7 +35,7 @@ export function WorkManagementDatasetSwitch({
         triggerLabel: projectsLabel,
         icon: (
           <HugeiconsIcon
-            icon={Boxes}
+            icon={BoxesIcon}
             data-icon="boxes"
             size={14}
             strokeWidth={1.9}
@@ -50,7 +50,7 @@ export function WorkManagementDatasetSwitch({
         triggerLabel: workItemsLabel,
         icon: (
           <HugeiconsIcon
-            icon={ListTodo}
+            icon={ListTodoIcon}
             data-icon="list-todo"
             size={14}
             strokeWidth={1.9}
@@ -65,7 +65,7 @@ export function WorkManagementDatasetSwitch({
         triggerLabel: issuesLabel,
         icon: (
           <HugeiconsIcon
-            icon={CircleDot}
+            icon={CircleDotIcon}
             data-icon="circle-dot"
             size={14}
             strokeWidth={1.9}
@@ -80,7 +80,7 @@ export function WorkManagementDatasetSwitch({
         triggerLabel: reviewsLabel,
         icon: (
           <HugeiconsIcon
-            icon={GitPullRequest}
+            icon={GitPullRequestIcon}
             data-icon="git-pull-request"
             size={14}
             strokeWidth={1.9}

@@ -5,19 +5,19 @@
  * Uses PrimarySidebarLayoutWithSections with hidden tabs so the top ReplayTabBar
  * owns category switching.
  */
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Compass from "@hugeicons/core-free-icons/CompassIcon";
-import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
-import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
-import List from "@hugeicons/core-free-icons/ListIcon";
-import MoveVertical from "@hugeicons/core-free-icons/MoveTopIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Shield from "@hugeicons/core-free-icons/Shield01Icon";
-import ShieldOff from "@hugeicons/core-free-icons/Shield02Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CompassIcon from "@hugeicons/core-free-icons/CompassIcon";
+import CursorPointer02Icon from "@hugeicons/core-free-icons/CursorPointer02Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import FileSymlinkIcon from "@hugeicons/core-free-icons/FileSymlinkIcon";
+import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
+import ListIcon from "@hugeicons/core-free-icons/ListIcon";
+import MoveTopIcon from "@hugeicons/core-free-icons/MoveTopIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Shield01Icon from "@hugeicons/core-free-icons/Shield01Icon";
+import Shield02Icon from "@hugeicons/core-free-icons/Shield02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -92,7 +92,7 @@ function getNativeActionIcon(
     case "list":
       return (
         <HugeiconsIcon
-          icon={ListTree}
+          icon={HierarchyFilesIcon}
           data-icon="list-tree"
           size={size}
           strokeWidth={stroke}
@@ -102,7 +102,7 @@ function getNativeActionIcon(
     case "is_ready":
       return (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           size={size}
           strokeWidth={stroke}
@@ -112,7 +112,7 @@ function getNativeActionIcon(
     case "get_state":
       return (
         <HugeiconsIcon
-          icon={ListTree}
+          icon={HierarchyFilesIcon}
           data-icon="list-tree"
           size={size}
           strokeWidth={stroke}
@@ -122,7 +122,7 @@ function getNativeActionIcon(
     case "click":
       return (
         <HugeiconsIcon
-          icon={MousePointerClick}
+          icon={CursorPointer02Icon}
           data-icon="mouse-pointer-click"
           size={size}
           strokeWidth={stroke}
@@ -132,7 +132,7 @@ function getNativeActionIcon(
     case "input":
       return (
         <HugeiconsIcon
-          icon={Keyboard}
+          icon={KeyboardIcon}
           data-icon="keyboard"
           size={size}
           strokeWidth={stroke}
@@ -142,7 +142,7 @@ function getNativeActionIcon(
     case "select":
       return (
         <HugeiconsIcon
-          icon={List}
+          icon={ListIcon}
           data-icon="list"
           size={size}
           strokeWidth={stroke}
@@ -152,7 +152,7 @@ function getNativeActionIcon(
     case "scroll":
       return (
         <HugeiconsIcon
-          icon={MoveVertical}
+          icon={MoveTopIcon}
           data-icon="move-vertical"
           size={size}
           strokeWidth={stroke}
@@ -162,7 +162,7 @@ function getNativeActionIcon(
     case "show_mask":
       return (
         <HugeiconsIcon
-          icon={Shield}
+          icon={Shield01Icon}
           data-icon="shield"
           size={size}
           strokeWidth={stroke}
@@ -172,7 +172,7 @@ function getNativeActionIcon(
     case "hide_mask":
       return (
         <HugeiconsIcon
-          icon={ShieldOff}
+          icon={Shield02Icon}
           data-icon="shield-off"
           size={size}
           strokeWidth={stroke}
@@ -182,7 +182,7 @@ function getNativeActionIcon(
     case "clean_up":
       return (
         <HugeiconsIcon
-          icon={Trash2}
+          icon={Delete02Icon}
           data-icon="trash-2"
           size={size}
           strokeWidth={stroke}
@@ -192,7 +192,7 @@ function getNativeActionIcon(
     default:
       return (
         <HugeiconsIcon
-          icon={ListTree}
+          icon={HierarchyFilesIcon}
           data-icon="list-tree"
           size={size}
           strokeWidth={stroke}
@@ -211,7 +211,7 @@ function getCategoryIcon(
   if (category === "web_search")
     return (
       <HugeiconsIcon
-        icon={Search}
+        icon={Search01Icon}
         data-icon="search"
         size={14}
         strokeWidth={1.75}
@@ -232,7 +232,7 @@ function getCategoryIcon(
   if (category === "browser")
     return (
       <HugeiconsIcon
-        icon={Chrome}
+        icon={InternetIcon}
         data-icon="chrome"
         size={14}
         strokeWidth={1.75}
@@ -241,7 +241,7 @@ function getCategoryIcon(
     );
   return (
     <HugeiconsIcon
-      icon={FileSymlink}
+      icon={FileSymlinkIcon}
       data-icon="file-symlink"
       size={14}
       strokeWidth={1.75}
@@ -475,7 +475,7 @@ const BrowserSidebarComponent: React.FC<BrowserSidebarProps> = ({
           label: t("simulator.replay.browser.tabs.agentBrowser"),
           icon: (
             <HugeiconsIcon
-              icon={Compass}
+              icon={CompassIcon}
               data-icon="compass"
               size={PANEL_CONSTANTS.TAB_ICON_SIZE}
             />
@@ -525,7 +525,7 @@ const BrowserSidebarComponent: React.FC<BrowserSidebarProps> = ({
         label: t("simulator.replay.browser.tabs.searchFetch"),
         icon: (
           <HugeiconsIcon
-            icon={Search}
+            icon={Search01Icon}
             data-icon="search"
             size={PANEL_CONSTANTS.TAB_ICON_SIZE}
           />

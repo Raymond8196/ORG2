@@ -7,7 +7,7 @@
  * When `actionButton` is provided the chevron is replaced by the action area
  * and the outer element becomes a `<div>` so the nested button is valid HTML.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -80,7 +80,7 @@ const BrowseCard: React.FC<BrowseCardProps> = ({
         <div className="shrink-0">{actionButton}</div>
       ) : (
         <HugeiconsIcon
-          icon={ChevronRight}
+          icon={ArrowRight01Icon}
           data-icon="chevron-right"
           size={14}
           className="absolute right-4 top-1/2 -translate-y-1/2 text-text-2 opacity-0 transition-opacity group-hover/card:opacity-100"

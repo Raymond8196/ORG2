@@ -1,6 +1,6 @@
 import Button from "@/src/components/Button";
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -81,7 +81,7 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
           onClick={() => onPageChange(currentPage - 1)}
           icon={
             <HugeiconsIcon
-              icon={ChevronLeft}
+              icon={ArrowLeft01Icon}
               data-icon="chevron-left"
               size={16}
             />
@@ -98,7 +98,7 @@ export const PaginationFooter: React.FC<PaginationFooterProps> = ({
           onClick={() => onPageChange(currentPage + 1)}
           icon={
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={16}
             />

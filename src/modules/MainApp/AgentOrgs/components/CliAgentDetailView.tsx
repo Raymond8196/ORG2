@@ -1,6 +1,6 @@
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -228,7 +228,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
             variant="tertiary"
             icon={
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={14}
               />
@@ -255,7 +255,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -271,7 +271,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
                 {...PANEL_HEADER_TOKENS.actionButton}
                 icon={
                   <HugeiconsIcon
-                    icon={BookOpen}
+                    icon={BookOpen01Icon}
                     data-icon="book-open"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}

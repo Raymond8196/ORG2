@@ -1,5 +1,5 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -102,7 +102,7 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
             className={`${HEADER_BUTTON.actionMdTreeRow} [&>svg]:transition-transform [&>svg]:duration-150 ${isExpanded ? "[&>svg]:rotate-90" : ""}`}
           >
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={HEADER_ICON_SIZE.sm}
             />
@@ -147,7 +147,7 @@ const WorkItemSection: React.FC<WorkItemSectionProps> = ({
               }}
             >
               <HugeiconsIcon
-                icon={Plus}
+                icon={Add01Icon}
                 data-icon="plus"
                 size={HEADER_ICON_SIZE.sm}
               />

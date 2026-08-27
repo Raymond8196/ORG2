@@ -5,8 +5,8 @@
  * Extracted from WorkItem/Project PropertiesPanel pattern
  * Uses DROPDOWN_CLASSES and DropdownSearch for consistency with settings.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -79,7 +79,7 @@ export const FieldRow: React.FC<FieldRowProps> = ({
   disabled = false,
   onClick,
 }) => {
-  const EditIcon = usePencil ? Pencil : ChevronDown;
+  const EditIcon = usePencil ? Pen01Icon : ArrowDown01Icon;
   const pillBorderClass = borderless ? "border-transparent" : "border-border-2";
   const iconContent = icon ? (
     <span

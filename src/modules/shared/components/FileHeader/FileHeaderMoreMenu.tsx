@@ -12,15 +12,15 @@
  * Menu entries are always rendered for stable discoverability. Entries whose
  * backing action is not available in the current context are disabled.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
-import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
-import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
+import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
+import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -203,7 +203,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={Save}
+                icon={FloppyDiskIcon}
                 data-icon="save"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -225,7 +225,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={Undo2}
+                icon={Undo02Icon}
                 data-icon="undo-2"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -241,7 +241,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={Search}
+                icon={Search01Icon}
                 data-icon="search"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -263,7 +263,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={Hash}
+                icon={HashtagIcon}
                 data-icon="hash"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -285,7 +285,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={Copy}
+                icon={Copy01Icon}
                 data-icon="copy"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -299,7 +299,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={FolderOpen}
+                icon={FolderOpenIcon}
                 data-icon="folder-open"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -313,7 +313,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={HEADER_ICON_SIZE.sm}
                 className={reloadSpinClass}
@@ -367,7 +367,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
           <DropdownItem
             icon={
               <HugeiconsIcon
-                icon={Settings}
+                icon={Settings01Icon}
                 data-icon="settings"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -401,7 +401,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
             className="flex-shrink-0"
           >
             <HugeiconsIcon
-              icon={Ellipsis}
+              icon={EllipsisIcon}
               data-icon="ellipsis"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}

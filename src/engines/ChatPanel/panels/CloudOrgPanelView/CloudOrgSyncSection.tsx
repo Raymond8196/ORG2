@@ -12,7 +12,7 @@
  * status hook, and the Supabase anon key and access/refresh tokens are never
  * passed in, rendered, or copied.
  */
-import UsersRound from "@hugeicons/core-free-icons/UsersRoundIcon";
+import UsersRoundIcon from "@hugeicons/core-free-icons/UsersRoundIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useMemo, useState } from "react";
@@ -250,7 +250,11 @@ export function CloudOrgSyncSection({ t, status }: CloudOrgSyncSectionProps) {
         value: ALL_MEMBERS_FILTER_VALUE,
         label: t("cloud.sidebar.everyone"),
         icon: (
-          <HugeiconsIcon icon={UsersRound} data-icon="users-round" size={14} />
+          <HugeiconsIcon
+            icon={UsersRoundIcon}
+            data-icon="users-round"
+            size={14}
+          />
         ),
         dataTestId: "cloud-org-sync-logs-member-all",
       },

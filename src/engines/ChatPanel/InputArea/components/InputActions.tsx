@@ -15,9 +15,9 @@
  *   5. Terminal + can resume  → Retry (orange, CLI sessions only)
  *   6. Otherwise              → Submit (arrow up, inactive color, noop)
  */
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import Square from "@hugeicons/core-free-icons/SquareIcon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useRef } from "react";
@@ -209,7 +209,7 @@ const InputActions: React.FC<InputActionsProps> = memo(
         {showStop && !showSubmit ? (
           canStopAgent ? (
             <HugeiconsIcon
-              icon={Square}
+              icon={SquareIcon}
               data-icon="square"
               size={10}
               fill="currentColor"
@@ -220,7 +220,7 @@ const InputActions: React.FC<InputActionsProps> = memo(
           )
         ) : showRetry ? (
           <HugeiconsIcon
-            icon={RotateCcw}
+            icon={RotateLeft01Icon}
             data-icon="rotate-ccw"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
@@ -228,7 +228,7 @@ const InputActions: React.FC<InputActionsProps> = memo(
           />
         ) : (
           <HugeiconsIcon
-            icon={ArrowUp}
+            icon={ArrowUp02Icon}
             data-icon="arrow-up"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}

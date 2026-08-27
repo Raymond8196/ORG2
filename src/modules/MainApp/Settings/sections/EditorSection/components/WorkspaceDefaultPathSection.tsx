@@ -1,4 +1,4 @@
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useAtom } from "jotai";
@@ -129,7 +129,7 @@ const WorkspaceDefaultPathSection: React.FC = () => {
               iconOnly
               icon={
                 <HugeiconsIcon
-                  icon={FolderOpen}
+                  icon={FolderOpenIcon}
                   data-icon="folder-open"
                   size={16}
                 />

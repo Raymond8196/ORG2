@@ -6,9 +6,9 @@
  * - Integrations category atom (for per-tab + button behavior)
  * - Integrations add action atom (callback to dispatch add actions)
  */
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -105,13 +105,13 @@ export function useRouteToolbarConfig(): RouteToolbarConfig | null {
             {
               id: "add-agent",
               label: t("toolbarPlusMenu.addAgent"),
-              icon: UserPlus,
+              icon: UserAdd01Icon,
               onClick: openAgentAdd,
             },
             {
               id: "add-org",
               label: t("agentOrgs.addOrg"),
-              icon: Network,
+              icon: HierarchyCircle01Icon,
               onClick: openOrgAdd,
             },
           ],
@@ -136,7 +136,7 @@ export function useRouteToolbarConfig(): RouteToolbarConfig | null {
         if (integrationsToolbar.onRefresh) {
           extraButtons.push({
             id: "integrations-refresh",
-            icon: RefreshCw,
+            icon: Refresh04Icon,
             onClick: integrationsRefreshClick,
             title: t("common:actions.refresh"),
             iconClassName: integrationsSpinClass,
@@ -163,7 +163,7 @@ export function useRouteToolbarConfig(): RouteToolbarConfig | null {
       if (settingsToolbar.onRefresh) {
         extraButtons.push({
           id: "settings-refresh",
-          icon: RefreshCw,
+          icon: Refresh04Icon,
           onClick: settingsRefreshClick,
           title: t("common:actions.refresh"),
           iconClassName: settingsSpinClass,

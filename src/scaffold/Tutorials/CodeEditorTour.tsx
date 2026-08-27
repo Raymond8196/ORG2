@@ -1,7 +1,7 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
@@ -388,7 +388,7 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               aria-label={t("tutorials.chrome.close")}
               onClick={onClose}
             >
-              <HugeiconsIcon icon={X} data-icon="x" size={14} />
+              <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
             </button>
           </div>
 
@@ -419,7 +419,7 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               iconOnly
               icon={
                 <HugeiconsIcon
-                  icon={ArrowLeft}
+                  icon={ArrowLeft02Icon}
                   data-icon="arrow-left"
                   size={13}
                 />
@@ -439,10 +439,14 @@ const CodeEditorTour: React.FC<CodeEditorTourProps> = ({ open, onClose }) => {
               iconOnly
               icon={
                 isLastStep ? (
-                  <HugeiconsIcon icon={Check} data-icon="check" size={13} />
+                  <HugeiconsIcon
+                    icon={Tick01Icon}
+                    data-icon="check"
+                    size={13}
+                  />
                 ) : (
                   <HugeiconsIcon
-                    icon={ArrowRight}
+                    icon={ArrowRight02Icon}
                     data-icon="arrow-right"
                     size={13}
                   />

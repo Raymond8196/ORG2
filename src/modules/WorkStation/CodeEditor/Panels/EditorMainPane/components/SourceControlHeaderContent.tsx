@@ -7,12 +7,12 @@
  * in a `useMemo` so `usePublishWorkstationTabHeader` keeps a stable `content`
  * identity and does not re-publish on every render.
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -114,7 +114,7 @@ export const SourceControlHeaderContent: React.FC<
             className={`shrink-0 ${selectedIssue.state === "open" ? "text-success-6" : "text-text-3"}`}
           >
             <HugeiconsIcon
-              icon={CircleDot}
+              icon={CircleDotIcon}
               data-icon="circle-dot"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={2}
@@ -174,7 +174,7 @@ export const SourceControlHeaderContent: React.FC<
               title={t("common:actions.openInNewTab")}
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowOutUpRight}
+                  icon={SquareArrowUpRightIcon}
                   data-icon="square-arrow-out-up-right"
                   size={HEADER_ICON_SIZE.sm}
                 />
@@ -195,7 +195,7 @@ export const SourceControlHeaderContent: React.FC<
               className="shrink-0"
               icon={
                 <HugeiconsIcon
-                  icon={ArrowLeft}
+                  icon={ArrowLeft02Icon}
                   data-icon="arrow-left"
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={1.75}
@@ -213,7 +213,7 @@ export const SourceControlHeaderContent: React.FC<
               className="shrink-0"
               icon={
                 <HugeiconsIcon
-                  icon={ArrowRight}
+                  icon={ArrowRight02Icon}
                   data-icon="arrow-right"
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={1.75}
@@ -252,7 +252,7 @@ export const SourceControlHeaderContent: React.FC<
               title={t("actions.collapseAll")}
               icon={
                 <HugeiconsIcon
-                  icon={ListChevronsDownUp}
+                  icon={ListChevronsDownUpIcon}
                   data-icon="list-chevrons-down-up"
                   size={HEADER_ICON_SIZE.md}
                 />
@@ -271,7 +271,7 @@ export const SourceControlHeaderContent: React.FC<
           aria-label={t("common:actions.refresh")}
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={HEADER_ICON_SIZE.sm}
               className={sourceControlRefreshSpinClass}

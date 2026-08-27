@@ -1,7 +1,7 @@
-import CloudAlert from "@hugeicons/core-free-icons/CloudAlertIcon";
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
+import CloudAlertIcon from "@hugeicons/core-free-icons/CloudAlertIcon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
@@ -96,7 +96,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
         return {
           icon: (
             <HugeiconsIcon
-              icon={CloudUpload}
+              icon={CloudUploadIcon}
               data-icon="cloud-upload"
               size={13}
               className="text-text-1"
@@ -110,7 +110,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
         return {
           icon: (
             <HugeiconsIcon
-              icon={CloudAlert}
+              icon={CloudAlertIcon}
               data-icon="cloud-alert"
               size={13}
               className="text-warning-6"
@@ -124,7 +124,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
         return {
           icon: (
             <HugeiconsIcon
-              icon={GitMerge}
+              icon={GitMergeIcon}
               data-icon="git-merge"
               size={13}
               className="text-warning-6"
@@ -141,7 +141,7 @@ const ProjectOrgGitFolderSyncWidget: React.FC<ProjectOrgGitFolderSyncWidgetProps
       return {
         icon: (
           <HugeiconsIcon
-            icon={Cloud}
+            icon={CloudIcon}
             data-icon="cloud"
             size={13}
             className="text-text-1"

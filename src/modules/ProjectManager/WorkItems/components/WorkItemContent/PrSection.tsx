@@ -1,6 +1,6 @@
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -150,7 +150,7 @@ const PrSection: React.FC<PrSectionProps> = ({
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-6 hover:underline"
               >
                 <HugeiconsIcon
-                  icon={SquareArrowOutUpRight}
+                  icon={SquareArrowUpRightIcon}
                   data-icon="square-arrow-out-up-right"
                   size={13}
                 />
@@ -185,7 +185,7 @@ const PrSection: React.FC<PrSectionProps> = ({
       <div className="rounded-lg bg-fill-2 px-4 py-3">
         <div className="flex items-center gap-2">
           <HugeiconsIcon
-            icon={Loader2}
+            icon={Loading03Icon}
             data-icon="loader-2"
             size={14}
             className="animate-spin text-primary-6"
@@ -254,7 +254,7 @@ const PrSection: React.FC<PrSectionProps> = ({
             size="small"
             icon={
               <HugeiconsIcon
-                icon={GitPullRequest}
+                icon={GitPullRequestIcon}
                 data-icon="git-pull-request"
                 size={13}
               />

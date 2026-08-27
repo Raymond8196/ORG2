@@ -1,8 +1,8 @@
 /**
  * DevPassport Book Component
  */
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Fingerprint from "@hugeicons/core-free-icons/FingerPrintIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import FingerPrintIcon from "@hugeicons/core-free-icons/FingerPrintIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 
@@ -107,7 +107,7 @@ const ProfilePage: React.FC<{ user: UserProfile }> = ({ user }) => (
           </div>
           <div className="flex items-center gap-1 text-[7px] text-slate-400">
             <HugeiconsIcon
-              icon={Fingerprint}
+              icon={FingerPrintIcon}
               data-icon="fingerprint"
               size={9}
             />
@@ -231,7 +231,7 @@ const CoverInner: React.FC<{
         <div className="text-center">
           <div className="mb-4 flex justify-center">
             <HugeiconsIcon
-              icon={Code}
+              icon={CodeIcon}
               data-icon="code"
               className="text-white/40"
               size={48}
@@ -274,7 +274,7 @@ const CoverOuter: React.FC<{ type: "front" | "back"; color?: string }> = ({
           <div className="relative flex h-24 w-24 items-center justify-center rounded-full border-[3px] border-yellow-500/60">
             <div className="absolute inset-1 rounded-full border border-yellow-500/30"></div>
             <HugeiconsIcon
-              icon={Code}
+              icon={CodeIcon}
               data-icon="code"
               size={40}
               strokeWidth={1.5}

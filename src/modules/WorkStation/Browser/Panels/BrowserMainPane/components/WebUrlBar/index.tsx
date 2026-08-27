@@ -8,15 +8,15 @@
  * - Reload button
  * - Loading indicator
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import Camera from "@hugeicons/core-free-icons/Camera01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import PenTool from "@hugeicons/core-free-icons/PenTool01Icon";
-import PencilRuler from "@hugeicons/core-free-icons/PencilRulerIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import Camera01Icon from "@hugeicons/core-free-icons/Camera01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import PenTool01Icon from "@hugeicons/core-free-icons/PenTool01Icon";
+import PencilRulerIcon from "@hugeicons/core-free-icons/PencilRulerIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -338,7 +338,7 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
               aria-label={t("tooltips.goBack")}
               icon={
                 <HugeiconsIcon
-                  icon={ArrowLeft}
+                  icon={ArrowLeft02Icon}
                   data-icon="arrow-left"
                   size={HEADER_ICON_SIZE.md}
                 />
@@ -356,7 +356,7 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
               aria-label={t("tooltips.goForward")}
               icon={
                 <HugeiconsIcon
-                  icon={ArrowRight}
+                  icon={ArrowRight02Icon}
                   data-icon="arrow-right"
                   size={HEADER_ICON_SIZE.md}
                 />
@@ -374,13 +374,13 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
               icon={
                 isLoading ? (
                   <HugeiconsIcon
-                    icon={X}
+                    icon={Cancel01Icon}
                     data-icon="x"
                     size={HEADER_ICON_SIZE.sm}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={HEADER_ICON_SIZE.sm}
                   />
@@ -455,7 +455,7 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                   className={isInspectMode ? "!bg-fill-2 !text-primary-6" : ""}
                   icon={
                     <HugeiconsIcon
-                      icon={PenTool}
+                      icon={PenTool01Icon}
                       data-icon="pen-tool"
                       size={HEADER_ICON_SIZE.sm}
                     />
@@ -477,14 +477,14 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                   icon={
                     isCapturingScreenshot ? (
                       <HugeiconsIcon
-                        icon={Loader2}
+                        icon={Loading03Icon}
                         data-icon="loader-2"
                         size={HEADER_ICON_SIZE.md}
                         className="animate-spin"
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={Camera}
+                        icon={Camera01Icon}
                         data-icon="camera"
                         size={HEADER_ICON_SIZE.md}
                       />
@@ -505,7 +505,7 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                   aria-label={t("tooltips.openNativeDevTools")}
                   icon={
                     <HugeiconsIcon
-                      icon={Code}
+                      icon={CodeIcon}
                       data-icon="code"
                       size={HEADER_ICON_SIZE.md}
                     />
@@ -539,7 +539,7 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                   }
                   icon={
                     <HugeiconsIcon
-                      icon={PencilRuler}
+                      icon={PencilRulerIcon}
                       data-icon="pencil-ruler"
                       size={HEADER_ICON_SIZE.sm}
                       strokeWidth={1.75}

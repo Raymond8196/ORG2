@@ -1,15 +1,15 @@
 /**
  * ProjectsTab Configuration
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import Github from "@hugeicons/core-free-icons/GithubIcon";
-import Import from "@hugeicons/core-free-icons/ImportIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import GithubIcon from "@hugeicons/core-free-icons/GithubIcon";
+import ImportIcon from "@hugeicons/core-free-icons/ImportIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -110,7 +110,7 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
         type="button"
       >
         <HugeiconsIcon
-          icon={Plus}
+          icon={Add01Icon}
           data-icon="plus"
           size={HEADER_ICON_SIZE.md}
         />
@@ -142,7 +142,7 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={Plus}
+                icon={Add01Icon}
                 data-icon="plus"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
@@ -157,7 +157,7 @@ const OrgActionsDropdown: React.FC<OrgActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={Import}
+                icon={ImportIcon}
                 data-icon="import"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
@@ -230,7 +230,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
         type="button"
       >
         <HugeiconsIcon
-          icon={Plus}
+          icon={Add01Icon}
           data-icon="plus"
           size={HEADER_ICON_SIZE.md}
         />
@@ -262,7 +262,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={ListChecks}
+                icon={ListChecksIcon}
                 data-icon="list-checks"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
@@ -279,7 +279,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={Box}
+                icon={BoxIcon}
                 data-icon="box"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
@@ -296,7 +296,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={Github}
+                icon={GithubIcon}
                 data-icon="github"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
@@ -374,7 +374,7 @@ export function useProjectsTabConfig({
         key: "create-project",
         icon: (
           <HugeiconsIcon
-            icon={Box}
+            icon={BoxIcon}
             data-icon="box"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
@@ -387,7 +387,7 @@ export function useProjectsTabConfig({
         key: "create-work-item",
         icon: (
           <HugeiconsIcon
-            icon={SquarePen}
+            icon={PencilEdit02Icon}
             data-icon="square-pen"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
@@ -418,7 +418,7 @@ export function useProjectsTabConfig({
         key: "refresh",
         icon: (
           <HugeiconsIcon
-            icon={RefreshCw}
+            icon={Refresh04Icon}
             data-icon="refresh-cw"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
@@ -432,7 +432,7 @@ export function useProjectsTabConfig({
         key: "settings",
         icon: (
           <HugeiconsIcon
-            icon={Settings}
+            icon={Settings01Icon}
             data-icon="settings"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
@@ -479,7 +479,7 @@ export function useProjectsTabConfig({
       label: t("labels.projects"),
       icon: (
         <HugeiconsIcon
-          icon={FolderKanban}
+          icon={FolderKanbanIcon}
           data-icon="folder-kanban"
           size={TAB_ICON_SIZE}
         />

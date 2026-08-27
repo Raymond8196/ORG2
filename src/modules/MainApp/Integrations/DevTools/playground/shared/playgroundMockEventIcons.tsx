@@ -3,7 +3,7 @@
  * {@link MOCK_EVENT_DATA}; use {@link getToolIcon} with the underlying tool name when the id
  * is not a registered tool (avoids falling through to Wrench).
  */
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -31,7 +31,7 @@ export function getPlaygroundMockEventRowIcon(
   if (isChatPreviewType(eventTypeKey)) {
     return (
       <HugeiconsIcon
-        icon={MessageSquare}
+        icon={Message01Icon}
         data-icon="message-square"
         size={PLAYGROUND_ROW_ICON_SIZE}
       />

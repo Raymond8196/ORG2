@@ -1,7 +1,7 @@
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -68,7 +68,7 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
       <HoverCardRow
         icon={
           <HugeiconsIcon
-            icon={GitPullRequest}
+            icon={GitPullRequestIcon}
             data-icon="git-pull-request"
             size={13}
             strokeWidth={1.75}
@@ -89,7 +89,7 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={GitBranch}
+              icon={WorkflowCircle05Icon}
               data-icon="git-branch"
               size={13}
               strokeWidth={1.75}
@@ -112,7 +112,7 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={FileDiff}
+              icon={FileDiffIcon}
               data-icon="file-diff"
               size={13}
               strokeWidth={1.75}
@@ -143,7 +143,7 @@ const PrHoverCardContent: React.FC<PrHoverCardContentProps> = memo(({ pr }) => {
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={Clock}
+              icon={Clock01Icon}
               data-icon="clock"
               size={13}
               strokeWidth={1.75}

@@ -1,4 +1,4 @@
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -12,7 +12,7 @@ const DropdownSelectedCheck: React.FC<DropdownSelectedCheckProps> = ({
   className = "",
 }) => (
   <HugeiconsIcon
-    icon={Check}
+    icon={Tick01Icon}
     data-icon="check"
     size={DROPDOWN_ITEM.iconSize}
     strokeWidth={2.25}

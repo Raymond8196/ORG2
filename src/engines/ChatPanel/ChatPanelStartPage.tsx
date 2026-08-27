@@ -1,7 +1,7 @@
-import Download from "@hugeicons/core-free-icons/Download01Icon";
-import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
-import Import from "@hugeicons/core-free-icons/ImportIcon";
-import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
+import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
+import ImportIcon from "@hugeicons/core-free-icons/ImportIcon";
+import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useState } from "react";
@@ -105,7 +105,7 @@ export function ChatPanelStartPage({
     title: t("navigation:cloud.share.importEntry"),
     icon: (
       <HugeiconsIcon
-        icon={Import}
+        icon={ImportIcon}
         data-icon="import"
         size={16}
         strokeWidth={1.8}
@@ -119,7 +119,7 @@ export function ChatPanelStartPage({
     title: t("chat.startPage.addApiKey.title"),
     icon: (
       <HugeiconsIcon
-        icon={KeyRound}
+        icon={Key02Icon}
         data-icon="key-round"
         size={16}
         strokeWidth={1.8}
@@ -133,7 +133,7 @@ export function ChatPanelStartPage({
     title: t("chat.startPage.showRuntime.title"),
     icon: (
       <HugeiconsIcon
-        icon={Gauge}
+        icon={GaugeIcon}
         data-icon="gauge"
         size={16}
         strokeWidth={1.8}
@@ -149,7 +149,7 @@ export function ChatPanelStartPage({
           title: t("chat.startPage.installLatestUpdate.title"),
           icon: (
             <HugeiconsIcon
-              icon={Download}
+              icon={Download01Icon}
               data-icon="download"
               size={16}
               strokeWidth={1.8}

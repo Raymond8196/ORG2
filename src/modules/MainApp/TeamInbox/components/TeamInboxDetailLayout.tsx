@@ -1,5 +1,5 @@
-import Mail from "@hugeicons/core-free-icons/Mail01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
@@ -71,7 +71,7 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
           iconOnly
           icon={
             <HugeiconsIcon
-              icon={Check}
+              icon={Tick01Icon}
               data-icon="check"
               size={14}
               strokeWidth={2}
@@ -92,7 +92,7 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
         iconOnly
         icon={
           <HugeiconsIcon
-            icon={Mail}
+            icon={Mail01Icon}
             data-icon="mail"
             size={14}
             strokeWidth={2}

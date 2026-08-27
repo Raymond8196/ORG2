@@ -1,6 +1,6 @@
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import Home from "@hugeicons/core-free-icons/Home01Icon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import Home01Icon from "@hugeicons/core-free-icons/Home01Icon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 
@@ -42,7 +42,7 @@ function renderSourceIcon<TSkill extends SkillTableRow>(
   if (skill.source === SKILL_SOURCE.EMBEDDED_BUILTIN) {
     return (
       <HugeiconsIcon
-        icon={Home}
+        icon={Home01Icon}
         data-icon="home"
         size={14}
         className={className}
@@ -53,7 +53,7 @@ function renderSourceIcon<TSkill extends SkillTableRow>(
   if (isRepoSkill(skill, cursorRepos)) {
     return (
       <HugeiconsIcon
-        icon={Code2}
+        icon={CodeIcon}
         data-icon="code-2"
         size={14}
         className={className}
@@ -63,7 +63,7 @@ function renderSourceIcon<TSkill extends SkillTableRow>(
   }
   return (
     <HugeiconsIcon
-      icon={User}
+      icon={UserIcon}
       data-icon="user"
       size={14}
       className={className}

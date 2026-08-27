@@ -14,7 +14,7 @@
  * - Consistent styling across all contexts
  * - Optional inline stop button (right-aligned)
  */
-import Square from "@hugeicons/core-free-icons/SquareIcon";
+import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -114,7 +114,7 @@ export const TerminalCommand: React.FC<TerminalCommandProps> = memo(
             className="terminal-command__stop"
           >
             <HugeiconsIcon
-              icon={Square}
+              icon={SquareIcon}
               data-icon="square"
               size={10}
               fill="currentColor"

@@ -1,7 +1,7 @@
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import CircleX from "@hugeicons/core-free-icons/CircleXIcon";
-import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import CircleXIcon from "@hugeicons/core-free-icons/CircleXIcon";
+import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -25,7 +25,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
   if (state === "complete") {
     return (
       <HugeiconsIcon
-        icon={CheckCircle2}
+        icon={CheckmarkCircle01Icon}
         data-icon="check-circle-2"
         size={size}
         className="text-success-6"
@@ -36,7 +36,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
   if (state === "active") {
     return (
       <HugeiconsIcon
-        icon={LoaderCircle}
+        icon={LoaderCircleIcon}
         data-icon="loader-circle"
         size={size}
         className="animate-spin text-primary-6 motion-reduce:animate-none"
@@ -47,7 +47,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
   if (state === "failed") {
     return (
       <HugeiconsIcon
-        icon={CircleX}
+        icon={CircleXIcon}
         data-icon="circle-x"
         size={size}
         className="text-danger-6"
@@ -57,7 +57,7 @@ const StepIcon: React.FC<{ state: CanvasRevisionStepState }> = ({ state }) => {
   }
   return (
     <HugeiconsIcon
-      icon={Circle}
+      icon={CircleIcon}
       data-icon="circle"
       size={size}
       className="text-text-4"

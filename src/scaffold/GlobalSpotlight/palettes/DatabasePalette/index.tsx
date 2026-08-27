@@ -4,10 +4,10 @@
  * Simple spotlight for adding database connections.
  * Uses useSelectorKernel + SpotlightShell/PaletteBody for unified UI composition.
  */
-import Database from "@hugeicons/core-free-icons/DatabaseIcon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import FolderSearch from "@hugeicons/core-free-icons/FolderSearchIcon";
-import Link from "@hugeicons/core-free-icons/Link01Icon";
+import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
+import FolderSearchIcon from "@hugeicons/core-free-icons/FolderSearchIcon";
+import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
 import { homeDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import React, { useCallback, useMemo, useState } from "react";
@@ -132,7 +132,7 @@ export const DatabasePalette: React.FC<DatabasePaletteProps> = ({
         id: "scan-folder",
         label: t("database.spotlight.scanFolder"),
         desc: t("database.spotlight.scanFolderDesc"),
-        icon: FolderSearch,
+        icon: FolderSearchIcon,
         type: "action" as const,
         action: () => handlePick("folder"),
       },
@@ -140,7 +140,7 @@ export const DatabasePalette: React.FC<DatabasePaletteProps> = ({
         id: "open-file",
         label: t("database.spotlight.openFile"),
         desc: t("database.spotlight.openFileDesc"),
-        icon: FileText,
+        icon: File02Icon,
         type: "action" as const,
         action: () => handlePick("file"),
       },
@@ -148,7 +148,7 @@ export const DatabasePalette: React.FC<DatabasePaletteProps> = ({
         id: "enter-path",
         label: t("database.spotlight.enterPath"),
         desc: t("database.spotlight.enterPathDesc"),
-        icon: Link,
+        icon: Link01Icon,
         type: "action" as const,
         action: handleEnterPathMode,
       },
@@ -212,7 +212,7 @@ export const DatabasePalette: React.FC<DatabasePaletteProps> = ({
         items={items}
         placeholder={placeholder}
         inputVariant="simple"
-        inputIcon={Database}
+        inputIcon={DatabaseIcon}
         isLoading={isLoading}
         containerHeight={180}
         hintSlot={errorDisplay}

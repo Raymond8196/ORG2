@@ -1,5 +1,5 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -59,14 +59,14 @@ export const MemoryBreakdownSection: React.FC<MemoryBreakdownSectionProps> = ({
       icon={
         showAttributionHints ? (
           <HugeiconsIcon
-            icon={ChevronUp}
+            icon={ArrowUp01Icon}
             data-icon="chevron-up"
             size={13}
             strokeWidth={2}
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={13}
             strokeWidth={2}

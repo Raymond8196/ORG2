@@ -1,6 +1,6 @@
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
@@ -83,7 +83,7 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             aria-label={historyLabel}
             icon={
               <HugeiconsIcon
-                icon={History}
+                icon={WorkHistoryIcon}
                 data-icon="history"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={2}
@@ -102,7 +102,7 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             aria-label={prLabel}
             icon={
               <HugeiconsIcon
-                icon={GitPullRequest}
+                icon={GitPullRequestIcon}
                 data-icon="git-pull-request"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={2}
@@ -121,7 +121,7 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             aria-label={issuesLabel}
             icon={
               <HugeiconsIcon
-                icon={CircleDot}
+                icon={CircleDotIcon}
                 data-icon="circle-dot"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={2}

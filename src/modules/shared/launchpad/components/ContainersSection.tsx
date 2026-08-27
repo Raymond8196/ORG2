@@ -1,8 +1,8 @@
-import Play from "@hugeicons/core-free-icons/PlayIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import Square from "@hugeicons/core-free-icons/SquareIcon";
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
+import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -218,7 +218,9 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
               <Button
                 variant="tertiary"
                 size="mini"
-                icon={<HugeiconsIcon icon={Eye} data-icon="eye" size={13} />}
+                icon={
+                  <HugeiconsIcon icon={ViewIcon} data-icon="eye" size={13} />
+                }
                 loading={actionLoading}
                 onClick={() => handleInspect(row)}
                 aria-label={t("navigation:launchpad.containers.inspect")}
@@ -228,7 +230,11 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
                   variant="tertiary"
                   size="mini"
                   icon={
-                    <HugeiconsIcon icon={Square} data-icon="square" size={13} />
+                    <HugeiconsIcon
+                      icon={SquareIcon}
+                      data-icon="square"
+                      size={13}
+                    />
                   }
                   loading={actionLoading}
                   onClick={() => runAction(row, "stop")}
@@ -239,7 +245,7 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
                   variant="tertiary"
                   size="mini"
                   icon={
-                    <HugeiconsIcon icon={Play} data-icon="play" size={13} />
+                    <HugeiconsIcon icon={PlayIcon} data-icon="play" size={13} />
                   }
                   loading={actionLoading}
                   onClick={() => runAction(row, "start")}
@@ -251,7 +257,7 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
                 size="mini"
                 icon={
                   <HugeiconsIcon
-                    icon={RotateCcw}
+                    icon={RotateLeft01Icon}
                     data-icon="rotate-ccw"
                     size={13}
                   />
@@ -280,7 +286,7 @@ const ContainersSection: React.FC<ContainersSectionProps> = ({
           size="mini"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={13}
               className={spinClass}

@@ -5,8 +5,8 @@
  * (manage_story, manage_work_item, delegate_story) using the same row/detail
  * surfaces as the Project Manager where those components are safe to reuse.
  */
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
+import LayoutListIcon from "@hugeicons/core-free-icons/LayoutListIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -468,7 +468,7 @@ function ProjectReplayContent({ view }: { view: ProjectReplayView }) {
     <div className="scrollbar-overlay flex-1 overflow-y-auto p-4 pb-[100px]">
       <div className="mb-2 flex items-center gap-2 text-[13px] font-medium text-text-1">
         <HugeiconsIcon
-          icon={FileText}
+          icon={File02Icon}
           data-icon="file-text"
           size={14}
           className="text-text-3"
@@ -503,7 +503,7 @@ function buildProjectReplayTabs(
     title: op.resultSummary || operationTypeLabel(op, t),
     icon: (
       <HugeiconsIcon
-        icon={LayoutList}
+        icon={LayoutListIcon}
         data-icon="layout-list"
         size={14}
         className="text-primary-6"
@@ -562,7 +562,7 @@ const SessionReplayProject: React.FC<SimulatorAppProps> = ({
     () => (
       <div className="flex min-w-0 items-center gap-2">
         <HugeiconsIcon
-          icon={LayoutList}
+          icon={LayoutListIcon}
           data-icon="layout-list"
           size={14}
           className="shrink-0 text-text-3"

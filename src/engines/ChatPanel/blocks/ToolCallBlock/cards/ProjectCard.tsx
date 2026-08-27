@@ -1,10 +1,10 @@
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Heart from "@hugeicons/core-free-icons/FavouriteIcon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import FavouriteIcon from "@hugeicons/core-free-icons/FavouriteIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -16,7 +16,7 @@ function getStatusIcon(status: WorkItemStatus | string): React.ReactNode {
     case "in_progress":
       return (
         <HugeiconsIcon
-          icon={Clock}
+          icon={Clock01Icon}
           data-icon="clock"
           size={13}
           className="text-primary-6"
@@ -25,7 +25,7 @@ function getStatusIcon(status: WorkItemStatus | string): React.ReactNode {
     case "done":
       return (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           size={13}
           className="text-success-6"
@@ -34,7 +34,7 @@ function getStatusIcon(status: WorkItemStatus | string): React.ReactNode {
     case "cancelled":
       return (
         <HugeiconsIcon
-          icon={XCircle}
+          icon={CancelCircleIcon}
           data-icon="xcircle"
           size={13}
           className="text-text-4"
@@ -43,7 +43,7 @@ function getStatusIcon(status: WorkItemStatus | string): React.ReactNode {
     default:
       return (
         <HugeiconsIcon
-          icon={Circle}
+          icon={CircleIcon}
           data-icon="circle"
           size={13}
           className="text-text-4"
@@ -89,7 +89,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ card }) => {
     <ToolResultCardFrame>
       <div className="flex items-start gap-2">
         <span className="mt-0.5 shrink-0 text-primary-6">
-          <HugeiconsIcon icon={BookOpen} data-icon="book-open" size={13} />
+          <HugeiconsIcon
+            icon={BookOpen01Icon}
+            data-icon="book-open"
+            size={13}
+          />
         </span>
 
         <div className="min-w-0 flex-1">
@@ -127,7 +131,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ card }) => {
                 <span>·</span>
                 <span className="inline-flex shrink-0 items-center gap-0.5">
                   <HugeiconsIcon
-                    icon={Calendar}
+                    icon={Calendar01Icon}
                     data-icon="calendar"
                     size={10}
                   />
@@ -142,7 +146,11 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ card }) => {
                 <span
                   className={`inline-flex shrink-0 items-center gap-0.5 ${getHealthColor(card.health)}`}
                 >
-                  <HugeiconsIcon icon={Heart} data-icon="heart" size={10} />
+                  <HugeiconsIcon
+                    icon={FavouriteIcon}
+                    data-icon="heart"
+                    size={10}
+                  />
                   {card.health.replace(/_/g, " ")}
                 </span>
               </>

@@ -24,7 +24,7 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import MessageCircleMore from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
+import MessageCircleMoreIcon from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -134,7 +134,7 @@ const QueuedMessages: React.FC<QueuedMessagesProps> = memo(
         <ComposerStackHeader
           icon={
             <HugeiconsIcon
-              icon={MessageCircleMore}
+              icon={MessageCircleMoreIcon}
               data-icon="message-circle-more"
               size={14}
             />

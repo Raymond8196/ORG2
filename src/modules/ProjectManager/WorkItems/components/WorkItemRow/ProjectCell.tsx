@@ -1,5 +1,5 @@
-import BookDashed from "@hugeicons/core-free-icons/Book02Icon";
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Book02Icon from "@hugeicons/core-free-icons/Book02Icon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import {
@@ -36,13 +36,13 @@ export function ProjectCell({
       icon={
         project ? (
           <HugeiconsIcon
-            icon={BookOpen}
+            icon={BookOpen01Icon}
             data-icon="book-open"
             size={DROPDOWN_ITEM.iconSize}
           />
         ) : (
           <HugeiconsIcon
-            icon={BookDashed}
+            icon={Book02Icon}
             data-icon="book-dashed"
             size={DROPDOWN_ITEM.iconSize}
           />
@@ -77,7 +77,7 @@ export function ProjectCell({
                 label={t("workItems.properties.noProject")}
                 icon={
                   <HugeiconsIcon
-                    icon={BookDashed}
+                    icon={Book02Icon}
                     data-icon="book-dashed"
                     size={DROPDOWN_ITEM.iconSize}
                   />
@@ -96,7 +96,7 @@ export function ProjectCell({
                 key={projectItem.id}
                 icon={
                   <HugeiconsIcon
-                    icon={BookOpen}
+                    icon={BookOpen01Icon}
                     data-icon="book-open"
                     size={DROPDOWN_ITEM.iconSize}
                   />

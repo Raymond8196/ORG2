@@ -4,7 +4,7 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { useAtomValue } from "jotai";
@@ -246,7 +246,7 @@ const NotificationsAdvancedBlocks: React.FC = () => {
                 <Button
                   size="default"
                   icon={
-                    <HugeiconsIcon icon={Play} data-icon="play" size={14} />
+                    <HugeiconsIcon icon={PlayIcon} data-icon="play" size={14} />
                   }
                   onClick={() => void handlePreviewSound(soundPreset)}
                   disabled={soundVolume === 0}

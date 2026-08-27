@@ -13,10 +13,10 @@
  * otherwise stacked under the flow title above the description. Reuses
  * commit-history + issue-timeline formatting throughout.
  */
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback, useMemo, useRef } from "react";
@@ -277,7 +277,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         label: t("git.pr.tabs.conversation", "Conversation"),
         icon: (
           <HugeiconsIcon
-            icon={MessagesSquare}
+            icon={MessageMultiple01Icon}
             data-icon="messages-square"
             size={15}
             strokeWidth={1.8}
@@ -290,7 +290,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         label: t("git.pr.tabs.commits", "Commits"),
         icon: (
           <HugeiconsIcon
-            icon={GitCommitHorizontal}
+            icon={GitCommitHorizontalIcon}
             data-icon="git-commit-horizontal"
             size={15}
             strokeWidth={1.8}
@@ -303,7 +303,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         label: t("git.pr.tabs.checks", "Checks"),
         icon: (
           <HugeiconsIcon
-            icon={ListChecks}
+            icon={ListChecksIcon}
             data-icon="list-checks"
             size={15}
             strokeWidth={1.8}
@@ -318,7 +318,7 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
         label: t("git.pr.changes.title", "Files changed"),
         icon: (
           <HugeiconsIcon
-            icon={FileDiff}
+            icon={FileDiffIcon}
             data-icon="file-diff"
             size={15}
             strokeWidth={1.8}

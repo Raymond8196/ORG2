@@ -1,4 +1,4 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, memo } from "react";
 
@@ -108,7 +108,7 @@ const SessionCreatorAgentHero = memo(
                 {name}
               </span>
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={14}
                 strokeWidth={2}

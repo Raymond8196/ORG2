@@ -3,10 +3,10 @@
  *
  * Health status configurations for projects.
  */
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -31,7 +31,7 @@ export const HEALTH_OPTIONS: HealthOption[] = [
     value: "on_track",
     label: "On Track",
     icon: React.createElement(HugeiconsIcon, {
-      icon: CheckCircle2,
+      icon: CheckmarkCircle01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: HEALTH_COLORS.on_track,
@@ -40,7 +40,7 @@ export const HEALTH_OPTIONS: HealthOption[] = [
     value: "at_risk",
     label: "At Risk",
     icon: React.createElement(HugeiconsIcon, {
-      icon: AlertTriangle,
+      icon: Alert01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: HEALTH_COLORS.at_risk,
@@ -49,7 +49,7 @@ export const HEALTH_OPTIONS: HealthOption[] = [
     value: "off_track",
     label: "Off Track",
     icon: React.createElement(HugeiconsIcon, {
-      icon: XCircle,
+      icon: CancelCircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: HEALTH_COLORS.off_track,
@@ -58,7 +58,7 @@ export const HEALTH_OPTIONS: HealthOption[] = [
     value: "no_updates",
     label: "No updates",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Clock,
+      icon: Clock01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: HEALTH_COLORS.no_updates,

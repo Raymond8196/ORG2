@@ -8,11 +8,11 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,14 +90,14 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
         <div className="flex h-[14px] w-[14px] shrink-0 items-center justify-center">
           {isSendingNow ? (
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={14}
               className="animate-spin text-primary-6"
             />
           ) : (
             <HugeiconsIcon
-              icon={Clock}
+              icon={Clock01Icon}
               data-icon="clock"
               size={14}
               className={isEditing ? "text-primary-6" : "text-text-2"}
@@ -121,7 +121,7 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               variant="tertiary"
               size="mini"
               icon={
-                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />
+                <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={12} />
               }
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-text-1"
@@ -133,7 +133,11 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               variant="tertiary"
               size="mini"
               icon={
-                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  data-icon="trash-2"
+                  size={12}
+                />
               }
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-danger-6"
@@ -145,7 +149,11 @@ const QueuedMessageItem: React.FC<QueuedMessageItemProps> = memo(
               variant="tertiary"
               size="mini"
               icon={
-                <HugeiconsIcon icon={ArrowUp} data-icon="arrow-up" size={12} />
+                <HugeiconsIcon
+                  icon={ArrowUp02Icon}
+                  data-icon="arrow-up"
+                  size={12}
+                />
               }
               iconOnly
               className="enabled:hover:bg-fill-3 enabled:hover:text-primary-6"

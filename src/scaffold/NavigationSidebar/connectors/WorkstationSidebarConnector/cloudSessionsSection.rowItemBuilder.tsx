@@ -5,11 +5,11 @@
  * overflow menu with copy-url/remove). Split out because it is the single
  * largest piece of that section's row-construction logic.
  */
-import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import Pin from "@hugeicons/core-free-icons/PinIcon";
-import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
+import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import PinIcon from "@hugeicons/core-free-icons/PinIcon";
+import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
@@ -76,7 +76,7 @@ const RowBusyIndicator: React.FC<{
         </span>
       )}
       <HugeiconsIcon
-        icon={Loader2}
+        icon={Loading03Icon}
         data-icon="loader-2"
         aria-hidden="true"
         className="size-3.5 animate-spin text-text-3"
@@ -135,7 +135,7 @@ export function useCloudSessionRowItemBuilder({
       });
       const sessionIcon =
         isFork && !display.externalSource && !display.agentType
-          ? GitFork
+          ? GitForkIcon
           : resolveAgentIcon(display.agentIconId);
       // Unread discussion messages: the 0014 live-comment counters minus the
       // viewer-local seen watermarks (stamped while the conversation is
@@ -231,7 +231,7 @@ export function useCloudSessionRowItemBuilder({
       );
       const pinIndicator = isPinned ? (
         <HugeiconsIcon
-          icon={Pin}
+          icon={PinIcon}
           data-icon="pin"
           size={11}
           strokeWidth={2}
@@ -282,21 +282,21 @@ export function useCloudSessionRowItemBuilder({
         // standard overflow menu, whether this row is a leaf or thread root.
         item.rowActions = [
           {
-            icon: GitFork,
+            icon: GitForkIcon,
             label: t("cloud.orgPanel.fork"),
             onClick: () => runFork(row),
           },
           // One click on hover, matching a local row: a teammate's session is
           // pinned often enough that burying it in the overflow menu is a tax.
           {
-            icon: isPinned ? PinOff : Pin,
+            icon: isPinned ? PinOffIcon : PinIcon,
             label: isPinned
               ? tCommon("sessions:chat.unpinSession", "Unpin")
               : tCommon("sessions:chat.pinSession", "Pin"),
             onClick: () => toggleRemoteSessionPin(row.orgId, row.id),
           },
           {
-            icon: MoreHorizontal,
+            icon: MoreHorizontalIcon,
             label: tCommon("actions.more"),
             onClick: () => {
               void popupNativeMenu({

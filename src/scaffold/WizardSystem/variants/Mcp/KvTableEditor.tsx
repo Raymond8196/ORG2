@@ -1,7 +1,7 @@
 /**
  * Reusable key-value pair table editor for MCP wizard (env vars, headers).
  */
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
@@ -100,7 +100,7 @@ export const KvTableEditor: React.FC<KvTableEditorProps> = ({
             size="default"
             icon={
               <HugeiconsIcon
-                icon={Trash2}
+                icon={Delete02Icon}
                 data-icon="trash-2"
                 size={14}
                 className="text-danger-6"

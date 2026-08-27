@@ -5,8 +5,8 @@
  * Buffered editing: changes are staged locally and only persisted
  * when the user clicks Save. Cancel discards all pending changes.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -164,7 +164,7 @@ const LabelsSection: React.FC<LabelsSectionProps> = ({
           <span className="text-xs text-text-1">{draft.length}</span>
           <Button
             onClick={handleStartAdd}
-            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+            icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
             iconOnly
             disabled={isAdding}
           />
@@ -214,7 +214,11 @@ const LabelsSection: React.FC<LabelsSectionProps> = ({
               />
               <Button
                 icon={
-                  <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                  <HugeiconsIcon
+                    icon={Delete02Icon}
+                    data-icon="trash-2"
+                    size={14}
+                  />
                 }
                 iconOnly
                 onClick={() => handleDelete(label.id)}

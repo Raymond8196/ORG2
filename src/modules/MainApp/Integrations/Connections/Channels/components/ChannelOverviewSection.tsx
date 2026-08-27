@@ -4,7 +4,7 @@
  * Displays channel overview info using the shared InfoCard pattern.
  * Shows type, account ID, live connection status, and last probe result.
  */
-import ChevronsLeftRightEllipsis from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
+import ChevronsLeftRightEllipsisIcon from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -65,7 +65,7 @@ const ChannelOverviewSection: React.FC<ChannelOverviewSectionProps> = ({
           value: (
             <span className="flex items-center gap-1.5">
               <HugeiconsIcon
-                icon={ChevronsLeftRightEllipsis}
+                icon={ChevronsLeftRightEllipsisIcon}
                 data-icon="chevrons-left-right-ellipsis"
                 size={16}
                 className={colorClass}

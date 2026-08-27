@@ -1,4 +1,4 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
@@ -264,7 +264,7 @@ const SplitButton = forwardRef<HTMLButtonElement, SplitButtonProps>(
             onClick={onMenuButtonClick}
           >
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               size={12}
               aria-hidden

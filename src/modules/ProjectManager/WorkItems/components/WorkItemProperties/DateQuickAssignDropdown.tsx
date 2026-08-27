@@ -1,5 +1,5 @@
-import CalendarDays from "@hugeicons/core-free-icons/Calendar02Icon";
-import CalendarX from "@hugeicons/core-free-icons/CalendarRemove01Icon";
+import Calendar02Icon from "@hugeicons/core-free-icons/Calendar02Icon";
+import CalendarRemove01Icon from "@hugeicons/core-free-icons/CalendarRemove01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { createPortal } from "react-dom";
@@ -74,7 +74,7 @@ function renderOptions(params: {
       <Option
         icon={
           <HugeiconsIcon
-            icon={CalendarX}
+            icon={CalendarRemove01Icon}
             data-icon="calendar-x"
             size={DROPDOWN_ITEM.iconSize}
           />
@@ -88,7 +88,7 @@ function renderOptions(params: {
           key={suggestion.id}
           icon={
             <HugeiconsIcon
-              icon={CalendarDays}
+              icon={Calendar02Icon}
               data-icon="calendar-days"
               size={DROPDOWN_ITEM.iconSize}
             />

@@ -12,8 +12,8 @@
  * Size tokens for sm/md are sourced from CompoundPill/config to stay in sync
  * with the CompoundPill segment dimensions.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
@@ -131,7 +131,7 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
               )}
               {active ? (
                 <HugeiconsIcon
-                  icon={ChevronUp}
+                  icon={ArrowUp01Icon}
                   data-icon="chevron-up"
                   size={iconSize}
                   strokeWidth={1.75}
@@ -145,7 +145,7 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
                 </span>
               ) : (
                 <HugeiconsIcon
-                  icon={ChevronDown}
+                  icon={ArrowDown01Icon}
                   data-icon="chevron-down"
                   size={iconSize}
                   strokeWidth={1.75}
@@ -178,14 +178,14 @@ const SelectorPillContent: React.FC<SelectorPillContentProps> = ({
         >
           {active ? (
             <HugeiconsIcon
-              icon={ChevronUp}
+              icon={ArrowUp01Icon}
               data-icon="chevron-up"
               size={14}
               strokeWidth={2}
             />
           ) : (
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               size={14}
               strokeWidth={2}

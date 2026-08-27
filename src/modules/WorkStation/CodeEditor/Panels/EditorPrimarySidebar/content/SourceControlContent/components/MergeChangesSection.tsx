@@ -3,8 +3,8 @@
  *
  * Displays merge conflict files with warning styling
  */
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -64,7 +64,7 @@ export const MergeChangesSection: React.FC<MergeChangesSectionProps> = memo(
           warningCountOnly={true}
           icon={
             <HugeiconsIcon
-              icon={AlertTriangle}
+              icon={Alert01Icon}
               data-icon="alert-triangle"
               size={14}
               className="text-warning-6"
@@ -83,7 +83,7 @@ export const MergeChangesSection: React.FC<MergeChangesSectionProps> = memo(
                 title={t("workstation.acceptAllMergeChanges")}
               >
                 <HugeiconsIcon
-                  icon={Check}
+                  icon={Tick01Icon}
                   data-icon="check"
                   size={14}
                   strokeWidth={1.75}

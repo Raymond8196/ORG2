@@ -1,4 +1,4 @@
-import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
+import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
@@ -84,7 +84,7 @@ export function WorkManagementAssigneeCell({
     </Avatar>
   ) : (
     <HugeiconsIcon
-      icon={UserRound}
+      icon={UserCircleIcon}
       data-icon="user-round"
       size={14}
       strokeWidth={1.8}
@@ -147,7 +147,7 @@ export function WorkManagementAssigneeCell({
               <Option
                 icon={
                   <HugeiconsIcon
-                    icon={UserRound}
+                    icon={UserCircleIcon}
                     data-icon="user-round"
                     size={14}
                     strokeWidth={1.8}

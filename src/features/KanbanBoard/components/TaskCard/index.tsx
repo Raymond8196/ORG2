@@ -4,8 +4,8 @@
  * Individual task card displayed in Kanban columns.
  * Shows task information with priority, tags, and metadata.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -97,7 +97,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
       {task.orgName && (
         <div className="kanban-task-card__chat-tag">
           <HugeiconsIcon
-            icon={MessagesSquare}
+            icon={MessageMultiple01Icon}
             data-icon="messages-square"
             size={12}
             strokeWidth={1.75}
@@ -208,7 +208,7 @@ const TaskCard: React.FC<TaskCardProps> = ({
         {onClick && (
           <div className="kanban-task-card__footer-right">
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={14}
               className="text-text-3"

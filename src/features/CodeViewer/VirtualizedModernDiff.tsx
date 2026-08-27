@@ -9,7 +9,7 @@
  * - Smooth scrolling for any file size
  * - All features from ModernDiff (cherry-picking, syntax highlighting, etc.)
  */
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef } from "react";
 import { Components, Virtuoso, VirtuosoHandle } from "react-virtuoso";
@@ -242,7 +242,7 @@ const VirtualizedModernDiffComponent: React.FC<ModernDiffProps> = ({
               >
                 {allSelected && (
                   <HugeiconsIcon
-                    icon={Check}
+                    icon={Tick01Icon}
                     data-icon="check"
                     size={12}
                     strokeWidth={3}

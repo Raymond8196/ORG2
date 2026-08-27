@@ -5,15 +5,15 @@
  * selector, current time-range label, and previous / next / last-round
  * buttons.
  */
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ClockArrowDown from "@hugeicons/core-free-icons/ClockArrowDownIcon";
-import ClockArrowUp from "@hugeicons/core-free-icons/ClockArrowUpIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import AiNetworkIcon from "@hugeicons/core-free-icons/AiNetworkIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ClockArrowDownIcon from "@hugeicons/core-free-icons/ClockArrowDownIcon";
+import ClockArrowUpIcon from "@hugeicons/core-free-icons/ClockArrowUpIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { createPortal } from "react-dom";
@@ -225,7 +225,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                 title={t("sessions:planner.agentOrgOverview.title")}
                 icon={
                   <HugeiconsIcon
-                    icon={Network}
+                    icon={AiNetworkIcon}
                     data-icon="network"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
@@ -260,7 +260,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                 <span className="truncate">{currentAgentNameLabel}</span>
                 {canSwitchAgentOrgMember && (
                   <HugeiconsIcon
-                    icon={ChevronDown}
+                    icon={ArrowDown01Icon}
                     data-icon="chevron-down"
                     size={DROPDOWN_ITEM.iconSize}
                     className={`${SELECT_CHEVRON_CLASS} ${
@@ -400,14 +400,14 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                   <span className="truncate">{currentTurnPageLabel}</span>
                   {showTurnPaginationSpinner ? (
                     <HugeiconsIcon
-                      icon={Loader2}
+                      icon={Loading03Icon}
                       data-icon="loader-2"
                       size={DROPDOWN_ITEM.iconSize}
                       className="shrink-0 animate-spin text-text-3"
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={ChevronDown}
+                      icon={ArrowDown01Icon}
                       data-icon="chevron-down"
                       size={DROPDOWN_ITEM.iconSize}
                       className={`${SELECT_CHEVRON_CLASS} ${
@@ -459,14 +459,14 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         icon={
                           turnPageSortAscending ? (
                             <HugeiconsIcon
-                              icon={ClockArrowDown}
+                              icon={ClockArrowDownIcon}
                               data-icon="clock-arrow-down"
                               size={DROPDOWN_ITEM.iconSize}
                               strokeWidth={1.75}
                             />
                           ) : (
                             <HugeiconsIcon
-                              icon={ClockArrowUp}
+                              icon={ClockArrowUpIcon}
                               data-icon="clock-arrow-up"
                               size={DROPDOWN_ITEM.iconSize}
                               strokeWidth={1.75}
@@ -496,7 +496,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         aria-label={t("common:actions.close")}
                         icon={
                           <HugeiconsIcon
-                            icon={X}
+                            icon={Cancel01Icon}
                             data-icon="x"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
@@ -530,7 +530,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         aria-label={t("common:pagination.previousRound")}
                         icon={
                           <HugeiconsIcon
-                            icon={ChevronLeft}
+                            icon={ArrowLeft01Icon}
                             data-icon="chevron-left"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
@@ -564,7 +564,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         aria-label={t("common:pagination.nextRound")}
                         icon={
                           <HugeiconsIcon
-                            icon={ChevronRight}
+                            icon={ArrowRight01Icon}
                             data-icon="chevron-right"
                             size={DROPDOWN_ITEM.iconSize}
                             strokeWidth={1.75}
@@ -598,7 +598,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                         aria-label={t("common:pagination.latestRound")}
                         icon={
                           <HugeiconsIcon
-                            icon={ChevronsRight}
+                            icon={ArrowRightDoubleIcon}
                             data-icon="chevrons-right"
                             size={18}
                             strokeWidth={1.75}

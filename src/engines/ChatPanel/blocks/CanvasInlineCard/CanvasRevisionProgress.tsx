@@ -1,5 +1,5 @@
-import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
-import PenTool from "@hugeicons/core-free-icons/PenTool01Icon";
+import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
+import PenTool01Icon from "@hugeicons/core-free-icons/PenTool01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -50,13 +50,13 @@ const CanvasRevisionProgress: React.FC<CanvasRevisionProgressProps> = ({
     >
       <span className="relative flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary-2 text-primary-6">
         <HugeiconsIcon
-          icon={PenTool}
+          icon={PenTool01Icon}
           data-icon="pen-tool"
           size={13}
           aria-hidden
         />
         <HugeiconsIcon
-          icon={LoaderCircle}
+          icon={LoaderCircleIcon}
           data-icon="loader-circle"
           size={27}
           aria-hidden

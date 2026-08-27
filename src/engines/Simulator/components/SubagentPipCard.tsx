@@ -12,12 +12,12 @@
  * Clicking the expand button (↗) on the banner header restores the full
  * BackgroundTasksApp panel.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -470,14 +470,14 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
             icon={
               isAnyExpanded ? (
                 <HugeiconsIcon
-                  icon={ArrowLeft}
+                  icon={ArrowLeft02Icon}
                   data-icon="arrow-left"
                   size={14}
                   strokeWidth={2}
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={ChevronDown}
+                  icon={ArrowDown01Icon}
                   data-icon="chevron-down"
                   size={14}
                   strokeWidth={2}
@@ -518,7 +518,7 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
                   title={t("common:actions.previous")}
                   icon={
                     <HugeiconsIcon
-                      icon={ChevronLeft}
+                      icon={ArrowLeft01Icon}
                       data-icon="chevron-left"
                       size={16}
                       strokeWidth={1.75}
@@ -535,7 +535,7 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
                   title={t("common:actions.next")}
                   icon={
                     <HugeiconsIcon
-                      icon={ChevronRight}
+                      icon={ArrowRight01Icon}
                       data-icon="chevron-right"
                       size={16}
                       strokeWidth={1.75}
@@ -558,14 +558,14 @@ const SubagentPipCard: React.FC<SubagentPipCardProps> = ({
               icon={
                 gridExpanded ? (
                   <HugeiconsIcon
-                    icon={Minimize2}
+                    icon={ArrowShrink01Icon}
                     data-icon="minimize-2"
                     size={14}
                     strokeWidth={1.75}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={Maximize2}
+                    icon={ArrowExpand01Icon}
                     data-icon="maximize-2"
                     size={14}
                     strokeWidth={1.75}

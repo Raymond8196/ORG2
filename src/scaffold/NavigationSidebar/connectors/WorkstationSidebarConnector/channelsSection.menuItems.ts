@@ -11,13 +11,13 @@
  * row's discussion-channel tab, and the row takes the ordinary selected state
  * while that tab is active.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
+import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { MouseEvent } from "react";
@@ -105,7 +105,7 @@ export function buildChannelsSectionHeader({
   if (showCreateAction) {
     header.rowActions = [
       {
-        icon: Plus,
+        icon: Add01Icon,
         label: createLabel,
         dataTestId: createTestId,
         onClick: onCreateClick,
@@ -163,7 +163,7 @@ export function buildCreateFirstChannelRow({
     id,
     key: id,
     label,
-    icon: Plus,
+    icon: Add01Icon,
     dataTestId,
     visualTone: "secondary",
   };
@@ -184,7 +184,7 @@ export function buildArchivedChannelsGroup({
   dataTestId: string;
   children: NavigationMenuItem[];
 }): NavigationMenuItem {
-  return { id, key: id, label, icon: Archive, dataTestId, children };
+  return { id, key: id, label, icon: ArchiveIcon, dataTestId, children };
 }
 
 export type ChannelRowActionKind =
@@ -252,7 +252,7 @@ function buildChannelRow(
     id: buildCloudChannelRowId(orgId, channel.id),
     name: channel.name,
     topic: channel.topic,
-    icon: channel.visibility === "private" ? Lock : Hash,
+    icon: channel.visibility === "private" ? LockIcon : HashtagIcon,
     dataTestId: `sidebar-cloud-channel-${channel.id}`,
     rowActions,
   });
@@ -289,7 +289,7 @@ export function buildCloudChannelsMenuItems({
     items.push(
       buildChannelRow(channel, orgId, [
         {
-          icon: MoreHorizontal,
+          icon: MoreHorizontalIcon,
           label: tCommon("actions.more"),
           dataTestId: `cloud-channel-more-${channel.id}`,
           onClick: () => onOpenChannelMenu(channel, kinds),
@@ -337,14 +337,14 @@ export function buildCloudChannelsMenuItems({
           ).map((kind): NavigationMenuRowAction => {
             if (kind === "unarchive") {
               return {
-                icon: ArchiveRestore,
+                icon: ArchiveArrowUpIcon,
                 label: t("cloud.channels.unarchive"),
                 dataTestId: `cloud-channel-unarchive-${channel.id}`,
                 onClick: () => onUnarchive(channel),
               };
             }
             return {
-              icon: Trash2,
+              icon: Delete02Icon,
               label: t("cloud.channels.deleteAction"),
               dataTestId: `cloud-channel-delete-${channel.id}`,
               onClick: () => onDeleteChannel(channel),

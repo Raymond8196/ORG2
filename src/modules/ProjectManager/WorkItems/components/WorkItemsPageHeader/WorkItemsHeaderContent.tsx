@@ -1,7 +1,7 @@
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 
@@ -110,7 +110,7 @@ export function WorkItemsHeaderContent({
             aria-label={t("common:actions.search")}
             icon={
               <HugeiconsIcon
-                icon={Search}
+                icon={Search01Icon}
                 data-icon="search"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -140,7 +140,7 @@ export function WorkItemsHeaderContent({
                 aria-label={t("common:actions.collapseAll")}
                 icon={
                   <HugeiconsIcon
-                    icon={ListChevronsDownUp}
+                    icon={ListChevronsDownUpIcon}
                     data-icon="list-chevrons-down-up"
                     size={HEADER_ICON_SIZE.md}
                   />
@@ -159,7 +159,7 @@ export function WorkItemsHeaderContent({
                 aria-label={t("common:actions.refresh")}
                 icon={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={HEADER_ICON_SIZE.sm}
                     strokeWidth={2}
@@ -193,7 +193,7 @@ export function WorkItemsHeaderContent({
               aria-label={propertiesLabel}
               icon={
                 <HugeiconsIcon
-                  icon={Info}
+                  icon={InformationCircleIcon}
                   data-icon="info"
                   size={HEADER_ICON_SIZE.sm}
                 />

@@ -1,13 +1,13 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
-import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
-import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
-import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
-import Sun from "@hugeicons/core-free-icons/Sun01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
+import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
+import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
+import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
+import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
+import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -290,7 +290,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               }
             >
               <HoverAnimatedIcon
-                icon={Settings}
+                icon={Settings01Icon}
                 iconName="settings"
                 size={16}
                 strokeWidth={2}
@@ -325,7 +325,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                     data-testid="sidebar-menu-sign-in"
                   >
                     <HugeiconsIcon
-                      icon={LogIn}
+                      icon={Login01Icon}
                       data-icon="log-in"
                       size={DROPDOWN_ITEM.iconSize}
                       className={MENU_ICON_CLASS_NAME}
@@ -344,7 +344,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={MousePointer2}
+                    icon={Cursor02Icon}
                     data-icon="mouse-pointer-2"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
@@ -368,7 +368,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   onClick={handleViewRam}
                 >
                   <HugeiconsIcon
-                    icon={Gauge}
+                    icon={GaugeIcon}
                     data-icon="gauge"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
@@ -388,7 +388,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                 onClick={handleOpenTutorials}
               >
                 <HugeiconsIcon
-                  icon={HelpCircle}
+                  icon={HelpCircleIcon}
                   data-icon="help-circle"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ICON_CLASS_NAME}
@@ -408,7 +408,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={Circle}
+                    icon={CircleIcon}
                     data-icon="circle"
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0 text-success-6"
@@ -418,7 +418,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   </span>
                 </span>
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
@@ -436,7 +436,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={Sun}
+                    icon={Sun01Icon}
                     data-icon="sun"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
@@ -446,7 +446,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   </span>
                 </span>
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
@@ -464,7 +464,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={MessageCircle}
+                    icon={BubbleChatIcon}
                     data-icon="message-circle"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
@@ -474,7 +474,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   </span>
                 </span>
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
@@ -492,7 +492,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={Laptop}
+                    icon={LaptopIcon}
                     data-icon="laptop"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
@@ -502,7 +502,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   </span>
                 </span>
                 <HugeiconsIcon
-                  icon={ChevronRight}
+                  icon={ArrowRight01Icon}
                   data-icon="chevron-right"
                   size={DROPDOWN_ITEM.iconSize}
                   className={MENU_ARROW_CLASS_NAME}
@@ -518,7 +518,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={Settings}
+                    icon={Settings01Icon}
                     data-icon="settings"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}

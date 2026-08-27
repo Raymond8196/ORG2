@@ -3,9 +3,9 @@
  *
  * Constants and configuration for the search editor tab
  */
-import Blend from "@hugeicons/core-free-icons/BlendIcon";
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import BlendIcon from "@hugeicons/core-free-icons/BlendIcon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import type { SearchMode } from "./types";
@@ -28,7 +28,7 @@ export const SEARCH_MODES: SearchModeConfig[] = [
     id: "regex",
     label: "Regex Search",
     shortLabel: "Regex",
-    icon: Search,
+    icon: Search01Icon,
     description: "Fast literal text search using ripgrep",
     color: "text-text-3",
   },
@@ -36,7 +36,7 @@ export const SEARCH_MODES: SearchModeConfig[] = [
     id: "semantic",
     label: "Semantic Search",
     shortLabel: "Semantic",
-    icon: Brain,
+    icon: BrainIcon,
     description: "Embedding-based meaning search",
     color: "text-text-3",
   },
@@ -44,7 +44,7 @@ export const SEARCH_MODES: SearchModeConfig[] = [
     id: "hybrid",
     label: "Hybrid Search",
     shortLabel: "Hybrid",
-    icon: Blend,
+    icon: BlendIcon,
     description: "Combined semantic and full-text search",
     color: "text-text-3",
   },

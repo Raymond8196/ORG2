@@ -1,4 +1,4 @@
-import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
+import AiGenerativeIcon from "@hugeicons/core-free-icons/AiGenerativeIcon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
@@ -160,7 +160,7 @@ export const AgentControlPalette: React.FC<AgentControlPaletteProps> = ({
         placeholder={palette.placeholder}
         inputTrailingSlot={inputTrailingSlot}
         contentOverride={null}
-        inputIcon={DraftingCompass}
+        inputIcon={AiGenerativeIcon}
       />
       {palette.showStatusLine && (
         <AgentControlStatus

@@ -11,11 +11,11 @@
  * - Intersection observer for lazy syntax highlighting
  * - Virtual scrolling for large code blocks (>100 lines)
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
-import EyeOff from "@hugeicons/core-free-icons/ViewOffIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
+import ViewOffIcon from "@hugeicons/core-free-icons/ViewOffIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -357,7 +357,7 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                     onClick={handleOpenFile}
                   >
                     <HugeiconsIcon
-                      icon={SquareArrowOutUpRight}
+                      icon={SquareArrowUpRightIcon}
                       data-icon="square-arrow-out-up-right"
                       size={14}
                       strokeWidth={1.75}
@@ -385,14 +385,14 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   >
                     {copied ? (
                       <HugeiconsIcon
-                        icon={Check}
+                        icon={Tick01Icon}
                         data-icon="check"
                         size={14}
                         strokeWidth={1.75}
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={Copy}
+                        icon={Copy01Icon}
                         data-icon="copy"
                         size={14}
                         strokeWidth={1.75}
@@ -425,12 +425,16 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   >
                     {isPreviewOpen ? (
                       <HugeiconsIcon
-                        icon={EyeOff}
+                        icon={ViewOffIcon}
                         data-icon="eye-off"
                         size={11}
                       />
                     ) : (
-                      <HugeiconsIcon icon={Eye} data-icon="eye" size={11} />
+                      <HugeiconsIcon
+                        icon={ViewIcon}
+                        data-icon="eye"
+                        size={11}
+                      />
                     )}
                     {t("codePreview.preview")}
                   </button>
@@ -452,7 +456,7 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   onClick={handleOpenFile}
                 >
                   <HugeiconsIcon
-                    icon={SquareArrowOutUpRight}
+                    icon={SquareArrowUpRightIcon}
                     data-icon="square-arrow-out-up-right"
                     size={14}
                     strokeWidth={1.75}
@@ -477,14 +481,14 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                 >
                   {copied ? (
                     <HugeiconsIcon
-                      icon={Check}
+                      icon={Tick01Icon}
                       data-icon="check"
                       size={14}
                       strokeWidth={1.75}
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={Copy}
+                      icon={Copy01Icon}
                       data-icon="copy"
                       size={14}
                       strokeWidth={1.75}

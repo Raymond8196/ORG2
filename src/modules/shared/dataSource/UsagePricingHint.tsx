@@ -1,4 +1,4 @@
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -87,7 +87,7 @@ export default function UsagePricingHint({
     return (
       <span className="flex items-center gap-1.5 text-[11px] text-text-3">
         <HugeiconsIcon
-          icon={Loader2}
+          icon={Loading03Icon}
           data-icon="loader-2"
           className="h-3 w-3 animate-spin"
         />

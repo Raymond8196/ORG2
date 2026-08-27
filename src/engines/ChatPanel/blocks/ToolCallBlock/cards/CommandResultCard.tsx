@@ -1,6 +1,6 @@
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -23,7 +23,7 @@ const CommandResultCard: React.FC<CommandResultCardProps> = ({ card }) => {
       {/* Header row: command + exit status */}
       <div className="flex items-center gap-2 border-b border-fill-4 px-3 py-2">
         <HugeiconsIcon
-          icon={Terminal}
+          icon={ComputerTerminal01Icon}
           data-icon="terminal"
           size={12}
           className="shrink-0 text-text-4"
@@ -36,12 +36,16 @@ const CommandResultCard: React.FC<CommandResultCardProps> = ({ card }) => {
         >
           {isSuccess ? (
             <HugeiconsIcon
-              icon={CheckCircle2}
+              icon={CheckmarkCircle01Icon}
               data-icon="check-circle-2"
               size={11}
             />
           ) : (
-            <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={11} />
+            <HugeiconsIcon
+              icon={CancelCircleIcon}
+              data-icon="xcircle"
+              size={11}
+            />
           )}
           {isSuccess ? "0" : String(card.exitCode)}
         </span>

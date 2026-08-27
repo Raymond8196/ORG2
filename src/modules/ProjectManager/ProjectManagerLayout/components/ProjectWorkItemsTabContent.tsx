@@ -1,4 +1,4 @@
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -549,7 +549,7 @@ export const ProjectWorkItemsTabContent: React.FC<
         breadcrumbSegments={breadcrumbSegments}
         identityIcon={
           <HugeiconsIcon
-            icon={ListTodo}
+            icon={ListTodoIcon}
             data-icon="list-todo"
             size={HEADER_ICON_SIZE.sm}
             strokeWidth={1.75}

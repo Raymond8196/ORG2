@@ -4,9 +4,9 @@
  * These functions take already-loaded data from useProviderRegistry hook.
  * They do NOT fetch data themselves — the caller must provide the data.
  */
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import Cog from "@hugeicons/core-free-icons/CogIcon";
-import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import CogIcon from "@hugeicons/core-free-icons/CogIcon";
+import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -53,7 +53,7 @@ function variantIconNode(
   if (variant.mode === "api_key") {
     return (
       <HugeiconsIcon
-        icon={KeyRound}
+        icon={Key02Icon}
         data-icon="key-round"
         size={size}
         className="shrink-0 text-text-3"
@@ -62,7 +62,7 @@ function variantIconNode(
   }
   return (
     <HugeiconsIcon
-      icon={Calendar}
+      icon={Calendar01Icon}
       data-icon="calendar"
       size={size}
       className="shrink-0 text-text-3"
@@ -94,7 +94,7 @@ export function providerIconNode(
   if (providerUsesGlyphIcon(provider)) {
     return (
       <HugeiconsIcon
-        icon={Cog}
+        icon={CogIcon}
         data-icon="cog"
         size={size}
         className="shrink-0 text-text-3"
@@ -160,7 +160,7 @@ export function buildVariantGridOptions(
     return {
       key: variant.modelType,
       label,
-      icon: variant.mode === "api_key" ? KeyRound : Calendar,
+      icon: variant.mode === "api_key" ? Key02Icon : Calendar01Icon,
     };
   });
 }

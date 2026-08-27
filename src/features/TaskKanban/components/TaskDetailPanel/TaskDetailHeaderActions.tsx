@@ -1,7 +1,7 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -56,7 +56,7 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
         title={t("kanban.replay.replaySession")}
         icon={
           <HugeiconsIcon
-            icon={Play}
+            icon={PlayIcon}
             data-icon="play"
             size={14}
             fill="currentColor"
@@ -81,7 +81,7 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
             aria-label={mergeButtonTitle}
             icon={
               <HugeiconsIcon
-                icon={GitMerge}
+                icon={GitMergeIcon}
                 data-icon="git-merge"
                 size={14}
                 strokeWidth={1.75}
@@ -98,7 +98,7 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
             aria-label={t("kanban.merge.strategyLabel")}
             icon={
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={14}
                 strokeWidth={1.75}
@@ -134,7 +134,7 @@ const TaskDetailHeaderActions: React.FC<TaskDetailHeaderActionsProps> = ({
           aria-label={t("common:actions.delete")}
           icon={
             <HugeiconsIcon
-              icon={Trash2}
+              icon={Delete02Icon}
               data-icon="trash-2"
               size={14}
               strokeWidth={1.75}

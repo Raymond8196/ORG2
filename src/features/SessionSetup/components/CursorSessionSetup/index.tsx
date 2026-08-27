@@ -7,11 +7,11 @@
  * 2. Native OAuth token is captured automatically.
  * 3. Browser collapses back into the wizard.
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   type MouseEvent,
@@ -205,7 +205,7 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
             <div className="rounded-lg border border-success-3 bg-success-1 px-3 py-2">
               <div className="flex items-start gap-2">
                 <HugeiconsIcon
-                  icon={CheckCircle}
+                  icon={CheckmarkCircle01Icon}
                   data-icon="check-circle"
                   size={15}
                   className="mt-0.5 shrink-0 text-success-6"
@@ -233,7 +233,7 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={12}
                 />
@@ -244,7 +244,9 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
             <Button
               variant="tertiary"
               size="mini"
-              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
+              }
               iconOnly
               onClick={handleCloseBrowser}
             />
@@ -277,7 +279,7 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
             {isLoading && (
               <div className="absolute inset-0 flex items-center justify-center bg-bg-1">
                 <HugeiconsIcon
-                  icon={Loader2}
+                  icon={Loading03Icon}
                   data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   className="animate-spin text-primary-6"
@@ -290,7 +292,7 @@ const CursorSessionSetup: React.FC<CursorSessionSetupProps> = ({
             {error && (
               <div className="absolute inset-0 flex flex-col items-center justify-center bg-bg-1 p-6 text-center">
                 <HugeiconsIcon
-                  icon={AlertCircle}
+                  icon={AlertCircleIcon}
                   data-icon="alert-circle"
                   size={32}
                   className="mb-3 text-danger-6"

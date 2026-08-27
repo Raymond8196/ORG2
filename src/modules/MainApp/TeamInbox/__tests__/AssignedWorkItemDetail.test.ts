@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -288,7 +288,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     expect(React.isValidElement(openIcon)).toBe(true);
     expect(
       (openIcon as React.ReactElement<{ icon?: unknown }>).props.icon
-    ).toBe(SquareArrowOutUpRight);
+    ).toBe(SquareArrowUpRightIcon);
     const browserAction = mocks.detailLayoutProps?.headerAuxiliaryAction as
       | {
           label: string;
@@ -298,7 +298,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
         }
       | undefined;
     expect(browserAction?.label).toBe("previews.openInExternalBrowser");
-    expect(browserAction?.icon.props.icon).toBe(Chrome);
+    expect(browserAction?.icon.props.icon).toBe(InternetIcon);
     expect(browserAction?.testId).toBe("team-inbox-open-github");
     const headerContent = mocks.detailLayoutProps?.headerContent;
     expect(React.isValidElement(headerContent)).toBe(true);
@@ -479,7 +479,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     expect(React.isValidElement(openIcon)).toBe(true);
     expect(
       (openIcon as React.ReactElement<{ icon?: unknown }>).props.icon
-    ).toBe(SquareArrowOutUpRight);
+    ).toBe(SquareArrowUpRightIcon);
     act(() => {
       (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
     });

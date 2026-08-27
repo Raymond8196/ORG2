@@ -1,6 +1,6 @@
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -488,7 +488,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
               loading={refreshing}
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={14}
                 />
@@ -553,7 +553,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
                     >
                       <div className="flex min-w-0 items-start gap-2.5">
                         <HugeiconsIcon
-                          icon={AlertTriangle}
+                          icon={Alert01Icon}
                           data-icon="alert-triangle"
                           size={16}
                           className="mt-0.5 shrink-0 text-warning-6"
@@ -582,7 +582,7 @@ const SessionProvenanceHookPlatformsTable: React.FC = () => {
                           size="small"
                           icon={
                             <HugeiconsIcon
-                              icon={Terminal}
+                              icon={ComputerTerminal01Icon}
                               data-icon="terminal"
                               size={14}
                             />

@@ -1,13 +1,13 @@
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import MessageSquareMore from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import MessageSquareMoreIcon from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, {
   type ReactNode,
@@ -85,10 +85,10 @@ interface TeamInboxFilterControl {
 }
 
 const PULL_REQUEST_ICONS: Record<PrStatusIconName, IconSvgElement> = {
-  "pull-request": GitPullRequest,
-  merge: GitMerge,
-  closed: GitPullRequestClosed,
-  draft: GitPullRequestDraft,
+  "pull-request": GitPullRequestIcon,
+  merge: GitMergeIcon,
+  closed: GitPullRequestClosedIcon,
+  draft: GitPullRequestDraftIcon,
 };
 
 interface TeamInboxPullRequestSections {
@@ -286,7 +286,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         label: t("teamInbox.filters.all"),
         icon: (
           <HugeiconsIcon
-            icon={Inbox}
+            icon={InboxIcon}
             data-icon="inbox"
             size={14}
             strokeWidth={1.8}
@@ -301,7 +301,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         label: t("teamInbox.filters.mentions"),
         icon: (
           <HugeiconsIcon
-            icon={MessageSquareMore}
+            icon={MessageSquareMoreIcon}
             data-icon="message-square-more"
             size={14}
             strokeWidth={1.8}
@@ -316,7 +316,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
         label: t("teamInbox.filters.assigned"),
         icon: (
           <HugeiconsIcon
-            icon={ListChecks}
+            icon={ListChecksIcon}
             data-icon="list-checks"
             size={14}
             strokeWidth={1.8}
@@ -461,7 +461,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 {...PANEL_HEADER_TOKENS.actionButton}
                 icon={
                   <HugeiconsIcon
-                    icon={CheckCheck}
+                    icon={TickDouble01Icon}
                     data-icon="check-check"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -480,7 +480,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                 size="small"
                 icon={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={14}
                     strokeWidth={2}
@@ -599,7 +599,7 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                     size="small"
                     icon={
                       <HugeiconsIcon
-                        icon={Info}
+                        icon={InformationCircleIcon}
                         data-icon="info"
                         size={14}
                         strokeWidth={1.8}

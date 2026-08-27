@@ -9,10 +9,10 @@
  * Work Item properties rail. The host mounts it beside the detail tabs, or
  * stacks it under the flow title when the pane is too narrow for two columns.
  */
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -172,7 +172,7 @@ function ReviewerStateIndicator({
           className="inline-flex"
         >
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={14}
             strokeWidth={2}
@@ -187,7 +187,7 @@ function ReviewerStateIndicator({
           className="inline-flex"
         >
           <HugeiconsIcon
-            icon={XCircle}
+            icon={CancelCircleIcon}
             data-icon="xcircle"
             size={14}
             strokeWidth={1.9}
@@ -209,7 +209,7 @@ function ReviewerStateIndicator({
           className="inline-flex"
         >
           <HugeiconsIcon
-            icon={MessageCircle}
+            icon={BubbleChatIcon}
             data-icon="message-circle"
             size={14}
             strokeWidth={1.9}
@@ -427,7 +427,7 @@ export const PrSidebar: React.FC<PrSidebarProps> = ({
         data-testid={config.dataTestId}
       >
         <HugeiconsIcon
-          icon={Settings}
+          icon={Settings01Icon}
           data-icon="settings"
           size={14}
           strokeWidth={1.75}

@@ -8,7 +8,7 @@
  *
  * Rendered as a compact quick-action list: icon, label, and keyboard hint.
  */
-import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useMemo } from "react";
@@ -110,7 +110,7 @@ export const WorkStationStartPage: React.FC = memo(() => {
           {hasActiveSession ? (
             <>
               <StartActionRow
-                icon={InfinityIcon}
+                icon={Infinity01Icon}
                 label={t("spotlightActions.openAgentStation")}
                 shortcut={getShortcutKeys("open_agent_station")}
                 onClick={() => setStationMode("agent-station")}

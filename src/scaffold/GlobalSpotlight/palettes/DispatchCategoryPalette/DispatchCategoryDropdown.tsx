@@ -9,8 +9,8 @@
  * The active variant is selected by the `general.modelPickerStyle`
  * setting and dispatched from the caller (e.g. SessionCreator).
  */
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -64,7 +64,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({ item, keyboardProps }) => {
     if (isCurrent) {
       return (
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
@@ -233,7 +233,7 @@ export const DispatchCategoryDropdown: React.FC<
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
         <HugeiconsIcon
-          icon={Search}
+          icon={Search01Icon}
           data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"

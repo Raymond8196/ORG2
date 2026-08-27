@@ -4,8 +4,8 @@
  * Reusable collapsible section header for source control sections
  * (Merge Changes, Staged Changes, Changes)
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -70,14 +70,14 @@ export const SectionHeader: React.FC<SectionHeaderProps> = memo(
         >
           {isCollapsed ? (
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={14}
               className={useWarningText ? "text-warning-6" : "text-text-3"}
             />
           ) : (
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               size={14}
               className={useWarningText ? "text-warning-6" : "text-text-3"}

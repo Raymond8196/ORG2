@@ -3,7 +3,7 @@
  *
  * Search input component for sidebars with optional action buttons.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -74,7 +74,7 @@ const SidebarSearch: React.FC<SidebarSearchProps> = ({
           >
             {action.loading ? (
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={14}
                 strokeWidth={2}

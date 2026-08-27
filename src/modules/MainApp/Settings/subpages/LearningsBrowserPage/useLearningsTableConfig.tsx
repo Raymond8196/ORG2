@@ -1,4 +1,4 @@
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
@@ -193,7 +193,7 @@ export function useLearningsTableConfig({
                   onClick={() => handleDelete(row)}
                   icon={
                     <HugeiconsIcon
-                      icon={Trash2}
+                      icon={Delete02Icon}
                       data-icon="trash-2"
                       size={14}
                     />

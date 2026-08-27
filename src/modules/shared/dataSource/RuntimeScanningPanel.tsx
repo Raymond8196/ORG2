@@ -19,7 +19,7 @@
  * live in `buildRuntimeScanningPanelColumns`. This file wires that state to
  * the tab/search UI and the table/expandable-row layout.
  */
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
@@ -221,7 +221,7 @@ const RuntimeScanningPanel: React.FC = () => {
                 disabled={!externalSessionsEnabled}
                 icon={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={14}
                   />

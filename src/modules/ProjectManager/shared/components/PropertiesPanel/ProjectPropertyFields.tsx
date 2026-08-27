@@ -6,9 +6,9 @@
  *
  * Meant to be rendered inside a <PropertiesPanel> shell.
  */
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 
@@ -315,7 +315,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
             <FieldRow
               icon={
                 <HugeiconsIcon
-                  icon={Calendar}
+                  icon={Calendar01Icon}
                   data-icon="calendar"
                   size={DROPDOWN_ITEM.iconSize}
                 />
@@ -350,7 +350,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
             <FieldRow
               icon={
                 <HugeiconsIcon
-                  icon={Calendar}
+                  icon={Calendar01Icon}
                   data-icon="calendar"
                   size={DROPDOWN_ITEM.iconSize}
                 />
@@ -394,7 +394,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
                     className={`${DROPDOWN_ITEM.iconSizeClass} shrink-0 text-primary-6`}
                   >
                     <HugeiconsIcon
-                      icon={Circle}
+                      icon={CircleIcon}
                       data-icon="circle"
                       size={DROPDOWN_ITEM.iconSize}
                     />
@@ -416,7 +416,7 @@ const ProjectPropertyFields: React.FC<ProjectPropertyFieldsProps> = ({
             iconOnly
             icon={
               <HugeiconsIcon
-                icon={ListChevronsUpDown}
+                icon={ListChevronsDownUpIcon}
                 data-icon="list-chevrons-up-down"
                 size={DROPDOWN_ITEM.iconSize}
               />

@@ -20,11 +20,11 @@
  *     MAX_REPLAY_TABS
  *   );
  */
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Fragment, memo, useEffect, useRef } from "react";
 
@@ -122,7 +122,7 @@ function defaultIconForKind(
     case "web_search":
       return (
         <HugeiconsIcon
-          icon={Search}
+          icon={Search01Icon}
           data-icon="search"
           size={ICON_SIZE}
           className={iconClass}
@@ -131,7 +131,7 @@ function defaultIconForKind(
     case "terminal":
       return (
         <HugeiconsIcon
-          icon={Terminal}
+          icon={ComputerTerminal01Icon}
           data-icon="terminal"
           size={ICON_SIZE}
           className={iconClass}
@@ -140,7 +140,7 @@ function defaultIconForKind(
     case "tool":
       return (
         <HugeiconsIcon
-          icon={Wrench}
+          icon={Wrench01Icon}
           data-icon="wrench"
           size={ICON_SIZE}
           className={iconClass}
@@ -150,7 +150,7 @@ function defaultIconForKind(
     case "internal_browser":
       return (
         <HugeiconsIcon
-          icon={Globe}
+          icon={InternetIcon}
           data-icon="globe"
           size={ICON_SIZE}
           className={iconClass}
@@ -159,7 +159,7 @@ function defaultIconForKind(
     case "web_fetch":
       return (
         <HugeiconsIcon
-          icon={FileText}
+          icon={File02Icon}
           data-icon="file-text"
           size={ICON_SIZE}
           className={iconClass}
@@ -170,7 +170,7 @@ function defaultIconForKind(
       // to supply `icon` in this case, so this is just a safety net.
       return (
         <HugeiconsIcon
-          icon={FileText}
+          icon={File02Icon}
           data-icon="file-text"
           size={ICON_SIZE}
           className={iconClass}

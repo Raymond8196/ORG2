@@ -4,12 +4,12 @@
  * Modal for choosing between multiple detected keys (e.g., OAuth + API key).
  * Uses design system tokens for consistent theming.
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Key from "@hugeicons/core-free-icons/Key01Icon";
-import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
+import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -58,7 +58,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
             onClick={onClose}
             className="rounded-lg p-1 text-text-3 hover:bg-fill-2 hover:text-text-1"
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={18} />
+            <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={18} />
           </button>
         </div>
 
@@ -89,7 +89,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                   {cred.validated ? (
                     selectedIndex === index ? (
                       <HugeiconsIcon
-                        icon={Check}
+                        icon={Tick01Icon}
                         data-icon="check"
                         size={16}
                         className="mt-0.5 flex-shrink-0 text-primary-6"
@@ -99,7 +99,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                     )
                   ) : (
                     <HugeiconsIcon
-                      icon={AlertCircle}
+                      icon={AlertCircleIcon}
                       data-icon="alert-circle"
                       size={16}
                       className="mt-0.5 flex-shrink-0 text-danger-6"
@@ -109,7 +109,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                     <div className="flex items-center gap-2">
                       {cred.auth_method === "oauth" ? (
                         <HugeiconsIcon
-                          icon={KeyRound}
+                          icon={Key02Icon}
                           data-icon="key-round"
                           size={16}
                           className={
@@ -118,7 +118,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                         />
                       ) : (
                         <HugeiconsIcon
-                          icon={Key}
+                          icon={Key01Icon}
                           data-icon="key"
                           size={16}
                           className={
@@ -142,7 +142,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                       {cred.validated === true ? (
                         <span className="flex items-center gap-1 rounded-full bg-success-1 px-2 py-0.5 text-[10px] text-success-6">
                           <HugeiconsIcon
-                            icon={CheckCircle}
+                            icon={CheckmarkCircle01Icon}
                             data-icon="check-circle"
                             size={10}
                           />
@@ -151,7 +151,7 @@ const KeySelectionModal: React.FC<KeySelectionModalProps> = ({
                       ) : cred.validated === false ? (
                         <span className="flex items-center gap-1 rounded-full bg-danger-1 px-2 py-0.5 text-[10px] font-medium text-danger-6">
                           <HugeiconsIcon
-                            icon={AlertCircle}
+                            icon={AlertCircleIcon}
                             data-icon="alert-circle"
                             size={10}
                           />

@@ -4,9 +4,9 @@
  * Absolute-overlay list of all turn pages shown when the round selector
  * dropdown is open. Each row is `#N` + preview text + start/end clock range.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ClockArrowDown from "@hugeicons/core-free-icons/ClockArrowDownIcon";
-import ClockArrowUp from "@hugeicons/core-free-icons/ClockArrowUpIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ClockArrowDownIcon from "@hugeicons/core-free-icons/ClockArrowDownIcon";
+import ClockArrowUpIcon from "@hugeicons/core-free-icons/ClockArrowUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React, { memo, useMemo, useRef } from "react";
@@ -123,14 +123,14 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
                   >
                     {turnPageSortAscending ? (
                       <HugeiconsIcon
-                        icon={ClockArrowDown}
+                        icon={ClockArrowDownIcon}
                         data-icon="clock-arrow-down"
                         size={14}
                         strokeWidth={1.75}
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={ClockArrowUp}
+                        icon={ClockArrowUpIcon}
                         data-icon="clock-arrow-up"
                         size={14}
                         strokeWidth={1.75}
@@ -144,7 +144,7 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
                   onClick={onClose}
                 >
                   <HugeiconsIcon
-                    icon={X}
+                    icon={Cancel01Icon}
                     data-icon="x"
                     size={14}
                     strokeWidth={1.75}

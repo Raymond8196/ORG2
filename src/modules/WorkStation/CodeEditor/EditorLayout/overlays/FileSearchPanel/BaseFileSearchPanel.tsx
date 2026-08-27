@@ -9,8 +9,8 @@
  * - FileSearchPanel (sidebar variant)
  * - SingleFileSearchPanel (with spinner and close button)
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -212,7 +212,7 @@ export const BaseFileSearchPanel: React.FC<BaseFileSearchPanelProps> = memo(
               {showLoadingSpinner && loading && (
                 <div className="px-2">
                   <HugeiconsIcon
-                    icon={Loader2}
+                    icon={Loading03Icon}
                     data-icon="loader-2"
                     size={SPINNER_TOKENS.default}
                     className="animate-spin text-text-3"
@@ -225,7 +225,7 @@ export const BaseFileSearchPanel: React.FC<BaseFileSearchPanelProps> = memo(
                   className="flex items-center justify-center rounded p-1 text-text-3 transition-colors hover:bg-fill-3"
                   title={t("tooltips.closeEsc")}
                 >
-                  <HugeiconsIcon icon={X} data-icon="x" size={14} />
+                  <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
                 </button>
               )}
             </div>

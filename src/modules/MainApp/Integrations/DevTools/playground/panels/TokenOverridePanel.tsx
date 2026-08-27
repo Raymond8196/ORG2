@@ -7,11 +7,11 @@
  * - Collapsible
  * - Positioned in bottom-right corner by default
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
-import GripVertical from "@hugeicons/core-free-icons/GripVerticalIcon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ColorPickerIcon from "@hugeicons/core-free-icons/ColorPickerIcon";
+import GripVerticalIcon from "@hugeicons/core-free-icons/GripVerticalIcon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef, useState } from "react";
 
@@ -162,13 +162,13 @@ export function TokenOverridePanel({
       >
         <div className="flex items-center gap-2">
           <HugeiconsIcon
-            icon={GripVertical}
+            icon={GripVerticalIcon}
             data-icon="grip-vertical"
             size={14}
             className="text-text-3"
           />
           <HugeiconsIcon
-            icon={Palette}
+            icon={ColorPickerIcon}
             data-icon="palette"
             size={14}
             className="text-primary-6"
@@ -187,9 +187,9 @@ export function TokenOverridePanel({
             title={isMinimized ? "Expand" : "Minimize"}
           >
             {isMinimized ? (
-              <HugeiconsIcon icon={Plus} data-icon="plus" size={12} />
+              <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={12} />
             ) : (
-              <HugeiconsIcon icon={Minus} data-icon="minus" size={12} />
+              <HugeiconsIcon icon={MinusSignIcon} data-icon="minus" size={12} />
             )}
           </button>
           <button
@@ -197,7 +197,7 @@ export function TokenOverridePanel({
             onClick={onClose}
             title="Close"
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={12} />
+            <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
           </button>
         </div>
       </div>

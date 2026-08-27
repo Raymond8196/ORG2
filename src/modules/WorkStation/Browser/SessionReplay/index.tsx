@@ -1,6 +1,6 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Shield from "@hugeicons/core-free-icons/Shield01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Shield01Icon from "@hugeicons/core-free-icons/Shield01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -206,7 +206,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
         {activeHeaderInfo.detailText && (
           <>
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={12}
               className="flex-shrink-0 text-text-4"
@@ -220,7 +220,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
         {activeSubtool === "internal_browser" && isMaskShown && (
           <div className="ml-auto flex items-center gap-1">
             <HugeiconsIcon
-              icon={Shield}
+              icon={Shield01Icon}
               data-icon="shield"
               size={14}
               className="text-warning-6"
@@ -542,7 +542,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
         {activeSubtool === "internal_browser" && isMaskShown && (
           <div className="flex items-center gap-2 border-t border-border-1 bg-warning-1 px-3 py-1.5">
             <HugeiconsIcon
-              icon={Shield}
+              icon={Shield01Icon}
               data-icon="shield"
               size={14}
               className="text-warning-6"
@@ -579,7 +579,7 @@ const SessionReplayBrowserComponent: React.FC<SessionReplayBrowserProps> = ({
             onClick={handleNewMyTabsSession}
           >
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={18}
               strokeWidth={2}

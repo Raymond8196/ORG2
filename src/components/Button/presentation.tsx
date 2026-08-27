@@ -1,4 +1,4 @@
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
@@ -229,7 +229,7 @@ export function useButtonPresentation({
           className={`pointer-events-none inline-flex shrink-0 items-center justify-center leading-none ${iconSpacingClass}`}
         >
           <HugeiconsIcon
-            icon={Loader2}
+            icon={Loading03Icon}
             data-icon="loader-2"
             size={sizeConfig.iconSize}
             className="animate-spin"

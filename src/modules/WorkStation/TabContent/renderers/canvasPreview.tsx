@@ -5,9 +5,9 @@
  * the payload in a full-height WorkStation view. Closing the card closes the
  * tab and clears the matching Canvas entry.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -64,7 +64,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
       return (
         <div className="flex h-full flex-col items-center justify-center gap-3 text-text-4">
           <HugeiconsIcon
-            icon={Layout}
+            icon={Layout01Icon}
             data-icon="layout"
             size={32}
             strokeWidth={1}
@@ -79,7 +79,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
         <div className="flex shrink-0 items-center justify-between border-b border-border-1 bg-fill-2 px-3 py-1.5">
           <div className="flex min-w-0 items-center gap-2">
             <HugeiconsIcon
-              icon={Layout}
+              icon={Layout01Icon}
               data-icon="layout"
               size={13}
               className="shrink-0 text-primary-6"
@@ -107,7 +107,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
               size="sm"
             >
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={12}
               />
@@ -118,7 +118,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
               aria-label={t("previews.closeCanvas")}
               size="sm"
             >
-              <HugeiconsIcon icon={X} data-icon="x" size={12} />
+              <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
             </IconButton>
           </div>
         </div>

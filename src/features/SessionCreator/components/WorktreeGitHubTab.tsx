@@ -1,5 +1,5 @@
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
@@ -62,7 +62,7 @@ export function WorktreeGitHubTab({
           size="small"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               strokeWidth={1.8}
@@ -84,7 +84,7 @@ export function WorktreeGitHubTab({
         {state === "loading" && loadedItemCount === 0 && (
           <div className="flex h-[180px] items-center justify-center text-text-3">
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={16}
               className="animate-spin"

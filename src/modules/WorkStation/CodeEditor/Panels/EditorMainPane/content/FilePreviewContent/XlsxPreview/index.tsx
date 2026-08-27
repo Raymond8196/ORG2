@@ -1,4 +1,4 @@
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -514,7 +514,7 @@ export const XlsxPreview: React.FC<XlsxPreviewProps> = ({
       {loadingMoreRows && (
         <div className="pointer-events-none absolute bottom-12 right-4 text-text-3">
           <HugeiconsIcon
-            icon={Loader2}
+            icon={Loading03Icon}
             data-icon="loader-2"
             className="h-4 w-4 animate-spin"
           />

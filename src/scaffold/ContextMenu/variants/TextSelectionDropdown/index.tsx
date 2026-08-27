@@ -21,8 +21,8 @@
  *   onAddToContext={handleAddToContext}
  * />
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -173,7 +173,7 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
             onMouseLeave={onHoverEnd}
           >
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={DROPDOWN_ITEM.iconSize}
               className="text-text-2"
@@ -206,7 +206,7 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
                 onMouseLeave={onHoverEnd}
               >
                 <HugeiconsIcon
-                  icon={History}
+                  icon={WorkHistoryIcon}
                   data-icon="history"
                   size={DROPDOWN_ITEM.iconSize}
                   className="flex-shrink-0 text-text-2"

@@ -1,6 +1,6 @@
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
-import Split from "@hugeicons/core-free-icons/SplitIcon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
+import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -9,7 +9,7 @@ import type { RunningLocation } from "@src/config/sessionCreatorConfig";
 export const LOCATION_ICONS: Record<RunningLocation, React.ReactNode> = {
   local: (
     <HugeiconsIcon
-      icon={Laptop}
+      icon={LaptopIcon}
       data-icon="laptop"
       size={14}
       strokeWidth={1.75}
@@ -18,7 +18,7 @@ export const LOCATION_ICONS: Record<RunningLocation, React.ReactNode> = {
   ),
   worktree: (
     <HugeiconsIcon
-      icon={Split}
+      icon={SplitIcon}
       data-icon="split"
       size={14}
       strokeWidth={1.75}
@@ -27,7 +27,7 @@ export const LOCATION_ICONS: Record<RunningLocation, React.ReactNode> = {
   ),
   cloud: (
     <HugeiconsIcon
-      icon={Cloud}
+      icon={CloudIcon}
       data-icon="cloud"
       size={14}
       strokeWidth={1.75}

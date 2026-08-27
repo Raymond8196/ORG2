@@ -7,7 +7,7 @@
  * Sessions cache, so this component owns no network request, timer,
  * subscription, or cache.
  */
-import MessageSquareText from "@hugeicons/core-free-icons/Message02Icon";
+import Message02Icon from "@hugeicons/core-free-icons/Message02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, Suspense, lazy, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -412,7 +412,7 @@ function TeamRuntimeToday({
                   </div>
                   <div className="flex shrink-0 items-center gap-1.5 text-[11px] text-text-3">
                     <HugeiconsIcon
-                      icon={MessageSquareText}
+                      icon={Message02Icon}
                       data-icon="message-square-text"
                       className="h-3.5 w-3.5"
                       aria-hidden

@@ -1,6 +1,6 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -71,7 +71,7 @@ export function AddActionsButton({
           }
           icon={
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
@@ -97,7 +97,7 @@ export function AddActionsButton({
           data-testid="work-items-create-menu"
           icon={
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
@@ -130,7 +130,7 @@ export function AddActionsButton({
               data-testid="work-items-create-work-item"
             >
               <HugeiconsIcon
-                icon={ListChecks}
+                icon={ListChecksIcon}
                 data-icon="list-checks"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
@@ -148,7 +148,7 @@ export function AddActionsButton({
               data-testid="work-items-create-project"
             >
               <HugeiconsIcon
-                icon={Box}
+                icon={BoxIcon}
                 data-icon="box"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}

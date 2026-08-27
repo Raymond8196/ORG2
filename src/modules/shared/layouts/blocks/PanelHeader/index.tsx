@@ -31,10 +31,10 @@
  * />
  * ```
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { createContext, memo, useContext } from "react";
 
@@ -165,7 +165,7 @@ export const PanelRefreshButton: React.FC<PanelRefreshButtonProps> = ({
       disabled={!!spinClass}
       icon={
         <HugeiconsIcon
-          icon={RefreshCw}
+          icon={Refresh04Icon}
           data-icon="refresh-cw"
           size={PANEL_HEADER_TOKENS.buttonIconSize}
           strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -282,7 +282,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
   }) => {
     // When searchQuery is active, override title/icon to show search state
     const displayTitle = searchQuery ? searchQuery : title;
-    const displayIcon = searchQuery ? Search : icon;
+    const displayIcon = searchQuery ? Search01Icon : icon;
     const displayIconElement = searchQuery ? undefined : iconElement;
     const isListVariant = variant === "list";
     const paddingClass = isListVariant ? "px-3" : "px-4";
@@ -322,7 +322,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
               {breadcrumb.parent}
             </span>
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.iconSize}
               className="flex-shrink-0 text-text-4"
@@ -392,7 +392,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
             {...PANEL_HEADER_TOKENS.actionButton}
             icon={
               <HugeiconsIcon
-                icon={ArrowLeft}
+                icon={ArrowLeft02Icon}
                 data-icon="arrow-left"
                 size={PANEL_HEADER_TOKENS.buttonIconSize}
                 strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -416,7 +416,7 @@ const PanelHeader: React.FC<PanelHeaderProps> = memo(
                 {...PANEL_HEADER_TOKENS.actionButton}
                 icon={
                   <HugeiconsIcon
-                    icon={Search}
+                    icon={Search01Icon}
                     data-icon="search"
                     size={PANEL_HEADER_TOKENS.buttonIconSize}
                     strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}

@@ -1,4 +1,4 @@
-import Tag from "@hugeicons/core-free-icons/Tag01Icon";
+import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
@@ -83,7 +83,7 @@ export function LabelsSection({
       <FieldRow
         icon={
           <HugeiconsIcon
-            icon={Tag}
+            icon={Tag01Icon}
             data-icon="tag"
             size={DROPDOWN_ITEM.iconSize}
           />

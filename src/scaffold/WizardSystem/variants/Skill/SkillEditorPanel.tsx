@@ -4,8 +4,8 @@
  * Layout uses SectionContainer + SectionRow (settings-style) inside
  * WizardShell > WizardStepLayout for consistent look with OS Agent config.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -344,7 +344,7 @@ const SkillEditorPanel: React.FC<SkillEditorPanelProps> = ({
                 >
                   {exceedsTokenBudget && (
                     <HugeiconsIcon
-                      icon={AlertTriangle}
+                      icon={Alert01Icon}
                       data-icon="alert-triangle"
                       size={11}
                       className="mr-1 inline-block align-[-1px]"
@@ -368,7 +368,9 @@ const SkillEditorPanel: React.FC<SkillEditorPanelProps> = ({
             >
               <Button
                 size="default"
-                icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
+                }
                 onClick={() =>
                   editor.updateDraft({
                     bundledFileDrafts: [

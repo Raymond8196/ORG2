@@ -4,8 +4,8 @@
  * Form for creating a new local workspace folder.
  */
 import Button from "@/src/components/Button";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -100,7 +100,7 @@ const CreateWorkspaceFolderForm: React.FC<CreateWorkspaceFolderFormProps> = ({
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
               prefix={
                 <HugeiconsIcon
-                  icon={Code}
+                  icon={CodeIcon}
                   data-icon="code"
                   className="text-[16px] text-text-2"
                   size={16}
@@ -125,7 +125,7 @@ const CreateWorkspaceFolderForm: React.FC<CreateWorkspaceFolderFormProps> = ({
                   className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
                   prefix={
                     <HugeiconsIcon
-                      icon={Folder}
+                      icon={FolderClosedIcon}
                       data-icon="folder"
                       className="text-[16px] text-text-2"
                       size={16}

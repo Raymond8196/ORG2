@@ -5,8 +5,8 @@
  * Uses the same INPUT_AREA_BUTTONS tokens as InputActions
  * so both submit buttons are visually identical.
  */
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
@@ -85,7 +85,7 @@ const LaunchButton: React.FC<LaunchButtonProps> = ({
     >
       {loading ? (
         <HugeiconsIcon
-          icon={Loader2}
+          icon={Loading03Icon}
           data-icon="loader-2"
           size={INPUT_AREA_BUTTONS.iconSize}
           strokeWidth={2}
@@ -93,7 +93,7 @@ const LaunchButton: React.FC<LaunchButtonProps> = ({
         />
       ) : (
         <HugeiconsIcon
-          icon={ArrowUp}
+          icon={ArrowUp02Icon}
           data-icon="arrow-up"
           size={INPUT_AREA_BUTTONS.iconSize}
           strokeWidth={2}

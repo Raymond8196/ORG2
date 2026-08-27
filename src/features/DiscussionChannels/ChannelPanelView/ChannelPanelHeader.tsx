@@ -6,10 +6,10 @@
  * for cloud, `LocalChannelSettingsDialog` for local); this header only raises
  * the request — the owning view mounts whichever dialog matches the scope.
  */
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import Settings02Icon from "@hugeicons/core-free-icons/Settings02Icon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -37,7 +37,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
   onOpenSettings,
 }) => {
   const { t } = useTranslation("navigation");
-  const NameIcon = isPrivate ? Lock : Hash;
+  const NameIcon = isPrivate ? LockIcon : HashtagIcon;
 
   return (
     <div
@@ -88,7 +88,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                   data-testid="channel-panel-member-count"
                 >
                   <HugeiconsIcon
-                    icon={Users}
+                    icon={UserMultipleIcon}
                     data-icon="users"
                     size={12}
                     strokeWidth={1.75}
@@ -104,7 +104,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
                 iconOnly
                 icon={
                   <HugeiconsIcon
-                    icon={Settings2}
+                    icon={Settings02Icon}
                     data-icon="settings-2"
                     size={PANEL_HEADER_TOKENS.iconSize}
                     strokeWidth={2}

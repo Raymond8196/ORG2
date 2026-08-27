@@ -5,9 +5,9 @@
  * Single-line display with favicon and page title.
  */
 import type { BrowserSession } from "@/src/engines/BrowserCore/types";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -107,7 +107,7 @@ const SessionItem: React.FC<SessionItemProps> = memo(
         {/* Loading indicator */}
         {session.isLoading && (
           <HugeiconsIcon
-            icon={Loader2}
+            icon={Loading03Icon}
             data-icon="loader-2"
             size={16}
             strokeWidth={1.75}
@@ -124,7 +124,7 @@ const SessionItem: React.FC<SessionItemProps> = memo(
             aria-label={t("tooltips.closeSession")}
           >
             <HugeiconsIcon
-              icon={X}
+              icon={Cancel01Icon}
               data-icon="x"
               size={14}
               strokeWidth={1.75}

@@ -1,7 +1,7 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 
@@ -201,12 +201,16 @@ export default function ModelsTableSection({
         >
           {hideOlder ? (
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               size={14}
             />
           ) : (
-            <HugeiconsIcon icon={ChevronUp} data-icon="chevron-up" size={14} />
+            <HugeiconsIcon
+              icon={ArrowUp01Icon}
+              data-icon="chevron-up"
+              size={14}
+            />
           )}
           {hideOlder
             ? t("modelsTable.showMoreOlder")
@@ -353,7 +357,7 @@ export default function ModelsTableSection({
       size="default"
       icon={
         <HugeiconsIcon
-          icon={RefreshCw}
+          icon={Refresh04Icon}
           data-icon="refresh-cw"
           size={14}
           className={refreshSpinClass}
@@ -372,7 +376,7 @@ export default function ModelsTableSection({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+      icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
       iconOnly
       onClick={onAdd}
       aria-label={t("keyVault.addAccount")}

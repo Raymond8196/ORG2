@@ -1,9 +1,9 @@
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -281,28 +281,28 @@ export function GitHubWorkItemsView({
           const prStatusIcon =
             item.state === GITHUB_QUERY_STATE.MERGED ? (
               <HugeiconsIcon
-                icon={GitMerge}
+                icon={GitMergeIcon}
                 data-icon="git-merge"
                 size={14}
                 strokeWidth={1.8}
               />
             ) : item.rawPr.draft ? (
               <HugeiconsIcon
-                icon={GitPullRequestDraft}
+                icon={GitPullRequestDraftIcon}
                 data-icon="git-pull-request-draft"
                 size={14}
                 strokeWidth={1.8}
               />
             ) : prStatusValue === "open" ? (
               <HugeiconsIcon
-                icon={CircleDot}
+                icon={CircleDotIcon}
                 data-icon="circle-dot"
                 size={14}
                 strokeWidth={1.8}
               />
             ) : (
               <HugeiconsIcon
-                icon={CheckCircle2}
+                icon={CheckmarkCircle01Icon}
                 data-icon="check-circle-2"
                 size={14}
                 strokeWidth={1.8}
@@ -356,7 +356,7 @@ export function GitHubWorkItemsView({
                   label: t("chat.panels.manageIssues.stateOpen"),
                   icon: (
                     <HugeiconsIcon
-                      icon={CircleDot}
+                      icon={CircleDotIcon}
                       data-icon="circle-dot"
                       size={14}
                       strokeWidth={1.8}
@@ -369,7 +369,7 @@ export function GitHubWorkItemsView({
                   label: t("chat.panels.manageIssues.stateClosed"),
                   icon: (
                     <HugeiconsIcon
-                      icon={CheckCircle2}
+                      icon={CheckmarkCircle01Icon}
                       data-icon="check-circle-2"
                       size={14}
                       strokeWidth={1.8}
@@ -419,7 +419,7 @@ export function GitHubWorkItemsView({
             label: t("chat.panels.manageIssues.stateOpen"),
             icon: (
               <HugeiconsIcon
-                icon={CircleDot}
+                icon={CircleDotIcon}
                 data-icon="circle-dot"
                 size={14}
                 strokeWidth={1.8}
@@ -434,7 +434,7 @@ export function GitHubWorkItemsView({
             }),
             icon: (
               <HugeiconsIcon
-                icon={CheckCircle2}
+                icon={CheckmarkCircle01Icon}
                 data-icon="check-circle-2"
                 size={14}
                 strokeWidth={1.8}
@@ -450,7 +450,7 @@ export function GitHubWorkItemsView({
             }),
             icon: (
               <HugeiconsIcon
-                icon={CircleSlash}
+                icon={CircleSlashIcon}
                 data-icon="circle-slash"
                 size={14}
                 strokeWidth={1.8}
@@ -465,7 +465,7 @@ export function GitHubWorkItemsView({
                   label: t("common:git.issues.composer.closeAsDuplicate"),
                   icon: (
                     <HugeiconsIcon
-                      icon={Copy}
+                      icon={Copy01Icon}
                       data-icon="copy"
                       size={14}
                       strokeWidth={1.8}

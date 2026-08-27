@@ -1,5 +1,5 @@
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -32,14 +32,14 @@ export function ConversationModePill({
       icon={
         teamChat ? (
           <HugeiconsIcon
-            icon={MessagesSquare}
+            icon={MessageMultiple01Icon}
             data-icon="messages-square"
             size={14}
             strokeWidth={1.75}
           />
         ) : (
           <HugeiconsIcon
-            icon={Bot}
+            icon={BotIcon}
             data-icon="bot"
             size={14}
             strokeWidth={1.75}

@@ -1,6 +1,6 @@
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Import from "@hugeicons/core-free-icons/ImportIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import ImportIcon from "@hugeicons/core-free-icons/ImportIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -73,7 +73,7 @@ interface ProjectSidebarTreeContentProps {
 
 const ORG_ROW_ICON = (
   <HugeiconsIcon
-    icon={Network}
+    icon={HierarchyCircle01Icon}
     data-icon="network"
     size={ROW_ICON_SIZE}
     strokeWidth={ROW_ICON_STROKE}
@@ -86,7 +86,7 @@ const LINEAR_ORG_ROW_ICON = (
 
 const IMPORT_ORGS_ROW_ICON = (
   <HugeiconsIcon
-    icon={Import}
+    icon={ImportIcon}
     data-icon="import"
     size={ROW_ICON_SIZE}
     strokeWidth={ROW_ICON_STROKE}
@@ -350,7 +350,7 @@ export const OrgSidebarTreeContent: React.FC<ProjectSidebarTreeContentProps> =
                     title={t("projects:orgs.gitFolderSynced")}
                   >
                     <HugeiconsIcon
-                      icon={GitBranch}
+                      icon={WorkflowCircle05Icon}
                       data-icon="git-branch"
                       size={10}
                       strokeWidth={1.8}

@@ -5,14 +5,14 @@
  * Handles both section headers and file/directory items.
  * Uses TreeRowBase for file items to maintain consistency.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
@@ -148,7 +148,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             title={GIT_LABELS.discardAllChanges}
           >
             <HugeiconsIcon
-              icon={Undo2}
+              icon={Undo02Icon}
               data-icon="undo-2"
               size={14}
               strokeWidth={1.75}
@@ -165,7 +165,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
               title={GIT_LABELS.stashAllChanges}
             >
               <HugeiconsIcon
-                icon={Archive}
+                icon={ArchiveIcon}
                 data-icon="archive"
                 size={14}
                 strokeWidth={1.75}
@@ -181,7 +181,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             title={GIT_LABELS.stageChanges}
           >
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={14}
               strokeWidth={1.75}
@@ -201,7 +201,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             title={`Unstage All Changes\n\nShortcut: ${SHORTCUTS.unstageAll}`}
           >
             <HugeiconsIcon
-              icon={Minus}
+              icon={MinusSignIcon}
               data-icon="minus"
               size={14}
               strokeWidth={1.75}
@@ -216,7 +216,7 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
             title={GIT_LABELS.openStagedChanges}
           >
             <HugeiconsIcon
-              icon={FileDiff}
+              icon={FileDiffIcon}
               data-icon="file-diff"
               size={14}
               strokeWidth={1.75}
@@ -238,14 +238,14 @@ const SectionHeaderRow: React.FC<SectionHeaderRowProps> = memo(
         {/* Chevron */}
         {node.expanded ? (
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={14}
             className="text-text-3"
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
             className="text-text-3"
@@ -486,7 +486,7 @@ const FileDirectoryRow: React.FC<FileDirectoryRowProps> = memo(
               {/* Discard action button */}
               {onDiscard && (
                 <TreeRowAction
-                  icon={Undo2}
+                  icon={Undo02Icon}
                   variant="danger"
                   onClick={handleDiscard}
                   title={GIT_LABELS.discardChanges}
@@ -495,7 +495,13 @@ const FileDirectoryRow: React.FC<FileDirectoryRowProps> = memo(
               {/* Stage/Unstage/Resolve action button */}
               {(onStageToggle || (isConflictFile && onStageResolved)) && (
                 <TreeRowAction
-                  icon={isConflictFile ? Check : isStaged ? Minus : Plus}
+                  icon={
+                    isConflictFile
+                      ? Tick01Icon
+                      : isStaged
+                        ? MinusSignIcon
+                        : Add01Icon
+                  }
                   variant={isConflictFile ? "success" : "default"}
                   onClick={
                     isConflictFile ? handleStageResolved : handleStageToggle

@@ -1,17 +1,17 @@
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import HeartPulse from "@hugeicons/core-free-icons/Cardiogram01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Flag from "@hugeicons/core-free-icons/Flag01Icon";
-import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Tag from "@hugeicons/core-free-icons/Tag01Icon";
-import Link2Off from "@hugeicons/core-free-icons/Unlink02Icon";
-import User from "@hugeicons/core-free-icons/UserIcon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import Cardiogram01Icon from "@hugeicons/core-free-icons/Cardiogram01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
+import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 
@@ -159,7 +159,7 @@ function createRepoSubmenu(
     id: `repo-${repo.id}`,
     label: getRepoDisplayName(repo),
     icon: createElement(HugeiconsIcon, {
-      icon: Code2,
+      icon: CodeIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     secondary: selectedRepoIds.has(repo.id) ? "✓" : undefined,
@@ -196,7 +196,7 @@ export function getProjectPropertyContextMenuItems({
       id: "status",
       label: t("properties.status"),
       icon: createElement(HugeiconsIcon, {
-        icon: CircleDot,
+        icon: CircleDotIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: currentStatus
@@ -207,7 +207,7 @@ export function getProjectPropertyContextMenuItems({
         id: `status-${option.value}`,
         label: t(option.labelKey),
         icon: createElement(HugeiconsIcon, {
-          icon: Circle,
+          icon: CircleIcon,
           size: DROPDOWN_ITEM.iconSize,
         }),
         iconColor: option.color,
@@ -227,7 +227,7 @@ export function getProjectPropertyContextMenuItems({
       id: "priority",
       label: t("properties.priority"),
       icon: createElement(HugeiconsIcon, {
-        icon: Flag,
+        icon: Flag01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: currentPriority
@@ -255,7 +255,7 @@ export function getProjectPropertyContextMenuItems({
       id: "lead",
       label: t("properties.lead"),
       icon: createElement(HugeiconsIcon, {
-        icon: User,
+        icon: UserIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.lead?.name ?? t("properties.noLead"),
@@ -287,7 +287,7 @@ export function getProjectPropertyContextMenuItems({
       id: "targetDate",
       label: t("properties.targetDate"),
       icon: createElement(HugeiconsIcon, {
-        icon: Calendar,
+        icon: Calendar01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: formatMenuDate(project.targetDate, t("properties.addDate")),
@@ -307,7 +307,7 @@ export function getProjectPropertyContextMenuItems({
       id: "health",
       label: t("properties.health"),
       icon: createElement(HugeiconsIcon, {
-        icon: HeartPulse,
+        icon: Cardiogram01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: currentHealth
@@ -333,7 +333,7 @@ export function getProjectPropertyContextMenuItems({
       id: "members",
       label: t("properties.members"),
       icon: createElement(HugeiconsIcon, {
-        icon: Users,
+        icon: UserMultipleIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.members?.length
@@ -354,7 +354,7 @@ export function getProjectPropertyContextMenuItems({
       id: "teams",
       label: t("properties.teams"),
       icon: createElement(HugeiconsIcon, {
-        icon: Users,
+        icon: UserMultipleIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.teams?.length
@@ -375,7 +375,7 @@ export function getProjectPropertyContextMenuItems({
       id: "labels",
       label: t("properties.labels"),
       icon: createElement(HugeiconsIcon, {
-        icon: Tag,
+        icon: Tag01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.labels?.length
@@ -396,7 +396,7 @@ export function getProjectPropertyContextMenuItems({
       id: "linkedRepos",
       label: t("properties.repos"),
       icon: createElement(HugeiconsIcon, {
-        icon: Code2,
+        icon: CodeIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.linkedRepos?.length
@@ -417,7 +417,7 @@ export function getProjectPropertyContextMenuItems({
       id: "startDate",
       label: t("properties.startDate"),
       icon: createElement(HugeiconsIcon, {
-        icon: Calendar,
+        icon: Calendar01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: formatMenuDate(project.startDate, t("properties.addDate")),
@@ -436,7 +436,7 @@ export function getProjectPropertyContextMenuItems({
       id: "more-properties",
       label: t("workItems.contextMenu.moreProperties"),
       icon: createElement(HugeiconsIcon, {
-        icon: ListChevronsUpDown,
+        icon: ListChevronsDownUpIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       submenu: moreItems,
@@ -462,7 +462,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
       id: "open",
       label: t("common:actions.open"),
       icon: createElement(HugeiconsIcon, {
-        icon: SquareArrowOutUpRight,
+        icon: SquareArrowUpRightIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary:
@@ -476,7 +476,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
       id: "copy",
       label: t("common:actions.copy"),
       icon: createElement(HugeiconsIcon, {
-        icon: Copy,
+        icon: Copy01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.name,
@@ -493,7 +493,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
         id: "unlink-source",
         label: t("settings.sync.adapterPicker.detachProjectMenuLabel"),
         icon: createElement(HugeiconsIcon, {
-          icon: Link2Off,
+          icon: Unlink02Icon,
           size: DROPDOWN_ITEM.iconSize,
         }),
         action: onUnlinkSource,
@@ -507,7 +507,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
         id: "delete",
         label: t("common:actions.delete"),
         icon: createElement(HugeiconsIcon, {
-          icon: Trash2,
+          icon: Delete02Icon,
           size: DROPDOWN_ITEM.iconSize,
         }),
         shortcutId: "workitem_delete",

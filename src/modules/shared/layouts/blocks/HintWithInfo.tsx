@@ -4,7 +4,7 @@
  * Reusable info icon with tooltip for explaining commands, options, or hints.
  * Used in LINT (install commands), Git settings (pull strategies), etc.
  */
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -36,7 +36,7 @@ export const HintWithInfo: React.FC<HintWithInfoProps> = memo(
         aria-label="More information"
       >
         <HugeiconsIcon
-          icon={Info}
+          icon={InformationCircleIcon}
           data-icon="info"
           size={size}
           className="text-text-3"

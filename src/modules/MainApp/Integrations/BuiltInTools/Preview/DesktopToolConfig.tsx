@@ -12,10 +12,10 @@
  * Permissions are checked natively (no external CLI required) — only the
  * parts the user can act on (granting OS permissions) are shown.
  */
-import Download from "@hugeicons/core-free-icons/Download01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
@@ -298,7 +298,7 @@ const SidecarDownloadsConfig: React.FC = () => {
         if (loading && !status) {
           statusContent = (
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={14}
               className="animate-spin text-text-3"
@@ -337,14 +337,14 @@ const SidecarDownloadsConfig: React.FC = () => {
                 icon={
                   isInstalling ? (
                     <HugeiconsIcon
-                      icon={Loader2}
+                      icon={Loading03Icon}
                       data-icon="loader-2"
                       size={14}
                       className="animate-spin"
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={Download}
+                      icon={Download01Icon}
                       data-icon="download"
                       size={14}
                     />
@@ -370,7 +370,7 @@ const SidecarDownloadsConfig: React.FC = () => {
           size="default"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               className={spinClass}
@@ -507,7 +507,7 @@ const ComputerUseConfig: React.FC = () => {
           if (isLoading) {
             statusContent = (
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={14}
                 className="animate-spin text-text-3"
@@ -564,7 +564,7 @@ const ComputerUseConfig: React.FC = () => {
             size="default"
             icon={
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={14}
                 className={permsSpinClass}
@@ -584,7 +584,7 @@ const ComputerUseConfig: React.FC = () => {
             size="default"
             icon={
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={14}
               />

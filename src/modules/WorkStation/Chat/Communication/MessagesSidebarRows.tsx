@@ -7,9 +7,9 @@
  * previously and was removed alongside the per-event tab fan-out in
  * useReplayTabs).
  */
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import MessageCircleQuestionMark from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import MessageCircleQuestionMarkIcon from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -33,7 +33,7 @@ export const AggregateMessagesRow: React.FC<AggregateMessagesRowProps> = memo(
       type: "file",
       icon: (
         <HugeiconsIcon
-          icon={MessagesSquare}
+          icon={MessageMultiple01Icon}
           data-icon="messages-square"
           size={14}
           strokeWidth={1.75}
@@ -77,7 +77,7 @@ export const AggregateTodoRow: React.FC<AggregateTodoRowProps> = memo(
       type: "file",
       icon: (
         <HugeiconsIcon
-          icon={ListTodo}
+          icon={ListTodoIcon}
           data-icon="list-todo"
           size={14}
           strokeWidth={1.75}
@@ -121,7 +121,7 @@ export const AggregateInteractionsRow: React.FC<AggregateInteractionsRowProps> =
       type: "file",
       icon: (
         <HugeiconsIcon
-          icon={MessageCircleQuestionMark}
+          icon={MessageCircleQuestionMarkIcon}
           data-icon="message-circle-question-mark"
           size={14}
           strokeWidth={1.75}

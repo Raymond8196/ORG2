@@ -25,7 +25,7 @@
  *   <SidebarGroup ... />
  * </SidebarSection>
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -62,7 +62,7 @@ const SidebarSection: React.FC<SidebarSectionProps> = ({
               aria-label="Go back"
             >
               <HugeiconsIcon
-                icon={ChevronLeft}
+                icon={ArrowLeft01Icon}
                 data-icon="chevron-left"
                 className="h-[14px] w-[14px]"
                 strokeWidth={2}

@@ -1,6 +1,6 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
@@ -119,14 +119,14 @@ const OrgtrackEnvelopeCard: React.FC<OrgtrackEnvelopeCardProps> = ({
       <div className="flex items-center gap-2 border-b border-fill-4 px-3 py-2">
         {card.ok ? (
           <HugeiconsIcon
-            icon={CheckCircle2}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle-2"
             size={12}
             className="shrink-0 text-success-6"
           />
         ) : (
           <HugeiconsIcon
-            icon={XCircle}
+            icon={CancelCircleIcon}
             data-icon="xcircle"
             size={12}
             className="shrink-0 text-danger-6"
@@ -143,7 +143,7 @@ const OrgtrackEnvelopeCard: React.FC<OrgtrackEnvelopeCardProps> = ({
         ) : null}
         {target ? (
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
             className="shrink-0 text-text-4"

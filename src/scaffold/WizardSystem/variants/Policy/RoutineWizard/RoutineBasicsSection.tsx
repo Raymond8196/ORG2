@@ -1,4 +1,4 @@
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -324,7 +324,7 @@ const RoutineBasicsSection: React.FC<RoutineBasicsSectionProps> = ({
               if (draft.targetIsOrg) {
                 return (
                   <HugeiconsIcon
-                    icon={Network}
+                    icon={HierarchyCircle01Icon}
                     data-icon="network"
                     size={16}
                     className="text-text-2"

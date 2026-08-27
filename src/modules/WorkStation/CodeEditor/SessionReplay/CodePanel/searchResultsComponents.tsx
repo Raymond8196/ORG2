@@ -4,9 +4,9 @@
  * Shared UI sub-components for SearchResultsContent.
  * Extracted to keep the main component file under 600 lines.
  */
-import File from "@hugeicons/core-free-icons/File01Icon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import File01Icon from "@hugeicons/core-free-icons/File01Icon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -107,7 +107,9 @@ export function SearchSummaryHeader({
     >
       <div className="flex h-9 min-w-0 items-center gap-2 rounded-full border border-border-2 bg-workstation-bg px-3 shadow-sm">
         <HeaderPrimarySegment
-          icon={<HugeiconsIcon icon={Search} data-icon="search" size={14} />}
+          icon={
+            <HugeiconsIcon icon={Search01Icon} data-icon="search" size={14} />
+          }
           label={toolLabel}
         />
         <HeaderSeparator />
@@ -149,7 +151,7 @@ export function DirectorySummaryHeader({
         <HeaderPrimarySegment
           icon={
             <HugeiconsIcon
-              icon={FolderOpen}
+              icon={FolderOpenIcon}
               data-icon="folder-open"
               size={14}
             />
@@ -184,7 +186,7 @@ export function LspSummaryHeader({
     <div className="flex w-full min-w-0 flex-col gap-2 border-b border-border-2 px-3 py-2">
       <div className="flex h-9 min-w-0 items-center gap-2 rounded-full border border-border-2 bg-workstation-bg px-3 shadow-sm">
         <HeaderPrimarySegment
-          icon={<HugeiconsIcon icon={File} data-icon="file" size={14} />}
+          icon={<HugeiconsIcon icon={File01Icon} data-icon="file" size={14} />}
           label="LSP"
         />
         <HeaderSeparator />

@@ -3,8 +3,8 @@
  *
  * App settings sections. Labels use i18n keys under settings.sections.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 
@@ -89,7 +89,7 @@ export const SECTION_TAB_META: Partial<
 export const SUBPAGE_BUTTON_PROPS = {
   variant: "secondary" as const,
   size: "default" as const,
-  icon: createElement(HugeiconsIcon, { icon: ChevronRight, size: 14 }),
+  icon: createElement(HugeiconsIcon, { icon: ArrowRight01Icon, size: 14 }),
   iconPosition: "right" as const,
 };
 
@@ -97,6 +97,9 @@ export const SUBPAGE_BUTTON_PROPS = {
 export const NAV_BUTTON_PROPS = {
   variant: "secondary" as const,
   size: "default" as const,
-  icon: createElement(HugeiconsIcon, { icon: SquareArrowOutUpRight, size: 14 }),
+  icon: createElement(HugeiconsIcon, {
+    icon: SquareArrowUpRightIcon,
+    size: 14,
+  }),
   iconPosition: "right" as const,
 };

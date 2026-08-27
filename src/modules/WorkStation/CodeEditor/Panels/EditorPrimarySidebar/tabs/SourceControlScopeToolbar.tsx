@@ -1,8 +1,8 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -141,7 +141,8 @@ function ScopePickerItem({
   ]
     .filter(Boolean)
     .join("\n");
-  const ScopeIcon = kind === "worktree" ? Folder : GitBranch;
+  const ScopeIcon =
+    kind === "worktree" ? FolderClosedIcon : WorkflowCircle05Icon;
   const hasDiffStats = diffStatsFromSummary(summary) !== null;
 
   return (
@@ -181,7 +182,7 @@ function ScopePickerItem({
           }}
         >
           <HugeiconsIcon
-            icon={Trash2}
+            icon={Delete02Icon}
             data-icon="trash-2"
             size={DROPDOWN_ITEM.iconSize}
           />
@@ -279,7 +280,7 @@ export function SourceControlScopeToolbar({
       {showSearch ? (
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
-            icon={Search}
+            icon={Search01Icon}
             data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"
@@ -377,7 +378,7 @@ export function SourceControlScopeToolbar({
               <React.Fragment key={`${segment.label}-${index}`}>
                 {index > 0 ? (
                   <HugeiconsIcon
-                    icon={ChevronRight}
+                    icon={ArrowRight01Icon}
                     data-icon="chevron-right"
                     size={10}
                     className="shrink-0 text-text-4"

@@ -1,6 +1,6 @@
 import { EditorView, Panel } from "@codemirror/view";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
@@ -68,7 +68,7 @@ const GoToLinePanel: React.FC<GoToLinePanelProps> = ({ view, onClose }) => {
     >
       <div className="flex items-center justify-center self-center px-3 text-text-3">
         <HugeiconsIcon
-          icon={Hash}
+          icon={HashtagIcon}
           data-icon="hash"
           size={HEADER_ICON_SIZE.sm}
         />
@@ -103,7 +103,11 @@ const GoToLinePanel: React.FC<GoToLinePanelProps> = ({ view, onClose }) => {
             className={HEADER_BUTTON.action}
             title={t("tooltips.closeEsc")}
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={HEADER_ICON_SIZE.sm} />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              data-icon="x"
+              size={HEADER_ICON_SIZE.sm}
+            />
           </button>
         </div>
       </div>

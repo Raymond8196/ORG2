@@ -21,7 +21,7 @@
  * 14px other icons). The `+` dropdown panel uses the compact dropdown
  * tokens so the popup matches the rest of the settings panel.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
@@ -163,7 +163,7 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
           active={open}
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={2}
@@ -204,7 +204,7 @@ const SettingsHeaderActions: React.FC = () => {
             aria-label={plusTitle}
           >
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}

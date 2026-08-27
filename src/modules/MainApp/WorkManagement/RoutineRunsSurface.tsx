@@ -8,10 +8,10 @@
  * cached copy — a run whose items moved since the row was written shows
  * its recomputed status once expanded.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import PlayCircleIcon from "@hugeicons/core-free-icons/PlayCircleIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -95,7 +95,7 @@ const RunRow: React.FC<RunRowProps> = ({ run }) => {
     };
   }, [expanded, detail, run.id]);
 
-  const Chevron = expanded ? ChevronDown : ChevronRight;
+  const Chevron = expanded ? ArrowDown01Icon : ArrowRight01Icon;
   const liveStatus = detail?.status ?? run.status;
 
   return (
@@ -204,7 +204,7 @@ const RoutineRunsSurface: React.FC = () => {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5 text-[13px] font-medium text-text-1">
             <HugeiconsIcon
-              icon={PlayCircle}
+              icon={PlayCircleIcon}
               data-icon="play-circle"
               size={14}
               strokeWidth={1.75}
@@ -239,7 +239,7 @@ const RoutineRunsSurface: React.FC = () => {
             iconOnly
             icon={
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={13}
                 strokeWidth={1.75}

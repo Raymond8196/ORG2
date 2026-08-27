@@ -1,4 +1,4 @@
-import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -111,7 +111,7 @@ export const ToolPanel: React.FC<ToolPanelProps> = memo(
       return (
         toolIcon || (
           <HugeiconsIcon
-            icon={Wrench}
+            icon={Wrench01Icon}
             data-icon="wrench"
             size={14}
             className="shrink-0 text-text-2"

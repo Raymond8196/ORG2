@@ -1,6 +1,6 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Airplay from "@hugeicons/core-free-icons/ScreenRotationIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import ScreenRotationIcon from "@hugeicons/core-free-icons/ScreenRotationIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { useState } from "react";
@@ -38,7 +38,7 @@ const ChatHeader = () => {
         <div className="mx-auto mb-1 flex w-full items-center justify-center">
           <div className="flex h-[24px] items-center gap-1.5 rounded-full border border-solid border-primary-3 bg-primary-1 px-3 text-[12px] text-primary-7">
             <HugeiconsIcon
-              icon={Airplay}
+              icon={ScreenRotationIcon}
               data-icon="airplay"
               size={12}
               strokeWidth={1.75}
@@ -56,7 +56,7 @@ const ChatHeader = () => {
               }}
             >
               <HugeiconsIcon
-                icon={X}
+                icon={Cancel01Icon}
                 data-icon="x"
                 size={11}
                 strokeWidth={1.75}
@@ -76,7 +76,7 @@ const ChatHeader = () => {
             <div className="flex items-center gap-2">
               <div className="flex h-[28px] w-auto items-center gap-2 rounded-full border border-solid border-border-2 px-4">
                 <HugeiconsIcon
-                  icon={Clock}
+                  icon={Clock01Icon}
                   data-icon="clock"
                   size={14}
                   strokeWidth={1.75}
@@ -94,7 +94,7 @@ const ChatHeader = () => {
                 }}
               >
                 <HugeiconsIcon
-                  icon={X}
+                  icon={Cancel01Icon}
                   data-icon="x"
                   size={16}
                   strokeWidth={1.75}

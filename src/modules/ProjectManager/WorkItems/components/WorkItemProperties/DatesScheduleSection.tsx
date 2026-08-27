@@ -1,5 +1,5 @@
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
@@ -71,7 +71,7 @@ export function DatesScheduleSection({
           <FieldRow
             icon={
               <HugeiconsIcon
-                icon={CalendarClock}
+                icon={TimeScheduleIcon}
                 data-icon="calendar-clock"
                 size={DROPDOWN_ITEM.iconSize}
               />
@@ -111,7 +111,7 @@ export function DatesScheduleSection({
           <FieldRow
             icon={
               <HugeiconsIcon
-                icon={Calendar}
+                icon={Calendar01Icon}
                 data-icon="calendar"
                 size={DROPDOWN_ITEM.iconSize}
               />

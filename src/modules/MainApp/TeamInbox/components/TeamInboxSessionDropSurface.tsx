@@ -1,8 +1,8 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import Link2 from "@hugeicons/core-free-icons/Link02Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
+import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -296,7 +296,7 @@ const TeamInboxSessionDropSurface: React.FC<
               }`}
             >
               <HugeiconsIcon
-                icon={Inbox}
+                icon={InboxIcon}
                 data-icon="inbox"
                 size={20}
                 aria-hidden
@@ -320,7 +320,7 @@ const TeamInboxSessionDropSurface: React.FC<
           aria-live="polite"
         >
           <HugeiconsIcon
-            icon={Link2}
+            icon={Link02Icon}
             data-icon="link-2"
             size={16}
             className="shrink-0 animate-pulse text-primary-6"
@@ -381,7 +381,7 @@ const TeamInboxSessionDropSurface: React.FC<
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowOutUpRight}
+                  icon={SquareArrowUpRightIcon}
                   data-icon="square-arrow-out-up-right"
                   size={14}
                   aria-hidden
@@ -398,7 +398,7 @@ const TeamInboxSessionDropSurface: React.FC<
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={RotateCcw}
+                  icon={RotateLeft01Icon}
                   data-icon="rotate-ccw"
                   size={14}
                   aria-hidden
@@ -416,7 +416,12 @@ const TeamInboxSessionDropSurface: React.FC<
             iconOnly
             aria-label={t("teamInbox.drop.dismiss")}
             icon={
-              <HugeiconsIcon icon={X} data-icon="x" size={14} aria-hidden />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                data-icon="x"
+                size={14}
+                aria-hidden
+              />
             }
             onClick={dismiss}
           />

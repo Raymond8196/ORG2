@@ -11,8 +11,8 @@
  * - Git Actions: commit / commit & push (agent-driven) and push (direct git)
  * - Review: open the diff in My Station or Agent Station
  */
-import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
-import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
+import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -118,7 +118,7 @@ const GitDiffActionsMenu: React.FC<GitDiffActionsMenuProps> = ({
             className={LEFT_ALIGNED_ITEM_CLASS}
             icon={
               <HugeiconsIcon
-                icon={Laptop}
+                icon={LaptopIcon}
                 data-icon="laptop"
                 size={ICON_SIZE}
                 strokeWidth={1.75}
@@ -135,7 +135,7 @@ const GitDiffActionsMenu: React.FC<GitDiffActionsMenuProps> = ({
             className={LEFT_ALIGNED_ITEM_CLASS}
             icon={
               <HugeiconsIcon
-                icon={InfinityIcon}
+                icon={Infinity01Icon}
                 data-icon="infinity-icon"
                 size={ICON_SIZE}
                 strokeWidth={1.75}

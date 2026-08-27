@@ -6,10 +6,10 @@
  *   - "preview": shows metadata + zoom controls
  *   - "diff": shows old → new file info with color-coded sizes
  */
-import Maximize from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import ZoomIn from "@hugeicons/core-free-icons/ZoomInAreaIcon";
-import ZoomOut from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import ZoomInAreaIcon from "@hugeicons/core-free-icons/ZoomInAreaIcon";
+import ZoomOutAreaIcon from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -115,7 +115,7 @@ const DiffLeft: React.FC<DiffModeProps> = ({ oldImage, newImage, status }) => {
         <span>{isAdded ? "New file" : "—"}</span>
       )}
       <HugeiconsIcon
-        icon={ArrowRight}
+        icon={ArrowRight02Icon}
         data-icon="arrow-right"
         size={12}
         className="text-text-3"
@@ -165,7 +165,7 @@ const ZoomControls: React.FC<ZoomProps> = ({
         className={fitMode ? HEADER_BUTTON.active : HEADER_BUTTON.action}
       >
         <HugeiconsIcon
-          icon={Maximize}
+          icon={ArrowExpand01Icon}
           data-icon="maximize"
           size={HEADER_ICON_SIZE.md}
           strokeWidth={1.75}
@@ -186,7 +186,7 @@ const ZoomControls: React.FC<ZoomProps> = ({
         className={HEADER_BUTTON.actionDisabled}
       >
         <HugeiconsIcon
-          icon={ZoomOut}
+          icon={ZoomOutAreaIcon}
           data-icon="zoom-out"
           size={HEADER_ICON_SIZE.md}
           strokeWidth={1.75}
@@ -201,7 +201,7 @@ const ZoomControls: React.FC<ZoomProps> = ({
         className={HEADER_BUTTON.actionDisabled}
       >
         <HugeiconsIcon
-          icon={ZoomIn}
+          icon={ZoomInAreaIcon}
           data-icon="zoom-in"
           size={HEADER_ICON_SIZE.md}
           strokeWidth={1.75}

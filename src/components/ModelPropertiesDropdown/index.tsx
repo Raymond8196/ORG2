@@ -19,8 +19,8 @@
  * selection from `value` when it opens, and only calls `onApply` when
  * the user confirms.
  */
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import Zap from "@hugeicons/core-free-icons/FlashIcon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
+import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -481,7 +481,7 @@ export const ModelPropertiesDropdown: React.FC<
             <SwitchRow
               icon={
                 <HugeiconsIcon
-                  icon={Brain}
+                  icon={BrainIcon}
                   data-icon="brain"
                   size={DROPDOWN_ITEM.iconSize}
                   className="text-text-2"
@@ -496,7 +496,7 @@ export const ModelPropertiesDropdown: React.FC<
             <SwitchRow
               icon={
                 <HugeiconsIcon
-                  icon={Zap}
+                  icon={FlashIcon}
                   data-icon="zap"
                   size={DROPDOWN_ITEM.iconSize}
                   className="text-text-2"

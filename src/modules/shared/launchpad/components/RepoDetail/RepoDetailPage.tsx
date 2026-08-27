@@ -7,8 +7,8 @@
  * - Scripts section with CRUD via SettingsTable
  * - Analysis section with clear/refresh actions
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -230,7 +230,11 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
               title={t("common:actions.delete")}
               aria-label={t("common:actions.delete")}
               icon={
-                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  data-icon="trash-2"
+                  size={14}
+                />
               }
               onClick={() => deleteVar(row.key)}
             />
@@ -297,7 +301,9 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
               iconOnly
               title={t("common:actions.copy")}
               aria-label={t("common:actions.copy")}
-              icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={14} />
+              }
               onClick={() => handleCopyScript(row)}
             />
             {row.source === "custom" && (
@@ -307,7 +313,11 @@ const RepoDetailPage: React.FC<RepoDetailPageProps> = ({
                 title={t("common:actions.delete")}
                 aria-label={t("common:actions.delete")}
                 icon={
-                  <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                  <HugeiconsIcon
+                    icon={Delete02Icon}
+                    data-icon="trash-2"
+                    size={14}
+                  />
                 }
                 onClick={() => deleteScript(row.name)}
               />

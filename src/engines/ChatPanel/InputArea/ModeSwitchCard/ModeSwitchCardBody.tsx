@@ -1,4 +1,4 @@
-import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -104,7 +104,7 @@ export function ModeSwitchCardBody({
                 data-testid="mode-switch-confirm"
                 icon={
                   <HugeiconsIcon
-                    icon={ArrowLeftRight}
+                    icon={ArrowLeftRightIcon}
                     data-icon="arrow-left-right"
                     size={12}
                     strokeWidth={2}

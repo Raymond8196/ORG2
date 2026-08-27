@@ -5,7 +5,7 @@
  * letting the user configure and launch a new session without leaving
  * the palette (no navigation to Agent Station).
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import React, { useCallback, useMemo } from "react";
 
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
@@ -41,7 +41,7 @@ export function SessionCreatorPalette({
         type: "action",
         id: "new-session",
         label: "New Session",
-        icon: Plus,
+        icon: Add01Icon,
         color: "primary",
       },
     ],

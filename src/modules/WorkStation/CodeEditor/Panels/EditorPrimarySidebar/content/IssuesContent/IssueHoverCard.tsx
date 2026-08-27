@@ -1,10 +1,10 @@
 /** Hover-card presentation owned by the WorkStation issues panel. */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import Tags from "@hugeicons/core-free-icons/TagsIcon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
+import TagsIcon from "@hugeicons/core-free-icons/TagsIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -55,14 +55,14 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
           icon={
             isOpen ? (
               <HugeiconsIcon
-                icon={CircleDot}
+                icon={CircleDotIcon}
                 data-icon="circle-dot"
                 size={13}
                 strokeWidth={1.75}
               />
             ) : (
               <HugeiconsIcon
-                icon={XCircle}
+                icon={CancelCircleIcon}
                 data-icon="xcircle"
                 size={13}
                 strokeWidth={1.75}
@@ -83,7 +83,7 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={User}
+              icon={UserIcon}
               data-icon="user"
               size={13}
               strokeWidth={1.75}
@@ -102,7 +102,7 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={Clock}
+              icon={Clock01Icon}
               data-icon="clock"
               size={13}
               strokeWidth={1.75}
@@ -132,7 +132,7 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Tags}
+                icon={TagsIcon}
                 data-icon="tags"
                 size={13}
                 strokeWidth={1.75}
@@ -162,7 +162,7 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={User}
+                icon={UserIcon}
                 data-icon="user"
                 size={13}
                 strokeWidth={1.75}
@@ -182,7 +182,7 @@ const IssueHoverCardContent: React.FC<IssueHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={MessageSquare}
+                icon={Message01Icon}
                 data-icon="message-square"
                 size={13}
                 strokeWidth={1.75}

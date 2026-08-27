@@ -1,13 +1,13 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowDownToLine from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
-import CloudDownload from "@hugeicons/core-free-icons/CloudDownloadIcon";
-import CloudUpload from "@hugeicons/core-free-icons/CloudUploadIcon";
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
-import GitCompareArrows from "@hugeicons/core-free-icons/GitCompareIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowDownToLineIcon from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import ArrowUpFromLineIcon from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
+import CloudDownloadIcon from "@hugeicons/core-free-icons/CloudDownloadIcon";
+import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
+import GitCompareIcon from "@hugeicons/core-free-icons/GitCompareIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -105,34 +105,34 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
         {
           key: "fetch",
           label: "Fetch origin",
-          icon: CloudDownload,
+          icon: CloudDownloadIcon,
           onSelect: onFetch,
         },
         {
           key: "sync",
           label: "Pull then push",
-          icon: RefreshCw,
+          icon: Refresh04Icon,
           disabled: needsPublish,
           onSelect: onSync,
         },
         {
           key: "pull",
           label: "Pull",
-          icon: ArrowDownToLine,
+          icon: ArrowDownToLineIcon,
           disabled: needsPublish,
           onSelect: onPull,
         },
         {
           key: "rebase",
           label: "Pull with rebase",
-          icon: GitCompareArrows,
+          icon: GitCompareIcon,
           disabled: needsPublish,
           onSelect: onRebase,
         },
         {
           key: "push",
           label: needsPublish ? "Publish" : "Push",
-          icon: needsPublish ? CloudUpload : ArrowUpFromLine,
+          icon: needsPublish ? CloudUploadIcon : ArrowUpFromLineIcon,
           onSelect: onPush,
         },
       ],
@@ -165,14 +165,14 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
           >
             {needsPublish && !isPublishing ? (
               <HugeiconsIcon
-                icon={CloudUpload}
+                icon={CloudUploadIcon}
                 data-icon="cloud-upload"
                 size={MENU_ICON_SIZE}
                 className="text-text-1"
               />
             ) : (
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={MENU_ICON_SIZE}
                 className={`text-text-1 ${syncSpinClass ?? ""}`}
@@ -205,7 +205,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                 >
                   {behindCount}
                   <HugeiconsIcon
-                    icon={ArrowDown}
+                    icon={ArrowDown02Icon}
                     data-icon="arrow-down"
                     size={MENU_ICON_SIZE}
                   />
@@ -217,7 +217,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                 >
                   {aheadCount}
                   <HugeiconsIcon
-                    icon={ArrowUp}
+                    icon={ArrowUp02Icon}
                     data-icon="arrow-up"
                     size={MENU_ICON_SIZE}
                   />
@@ -225,7 +225,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
               </>
             )}
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               size={12}
               className="text-text-3"
@@ -316,7 +316,7 @@ export const GitSyncStatusMenu: React.FC<GitSyncStatusMenuProps> = memo(
                       role="menuitem"
                     >
                       <HugeiconsIcon
-                        icon={Ellipsis}
+                        icon={EllipsisIcon}
                         data-icon="ellipsis"
                         size={MENU_ICON_SIZE}
                         className="text-text-1"

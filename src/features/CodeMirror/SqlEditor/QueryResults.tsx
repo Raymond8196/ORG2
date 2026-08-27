@@ -8,9 +8,9 @@
  * - Row count
  * - Scrollable results table
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -53,7 +53,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
           {/* Error header */}
           <div className="bg-[color-mix(in srgb, var(--color-danger-6) 10%, transparent)] flex items-center gap-2 border-b border-border-1 px-3 py-2">
             <HugeiconsIcon
-              icon={AlertCircle}
+              icon={AlertCircleIcon}
               data-icon="alert-circle"
               size={14}
               strokeWidth={1.75}
@@ -92,7 +92,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
           <div className="bg-[color-mix(in srgb, var(--color-success-6) 10%, transparent)] flex items-center gap-3 border-b border-border-1 px-3 py-2">
             <div className="flex items-center gap-1.5">
               <HugeiconsIcon
-                icon={CheckCircle2}
+                icon={CheckmarkCircle01Icon}
                 data-icon="check-circle-2"
                 size={14}
                 strokeWidth={1.75}
@@ -104,7 +104,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
             </div>
             <div className="flex items-center gap-1 text-xs text-text-3">
               <HugeiconsIcon
-                icon={Clock}
+                icon={Clock01Icon}
                 data-icon="clock"
                 size={12}
                 strokeWidth={1.75}
@@ -136,7 +136,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
         <div className="flex items-center gap-3 border-b border-border-1 bg-[color-mix(in_srgb,var(--color-success-6)_5%,transparent)] px-3 py-2">
           <div className="flex items-center gap-1.5">
             <HugeiconsIcon
-              icon={CheckCircle2}
+              icon={CheckmarkCircle01Icon}
               data-icon="check-circle-2"
               size={14}
               strokeWidth={1.75}
@@ -148,7 +148,7 @@ export const QueryResults: React.FC<QueryResultsProps> = memo(
           </div>
           <div className="flex items-center gap-1 text-xs text-text-3">
             <HugeiconsIcon
-              icon={Clock}
+              icon={Clock01Icon}
               data-icon="clock"
               size={12}
               strokeWidth={1.75}

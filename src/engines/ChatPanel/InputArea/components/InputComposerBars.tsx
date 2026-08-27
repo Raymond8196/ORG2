@@ -1,5 +1,5 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -210,7 +210,7 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
               htmlType="button"
               icon={
                 <HugeiconsIcon
-                  icon={X}
+                  icon={Cancel01Icon}
                   data-icon="x"
                   size={13}
                   strokeWidth={2}
@@ -248,7 +248,7 @@ export const EditComposerBar: React.FC<EditComposerBarProps> = ({
             htmlType="button"
             icon={
               <HugeiconsIcon
-                icon={RotateCcw}
+                icon={RotateLeft01Icon}
                 data-icon="rotate-ccw"
                 size={13}
                 strokeWidth={2}

@@ -7,10 +7,10 @@
  * detail-view preview tabs, where editing happens via the Edit tab's
  * table, not the chart).
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -65,7 +65,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
       {/* Icon + Name */}
       <div className="flex items-center gap-2">
         <HugeiconsIcon
-          icon={Users}
+          icon={UserMultipleIcon}
           data-icon="users"
           size={16}
           className="shrink-0 text-primary-6"
@@ -97,7 +97,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
               title={t("org.addChild")}
             >
               <HugeiconsIcon
-                icon={Plus}
+                icon={Add01Icon}
                 data-icon="plus"
                 size={12}
                 className="text-text-2"
@@ -113,7 +113,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
             title={t("common:actions.edit")}
           >
             <HugeiconsIcon
-              icon={Pencil}
+              icon={Pen01Icon}
               data-icon="pencil"
               size={12}
               className="text-text-2"
@@ -129,7 +129,7 @@ const OrgNodeCard: React.FC<OrgNodeCardProps> = ({
               title={t("common:actions.delete")}
             >
               <HugeiconsIcon
-                icon={Trash2}
+                icon={Delete02Icon}
                 data-icon="trash-2"
                 size={12}
                 className="text-danger-6"

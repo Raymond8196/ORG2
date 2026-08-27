@@ -5,15 +5,15 @@
  * including failed operations. Data comes from gitOperationHistoryAtom
  * which is populated by backend WebSocket events.
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ArrowDownToLine from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
-import ArrowUpFromLine from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import ArrowDownToLineIcon from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
+import ArrowUpFromLineIcon from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { memo, useMemo } from "react";
@@ -40,13 +40,13 @@ const TIME_THRESHOLDS = {
 } as const;
 
 const OPERATION_ICONS: Record<string, IconSvgElement> = {
-  commit: GitCommitHorizontal,
-  push: ArrowUpFromLine,
-  pull: ArrowDownToLine,
-  fetch: RefreshCw,
-  merge: GitMerge,
-  rebase: GitPullRequest,
-  checkout: RefreshCw,
+  commit: GitCommitHorizontalIcon,
+  push: ArrowUpFromLineIcon,
+  pull: ArrowDownToLineIcon,
+  fetch: Refresh04Icon,
+  merge: GitMergeIcon,
+  rebase: GitPullRequestIcon,
+  checkout: Refresh04Icon,
 };
 
 // ============================================
@@ -86,7 +86,7 @@ interface OperationRowProps {
 
 const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
   const OperationIconComponent =
-    OPERATION_ICONS[entry.operation] ?? AlertCircle;
+    OPERATION_ICONS[entry.operation] ?? AlertCircleIcon;
 
   return (
     <div className="group flex items-start gap-2 rounded px-2 py-1.5 transition-colors hover:bg-fill-3">
@@ -101,7 +101,7 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
           />
         ) : (
           <HugeiconsIcon
-            icon={XCircle}
+            icon={CancelCircleIcon}
             data-icon="xcircle"
             size={ICON_SIZE}
             strokeWidth={ICON_STROKE}
@@ -118,7 +118,7 @@ const OperationRow: React.FC<OperationRowProps> = memo(({ entry }) => {
           </span>
           {entry.success ? (
             <HugeiconsIcon
-              icon={CheckCircle2}
+              icon={CheckmarkCircle01Icon}
               data-icon="check-circle-2"
               size={11}
               className="text-success-text flex-shrink-0"

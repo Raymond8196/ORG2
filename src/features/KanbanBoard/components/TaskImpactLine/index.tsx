@@ -1,6 +1,6 @@
-import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import GitCommit from "@hugeicons/core-free-icons/GitCommitIcon";
+import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
+import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
+import GitCommitIcon from "@hugeicons/core-free-icons/GitCommitIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -51,7 +51,7 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
         <span className="task-impact-line__dot" />
         <span className="task-impact-line__item">
           <HugeiconsIcon
-            icon={Diff}
+            icon={DiffIcon}
             data-icon="diff"
             size={12}
             strokeWidth={1.75}
@@ -63,7 +63,7 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
             <span className="task-impact-line__dot" />
             <span className="task-impact-line__item text-primary-6">
               <HugeiconsIcon
-                icon={GitCommit}
+                icon={GitCommitIcon}
                 data-icon="git-commit"
                 className="task-impact-line__commit-icon"
                 size={12}
@@ -83,7 +83,7 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
     <span className={rootClassName}>
       <span className="task-impact-line__empty">
         <HugeiconsIcon
-          icon={CircleSlash}
+          icon={CircleSlashIcon}
           data-icon="circle-slash"
           size={12}
           strokeWidth={1.75}

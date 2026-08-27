@@ -1,7 +1,7 @@
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
@@ -29,7 +29,11 @@ export function GitHubWorkItemToolbarActions({
         htmlType="button"
         variant="secondary"
         icon={
-          <HugeiconsIcon icon={RefreshCw} data-icon="refresh-cw" size={13} />
+          <HugeiconsIcon
+            icon={Refresh04Icon}
+            data-icon="refresh-cw"
+            size={13}
+          />
         }
         iconOnly
         loading={refreshing}
@@ -43,7 +47,7 @@ export function GitHubWorkItemToolbarActions({
           variant="secondary"
           icon={
             <HugeiconsIcon
-              icon={SquarePen}
+              icon={PencilEdit02Icon}
               data-icon="square-pen"
               size={14}
               strokeWidth={2}
@@ -80,7 +84,7 @@ export function GitHubWorkItemStateTabs({
       tab.key === "open" ? (
         <span className="flex items-center text-success-6">
           <HugeiconsIcon
-            icon={CircleDot}
+            icon={CircleDotIcon}
             data-icon="circle-dot"
             size={14}
             strokeWidth={1.8}
@@ -90,7 +94,7 @@ export function GitHubWorkItemStateTabs({
       ) : (
         <span className="flex items-center text-purple-6">
           <HugeiconsIcon
-            icon={CheckCircle2}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle-2"
             size={14}
             strokeWidth={1.8}

@@ -1,4 +1,4 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 
@@ -144,7 +144,7 @@ const SimulatorTreePanel: React.FC<SimulatorTreePanelProps> = ({
       >
         <div className={STICKY_ROW.chevronBox}>
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={CHEVRON_SIZE}
             className={STICKY_ROW.chevronIcon}

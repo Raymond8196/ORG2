@@ -11,10 +11,10 @@
  *
  * Used by ChatHistory and Inbox feed panels.
  */
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Crosshair from "@hugeicons/core-free-icons/CrosshairIcon";
-import CheckCheck from "@hugeicons/core-free-icons/TickDouble01Icon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import CrosshairIcon from "@hugeicons/core-free-icons/CrosshairIcon";
+import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -67,7 +67,7 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
           className={markAllAsReadPillClassName}
         >
           <HugeiconsIcon
-            icon={CheckCheck}
+            icon={TickDouble01Icon}
             data-icon="check-check"
             size={14}
             className="text-success-6"
@@ -85,7 +85,7 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
           size="small"
           icon={
             <HugeiconsIcon
-              icon={ArrowUp}
+              icon={ArrowUp02Icon}
               data-icon="arrow-up"
               size={13}
               strokeWidth={2}
@@ -117,7 +117,7 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={Crosshair}
+                  icon={CrosshairIcon}
                   data-icon="crosshair"
                   size={13}
                   strokeWidth={2}
@@ -139,7 +139,7 @@ const FloatingScrollNav: React.FC<FloatingScrollNavProps> = ({
           className={ICON_BUTTON_CLASS}
         >
           <HugeiconsIcon
-            icon={ArrowDown}
+            icon={ArrowDown02Icon}
             data-icon="arrow-down"
             size={INPUT_AREA_BUTTONS.iconSize}
             className="text-text-2"

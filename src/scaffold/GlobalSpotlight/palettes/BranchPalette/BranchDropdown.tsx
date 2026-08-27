@@ -9,10 +9,10 @@
  * Chosen by `general.modelPickerStyle === "dropdown"`. Falls through to
  * `BranchPalette` (Spotlight) otherwise.
  */
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -69,21 +69,21 @@ const BranchRow: React.FC<BranchRowProps> = ({
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {isCurrent ? (
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={DROPDOWN_ITEM.iconSize}
             className="text-primary-6"
           />
         ) : branch.worktreePath ? (
           <HugeiconsIcon
-            icon={Folder}
+            icon={FolderClosedIcon}
             data-icon="folder"
             size={DROPDOWN_ITEM.iconSize}
             className="text-text-2"
           />
         ) : (
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={DROPDOWN_ITEM.iconSize}
             className="text-text-2"
@@ -265,7 +265,7 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
         <HugeiconsIcon
-          icon={Search}
+          icon={Search01Icon}
           data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"

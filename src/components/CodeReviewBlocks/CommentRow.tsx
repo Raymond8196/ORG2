@@ -1,6 +1,6 @@
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -100,7 +100,7 @@ const CommentRow: React.FC<CommentRowProps> = ({
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={Copy}
+                  icon={Copy01Icon}
                   data-icon="copy"
                   size={12}
                   className="text-text-4 hover:text-text-2"
@@ -127,13 +127,13 @@ const CommentRow: React.FC<CommentRowProps> = ({
         <span className="mt-0.5 hidden items-center text-text-4 group-hover/comment:inline-flex">
           {expanded ? (
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               size={14}
             />
           ) : (
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={14}
             />

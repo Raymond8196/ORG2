@@ -5,7 +5,7 @@
  * issues. The wizard creates the project, attaches the GitHub sync adapter with
  * `{ owner, repo }`, then lets the backend import issues asynchronously.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -240,7 +240,7 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
                 {connectionsLoading ? (
                   <div className="flex h-8 items-center gap-2 rounded-lg border border-border-2 px-3 text-[13px] text-text-3">
                     <HugeiconsIcon
-                      icon={Loader2}
+                      icon={Loading03Icon}
                       data-icon="loader-2"
                       size={14}
                       className="animate-spin"

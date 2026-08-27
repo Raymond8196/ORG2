@@ -1,4 +1,4 @@
-import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardCheckIcon";
+import ClipboardCheckIcon from "@hugeicons/core-free-icons/ClipboardCheckIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -47,7 +47,7 @@ export const UserBubbleContent: React.FC<{
           <ChatBubbleCopyButton content={content} />
           <div className="flex items-center gap-2">
             <HugeiconsIcon
-              icon={ClipboardCheck}
+              icon={ClipboardCheckIcon}
               data-icon="clipboard-check"
               size={14}
               className="text-primary-6"

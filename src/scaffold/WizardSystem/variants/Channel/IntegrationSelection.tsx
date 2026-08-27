@@ -1,4 +1,4 @@
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -279,7 +279,11 @@ const IntegrationSelection: React.FC<IntegrationSelectionProps> = ({
                   autoCorrect="off"
                   spellCheck={false}
                   prefix={
-                    <HugeiconsIcon icon={Search} data-icon="search" size={14} />
+                    <HugeiconsIcon
+                      icon={Search01Icon}
+                      data-icon="search"
+                      size={14}
+                    />
                   }
                   style={{ width: "100%" }}
                 />

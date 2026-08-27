@@ -5,17 +5,17 @@
  * - This file must NOT import `WorkspaceContext` barrel exports to avoid circular deps.
  * - Keep this module UI-light and side-effect free; it is imported by `ChatContext`.
  */
-import Book from "@hugeicons/core-free-icons/Book01Icon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import Book01Icon from "@hugeicons/core-free-icons/Book01Icon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 export const chat_models = [
   {
     icon: (
       <HugeiconsIcon
-        icon={Sparkles}
+        icon={SparklesIcon}
         data-icon="sparkles"
         className="text-[16px] text-text-2"
         size={16}
@@ -27,7 +27,7 @@ export const chat_models = [
   {
     icon: (
       <HugeiconsIcon
-        icon={Code}
+        icon={CodeIcon}
         data-icon="code"
         className="text-[16px] text-text-2"
         size={16}
@@ -39,7 +39,7 @@ export const chat_models = [
   {
     icon: (
       <HugeiconsIcon
-        icon={Book}
+        icon={Book01Icon}
         data-icon="book"
         className="text-[16px] text-text-2"
         size={16}
@@ -51,7 +51,7 @@ export const chat_models = [
   {
     icon: (
       <HugeiconsIcon
-        icon={FileText}
+        icon={File02Icon}
         data-icon="file-text"
         size={16}
         strokeWidth={1.75}
@@ -64,7 +64,7 @@ export const chat_models = [
   {
     icon: (
       <HugeiconsIcon
-        icon={FileText}
+        icon={File02Icon}
         data-icon="file-text"
         size={16}
         strokeWidth={1.75}

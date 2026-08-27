@@ -11,7 +11,7 @@
  *  - With `button` prop: outer shell is a non-interactive div; the
  *    provided button node is rendered on the right, always visible.
  */
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -74,7 +74,7 @@ const QuickActionPill: React.FC<QuickActionPillProps> = ({
       <LabelContent icon={icon} label={label} />
       {/* Reserves space always; fades in on hover */}
       <HugeiconsIcon
-        icon={ArrowRight}
+        icon={ArrowRight02Icon}
         data-icon="arrow-right"
         size={14}
         strokeWidth={1.75}

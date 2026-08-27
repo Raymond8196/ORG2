@@ -1,7 +1,7 @@
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import Lightbulb from "@hugeicons/core-free-icons/BulbIcon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import ThumbsUp from "@hugeicons/core-free-icons/ThumbsUpIcon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import BulbIcon from "@hugeicons/core-free-icons/BulbIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import ThumbsUpIcon from "@hugeicons/core-free-icons/ThumbsUpIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
@@ -12,18 +12,26 @@ const REVIEW_SEVERITY_CONFIG: Record<
   ReviewCommentSeverity,
   { icon: IconSvgElement; name: string; className: string }
 > = {
-  error: { icon: XCircle, name: "xcircle", className: "text-danger-6" },
+  error: {
+    icon: CancelCircleIcon,
+    name: "xcircle",
+    className: "text-danger-6",
+  },
   warning: {
-    icon: AlertTriangle,
+    icon: Alert01Icon,
     name: "alert-triangle",
     className: "text-warning-6",
   },
   suggestion: {
-    icon: Lightbulb,
+    icon: BulbIcon,
     name: "lightbulb",
     className: "text-primary-6",
   },
-  praise: { icon: ThumbsUp, name: "thumbs-up", className: "text-success-6" },
+  praise: {
+    icon: ThumbsUpIcon,
+    name: "thumbs-up",
+    className: "text-success-6",
+  },
 };
 
 interface ReviewSeverityIconProps {

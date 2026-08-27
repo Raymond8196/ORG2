@@ -5,7 +5,7 @@
  * Uses the current editor content (planContent prop) so that
  * user edits to the plan file are respected on execute.
  */
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback } from "react";
@@ -111,7 +111,7 @@ export const PlanFileActions: React.FC<PlanFileActionsProps> = memo(
         variant="primary"
         size="mini"
         onClick={handleExecute}
-        icon={<HugeiconsIcon icon={Play} data-icon="play" size={12} />}
+        icon={<HugeiconsIcon icon={PlayIcon} data-icon="play" size={12} />}
       >
         {t("planner.plan.executePlan")}
       </Button>

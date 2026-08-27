@@ -1,12 +1,12 @@
 /**
  * Ports status-bar menu: workspace vs external listening ports.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Chromium from "@hugeicons/core-free-icons/InternetIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Unplug from "@hugeicons/core-free-icons/UnplugIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import UnplugIcon from "@hugeicons/core-free-icons/UnplugIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -132,7 +132,7 @@ const PortRow: React.FC<PortRowProps> = memo(
             }}
           >
             <HugeiconsIcon
-              icon={Chromium}
+              icon={InternetIcon}
               data-icon="chrome"
               size={MENU_ICON_SIZE}
               aria-hidden
@@ -148,7 +148,11 @@ const PortRow: React.FC<PortRowProps> = memo(
               onCopy(port);
             }}
           >
-            <HugeiconsIcon icon={Copy} data-icon="copy" size={MENU_ICON_SIZE} />
+            <HugeiconsIcon
+              icon={Copy01Icon}
+              data-icon="copy"
+              size={MENU_ICON_SIZE}
+            />
           </button>
           {canStop && (
             <button
@@ -164,14 +168,14 @@ const PortRow: React.FC<PortRowProps> = memo(
             >
               {stopping ? (
                 <HugeiconsIcon
-                  icon={Loader2}
+                  icon={Loading03Icon}
                   data-icon="loader-2"
                   size={MENU_ICON_SIZE}
                   className="animate-spin text-danger-6"
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={Trash2}
+                  icon={Delete02Icon}
                   data-icon="trash-2"
                   size={MENU_ICON_SIZE}
                 />
@@ -300,7 +304,7 @@ export const PortsStatusMenu: React.FC = memo(() => {
           dataTestId="status-bar-ports"
         >
           <HugeiconsIcon
-            icon={Unplug}
+            icon={UnplugIcon}
             data-icon="unplug"
             size={13}
             className="text-text-1"
@@ -328,7 +332,7 @@ export const PortsStatusMenu: React.FC = memo(() => {
           >
             <div className={DROPDOWN_CLASSES.searchContainer}>
               <HugeiconsIcon
-                icon={Search}
+                icon={Search01Icon}
                 data-icon="search"
                 size={DROPDOWN_ITEM.iconSize}
                 className="shrink-0 text-text-3"

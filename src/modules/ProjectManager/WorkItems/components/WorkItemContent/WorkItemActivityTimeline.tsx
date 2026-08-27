@@ -1,11 +1,11 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useMemo } from "react";
@@ -42,23 +42,23 @@ const MAX_VISIBLE_FIELD_LABELS = 2;
 
 const TIMELINE_ICONS: Record<TimelineEntry["type"], React.ReactNode> = {
   [WORK_ITEM_HISTORY_ACTION.CREATED]: (
-    <HugeiconsIcon icon={Plus} data-icon="plus" size={12} />
+    <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={12} />
   ),
   [WORK_ITEM_HISTORY_ACTION.UPDATED]: (
-    <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />
+    <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={12} />
   ),
   [WORK_ITEM_HISTORY_ACTION.COMMENTED]: (
-    <HugeiconsIcon icon={MessageSquare} data-icon="message-square" size={12} />
+    <HugeiconsIcon icon={Message01Icon} data-icon="message-square" size={12} />
   ),
   [WORK_ITEM_HISTORY_ACTION.DELETED]: (
-    <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />
+    <HugeiconsIcon icon={Delete02Icon} data-icon="trash-2" size={12} />
   ),
   [WORK_ITEM_HISTORY_ACTION.RESTORED]: (
-    <HugeiconsIcon icon={RotateCcw} data-icon="rotate-ccw" size={12} />
+    <HugeiconsIcon icon={RotateLeft01Icon} data-icon="rotate-ccw" size={12} />
   ),
   [WORK_ITEM_HISTORY_ACTION.MOVED]: (
     <HugeiconsIcon
-      icon={ArrowRightLeft}
+      icon={ArrowLeftRightIcon}
       data-icon="arrow-right-left"
       size={12}
     />
@@ -191,7 +191,7 @@ function SingleTimelineEntry({
       icon={
         isDelegationComment ? (
           <HugeiconsIcon
-            icon={Bot}
+            icon={BotIcon}
             data-icon="bot"
             size={12}
             className="text-primary-6"
@@ -237,7 +237,7 @@ function GroupedChangeEvent({
 
   return (
     <TimelineEventCard
-      icon={<HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />}
+      icon={<HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={12} />}
     >
       <details
         className="group min-w-0"
@@ -289,7 +289,7 @@ function GroupedChangeEvent({
             />
           </span>
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
             aria-hidden

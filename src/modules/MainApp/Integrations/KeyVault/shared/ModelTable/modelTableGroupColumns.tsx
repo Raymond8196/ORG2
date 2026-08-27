@@ -1,5 +1,5 @@
 /** Group-view columns for the Key Vault ModelTable. */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -160,7 +160,7 @@ function renderPreferredVersionCell(
           >
             <span className="truncate">{triggerLabel}</span>
             <HugeiconsIcon
-              icon={ChevronDown}
+              icon={ArrowDown01Icon}
               data-icon="chevron-down"
               size={12}
               className="text-text-3"

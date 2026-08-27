@@ -3,9 +3,9 @@
  *
  * Configuration for inbox channels (message grouping) and date formatting.
  */
-import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import Store from "@hugeicons/core-free-icons/Store01Icon";
+import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import Store01Icon from "@hugeicons/core-free-icons/Store01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import type { InboxCategory } from "@src/api/types/inbox";
@@ -35,19 +35,19 @@ export const INBOX_CHANNELS: InboxChannelConfig[] = [
   {
     id: "git",
     labelKey: "inbox.channels.git",
-    icon: Diff,
+    icon: DiffIcon,
     color: "#f97316",
   },
   {
     id: "workitems",
     labelKey: "inbox.channels.workItems",
-    icon: ListTodo,
+    icon: ListTodoIcon,
     color: "#3b82f6",
   },
   {
     id: "promotion",
     labelKey: "inbox.channels.promotions",
-    icon: Store,
+    icon: Store01Icon,
     color: "#8b5cf6",
   },
 ];

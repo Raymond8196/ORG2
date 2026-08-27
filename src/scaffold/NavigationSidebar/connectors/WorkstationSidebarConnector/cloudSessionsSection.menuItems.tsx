@@ -5,8 +5,8 @@
  * the "Load more" pagination row, and the empty/loading/error placeholder
  * row.
  */
-import ListFilter from "@hugeicons/core-free-icons/FilterMailIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import FilterMailIcon from "@hugeicons/core-free-icons/FilterMailIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import type { TFunction } from "i18next";
 import React, { useMemo } from "react";
 
@@ -63,7 +63,7 @@ export function useCloudTeamSessionMenuItems({
     );
     header.rowActions = [
       {
-        icon: RefreshCw,
+        icon: Refresh04Icon,
         dataIcon: "refresh-cw",
         iconClassName: refreshSpinClass,
         label: tCommon("actions.refresh"),
@@ -71,7 +71,7 @@ export function useCloudTeamSessionMenuItems({
         onClick: handleRefreshClick,
       },
       {
-        icon: ListFilter,
+        icon: FilterMailIcon,
         label: t("cloud.sidebar.sessionFilter"),
         active: memberMenu !== null || filter.kind !== "all",
         dataTestId: "cloud-team-sessions-filter",

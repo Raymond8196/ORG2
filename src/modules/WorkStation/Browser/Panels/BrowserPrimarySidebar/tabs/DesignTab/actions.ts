@@ -4,10 +4,10 @@
  * These functions generate action button configurations for section headers.
  * Follows explorer pattern: Filter toggle, Collapse All, then other actions.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 
@@ -36,7 +36,7 @@ export function getPagesActions({
     {
       key: "filter",
       icon: createElement(HugeiconsIcon, {
-        icon: Filter,
+        icon: FilterIcon,
         size: ACTION_ICON_SIZE,
         className: showFilter ? "text-primary-6" : "",
       }),
@@ -49,7 +49,7 @@ export function getPagesActions({
     actions.push({
       key: "collapse-all",
       icon: createElement(HugeiconsIcon, {
-        icon: ListChevronsDownUp,
+        icon: ListChevronsDownUpIcon,
         size: 16,
       }),
       tooltip: "Collapse All",
@@ -61,7 +61,7 @@ export function getPagesActions({
     actions.push({
       key: "add-page",
       icon: createElement(HugeiconsIcon, {
-        icon: Plus,
+        icon: Add01Icon,
         size: ACTION_ICON_SIZE,
       }),
       tooltip: "New Page",
@@ -89,7 +89,7 @@ export function getGlobalTokensActions({
     {
       key: "filter",
       icon: createElement(HugeiconsIcon, {
-        icon: Filter,
+        icon: FilterIcon,
         size: ACTION_ICON_SIZE,
         className: showFilter ? "text-primary-6" : "",
       }),
@@ -102,7 +102,7 @@ export function getGlobalTokensActions({
     actions.push({
       key: "refresh",
       icon: createElement(HugeiconsIcon, {
-        icon: RefreshCw,
+        icon: Refresh04Icon,
         size: ACTION_ICON_SIZE,
       }),
       tooltip: "Rescan Tokens",

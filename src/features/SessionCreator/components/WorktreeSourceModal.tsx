@@ -1,7 +1,7 @@
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -68,7 +68,7 @@ function githubPrToItem(pr: OpenPRItem): GitHubWorktreeItem {
     id: option.id,
     icon: (
       <HugeiconsIcon
-        icon={GitPullRequest}
+        icon={GitPullRequestIcon}
         data-icon="git-pull-request"
         size={14}
         strokeWidth={1.75}
@@ -91,7 +91,7 @@ function githubIssueToItem(
     id: `issue:${issue.number}`,
     icon: (
       <HugeiconsIcon
-        icon={CircleDot}
+        icon={CircleDotIcon}
         data-icon="circle-dot"
         size={14}
         strokeWidth={1.75}
@@ -156,7 +156,7 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
         }),
         icon: (
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={14}
             strokeWidth={1.75}
@@ -331,7 +331,7 @@ const WorktreeSourceModal: React.FC<WorktreeSourceModalProps> = ({
       <SourceRow
         icon={
           <HugeiconsIcon
-            icon={Hash}
+            icon={HashtagIcon}
             data-icon="hash"
             size={14}
             strokeWidth={1.75}

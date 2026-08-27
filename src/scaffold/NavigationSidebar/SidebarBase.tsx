@@ -14,9 +14,9 @@
  * </SidebarBase>
  * ```
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -84,7 +84,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     theme,
     onCollapse,
     onAddNew,
-    addIcon: AddIcon = Plus,
+    addIcon: AddIcon = Add01Icon,
     addLabel,
     addTooltipContent,
     beforeAddNewActions,
@@ -380,7 +380,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                       onClick={handleExpand}
                     >
                       <HugeiconsIcon
-                        icon={PanelLeft}
+                        icon={PanelLeftIcon}
                         data-icon="panel-left"
                         size={16}
                         strokeWidth={2}
@@ -395,7 +395,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                       onClick={handleCollapse}
                     >
                       <HugeiconsIcon
-                        icon={X}
+                        icon={Cancel01Icon}
                         data-icon="x"
                         size={16}
                         strokeWidth={2}
@@ -423,7 +423,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                         onClick={handleCollapse}
                       >
                         <HugeiconsIcon
-                          icon={PanelLeft}
+                          icon={PanelLeftIcon}
                           data-icon="panel-left"
                           size={16}
                           strokeWidth={2}

@@ -4,8 +4,8 @@
  * Right pane of the Team Inbox split view: a selected pull request, the
  * load/empty placeholders, or the detail for the selected Inbox row.
  */
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -80,7 +80,7 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
                 label={t("previews.openInExternalBrowser")}
                 icon={
                   <HugeiconsIcon
-                    icon={Chrome}
+                    icon={InternetIcon}
                     data-icon="chrome"
                     size={14}
                     strokeWidth={1.75}
@@ -100,7 +100,7 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
                   )}
                   icon={
                     <HugeiconsIcon
-                      icon={SquareArrowOutUpRight}
+                      icon={SquareArrowUpRightIcon}
                       data-icon="square-arrow-out-up-right"
                       size={14}
                       strokeWidth={1.75}

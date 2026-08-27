@@ -1,4 +1,4 @@
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
@@ -27,7 +27,7 @@ const CODE_SIDEBAR_HEADER_ACTIONS: Array<{
 }> = [
   {
     key: PRIMARY_SIDEBAR_TABS.SEARCH,
-    icon: Search,
+    icon: Search01Icon,
     labelKey: "tabs.search",
   },
 ];

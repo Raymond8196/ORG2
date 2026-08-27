@@ -1,6 +1,6 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
@@ -36,7 +36,7 @@ export const AgentSessionRow: React.FC<AgentSessionRowProps> = memo(
       type: "file",
       icon: (
         <HugeiconsIcon
-          icon={Terminal}
+          icon={ComputerTerminal01Icon}
           data-icon="terminal"
           size={14}
           strokeWidth={1.75}
@@ -47,14 +47,14 @@ export const AgentSessionRow: React.FC<AgentSessionRowProps> = memo(
     return (
       <TreeRowBase node={node} depth={0} isSelected={isActive} onClick={onOpen}>
         <HugeiconsIcon
-          icon={Infinity}
+          icon={Infinity01Icon}
           data-icon="infinity"
           size={14}
           strokeWidth={1.75}
           className="shrink-0 text-primary-6 group-hover/item:hidden"
         />
         <TreeRowAction
-          icon={X}
+          icon={Cancel01Icon}
           onClick={onClose}
           title={t("controlTower.sidebar.stopAgentProcess")}
           variant="danger"
@@ -83,7 +83,7 @@ export const PtySessionRow: React.FC<PtySessionRowProps> = memo(
       type: "file",
       icon: (
         <HugeiconsIcon
-          icon={Terminal}
+          icon={ComputerTerminal01Icon}
           data-icon="terminal"
           size={14}
           strokeWidth={1.75}
@@ -94,7 +94,7 @@ export const PtySessionRow: React.FC<PtySessionRowProps> = memo(
     return (
       <TreeRowBase node={node} depth={0} isSelected={isActive} onClick={onOpen}>
         <TreeRowAction
-          icon={X}
+          icon={Cancel01Icon}
           onClick={onClose}
           title={t("controlTower.sidebar.closeSession")}
           variant="danger"

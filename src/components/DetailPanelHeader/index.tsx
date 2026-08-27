@@ -4,9 +4,9 @@
  * Header for detail panels with title, navigation (prev/next), close, and optional actions.
  * Uses shared WorkStation header tokens for consistent styling.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -80,7 +80,7 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
               title="Previous"
             >
               <HugeiconsIcon
-                icon={ChevronUp}
+                icon={ArrowUp01Icon}
                 data-icon="chevron-up"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -92,7 +92,7 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
               title="Next"
             >
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={HEADER_ICON_SIZE.sm}
               />
@@ -104,7 +104,11 @@ const DetailPanelHeader: React.FC<DetailPanelHeaderProps> = ({
           onClick={onClose}
           title="Close"
         >
-          <HugeiconsIcon icon={X} data-icon="x" size={HEADER_ICON_SIZE.sm} />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            data-icon="x"
+            size={HEADER_ICON_SIZE.sm}
+          />
         </button>
       </div>
     </div>

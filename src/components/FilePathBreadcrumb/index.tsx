@@ -5,13 +5,13 @@
  * changed-file rows (collapsed middle) and file-path hover tooltips
  * (`maxSegments={null}` renders the untruncated path).
  */
-import Slash from "@hugeicons/core-free-icons/SlashIcon";
+import SlashIcon from "@hugeicons/core-free-icons/SlashIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
 const PATH_SEPARATOR = (
   <HugeiconsIcon
-    icon={Slash}
+    icon={SlashIcon}
     data-icon="slash"
     size={10}
     strokeWidth={1.5}

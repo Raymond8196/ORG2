@@ -1,6 +1,6 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Link2 from "@hugeicons/core-free-icons/Link02Icon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -308,7 +308,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
           title: triggerLabel,
           icon: (
             <HugeiconsIcon
-              icon={ListTodo}
+              icon={ListTodoIcon}
               data-icon="list-todo"
               size={16}
               strokeWidth={1.8}
@@ -328,7 +328,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
         shape="round"
         icon={
           <HugeiconsIcon
-            icon={ListTodo}
+            icon={ListTodoIcon}
             data-icon="list-todo"
             size={14}
             strokeWidth={1.75}
@@ -380,7 +380,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
                     onClick={handleRemoveWorkItem}
                   >
                     <HugeiconsIcon
-                      icon={X}
+                      icon={Cancel01Icon}
                       data-icon="x"
                       size={DROPDOWN_ITEM.iconSize}
                       strokeWidth={1.75}
@@ -399,7 +399,7 @@ const WorkItemAttachmentControl: React.FC<WorkItemAttachmentControlProps> = ({
                   onClick={handleLinkWorkItem}
                 >
                   <HugeiconsIcon
-                    icon={Link2}
+                    icon={Link02Icon}
                     data-icon="link-2"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}

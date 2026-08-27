@@ -1,4 +1,4 @@
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -29,7 +29,7 @@ export const PriorityIndicator: React.FC<{
   return (
     <div className="flex items-center gap-1">
       <HugeiconsIcon
-        icon={AlertCircle}
+        icon={AlertCircleIcon}
         data-icon="alert-circle"
         size={14}
         style={{ color }}

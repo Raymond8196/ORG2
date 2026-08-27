@@ -10,9 +10,9 @@
  * affordance requires changes to the shared CodeMirror diff component and is a
  * separate follow-up; the create path is already wired in the data layer.)
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -201,21 +201,21 @@ export const PrReviewThreadsPanel: React.FC<PrReviewThreadsPanelProps> = ({
       >
         {expanded ? (
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={14}
             strokeWidth={2}
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
             strokeWidth={2}
           />
         )}
         <HugeiconsIcon
-          icon={MessageSquare}
+          icon={Message01Icon}
           data-icon="message-square"
           size={13}
           strokeWidth={1.9}

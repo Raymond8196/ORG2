@@ -9,19 +9,19 @@
  * Mirrors the inline context-pill visual + hover-preview behavior without
  * relying on a rich text editor framework.
  */
-import AtSign from "@hugeicons/core-free-icons/AtIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Link from "@hugeicons/core-free-icons/Link01Icon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import SquareMousePointer from "@hugeicons/core-free-icons/SquareMousePointerIcon";
-import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import AtIcon from "@hugeicons/core-free-icons/AtIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import SquareMousePointerIcon from "@hugeicons/core-free-icons/SquareMousePointerIcon";
+import ToolboxIcon from "@hugeicons/core-free-icons/ToolboxIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -303,7 +303,7 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
     if (isHovered) {
       return (
         <HugeiconsIcon
-          icon={X}
+          icon={Cancel01Icon}
           data-icon="x"
           size={PILL_SIZE.iconSize}
           strokeWidth={2}
@@ -329,18 +329,20 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
           );
         }
         if (iconType === "repo")
-          return <HugeiconsIcon icon={Code} data-icon="code" {...ICON_PROPS} />;
+          return (
+            <HugeiconsIcon icon={CodeIcon} data-icon="code" {...ICON_PROPS} />
+          );
         if (iconType === "pr")
           return (
             <HugeiconsIcon
-              icon={GitPullRequest}
+              icon={GitPullRequestIcon}
               data-icon="git-pull-request"
               {...ICON_PROPS}
             />
           );
         return (
           <HugeiconsIcon
-            icon={ListChecks}
+            icon={ListChecksIcon}
             data-icon="list-checks"
             {...ICON_PROPS}
           />
@@ -348,25 +350,37 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
       case "branch":
         return (
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             {...ICON_PROPS}
           />
         );
       case "terminal":
         return (
-          <HugeiconsIcon icon={Terminal} data-icon="terminal" {...ICON_PROPS} />
+          <HugeiconsIcon
+            icon={ComputerTerminal01Icon}
+            data-icon="terminal"
+            {...ICON_PROPS}
+          />
         );
       case "session":
         return <SessionPillIcon path={filePath} />;
       case "browser":
-        return <HugeiconsIcon icon={Globe} data-icon="globe" {...ICON_PROPS} />;
+        return (
+          <HugeiconsIcon
+            icon={InternetIcon}
+            data-icon="globe"
+            {...ICON_PROPS}
+          />
+        );
       case "link":
-        return <HugeiconsIcon icon={Link} data-icon="link" {...ICON_PROPS} />;
+        return (
+          <HugeiconsIcon icon={Link01Icon} data-icon="link" {...ICON_PROPS} />
+        );
       case "project":
         return (
           <HugeiconsIcon
-            icon={FolderKanban}
+            icon={FolderKanbanIcon}
             data-icon="folder-kanban"
             {...ICON_PROPS}
           />
@@ -374,7 +388,7 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
       case "workitem":
         return (
           <HugeiconsIcon
-            icon={ListChecks}
+            icon={ListChecksIcon}
             data-icon="list-checks"
             {...ICON_PROPS}
           />
@@ -382,7 +396,7 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
       case "dom-element":
         return (
           <HugeiconsIcon
-            icon={SquareMousePointer}
+            icon={SquareMousePointerIcon}
             data-icon="square-mouse-pointer"
             {...ICON_PROPS}
           />
@@ -390,7 +404,7 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
       case "dom-component":
         return (
           <HugeiconsIcon
-            icon={MousePointer2}
+            icon={Cursor02Icon}
             data-icon="mouse-pointer-2"
             {...ICON_PROPS}
           />
@@ -400,11 +414,15 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
           return <CanvasCommandPillIcon />;
         }
         return (
-          <HugeiconsIcon icon={Toolbox} data-icon="toolbox" {...ICON_PROPS} />
+          <HugeiconsIcon
+            icon={ToolboxIcon}
+            data-icon="toolbox"
+            {...ICON_PROPS}
+          />
         );
       case "member":
         return (
-          <HugeiconsIcon icon={AtSign} data-icon="at-sign" {...ICON_PROPS} />
+          <HugeiconsIcon icon={AtIcon} data-icon="at-sign" {...ICON_PROPS} />
         );
       default:
         return (

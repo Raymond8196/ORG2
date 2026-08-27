@@ -3,7 +3,7 @@
  * for the unified external-import flow. Rendered by every
  * `external_import_*` wizard surface (rules / skills / agents).
  */
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -85,7 +85,7 @@ const ExternalImportTable: React.FC<ExternalImportTableProps> = ({
           placement="detail-panel"
           icon={
             <HugeiconsIcon
-              icon={Inbox}
+              icon={InboxIcon}
               data-icon="inbox"
               size={32}
               aria-hidden

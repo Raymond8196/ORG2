@@ -6,9 +6,9 @@
  *
  * `UnsavedChangesBar` is a convenience wrapper: one unsaved variant inside a Layer.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -73,7 +73,7 @@ const FloatingBarUnsaved: React.FC<UnsavedChangesBarProps> = memo(
             aria-label={t("actions.discard")}
           >
             <HugeiconsIcon
-              icon={Undo2}
+              icon={Undo02Icon}
               data-icon="undo-2"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
@@ -92,7 +92,7 @@ const FloatingBarUnsaved: React.FC<UnsavedChangesBarProps> = memo(
         >
           {saving ? (
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}
@@ -100,7 +100,7 @@ const FloatingBarUnsaved: React.FC<UnsavedChangesBarProps> = memo(
             />
           ) : (
             <HugeiconsIcon
-              icon={Check}
+              icon={Tick01Icon}
               data-icon="check"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}

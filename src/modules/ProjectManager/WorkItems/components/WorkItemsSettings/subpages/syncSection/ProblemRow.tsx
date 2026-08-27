@@ -7,13 +7,13 @@
  * retry/discard handlers. See the `SyncSection` file for the parent
  * orchestration.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import MilestoneIcon from "@hugeicons/core-free-icons/RoadLocation01Icon";
-import Tag from "@hugeicons/core-free-icons/Tag01Icon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import RoadLocation01Icon from "@hugeicons/core-free-icons/RoadLocation01Icon";
+import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -45,7 +45,7 @@ const EntityIcon: React.FC<{ entityType: EntityType }> = ({ entityType }) => {
     case "work_item":
       return (
         <HugeiconsIcon
-          icon={FileText}
+          icon={File02Icon}
           data-icon="file-text"
           size={16}
           className={ENTITY_ICON_CLASS}
@@ -54,7 +54,7 @@ const EntityIcon: React.FC<{ entityType: EntityType }> = ({ entityType }) => {
     case "label":
       return (
         <HugeiconsIcon
-          icon={Tag}
+          icon={Tag01Icon}
           data-icon="tag"
           size={16}
           className={ENTITY_ICON_CLASS}
@@ -63,7 +63,7 @@ const EntityIcon: React.FC<{ entityType: EntityType }> = ({ entityType }) => {
     case "milestone":
       return (
         <HugeiconsIcon
-          icon={MilestoneIcon}
+          icon={RoadLocation01Icon}
           data-icon="milestone-icon"
           size={16}
           className={ENTITY_ICON_CLASS}
@@ -72,7 +72,7 @@ const EntityIcon: React.FC<{ entityType: EntityType }> = ({ entityType }) => {
     case "member":
       return (
         <HugeiconsIcon
-          icon={User}
+          icon={UserIcon}
           data-icon="user"
           size={16}
           className={ENTITY_ICON_CLASS}
@@ -81,7 +81,7 @@ const EntityIcon: React.FC<{ entityType: EntityType }> = ({ entityType }) => {
     case "project":
       return (
         <HugeiconsIcon
-          icon={Folder}
+          icon={FolderClosedIcon}
           data-icon="folder"
           size={16}
           className={ENTITY_ICON_CLASS}
@@ -295,13 +295,13 @@ const ProblemRow: React.FC<ProblemRowProps> = ({
       >
         {showPayload ? (
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={12}
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={12}
           />

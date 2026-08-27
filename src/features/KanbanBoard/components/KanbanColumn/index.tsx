@@ -11,7 +11,7 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import cn from "classnames";
@@ -264,7 +264,7 @@ const KanbanColumn: React.FC<KanbanColumnProps> = ({
             onClick={handleAddTask}
           >
             <HugeiconsIcon
-              icon={Plus}
+              icon={Add01Icon}
               data-icon="plus"
               size={HEADER_ICON_SIZE.sm}
             />

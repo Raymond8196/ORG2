@@ -6,7 +6,7 @@
  * The panel is read-only: opting out of sharing lives in the privacy settings
  * (`privacy.shareRuntimeWithOrg`), not here.
  */
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type ReactNode,
@@ -100,7 +100,7 @@ function RuntimeRefreshButton({
       onClick={handleClick}
       icon={
         <HugeiconsIcon
-          icon={RefreshCw}
+          icon={Refresh04Icon}
           data-icon="refresh-cw"
           size={14}
           className={spinClass}

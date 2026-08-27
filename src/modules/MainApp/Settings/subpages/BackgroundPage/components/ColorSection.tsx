@@ -4,8 +4,8 @@
  */
 import Button from "@/src/components/Button";
 import { SectionRow } from "@/src/modules/shared/layouts/SectionLayout";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -101,7 +101,7 @@ export const ColorSection: React.FC<ColorSectionProps> = ({
                 shape="circle"
                 icon={
                   <HugeiconsIcon
-                    icon={X}
+                    icon={Cancel01Icon}
                     data-icon="x"
                     size={9}
                     strokeWidth={2.25}
@@ -140,7 +140,7 @@ export const ColorSection: React.FC<ColorSectionProps> = ({
             className="absolute inset-0 h-full w-full cursor-pointer opacity-0 disabled:cursor-not-allowed"
           />
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={14}
             strokeWidth={2.25}

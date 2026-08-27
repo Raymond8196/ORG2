@@ -22,22 +22,22 @@
  * adding a new agent in Rust, use an existing Lucide-style slug for
  * `icon_id` and add it here if not already present.
  */
-import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
-import ClipboardList from "@hugeicons/core-free-icons/BookEditIcon";
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import ChartColumn from "@hugeicons/core-free-icons/ChartColumnIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import MousePointerClick from "@hugeicons/core-free-icons/CursorPointer02Icon";
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
-import Sprout from "@hugeicons/core-free-icons/Plant01Icon";
-import Omega from "@hugeicons/core-free-icons/RecordIcon";
-import HandMetal from "@hugeicons/core-free-icons/Shaka01Icon";
-import FlaskConical from "@hugeicons/core-free-icons/TestTubeIcon";
-import User from "@hugeicons/core-free-icons/UserIcon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import AiGenerativeIcon from "@hugeicons/core-free-icons/AiGenerativeIcon";
+import BookEditIcon from "@hugeicons/core-free-icons/BookEditIcon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
+import ChartColumnIcon from "@hugeicons/core-free-icons/ChartColumnIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import CursorPointer02Icon from "@hugeicons/core-free-icons/CursorPointer02Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
+import Plant01Icon from "@hugeicons/core-free-icons/Plant01Icon";
+import RecordIcon from "@hugeicons/core-free-icons/RecordIcon";
+import Shaka01Icon from "@hugeicons/core-free-icons/Shaka01Icon";
+import TestTubeIcon from "@hugeicons/core-free-icons/TestTubeIcon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
@@ -109,25 +109,25 @@ function resolveCanonicalBrandIcon(
 }
 
 const ICON_MAP: Record<string, IconSvgElement> = {
-  omega: Omega,
-  code: Code,
-  monitor: Monitor,
-  network: Network,
-  brain: Brain,
-  "chart-column": ChartColumn,
-  "clipboard-list": ClipboardList,
-  "drafting-compass": DraftingCompass,
-  "flask-conical": FlaskConical,
-  users: Users,
-  user: User,
-  "hand-metal": HandMetal,
-  "mouse-pointer-click": MousePointerClick,
-  sprout: Sprout,
-  terminal: Terminal,
-  bot: Bot,
+  omega: RecordIcon,
+  code: CodeIcon,
+  monitor: MonitorIcon,
+  network: HierarchyCircle01Icon,
+  brain: BrainIcon,
+  "chart-column": ChartColumnIcon,
+  "clipboard-list": BookEditIcon,
+  "drafting-compass": AiGenerativeIcon,
+  "flask-conical": TestTubeIcon,
+  users: UserMultipleIcon,
+  user: UserIcon,
+  "hand-metal": Shaka01Icon,
+  "mouse-pointer-click": CursorPointer02Icon,
+  sprout: Plant01Icon,
+  terminal: ComputerTerminal01Icon,
+  bot: BotIcon,
 };
 
-const DEFAULT_ICON: IconSvgElement = Bot;
+const DEFAULT_ICON: IconSvgElement = BotIcon;
 
 export function resolveAgentIcon(
   iconId: string | undefined | null

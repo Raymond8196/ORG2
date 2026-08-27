@@ -1,4 +1,4 @@
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -27,7 +27,7 @@ const SidebarMenuSearchInput: React.FC<SidebarMenuSearchInputProps> =
         allowClear
         prefix={
           <HugeiconsIcon
-            icon={Search}
+            icon={Search01Icon}
             data-icon="search"
             size={14}
             strokeWidth={2}

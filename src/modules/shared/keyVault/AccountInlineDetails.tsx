@@ -1,5 +1,5 @@
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -357,9 +357,17 @@ export const AccountInlineDetails: React.FC<AccountInlineDetailsProps> = ({
                     className={`transition-colors ${apiKeyCopied ? "text-success-6" : "text-text-2 hover:text-text-1"}`}
                   >
                     {apiKeyCopied ? (
-                      <HugeiconsIcon icon={Check} data-icon="check" size={13} />
+                      <HugeiconsIcon
+                        icon={Tick01Icon}
+                        data-icon="check"
+                        size={13}
+                      />
                     ) : (
-                      <HugeiconsIcon icon={Copy} data-icon="copy" size={13} />
+                      <HugeiconsIcon
+                        icon={Copy01Icon}
+                        data-icon="copy"
+                        size={13}
+                      />
                     )}
                   </button>
                 </div>

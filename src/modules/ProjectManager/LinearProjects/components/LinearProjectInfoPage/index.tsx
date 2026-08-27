@@ -1,6 +1,6 @@
-import Calendar from "@hugeicons/core-free-icons/Calendar01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -153,7 +153,9 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
   ) => (
     <div className="relative flex min-h-[36px] items-center">
       <FieldRow
-        icon={<HugeiconsIcon icon={Calendar} data-icon="calendar" size={14} />}
+        icon={
+          <HugeiconsIcon icon={Calendar01Icon} data-icon="calendar" size={14} />
+        }
         label={label}
         value={formatLinearProjectDate(value, t("properties.addDate"))}
         isSelected={!!value}
@@ -185,7 +187,11 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
             <div className="relative flex min-h-[36px] items-center">
               <FieldRow
                 icon={
-                  <HugeiconsIcon icon={Circle} data-icon="circle" size={14} />
+                  <HugeiconsIcon
+                    icon={CircleIcon}
+                    data-icon="circle"
+                    size={14}
+                  />
                 }
                 label={t("common:common.status")}
                 value={project.status.name}
@@ -199,7 +205,11 @@ const LinearProjectInfoPage: React.FC<LinearProjectInfoPageProps> = ({
             <div className="relative flex min-h-[36px] items-center">
               <FieldRow
                 icon={
-                  <HugeiconsIcon icon={Users} data-icon="users" size={14} />
+                  <HugeiconsIcon
+                    icon={UserMultipleIcon}
+                    data-icon="users"
+                    size={14}
+                  />
                 }
                 label={t("properties.teams")}
                 value={`${primaryTeam.name} (${primaryTeam.key})`}

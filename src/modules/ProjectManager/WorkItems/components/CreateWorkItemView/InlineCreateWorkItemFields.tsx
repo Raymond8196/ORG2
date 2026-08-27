@@ -1,4 +1,4 @@
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -337,7 +337,7 @@ export function useInlineCreateWorkItemFields({
         label: project.name,
         icon: (
           <HugeiconsIcon
-            icon={BookOpen}
+            icon={BookOpen01Icon}
             data-icon="book-open"
             size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE}
           />

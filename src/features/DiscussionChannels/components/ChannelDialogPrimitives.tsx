@@ -4,7 +4,7 @@
  * confirmation body, and action footer without importing either storage or
  * network state.
  */
-import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
+import TriangleAlertIcon from "@hugeicons/core-free-icons/TriangleAlertIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
@@ -184,7 +184,7 @@ export const ChannelDeleteConfirmation: React.FC<
   <>
     <div className="flex items-start gap-2 rounded-lg bg-danger-1 px-3 py-2 text-[12px] text-danger-6">
       <HugeiconsIcon
-        icon={TriangleAlert}
+        icon={TriangleAlertIcon}
         data-icon="triangle-alert"
         size={14}
         aria-hidden

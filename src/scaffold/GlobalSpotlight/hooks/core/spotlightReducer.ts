@@ -4,8 +4,8 @@
  * Centralized reducer managing all spotlight state.
  * Eliminates cascading re-renders by using a single state tree.
  */
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 
 import {
   LANGUAGE_NAMES,
@@ -182,7 +182,7 @@ export function spotlightReducer(
           type: "repo" as const,
           id: repo.id,
           label: repo.name,
-          icon: Folder,
+          icon: FolderClosedIcon,
           color: TAG_COLORS.repo,
           data: repo,
         },
@@ -213,7 +213,7 @@ export function spotlightReducer(
           type: "branch" as const,
           id: branchName,
           label: branchName,
-          icon: GitBranch,
+          icon: WorkflowCircle05Icon,
           color: TAG_COLORS.branch,
           data: branchData,
         },

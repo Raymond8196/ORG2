@@ -1,5 +1,5 @@
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
@@ -145,7 +145,7 @@ export default function BuilderTypeDetailModal({
           data-testid="builder-type-previous"
           icon={
             <HugeiconsIcon
-              icon={ChevronLeft}
+              icon={ArrowLeft01Icon}
               data-icon="chevron-left"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -163,7 +163,7 @@ export default function BuilderTypeDetailModal({
           data-testid="builder-type-next"
           icon={
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}

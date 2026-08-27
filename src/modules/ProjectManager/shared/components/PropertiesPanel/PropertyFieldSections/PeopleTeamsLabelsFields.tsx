@@ -2,11 +2,11 @@
  * Lead, Members, Teams, Labels, and Linked Repos field rows.
  * Extracted to keep ProjectPropertyFields under the UI line limit.
  */
-import Plane from "@hugeicons/core-free-icons/Airplane01Icon";
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import Tag from "@hugeicons/core-free-icons/Tag01Icon";
-import User from "@hugeicons/core-free-icons/UserIcon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import Airplane01Icon from "@hugeicons/core-free-icons/Airplane01Icon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -99,7 +99,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
               </Avatar>
             ) : (
               <HugeiconsIcon
-                icon={User}
+                icon={UserIcon}
                 data-icon="user"
                 size={DROPDOWN_ITEM.iconSize}
               />
@@ -132,7 +132,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                     <Option
                       icon={
                         <HugeiconsIcon
-                          icon={User}
+                          icon={UserIcon}
                           data-icon="user"
                           size={DROPDOWN_ITEM.iconSize}
                         />
@@ -183,7 +183,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         <FieldRow
           icon={
             <HugeiconsIcon
-              icon={Users}
+              icon={UserMultipleIcon}
               data-icon="users"
               size={DROPDOWN_ITEM.iconSize}
             />
@@ -258,7 +258,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         <FieldRow
           icon={
             <HugeiconsIcon
-              icon={Plane}
+              icon={Airplane01Icon}
               data-icon="plane"
               size={DROPDOWN_ITEM.iconSize}
             />
@@ -305,7 +305,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                     onClick={() => handleTeamToggle(team)}
                   >
                     <HugeiconsIcon
-                      icon={Plane}
+                      icon={Airplane01Icon}
                       data-icon="plane"
                       size={DROPDOWN_ITEM.iconSize}
                       style={{ color: team.color }}
@@ -332,7 +332,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         <FieldRow
           icon={
             <HugeiconsIcon
-              icon={Tag}
+              icon={Tag01Icon}
               data-icon="tag"
               size={DROPDOWN_ITEM.iconSize}
             />
@@ -398,7 +398,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
           <FieldRow
             icon={
               <HugeiconsIcon
-                icon={Code2}
+                icon={CodeIcon}
                 data-icon="code-2"
                 size={DROPDOWN_ITEM.iconSize}
               />
@@ -444,7 +444,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                       onClick={() => handleLinkedRepoToggle(repo)}
                     >
                       <HugeiconsIcon
-                        icon={Code2}
+                        icon={CodeIcon}
                         data-icon="code-2"
                         size={DROPDOWN_ITEM.iconSize}
                         className="text-text-3"

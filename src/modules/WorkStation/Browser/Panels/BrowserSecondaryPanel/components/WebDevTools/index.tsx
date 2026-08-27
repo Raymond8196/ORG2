@@ -15,12 +15,12 @@ import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,
 } from "@/src/modules/WorkStation/shared/tokens";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CopyPlus from "@hugeicons/core-free-icons/CopyPlusIcon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import CircleMinus from "@hugeicons/core-free-icons/MinusSignCircleIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CopyPlusIcon from "@hugeicons/core-free-icons/CopyPlusIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import MinusSignCircleIcon from "@hugeicons/core-free-icons/MinusSignCircleIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -209,7 +209,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                   aria-label={t("tooltips.closeDevTools")}
                   icon={
                     <HugeiconsIcon
-                      icon={X}
+                      icon={Cancel01Icon}
                       data-icon="x"
                       size={HEADER_ICON_SIZE.md}
                     />
@@ -254,7 +254,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                     <div className="invisible flex items-center gap-1 group-hover/devtools:visible">
                       {treeLoading && (
                         <HugeiconsIcon
-                          icon={Loader2}
+                          icon={Loading03Icon}
                           data-icon="loader-2"
                           size={SPINNER_TOKENS.small}
                           className="animate-spin text-text-3"
@@ -268,7 +268,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           aria-label={t("tooltips.collapseAll")}
                         >
                           <HugeiconsIcon
-                            icon={ListChevronsDownUp}
+                            icon={ListChevronsDownUpIcon}
                             data-icon="list-chevrons-down-up"
                             size={HEADER_ICON_SIZE.md}
                           />
@@ -282,7 +282,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           aria-label={t("tooltips.refreshTree")}
                         >
                           <HugeiconsIcon
-                            icon={RefreshCw}
+                            icon={Refresh04Icon}
                             data-icon="refresh-cw"
                             size={HEADER_ICON_SIZE.sm}
                             className={refreshTreeSpinClass}
@@ -343,7 +343,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                     <div className="invisible flex items-center gap-1 group-hover/devtools:visible">
                       {(stylesLoading || stylesPending) && (
                         <HugeiconsIcon
-                          icon={Loader2}
+                          icon={Loading03Icon}
                           data-icon="loader-2"
                           size={SPINNER_TOKENS.small}
                           className="animate-spin text-text-3"
@@ -358,7 +358,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                             aria-label={t("tooltips.clearUiIndex")}
                           >
                             <HugeiconsIcon
-                              icon={CircleMinus}
+                              icon={MinusSignCircleIcon}
                               data-icon="circle-minus"
                               size={HEADER_ICON_SIZE.sm}
                             />
@@ -392,13 +392,13 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                         >
                           {isAllCollapsed ? (
                             <HugeiconsIcon
-                              icon={CopyPlus}
+                              icon={CopyPlusIcon}
                               data-icon="copy-plus"
                               size={HEADER_ICON_SIZE.sm}
                             />
                           ) : (
                             <HugeiconsIcon
-                              icon={ListChevronsDownUp}
+                              icon={ListChevronsDownUpIcon}
                               data-icon="list-chevrons-down-up"
                               size={HEADER_ICON_SIZE.md}
                             />

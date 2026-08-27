@@ -9,13 +9,13 @@
  * Only renders when there are stashes.
  * Follows the same layout pattern as SourceControlChanges.
  */
-import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowDownToLine from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Package from "@hugeicons/core-free-icons/PackageIcon";
+import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDownToLineIcon from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import PackageIcon from "@hugeicons/core-free-icons/PackageIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -186,7 +186,7 @@ const StashItem: React.FC<StashItemProps> = memo(
         type: "file",
         icon: (
           <HugeiconsIcon
-            icon={Package}
+            icon={PackageIcon}
             data-icon="package"
             size={14}
             className="text-text-3"
@@ -226,14 +226,14 @@ const StashItem: React.FC<StashItemProps> = memo(
           >
             {actionLoading === "apply" ? (
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
-                icon={ArrowDownToLine}
+                icon={ArrowDownToLineIcon}
                 data-icon="arrow-down-to-line"
                 size={12}
                 strokeWidth={1.75}
@@ -251,14 +251,14 @@ const StashItem: React.FC<StashItemProps> = memo(
           >
             {actionLoading === "pop" ? (
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
-                icon={ArchiveRestore}
+                icon={ArchiveArrowUpIcon}
                 data-icon="archive-restore"
                 size={12}
                 strokeWidth={1.75}
@@ -276,14 +276,14 @@ const StashItem: React.FC<StashItemProps> = memo(
           >
             {actionLoading === "drop" ? (
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
-                icon={Trash2}
+                icon={Delete02Icon}
                 data-icon="trash-2"
                 size={12}
                 strokeWidth={1.75}
@@ -395,14 +395,14 @@ export const StashContent: React.FC<StashContentProps> = memo(
           >
             {collapsed ? (
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={14}
                 className="text-text-3"
               />
             ) : (
               <HugeiconsIcon
-                icon={ChevronDown}
+                icon={ArrowDown01Icon}
                 data-icon="chevron-down"
                 size={14}
                 className="text-text-3"
@@ -423,14 +423,14 @@ export const StashContent: React.FC<StashContentProps> = memo(
           >
             {isPoppingAll ? (
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={SPINNER_TOKENS.default}
                 className="animate-spin text-text-3"
               />
             ) : (
               <HugeiconsIcon
-                icon={ArchiveRestore}
+                icon={ArchiveArrowUpIcon}
                 data-icon="archive-restore"
                 size={14}
                 strokeWidth={1.75}

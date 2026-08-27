@@ -4,9 +4,9 @@
  * Collapsible group component for sidebar items.
  * Styled to match NavigationMenu for consistency.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -115,7 +115,7 @@ function SidebarGroupInner<T extends SidebarItemData = SidebarItemData>({
                 title={group.addButtonLabel || t("sidebar.actions.addNew")}
               >
                 <HugeiconsIcon
-                  icon={Plus}
+                  icon={Add01Icon}
                   data-icon="plus"
                   size={12}
                   strokeWidth={2}
@@ -124,7 +124,7 @@ function SidebarGroupInner<T extends SidebarItemData = SidebarItemData>({
             )}
             {/* Chevron */}
             <NavigationMenuRowActionButton
-              icon={isCollapsed ? ChevronsUpDown : ChevronsDownUp}
+              icon={isCollapsed ? UnfoldMoreIcon : ChevronsDownUpIcon}
               label={t("actions.toggle")}
               onClick={handleToggle}
             />

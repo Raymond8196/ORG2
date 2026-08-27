@@ -5,7 +5,7 @@
  * Supports combined diff view for consolidated file operations.
  * Uses shared FileHeader with breadcrumbs and code/preview toggle.
  */
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
@@ -206,7 +206,7 @@ export const CodePanel: React.FC<CodePanelProps> = memo(
             publishEnabled={publishHeaderToSimulator}
             headerIcon={
               <HugeiconsIcon
-                icon={Terminal}
+                icon={ComputerTerminal01Icon}
                 data-icon="terminal"
                 size={HEADER_ICON_SIZE.sm}
                 className="shrink-0 text-text-2"

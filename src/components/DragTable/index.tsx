@@ -38,8 +38,8 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import GripVertical from "@hugeicons/core-free-icons/GripVerticalIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import GripVerticalIcon from "@hugeicons/core-free-icons/GripVerticalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type ReactNode, useCallback, useMemo } from "react";
 
@@ -139,7 +139,7 @@ function SortableRowInner<T extends { id: string }>({
           {...listeners}
         >
           <HugeiconsIcon
-            icon={GripVertical}
+            icon={GripVerticalIcon}
             data-icon="grip-vertical"
             size={14}
           />
@@ -323,7 +323,7 @@ function DragTableInner<T extends { id: string }>({
           <Button
             variant="tertiary"
             size="default"
-            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+            icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
             onClick={onAdd}
             className={ADD_BUTTON_CLASS}
             data-testid={addButtonDataTestId}

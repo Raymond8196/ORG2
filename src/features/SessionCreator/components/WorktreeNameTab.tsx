@@ -1,4 +1,4 @@
-import CaseSensitive from "@hugeicons/core-free-icons/CaseSensitiveIcon";
+import CaseSensitiveIcon from "@hugeicons/core-free-icons/CaseSensitiveIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
@@ -43,7 +43,7 @@ export function WorktreeNameTab({
         onChange={onChange}
         prefix={
           <HugeiconsIcon
-            icon={CaseSensitive}
+            icon={CaseSensitiveIcon}
             data-icon="case-sensitive"
             size={DROPDOWN_ITEM.iconSize}
             strokeWidth={1.75}
@@ -59,7 +59,7 @@ export function WorktreeNameTab({
             <WorktreeSourceRow
               icon={
                 <HugeiconsIcon
-                  icon={CaseSensitive}
+                  icon={CaseSensitiveIcon}
                   data-icon="case-sensitive"
                   size={14}
                   strokeWidth={1.75}

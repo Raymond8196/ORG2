@@ -14,9 +14,9 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
-import ClipboardCopy from "@hugeicons/core-free-icons/ClipboardCopyIcon";
-import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import ClipboardCopyIcon from "@hugeicons/core-free-icons/ClipboardCopyIcon";
+import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
+import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import { useAtomValue } from "jotai";
 import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -104,17 +104,17 @@ const GenericSetup: FC<AgentSetupProps> = ({
       [GENERIC_SETUP_METHOD.AUTODETECT]: {
         key: GENERIC_SETUP_METHOD.AUTODETECT,
         label: t("keyVault.autodetect"),
-        icon: ScanSearch,
+        icon: SearchAreaIcon,
       },
       [GENERIC_SETUP_METHOD.ENTER_KEY]: {
         key: GENERIC_SETUP_METHOD.ENTER_KEY,
         label: t("keyVault.enterKey"),
-        icon: Keyboard,
+        icon: KeyboardIcon,
       },
       [GENERIC_SETUP_METHOD.EXTRACT]: {
         key: GENERIC_SETUP_METHOD.EXTRACT,
         label: t("keyVault.extractConfig"),
-        icon: ClipboardCopy,
+        icon: ClipboardCopyIcon,
       },
     };
 

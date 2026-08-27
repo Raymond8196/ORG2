@@ -1,5 +1,5 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -32,14 +32,14 @@ export const WorkItemThreadViewAction: React.FC<
       icon={
         isDiscussion ? (
           <HugeiconsIcon
-            icon={ArrowLeft}
+            icon={ArrowLeft02Icon}
             data-icon="arrow-left"
             size={13}
             aria-hidden
           />
         ) : (
           <HugeiconsIcon
-            icon={MessageSquare}
+            icon={Message01Icon}
             data-icon="message-square"
             size={13}
             aria-hidden

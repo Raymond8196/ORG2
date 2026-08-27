@@ -1,5 +1,5 @@
-import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -43,7 +43,7 @@ const SessionRawTranscriptDialog: React.FC<SessionRawTranscriptDialogProps> =
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={14}
                   strokeWidth={1.75}
@@ -59,7 +59,7 @@ const SessionRawTranscriptDialog: React.FC<SessionRawTranscriptDialogProps> =
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={Clipboard}
+                  icon={ClipboardIcon}
                   data-icon="clipboard"
                   size={14}
                   strokeWidth={1.75}

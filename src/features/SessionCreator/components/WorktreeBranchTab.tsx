@@ -1,8 +1,8 @@
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -37,7 +37,7 @@ function branchRowIcon(option: WorktreeBranchOption): ReactNode {
   if (option.worktreePath)
     return (
       <HugeiconsIcon
-        icon={Folder}
+        icon={FolderClosedIcon}
         data-icon="folder"
         size={14}
         strokeWidth={1.75}
@@ -46,7 +46,7 @@ function branchRowIcon(option: WorktreeBranchOption): ReactNode {
   if (option.isRemote)
     return (
       <HugeiconsIcon
-        icon={Cloud}
+        icon={CloudIcon}
         data-icon="cloud"
         size={14}
         strokeWidth={1.75}
@@ -54,7 +54,7 @@ function branchRowIcon(option: WorktreeBranchOption): ReactNode {
     );
   return (
     <HugeiconsIcon
-      icon={GitBranch}
+      icon={WorkflowCircle05Icon}
       data-icon="git-branch"
       size={14}
       strokeWidth={1.75}
@@ -113,7 +113,7 @@ export function WorktreeBranchTab({
           size="small"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               strokeWidth={1.8}
@@ -136,7 +136,7 @@ export function WorktreeBranchTab({
         {state === "loading" && branchOptionCount === 0 && (
           <div className="flex h-[180px] items-center justify-center text-text-3">
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={16}
               className="animate-spin"

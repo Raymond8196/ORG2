@@ -1,5 +1,5 @@
-import ArrowDownAZ from "@hugeicons/core-free-icons/ArrangeByLettersZAIcon";
-import ArrowDown10 from "@hugeicons/core-free-icons/ArrangeByNumbersOneNineIcon";
+import ArrangeByLettersZAIcon from "@hugeicons/core-free-icons/ArrangeByLettersZAIcon";
+import ArrangeByNumbersOneNineIcon from "@hugeicons/core-free-icons/ArrangeByNumbersOneNineIcon";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -171,8 +171,8 @@ const AccountModelsInlineSplit: React.FC<AccountModelsInlineSplitProps> = ({
   const renderAllModelsRow = () => {
     const SortModeIcon =
       sortMode === MODEL_GROUP_SORT_MODE.ENABLED_FIRST
-        ? ArrowDown10
-        : ArrowDownAZ;
+        ? ArrangeByNumbersOneNineIcon
+        : ArrangeByLettersZAIcon;
     const sortLabel =
       sortMode === MODEL_GROUP_SORT_MODE.ENABLED_FIRST
         ? t("modelsTable.sortEnabledFirst")

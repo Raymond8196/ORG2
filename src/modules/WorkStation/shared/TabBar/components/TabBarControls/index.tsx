@@ -1,5 +1,5 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -52,7 +52,7 @@ export const TabBarControls: React.FC<TabBarControlsProps> = ({
           onClick={onNewTab}
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={18}
             strokeWidth={2}
@@ -67,7 +67,7 @@ export const TabBarControls: React.FC<TabBarControlsProps> = ({
           onClick={onMoreOptions}
         >
           <HugeiconsIcon
-            icon={MoreHorizontal}
+            icon={MoreHorizontalIcon}
             data-icon="ellipsis"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={1.75}

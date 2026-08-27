@@ -1,9 +1,9 @@
 /**
  * Install / uninstall script section with mode selector on the left and method pills on the right.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Download from "@hugeicons/core-free-icons/Download01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -173,13 +173,13 @@ export const CliClientSection: React.FC<CliClientSectionProps> = ({
                   icon={
                     activeMode === CLI_CLIENT_ACTION_TAB.INSTALL ? (
                       <HugeiconsIcon
-                        icon={Download}
+                        icon={Download01Icon}
                         data-icon="download"
                         size={12}
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={Trash2}
+                        icon={Delete02Icon}
                         data-icon="trash-2"
                         size={12}
                       />
@@ -199,7 +199,9 @@ export const CliClientSection: React.FC<CliClientSectionProps> = ({
               ) : null}
               <Button
                 size="small"
-                icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
+                icon={
+                  <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={12} />
+                }
                 onClick={() => {
                   navigator.clipboard
                     .writeText(selectedMethod.command)

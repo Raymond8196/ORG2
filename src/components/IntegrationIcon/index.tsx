@@ -13,8 +13,8 @@
  * <IntegrationIcon type="email" size={16} className="text-text-2" />
  * ```
  */
-import Network from "@hugeicons/core-free-icons/AiNetworkIcon";
-import Mail from "@hugeicons/core-free-icons/Mail01Icon";
+import AiNetworkIcon from "@hugeicons/core-free-icons/AiNetworkIcon";
+import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -46,7 +46,7 @@ const IntegrationIcon: React.FC<IntegrationIconProps> = memo(
     if (type === "email") {
       return (
         <HugeiconsIcon
-          icon={Mail}
+          icon={Mail01Icon}
           data-icon="mail"
           size={size}
           className={className}
@@ -56,7 +56,7 @@ const IntegrationIcon: React.FC<IntegrationIconProps> = memo(
     if (type === "nodes") {
       return (
         <HugeiconsIcon
-          icon={Network}
+          icon={AiNetworkIcon}
           data-icon="network"
           size={size}
           className={className}
@@ -70,7 +70,7 @@ const IntegrationIcon: React.FC<IntegrationIconProps> = memo(
     if (!Icon) {
       return (
         <HugeiconsIcon
-          icon={Network}
+          icon={AiNetworkIcon}
           data-icon="network"
           size={size}
           className={`text-text-2 ${className}`}

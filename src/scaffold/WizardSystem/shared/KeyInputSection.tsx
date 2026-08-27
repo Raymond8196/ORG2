@@ -4,9 +4,9 @@
  * Extracted from GenericSetup for reuse across KeyVaultAccount and Listing wizards.
  * Supports three methods: Autodetect, Enter Key, Extract Config.
  */
-import ClipboardCopy from "@hugeicons/core-free-icons/ClipboardCopyIcon";
-import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import ClipboardCopyIcon from "@hugeicons/core-free-icons/ClipboardCopyIcon";
+import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
+import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -88,13 +88,13 @@ const KeyInputSection: React.FC<KeyInputSectionProps> = ({
       {
         key: "autodetect",
         label: t("keyVault.autodetect"),
-        icon: ScanSearch,
+        icon: SearchAreaIcon,
       },
-      { key: "enter_key", label: t("keyVault.enterKey"), icon: Keyboard },
+      { key: "enter_key", label: t("keyVault.enterKey"), icon: KeyboardIcon },
       {
         key: "extract",
         label: t("keyVault.extractConfig"),
-        icon: ClipboardCopy,
+        icon: ClipboardCopyIcon,
       },
     ],
     [t]

@@ -9,7 +9,7 @@
  * - ChatBubbleHeader: sender name + timestamp + optional extras
  * - ChatBubbleBody: rounded card with variant-based background
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -141,7 +141,7 @@ const ChatBubbleCopyButtonComponent: React.FC<ChatBubbleCopyButtonProps> = ({
         onClick={handleCopy}
       >
         <HugeiconsIcon
-          icon={Copy}
+          icon={Copy01Icon}
           data-icon="copy"
           size={14}
           strokeWidth={1.75}
@@ -164,7 +164,7 @@ const ChatBubbleCopyButtonComponent: React.FC<ChatBubbleCopyButtonProps> = ({
       onClick={handleCopy}
     >
       <HugeiconsIcon
-        icon={Copy}
+        icon={Copy01Icon}
         data-icon="copy"
         size={14}
         strokeWidth={1.75}

@@ -1,11 +1,11 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import ArrowBigUp from "@hugeicons/core-free-icons/ArrowUpBigIcon";
-import Command from "@hugeicons/core-free-icons/CommandIcon";
-import CornerDownLeft from "@hugeicons/core-free-icons/CornerDownLeftIcon";
-import Delete from "@hugeicons/core-free-icons/Delete01Icon";
-import Option from "@hugeicons/core-free-icons/OptionIcon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import ArrowUpBigIcon from "@hugeicons/core-free-icons/ArrowUpBigIcon";
+import CommandIcon from "@hugeicons/core-free-icons/CommandIcon";
+import CornerDownLeftIcon from "@hugeicons/core-free-icons/CornerDownLeftIcon";
+import Delete01Icon from "@hugeicons/core-free-icons/Delete01Icon";
+import OptionIcon from "@hugeicons/core-free-icons/OptionIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, memo } from "react";
 
@@ -176,21 +176,27 @@ function ModifierKey({
   switch (modifier) {
     case "cmd":
       return (
-        <HugeiconsIcon icon={Command} data-icon="command" {...iconProps} />
+        <HugeiconsIcon icon={CommandIcon} data-icon="command" {...iconProps} />
       );
     case "shift":
       return (
         <HugeiconsIcon
-          icon={ArrowBigUp}
+          icon={ArrowUpBigIcon}
           data-icon="arrow-big-up"
           {...iconProps}
         />
       );
     case "option":
-      return <HugeiconsIcon icon={Option} data-icon="option" {...iconProps} />;
+      return (
+        <HugeiconsIcon icon={OptionIcon} data-icon="option" {...iconProps} />
+      );
     case "ctrl":
       return IS_MAC ? (
-        <HugeiconsIcon icon={ChevronUp} data-icon="chevron-up" {...iconProps} />
+        <HugeiconsIcon
+          icon={ArrowUp01Icon}
+          data-icon="chevron-up"
+          {...iconProps}
+        />
       ) : (
         <span>Ctrl</span>
       );
@@ -209,22 +215,32 @@ function SpecialKey({
   switch (special) {
     case "arrowUp":
       return (
-        <HugeiconsIcon icon={ArrowUp} data-icon="arrow-up" {...iconProps} />
+        <HugeiconsIcon
+          icon={ArrowUp02Icon}
+          data-icon="arrow-up"
+          {...iconProps}
+        />
       );
     case "arrowDown":
       return (
-        <HugeiconsIcon icon={ArrowDown} data-icon="arrow-down" {...iconProps} />
+        <HugeiconsIcon
+          icon={ArrowDown02Icon}
+          data-icon="arrow-down"
+          {...iconProps}
+        />
       );
     case "enter":
       return (
         <HugeiconsIcon
-          icon={CornerDownLeft}
+          icon={CornerDownLeftIcon}
           data-icon="corner-down-left"
           {...iconProps}
         />
       );
     case "backspace":
-      return <HugeiconsIcon icon={Delete} data-icon="delete" {...iconProps} />;
+      return (
+        <HugeiconsIcon icon={Delete01Icon} data-icon="delete" {...iconProps} />
+      );
     case "esc":
       return <span className="leading-none">esc</span>;
     case "tab":

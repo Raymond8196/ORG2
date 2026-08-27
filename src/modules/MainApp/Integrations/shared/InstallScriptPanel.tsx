@@ -7,9 +7,9 @@
  *
  * Used by CLI Clients, LSP, and Lint Tools inline expanded cards.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Download from "@hugeicons/core-free-icons/Download01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -102,9 +102,17 @@ export const InstallScriptPanel: React.FC<InstallScriptPanelProps> = ({
             size="small"
             icon={
               mode === "install" ? (
-                <HugeiconsIcon icon={Download} data-icon="download" size={12} />
+                <HugeiconsIcon
+                  icon={Download01Icon}
+                  data-icon="download"
+                  size={12}
+                />
               ) : (
-                <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  data-icon="trash-2"
+                  size={12}
+                />
               )
             }
             onClick={onAction}
@@ -119,7 +127,7 @@ export const InstallScriptPanel: React.FC<InstallScriptPanelProps> = ({
         ) : null}
         <Button
           size="small"
-          icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
+          icon={<HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={12} />}
           onClick={handleCopy}
         >
           {t("common:actions.copy")}

@@ -3,7 +3,7 @@
  *
  * Editor appearance settings (typography, features).
  */
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
+import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,7 +34,7 @@ const EditorSettings: React.FC = () => {
         filePath={t("navigation:labels.settings")}
         headerIcon={
           <HugeiconsIcon
-            icon={Settings}
+            icon={Settings01Icon}
             data-icon="settings"
             size={14}
             strokeWidth={1.75}

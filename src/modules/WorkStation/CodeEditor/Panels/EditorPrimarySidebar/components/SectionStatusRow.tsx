@@ -6,7 +6,7 @@
  * state INSIDE the collapsible OPEN/CLOSED structure — not as a centered
  * full-pane Placeholder. See `workspace_sidebar_section_loading_inside_structure`.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -22,7 +22,7 @@ export const SectionStatusRow: React.FC<{ status: SectionStatus }> = ({
     return (
       <div className="flex items-center gap-1.5 px-3 py-2">
         <HugeiconsIcon
-          icon={Loader2}
+          icon={Loading03Icon}
           data-icon="loader-2"
           size={12}
           className="animate-spin text-text-3"

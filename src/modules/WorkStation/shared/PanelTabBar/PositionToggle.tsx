@@ -1,4 +1,4 @@
-import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,7 +31,7 @@ export const PanelPositionToggle: React.FC<PanelPositionToggleProps> = memo(
         title={title}
         icon={
           <HugeiconsIcon
-            icon={ArrowLeftRight}
+            icon={ArrowLeftRightIcon}
             data-icon="arrow-left-right"
             size={HEADER_ICON_SIZE.md}
           />

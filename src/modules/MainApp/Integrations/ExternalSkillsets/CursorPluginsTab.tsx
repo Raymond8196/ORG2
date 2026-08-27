@@ -3,11 +3,11 @@
  *
  * Uses the same SettingsTable + expandable pattern as LanguageServersTable.
  */
-import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import Puzzle from "@hugeicons/core-free-icons/PuzzleIcon";
-import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
+import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
+import PuzzleIcon from "@hugeicons/core-free-icons/PuzzleIcon";
+import ServerStack01Icon from "@hugeicons/core-free-icons/ServerStack01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -59,7 +59,7 @@ const PluginLogoCell: React.FC<{
   return (
     <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-fill-3">
       <HugeiconsIcon
-        icon={Puzzle}
+        icon={PuzzleIcon}
         data-icon="puzzle"
         size={13}
         className="text-text-3"
@@ -101,9 +101,9 @@ const CopyAllButton: React.FC<{ plugins: CursorPluginInfo[] }> = ({
         className="inline-flex items-center gap-1.5 rounded px-2 py-1.5 text-[12px] text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
       >
         {copied ? (
-          <HugeiconsIcon icon={Check} data-icon="check" size={12} />
+          <HugeiconsIcon icon={Tick01Icon} data-icon="check" size={12} />
         ) : (
-          <HugeiconsIcon icon={Clipboard} data-icon="clipboard" size={12} />
+          <HugeiconsIcon icon={ClipboardIcon} data-icon="clipboard" size={12} />
         )}
         {copied ? t("common:status.copied") : t("cursorPlugins.copyAllMcp")}
       </button>
@@ -195,7 +195,7 @@ const CursorPluginsTab: React.FC = () => {
         renderCell: (plugin) =>
           plugin.mcpConfig ? (
             <HugeiconsIcon
-              icon={Server}
+              icon={ServerStack01Icon}
               data-icon="server"
               size={13}
               className="mx-auto text-text-3"
@@ -211,7 +211,7 @@ const CursorPluginsTab: React.FC = () => {
         renderCell: (plugin) =>
           plugin.skills.length > 0 ? (
             <span className="inline-flex items-center justify-center gap-1 whitespace-nowrap text-[12px] text-text-3">
-              <HugeiconsIcon icon={Zap} data-icon="zap" size={11} />
+              <HugeiconsIcon icon={FlashIcon} data-icon="zap" size={11} />
               {plugin.skills.length}
             </span>
           ) : null,
@@ -224,7 +224,7 @@ const CursorPluginsTab: React.FC = () => {
         renderCell: (plugin) =>
           plugin.hooks.length > 0 ? (
             <HugeiconsIcon
-              icon={Puzzle}
+              icon={PuzzleIcon}
               data-icon="puzzle"
               size={13}
               className="mx-auto text-text-3"

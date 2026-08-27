@@ -13,7 +13,7 @@
  * - Handles various backend output formats
  * - Optional scrolling with max height
  */
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import Ansi from "ansi-to-react";
 import React, { memo, useMemo } from "react";
@@ -111,7 +111,7 @@ export const TerminalOutput: React.FC<TerminalOutputProps> = memo(
         >
           <div className="terminal-output__error">
             <HugeiconsIcon
-              icon={AlertTriangle}
+              icon={Alert01Icon}
               data-icon="alert-triangle"
               size={16}
               className="terminal-output__error-icon"

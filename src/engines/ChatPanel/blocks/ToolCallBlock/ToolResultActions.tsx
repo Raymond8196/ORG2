@@ -1,4 +1,4 @@
-import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
+import FileSymlinkIcon from "@hugeicons/core-free-icons/FileSymlinkIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,7 +36,11 @@ const ToolResultActions: React.FC<ToolResultActionsProps> = ({ source }) => {
       title={t("tools.openSource")}
       aria-label={t("tools.openSource")}
     >
-      <HugeiconsIcon icon={FileSymlink} data-icon="file-symlink" size={13} />
+      <HugeiconsIcon
+        icon={FileSymlinkIcon}
+        data-icon="file-symlink"
+        size={13}
+      />
     </button>
   );
 };

@@ -14,20 +14,20 @@
  * - `EDITOR_ACTIONS`           — editor palette modes (file / command / symbol).
  * - `QUICK_NAVIGATION_ACTIONS` — work-station tab switchers (terminal, SCM).
  */
-import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import Dock from "@hugeicons/core-free-icons/DockIcon";
-import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
-import FolderTree from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import SquarePen from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import AiGenerativeIcon from "@hugeicons/core-free-icons/AiGenerativeIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import DockIcon from "@hugeicons/core-free-icons/DockIcon";
+import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { type IconSvgElement } from "@hugeicons/react";
 
 import { ACTION_ID } from "@src/ActionSystem";
@@ -87,7 +87,7 @@ export const AGENT_SESSION_ACTIONS = [
   {
     id: "open-agent-control",
     labelKey: "common:adeManager.menuToggle",
-    icon: DraftingCompass,
+    icon: AiGenerativeIcon,
     keywords: [
       "ade manager",
       "agent control",
@@ -108,7 +108,7 @@ export const AGENT_SESSION_ACTIONS = [
   {
     id: "open-session-creator",
     labelKey: "selectors.spotlight.actions.openSessionCreator.label",
-    icon: Play,
+    icon: PlayIcon,
     keywords: [
       "new session",
       "create session",
@@ -126,7 +126,7 @@ export const AGENT_SESSION_ACTIONS = [
   {
     id: "create-project",
     labelKey: "selectors.spotlight.actions.createProject.label",
-    icon: Box,
+    icon: BoxIcon,
     keywords: ["create project", "new project", "add project", "project"],
     actionId: ACTION_ID.WORKSTATION_CREATE_PROJECT,
     payload: {},
@@ -136,7 +136,7 @@ export const AGENT_SESSION_ACTIONS = [
   {
     id: "create-work-item",
     labelKey: "selectors.spotlight.actions.createWorkItem.label",
-    icon: SquarePen,
+    icon: PencilEdit02Icon,
     keywords: [
       "create work item",
       "new work item",
@@ -153,7 +153,7 @@ export const AGENT_SESSION_ACTIONS = [
   {
     id: "search-agent-sessions",
     labelKey: "selectors.spotlight.actions.searchAgentSessions.label",
-    icon: Search,
+    icon: Search01Icon,
     keywords: [
       "search session",
       "search sessions",
@@ -192,7 +192,7 @@ export const WORKSPACE_ACTIONS = [
   {
     id: "switch-workspace",
     labelKey: "selectors.spotlight.actions.switchWorkspace.label",
-    icon: FolderTree,
+    icon: FolderTreeIcon,
     keywords: ["switch workspace", "workspace", "repo", "repository", "folder"],
     actionId: ACTION_ID.SPOTLIGHT_OPEN_WORKSPACE_PICKER,
     payload: { mode: "switch" },
@@ -203,7 +203,7 @@ export const WORKSPACE_ACTIONS = [
   {
     id: "switch-branch",
     labelKey: "selectors.spotlight.actions.switchBranch.label",
-    icon: GitBranch,
+    icon: WorkflowCircle05Icon,
     keywords: ["switch branch", "checkout branch", "branch", "git branch"],
     actionId: ACTION_ID.SPOTLIGHT_OPEN_BRANCH_PICKER,
     payload: {},
@@ -214,7 +214,7 @@ export const WORKSPACE_ACTIONS = [
   {
     id: "add-workspace",
     labelKey: "selectors.spotlight.actions.addWorkspace.label",
-    icon: FolderPlus,
+    icon: FolderAddIcon,
     keywords: ["add workspace", "add repo", "add folder", "import workspace"],
     actionId: ACTION_ID.SPOTLIGHT_OPEN_WORKSPACE_PICKER,
     payload: { mode: "add" },
@@ -225,7 +225,7 @@ export const WORKSPACE_ACTIONS = [
   {
     id: "create-multi-repo-workspace",
     labelKey: "selectors.spotlight.actions.createMultiRepoWorkspace.label",
-    icon: FolderTree,
+    icon: FolderTreeIcon,
     keywords: [
       "create workspace",
       "multi repo workspace",
@@ -244,7 +244,7 @@ export const STATION_MODE_ACTIONS = [
   {
     id: "open-my-station",
     labelKey: "common:spotlightActions.openMyStation",
-    icon: Dock,
+    icon: DockIcon,
     keywords: ["my station", "workstation", "work station", "coding", "tools"],
     actionId: ACTION_ID.WORKSTATION_OPEN_MY_STATION,
     payload: {},
@@ -254,7 +254,7 @@ export const STATION_MODE_ACTIONS = [
   {
     id: "open-agent-station",
     labelKey: "common:spotlightActions.openAgentStation",
-    icon: Sparkles,
+    icon: SparklesIcon,
     keywords: ["agent station", "agent", "simulator", "replay"],
     actionId: ACTION_ID.WORKSTATION_OPEN_AGENT_STATION,
     payload: {},
@@ -264,7 +264,7 @@ export const STATION_MODE_ACTIONS = [
   {
     id: "open-kanban",
     labelKey: "common:spotlightActions.openKanban",
-    icon: Columns3,
+    icon: LayoutThreeColumnIcon,
     keywords: ["kanban", "project", "work items"],
     shortcut: getShortcutKeys("open_kanban"),
     actionId: ACTION_ID.WORKSTATION_OPEN_KANBAN,
@@ -278,7 +278,7 @@ export const APP_ACTIONS = [
   {
     id: "detect-update",
     labelKey: "common:spotlightActions.detectUpdate",
-    icon: RefreshCw,
+    icon: Refresh04Icon,
     keywords: [
       "detect update",
       "check for update",
@@ -324,7 +324,7 @@ export const QUICK_NAVIGATION_ACTIONS = [
   {
     id: "open-search-sidebar",
     labelKey: "selectors.spotlight.actions.searchInFiles.label",
-    icon: Search,
+    icon: Search01Icon,
     keywords: [
       "search files",
       "show search",
@@ -342,7 +342,7 @@ export const QUICK_NAVIGATION_ACTIONS = [
   {
     id: "open-source-control-tab",
     labelKey: "selectors.spotlight.actions.showSourceControl.label",
-    icon: GitPullRequest,
+    icon: GitPullRequestIcon,
     keywords: [
       "source control",
       "show source control",
@@ -360,7 +360,7 @@ export const QUICK_NAVIGATION_ACTIONS = [
   {
     id: "open-terminal-tab",
     labelKey: "selectors.spotlight.actions.showTerminal.label",
-    icon: SquareTerminal,
+    icon: SquareTerminalIcon,
     keywords: [
       "terminal",
       "show terminal",

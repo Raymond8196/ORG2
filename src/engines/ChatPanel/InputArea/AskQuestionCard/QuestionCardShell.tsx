@@ -8,9 +8,9 @@
  *
  * Used by AskQuestionCard, AskQuestionPreview, and QuestionBubble.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -123,7 +123,11 @@ export function QuestionCardShell({
     <div className={COMPOSER_CARD_SHELL_CLASSES}>
       <ComposerStackHeader
         icon={
-          <HugeiconsIcon icon={CircleHelp} data-icon="circle-help" size={14} />
+          <HugeiconsIcon
+            icon={HelpCircleIcon}
+            data-icon="circle-help"
+            size={14}
+          />
         }
         label={t("chat.questionsPrompt")}
         labelVariant="primary"
@@ -146,7 +150,7 @@ export function QuestionCardShell({
                 disabled={focusedQuestion === 0}
               >
                 <HugeiconsIcon
-                  icon={ChevronUp}
+                  icon={ArrowUp01Icon}
                   data-icon="chevron-up"
                   size={12}
                 />
@@ -163,7 +167,7 @@ export function QuestionCardShell({
                 disabled={focusedQuestion >= questions.length - 1}
               >
                 <HugeiconsIcon
-                  icon={ChevronDown}
+                  icon={ArrowDown01Icon}
                   data-icon="chevron-down"
                   size={12}
                 />

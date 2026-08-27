@@ -8,8 +8,8 @@
  * Rendered as a second layer over the roster (the `BuilderTypesPanel`
  * back-button idiom of this folder).
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type ReactNode,
@@ -223,7 +223,7 @@ export default function TeamMemberDetail({
           onClick={onBack}
           icon={
             <HugeiconsIcon
-              icon={ChevronLeft}
+              icon={ArrowLeft01Icon}
               data-icon="chevron-left"
               className="h-3.5 w-3.5"
             />
@@ -421,7 +421,7 @@ export default function TeamMemberDetail({
                       size={14}
                       fallback={
                         <HugeiconsIcon
-                          icon={Terminal}
+                          icon={ComputerTerminal01Icon}
                           data-icon="terminal"
                           size={14}
                           className="text-text-3"
@@ -430,7 +430,7 @@ export default function TeamMemberDetail({
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={Terminal}
+                      icon={ComputerTerminal01Icon}
                       data-icon="terminal"
                       size={14}
                       className="text-text-3"

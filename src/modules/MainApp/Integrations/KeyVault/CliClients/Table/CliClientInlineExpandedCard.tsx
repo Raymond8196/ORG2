@@ -1,6 +1,6 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -135,7 +135,7 @@ const CliClientInlineExpandedCard = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={14}
                   className={spinClass}
@@ -153,7 +153,7 @@ const CliClientInlineExpandedCard = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowOutUpRight}
+                  icon={SquareArrowUpRightIcon}
                   data-icon="square-arrow-out-up-right"
                   size={14}
                 />
@@ -168,7 +168,9 @@ const CliClientInlineExpandedCard = ({
             <Button
               variant="secondary"
               size="small"
-              icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
+              }
               onClick={onAdd}
             >
               {t("cliPreview.addKey")}

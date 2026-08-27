@@ -6,7 +6,7 @@
  * while the extracted item renderer keeps this coordinator focused on menu
  * state and repository diff data.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -99,7 +99,7 @@ const TabBarPlusMenuComponent: React.FC<TabBarPlusMenuProps> = ({
           className="flex-shrink-0"
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={2}

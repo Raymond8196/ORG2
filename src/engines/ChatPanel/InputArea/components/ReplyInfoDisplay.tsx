@@ -3,8 +3,8 @@
  *
  * Display reply-to-question indicator with close button
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Reply from "@hugeicons/core-free-icons/MailReply01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import MailReply01Icon from "@hugeicons/core-free-icons/MailReply01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -40,7 +40,7 @@ const ReplyInfoDisplay: React.FC<ReplyInfoDisplayProps> = memo(
       <UserActionButton
         leftIcon={
           <HugeiconsIcon
-            icon={Reply}
+            icon={MailReply01Icon}
             data-icon="reply"
             size={16}
             strokeWidth={1.75}
@@ -48,7 +48,12 @@ const ReplyInfoDisplay: React.FC<ReplyInfoDisplayProps> = memo(
         }
         title={t("chat.replyToQuestion")}
         rightIcon={
-          <HugeiconsIcon icon={X} data-icon="x" size={16} strokeWidth={1.75} />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            data-icon="x"
+            size={16}
+            strokeWidth={1.75}
+          />
         }
         onClick={() => onClose()}
       />

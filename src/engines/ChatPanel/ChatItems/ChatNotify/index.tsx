@@ -1,6 +1,6 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -92,7 +92,7 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
           style={{ background: "bg-fill-1" }}
           expandIcon={
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={14}
               className="text-text-4"
@@ -150,7 +150,7 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
                         onClick={handleView}
                       >
                         <HugeiconsIcon
-                          icon={Eye}
+                          icon={ViewIcon}
                           data-icon="eye"
                           size={12}
                           strokeWidth={1.75}
@@ -161,7 +161,7 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
                         onClick={handleItemRedirect}
                       >
                         <HugeiconsIcon
-                          icon={SquareArrowOutUpRight}
+                          icon={SquareArrowUpRightIcon}
                           data-icon="square-arrow-out-up-right"
                           size={12}
                         />

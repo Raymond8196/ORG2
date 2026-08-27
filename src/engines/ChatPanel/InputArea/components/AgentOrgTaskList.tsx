@@ -1,7 +1,7 @@
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -173,7 +173,7 @@ function AgentOrgTaskSubject({
       </span>
       {expanded ? (
         <HugeiconsIcon
-          icon={ChevronsDownUp}
+          icon={ChevronsDownUpIcon}
           data-icon="chevrons-down-up"
           size={11}
           strokeWidth={2}
@@ -181,7 +181,7 @@ function AgentOrgTaskSubject({
         />
       ) : (
         <HugeiconsIcon
-          icon={ChevronsUpDown}
+          icon={UnfoldMoreIcon}
           data-icon="chevrons-up-down"
           size={11}
           strokeWidth={2}
@@ -273,7 +273,7 @@ export const AgentOrgTaskList: React.FC<AgentOrgTaskListProps> = memo(
                               )}
                             >
                               <HugeiconsIcon
-                                icon={MessageCircle}
+                                icon={BubbleChatIcon}
                                 data-icon="message-circle"
                                 size={8}
                                 strokeWidth={2}
@@ -288,7 +288,7 @@ export const AgentOrgTaskList: React.FC<AgentOrgTaskListProps> = memo(
                       {blocked && (
                         <span className="inline-flex shrink-0 items-center gap-1 rounded-full bg-warning-6/10 px-2 py-0.5 text-warning-6">
                           <HugeiconsIcon
-                            icon={Lock}
+                            icon={LockIcon}
                             data-icon="lock"
                             size={8}
                             strokeWidth={2}

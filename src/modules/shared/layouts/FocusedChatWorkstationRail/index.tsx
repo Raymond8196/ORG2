@@ -1,12 +1,12 @@
-import ChevronsLeft from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
-import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import File from "@hugeicons/core-free-icons/File01Icon";
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
-import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import ArrowLeftDoubleIcon from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
+import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import File01Icon from "@hugeicons/core-free-icons/File01Icon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import LayoutListIcon from "@hugeicons/core-free-icons/LayoutListIcon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -245,7 +245,7 @@ export function FocusedChatWorkstationRail({
       .map((session) => ({
         key: `terminal-session:${session.id}`,
         label: getTerminalDisplayTitle(session),
-        icon: SquareTerminal,
+        icon: SquareTerminalIcon,
         closeLabel: t("common:git.rail.closeItem", {
           label: getTerminalDisplayTitle(session),
         }),
@@ -265,7 +265,7 @@ export function FocusedChatWorkstationRail({
       .map(({ tab }) => ({
         key: tab.id,
         label: tab.title,
-        icon: tab.type === "browser-session" ? Globe : File,
+        icon: tab.type === "browser-session" ? InternetIcon : File01Icon,
         fileName: getRailTabFileName(tab),
         closeLabel: t("common:git.rail.closeItem", {
           label: tab.title,
@@ -321,7 +321,7 @@ export function FocusedChatWorkstationRail({
       {
         key: "changes",
         label: t("common:actions.review"),
-        icon: FileDiff,
+        icon: FileDiffIcon,
         shortcut: getShortcutKeys("open_source_control_tab"),
         additions: reviewAdditions,
         deletions: reviewDeletions,
@@ -343,7 +343,7 @@ export function FocusedChatWorkstationRail({
             {
               key: `pull-request:${branchPullRequest.number}`,
               label: `#${branchPullRequest.number}`,
-              icon: GitPullRequest,
+              icon: GitPullRequestIcon,
               external: true,
               status: branchPullRequestStatus,
               onClick: () => void openExternalLink(branchPullRequest.url),
@@ -353,21 +353,21 @@ export function FocusedChatWorkstationRail({
       {
         key: "terminal",
         label: t("common:tabs.terminal"),
-        icon: SquareTerminal,
+        icon: SquareTerminalIcon,
         shortcut: getShortcutKeys("open_terminal_tab"),
         onClick: () => void WorkStationViewService.openTerminalTab(),
       },
       {
         key: "files",
         label: t("common:labels.files"),
-        icon: Folder,
+        icon: FolderClosedIcon,
         shortcut: getShortcutKeys("open_file_folder_tab"),
         onClick: () => void WorkStationViewService.openFileFolderTab(),
       },
       {
         key: "browser",
         label: t("navigation:labels.browser"),
-        icon: Globe,
+        icon: InternetIcon,
         onClick: browserTab
           ? () => openWorkstationTab(browserTab.tab)
           : () => {
@@ -427,7 +427,7 @@ export function FocusedChatWorkstationRail({
               label: t("common:git.pr.linkedBranch", {
                 number: resolvedSessionBranchPullRequest.number,
               }),
-              icon: GitPullRequest,
+              icon: GitPullRequestIcon,
               external: true,
               status: sessionPullRequestStatus,
               onClick: () =>
@@ -533,7 +533,7 @@ export function FocusedChatWorkstationRail({
               aria-haspopup="menu"
               icon={
                 <HugeiconsIcon
-                  icon={LayoutList}
+                  icon={LayoutListIcon}
                   data-icon="layout-list"
                   size={14}
                   strokeWidth={2}
@@ -578,14 +578,14 @@ export function FocusedChatWorkstationRail({
               >
                 {collapsed ? (
                   <HugeiconsIcon
-                    icon={ChevronsLeft}
+                    icon={ArrowLeftDoubleIcon}
                     data-icon="chevrons-left"
                     size={14}
                     strokeWidth={1.75}
                   />
                 ) : (
                   <HugeiconsIcon
-                    icon={ChevronsRight}
+                    icon={ArrowRightDoubleIcon}
                     data-icon="chevrons-right"
                     size={14}
                     strokeWidth={1.75}

@@ -9,8 +9,8 @@
  * Chosen by `general.modelPickerStyle === "dropdown"`. Falls through to
  * `WorkspacePalette` (Spotlight) otherwise.
  */
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
@@ -133,7 +133,7 @@ const RepoRow: React.FC<RepoRowProps> = ({
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {isCurrent ? (
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={DROPDOWN_ITEM.iconSize}
             className="text-primary-6"
@@ -172,7 +172,7 @@ const WorkspaceRow: React.FC<WorkspaceRowProps> = ({
       <span className="flex h-5 w-5 shrink-0 items-center justify-center">
         {isActive ? (
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={DROPDOWN_ITEM.iconSize}
             className="text-primary-6"
@@ -652,7 +652,7 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
         <HugeiconsIcon
-          icon={Search}
+          icon={Search01Icon}
           data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"

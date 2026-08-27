@@ -5,12 +5,12 @@
  * Contains: station mode chip, chat panel toggle, caption toggle,
  * layout settings dropdown, and a separate caption row below the top bar.
  */
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import Minimize2 from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Captions from "@hugeicons/core-free-icons/CaptionsIcon";
-import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CaptionsIcon from "@hugeicons/core-free-icons/CaptionsIcon";
+import PanelRightIcon from "@hugeicons/core-free-icons/PanelRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, startTransition, useCallback, useEffect } from "react";
@@ -169,7 +169,7 @@ const AgentStationTopHeader: React.FC = memo(() => {
             onClick={handleToggleCaption}
           >
             <HugeiconsIcon
-              icon={Captions}
+              icon={CaptionsIcon}
               data-icon="captions"
               size={16}
               strokeWidth={2}
@@ -182,7 +182,7 @@ const AgentStationTopHeader: React.FC = memo(() => {
               onClick={handleToggleChatPanel}
             >
               <HugeiconsIcon
-                icon={Minimize2}
+                icon={ArrowShrink01Icon}
                 data-icon="minimize-2"
                 size={14}
                 strokeWidth={2}
@@ -197,14 +197,14 @@ const AgentStationTopHeader: React.FC = memo(() => {
             >
               {isChatPanelVisible ? (
                 <HugeiconsIcon
-                  icon={Maximize2}
+                  icon={ArrowExpand01Icon}
                   data-icon="maximize-2"
                   size={14}
                   strokeWidth={2}
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={MessageCircle}
+                  icon={BubbleChatIcon}
                   data-icon="message-circle"
                   size={14}
                   strokeWidth={2}
@@ -220,14 +220,14 @@ const AgentStationTopHeader: React.FC = memo(() => {
             >
               {sessionChatPosition === "left" ? (
                 <HugeiconsIcon
-                  icon={PanelRight}
+                  icon={PanelRightIcon}
                   data-icon="panel-right"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={2}
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={X}
+                  icon={Cancel01Icon}
                   data-icon="x"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={1.75}

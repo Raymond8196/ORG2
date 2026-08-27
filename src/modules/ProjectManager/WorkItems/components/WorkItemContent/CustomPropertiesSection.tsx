@@ -1,7 +1,7 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -309,7 +309,7 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
       testId="work-item-custom-properties"
       icon={
         <HugeiconsIcon
-          icon={ListChevronsUpDown}
+          icon={ListChevronsDownUpIcon}
           data-icon="list-chevrons-up-down"
           size={14}
           strokeWidth={1.8}
@@ -329,9 +329,9 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
           <ActivityHeaderActionButton
             icon={
               showCreate ? (
-                <HugeiconsIcon icon={X} data-icon="x" size={12} />
+                <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
               ) : (
-                <HugeiconsIcon icon={Plus} data-icon="plus" size={12} />
+                <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={12} />
               )
             }
             label={
@@ -455,7 +455,7 @@ const CustomPropertiesSection: React.FC<CustomPropertiesSectionProps> = ({
                     iconOnly
                     icon={
                       <HugeiconsIcon
-                        icon={Archive}
+                        icon={ArchiveIcon}
                         data-icon="archive"
                         size={13}
                       />

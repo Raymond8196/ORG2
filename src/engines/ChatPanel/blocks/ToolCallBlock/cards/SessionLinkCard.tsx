@@ -1,4 +1,4 @@
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -90,7 +90,7 @@ const SessionLinkCard: React.FC<SessionLinkCardProps> = ({ card }) => {
         </div>
 
         <HugeiconsIcon
-          icon={SquareArrowOutUpRight}
+          icon={SquareArrowUpRightIcon}
           data-icon="square-arrow-out-up-right"
           size={13}
           className="mt-0.5 shrink-0 text-text-4 transition-colors hover:text-text-2"

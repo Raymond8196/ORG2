@@ -7,10 +7,10 @@
  * - Promotions: show action button
  * - Work items: show project/work-item metadata
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
@@ -145,7 +145,7 @@ const FeedMessage: React.FC<FeedMessageProps> = ({
                     }
                     icon={
                       <HugeiconsIcon
-                        icon={SquareArrowOutUpRight}
+                        icon={SquareArrowUpRightIcon}
                         data-icon="square-arrow-out-up-right"
                         size={12}
                       />
@@ -185,7 +185,7 @@ const CommitFilesBlock: React.FC<{ messageId: string }> = ({ messageId }) => {
     return (
       <div className="mt-2 flex items-center gap-2 text-[13px] text-text-3">
         <HugeiconsIcon
-          icon={Loader2}
+          icon={Loading03Icon}
           data-icon="loader-2"
           size={SPINNER_TOKENS.default + 2}
           className="animate-spin text-text-3"
@@ -197,7 +197,7 @@ const CommitFilesBlock: React.FC<{ messageId: string }> = ({ messageId }) => {
 
   if (commitFiles.length === 0) return null;
 
-  const Chevron = expanded ? ChevronDown : ChevronRight;
+  const Chevron = expanded ? ArrowDown01Icon : ArrowRight01Icon;
 
   return (
     <div className="mt-2">

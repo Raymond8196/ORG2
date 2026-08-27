@@ -9,11 +9,11 @@
  * Shared between RepoSettings and WorkItemsSettings (project-level).
  * Layout matches MembersSection / RepoMembersSection for consistency.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -75,7 +75,9 @@ const LinkedEmailRow: React.FC<{
       </div>
       {!isPrimary && onUnlink && (
         <Button
-          icon={<HugeiconsIcon icon={Minus} data-icon="minus" size={14} />}
+          icon={
+            <HugeiconsIcon icon={MinusSignIcon} data-icon="minus" size={14} />
+          }
           iconOnly
           onClick={onUnlink}
           title={t("settings.unlinkIdentity")}
@@ -182,21 +184,27 @@ const EditableField: React.FC<{
         {editing ? (
           <>
             <Button
-              icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Tick01Icon} data-icon="check" size={14} />
+              }
               iconOnly
               onClick={() => {
                 if (inputRef.current) handleSave(inputRef.current.value);
               }}
             />
             <Button
-              icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
+              }
               iconOnly
               onClick={handleCancel}
             />
           </>
         ) : (
           <Button
-            icon={<HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />}
+            icon={
+              <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={14} />
+            }
             iconOnly
             onClick={handleStartEdit}
           />
@@ -375,7 +383,9 @@ const MyProfileSection: React.FC<MyProfileSectionProps> = ({
           <div className="flex items-center gap-2">
             <span className="text-[14px] text-text-1">{myMember.id}</span>
             <Button
-              icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={14} />
+              }
               iconOnly
               onClick={() => {
                 copyText(myMember.id).catch((err) => {

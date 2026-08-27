@@ -4,8 +4,8 @@
  * Floating status bar pill for replay controls (play/pause, prev/next, speed).
  * The progress slider is now handled by MusicPlayerReplayBar on the dock border.
  */
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useRef } from "react";
@@ -186,7 +186,7 @@ const FloatingReplayContainer: React.FC = memo(() => {
             iconOnly
             icon={
               <HugeiconsIcon
-                icon={Bot}
+                icon={BotIcon}
                 data-icon="bot"
                 size={16}
                 strokeWidth={1.75}
@@ -207,7 +207,7 @@ const FloatingReplayContainer: React.FC = memo(() => {
             iconOnly
             icon={
               <HugeiconsIcon
-                icon={Keyboard}
+                icon={KeyboardIcon}
                 data-icon="keyboard"
                 size={16}
                 strokeWidth={1.75}

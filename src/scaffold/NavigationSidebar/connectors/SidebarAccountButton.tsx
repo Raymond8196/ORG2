@@ -1,4 +1,4 @@
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -47,7 +47,7 @@ const SidebarAccountButton: React.FC<SidebarAccountButtonProps> = React.memo(
             </span>
           ) : (
             <HugeiconsIcon
-              icon={LogIn}
+              icon={Login01Icon}
               data-icon="log-in"
               size={14}
               strokeWidth={2}

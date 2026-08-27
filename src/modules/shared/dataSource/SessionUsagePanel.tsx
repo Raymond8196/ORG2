@@ -1,5 +1,5 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Suspense,
@@ -444,7 +444,7 @@ export default function SessionUsagePanel() {
           onClick={handleUsageRefreshClick}
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               className={spinClass}
@@ -468,7 +468,7 @@ export default function SessionUsagePanel() {
         >
           <span className="text-text-3">{t("usage.roundsTable.session")}:</span>
           <span className="max-w-[260px] truncate">{session.name}</span>
-          <HugeiconsIcon icon={X} data-icon="x" size={12} />
+          <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
         </button>
       )}
 

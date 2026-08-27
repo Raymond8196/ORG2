@@ -5,9 +5,9 @@
  * "Add Project" opens in a separate tab (handled by ProjectManagerLayout).
  * Repo settings are a separate tab — this page is list-only.
  */
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Flag from "@hugeicons/core-free-icons/Flag01Icon";
-import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
+import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue } from "jotai";
@@ -232,7 +232,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
             <HugeiconsIcon
-              icon={Circle}
+              icon={CircleIcon}
               data-icon="circle"
               size={13}
               strokeWidth={1.75}
@@ -247,7 +247,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
             <HugeiconsIcon
-              icon={Flag}
+              icon={Flag01Icon}
               data-icon="flag"
               size={13}
               strokeWidth={1.75}
@@ -262,7 +262,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
             <HugeiconsIcon
-              icon={CalendarClock}
+              icon={TimeScheduleIcon}
               data-icon="calendar-clock"
               size={13}
               strokeWidth={1.75}

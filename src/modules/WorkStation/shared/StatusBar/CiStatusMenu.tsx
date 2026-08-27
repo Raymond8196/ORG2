@@ -10,14 +10,14 @@
  * stops asking once every check has reported, and opening the menu forces a
  * fresh read.
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashed from "@hugeicons/core-free-icons/CircleDashedIcon";
-import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Loader from "@hugeicons/core-free-icons/Loading01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
+import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import Loading01Icon from "@hugeicons/core-free-icons/Loading01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -72,7 +72,7 @@ function CheckStateIcon({
     case "success":
       return (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           size={size}
           strokeWidth={1.9}
@@ -82,7 +82,7 @@ function CheckStateIcon({
     case "failure":
       return (
         <HugeiconsIcon
-          icon={XCircle}
+          icon={CancelCircleIcon}
           data-icon="xcircle"
           size={size}
           strokeWidth={1.9}
@@ -92,7 +92,7 @@ function CheckStateIcon({
     case "pending":
       return (
         <HugeiconsIcon
-          icon={Loader}
+          icon={Loading01Icon}
           data-icon="loader"
           size={size}
           strokeWidth={1.9}
@@ -102,7 +102,7 @@ function CheckStateIcon({
     default:
       return (
         <HugeiconsIcon
-          icon={CircleSlash}
+          icon={CircleSlashIcon}
           data-icon="circle-slash"
           size={size}
           strokeWidth={1.9}
@@ -124,7 +124,7 @@ function BranchCiIcon({ status }: { status: BranchCiStatus }): React.ReactNode {
     default:
       return (
         <HugeiconsIcon
-          icon={CircleDashed}
+          icon={CircleDashedIcon}
           data-icon="circle-dashed"
           size={13}
           strokeWidth={1.9}
@@ -187,7 +187,7 @@ const CheckRow: React.FC<CheckRowProps> = memo(({ item, onOpenDetails }) => {
             }}
           >
             <HugeiconsIcon
-              icon={SquareArrowOutUpRight}
+              icon={SquareArrowUpRightIcon}
               data-icon="square-arrow-out-up-right"
               size={MENU_ICON_SIZE}
             />
@@ -351,7 +351,7 @@ export const CiStatusMenu: React.FC<CiStatusMenuProps> = memo(
                 )}
               >
                 <HugeiconsIcon
-                  icon={GitPullRequest}
+                  icon={GitPullRequestIcon}
                   data-icon="git-pull-request"
                   size={MENU_ICON_SIZE}
                   className="shrink-0 text-text-3"
@@ -373,7 +373,7 @@ export const CiStatusMenu: React.FC<CiStatusMenuProps> = memo(
                   onClick={refresh}
                 >
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={MENU_ICON_SIZE}
                     className={classNames(refreshing && "animate-spin")}

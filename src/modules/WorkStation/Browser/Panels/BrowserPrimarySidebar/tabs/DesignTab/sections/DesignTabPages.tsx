@@ -1,7 +1,7 @@
 /**
  * DesignTabPages - Pages section for DesignTab sidebar
  */
-import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
+import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 
@@ -24,7 +24,7 @@ function pagesToTreeNodes(pages: PageItem[]): TreePanelNode[] {
     type: "file" as const,
     icon: (
       <HugeiconsIcon
-        icon={FileCode}
+        icon={FileScriptIcon}
         data-icon="file-code"
         size={TREE_ICON_SIZE}
         className="text-text-3"

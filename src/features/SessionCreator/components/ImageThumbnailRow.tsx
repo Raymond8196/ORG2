@@ -4,7 +4,7 @@
  * Displays image attachment thumbnails in the session creator input.
  * Click opens fullscreen preview; X button removes the image.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 
@@ -53,7 +53,12 @@ const Thumbnail: React.FC<ThumbnailProps> = memo(({ image, onRemove }) => {
           aria-label={`Remove ${image.fileName}`}
           data-testid="chat-image-attachment-remove"
         >
-          <HugeiconsIcon icon={X} data-icon="x" size={10} strokeWidth={2.5} />
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            data-icon="x"
+            size={10}
+            strokeWidth={2.5}
+          />
         </button>
       </div>
       {showOverlay && (

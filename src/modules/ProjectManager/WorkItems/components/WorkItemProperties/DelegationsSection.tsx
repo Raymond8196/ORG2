@@ -1,4 +1,4 @@
-import Bot from "@hugeicons/core-free-icons/BotIcon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
@@ -34,7 +34,7 @@ export function DelegationsSection({
       <FieldRow
         icon={
           <HugeiconsIcon
-            icon={Bot}
+            icon={BotIcon}
             data-icon="bot"
             size={DROPDOWN_ITEM.iconSize}
           />

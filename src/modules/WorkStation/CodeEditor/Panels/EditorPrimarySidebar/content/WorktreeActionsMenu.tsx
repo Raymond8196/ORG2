@@ -1,5 +1,5 @@
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -64,7 +64,7 @@ export const WorktreeActionsMenu: React.FC<WorktreeActionsMenuProps> = memo(
           }}
         >
           <HugeiconsIcon
-            icon={Ellipsis}
+            icon={EllipsisIcon}
             data-icon="ellipsis"
             size={14}
             className={isOpen ? "text-primary-6" : "text-text-3"}
@@ -93,7 +93,7 @@ export const WorktreeActionsMenu: React.FC<WorktreeActionsMenuProps> = memo(
                   onClick={handleRemove}
                 >
                   <HugeiconsIcon
-                    icon={Trash2}
+                    icon={Delete02Icon}
                     data-icon="trash-2"
                     size={DROPDOWN_ITEM.iconSize}
                     className="shrink-0"
@@ -161,7 +161,7 @@ export function WorktreeContextMenu({
             onClick={handleRemove}
           >
             <HugeiconsIcon
-              icon={Trash2}
+              icon={Delete02Icon}
               data-icon="trash-2"
               size={DROPDOWN_ITEM.iconSize}
               className="shrink-0"

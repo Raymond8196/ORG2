@@ -1,4 +1,4 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -209,7 +209,11 @@ const ChatFloatingComposer: React.FC<ChatFloatingComposerProps> = memo(
         size="small"
         shape="round"
         icon={
-          <HugeiconsIcon icon={ArrowDown} data-icon="arrow-down" size={14} />
+          <HugeiconsIcon
+            icon={ArrowDown02Icon}
+            data-icon="arrow-down"
+            size={14}
+          />
         }
         iconOnly
         aria-label={t("common:chat.scrollToBottom")}

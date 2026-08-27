@@ -3,10 +3,10 @@
  *
  * Utility functions for working with the event registry
  */
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import HelpCircle from "@hugeicons/core-free-icons/HelpCircleIcon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import User from "@hugeicons/core-free-icons/UserIcon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
+import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
+import UserIcon from "@hugeicons/core-free-icons/UserIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import type { ComponentType, LazyExoticComponent } from "react";
 
@@ -61,14 +61,14 @@ export function prefetchCommonComponents(): void {
  * Agent replies use `MessageSquare` like `AgentMessageBlock`; tools use Rust-backed icons below.
  */
 const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, IconSvgElement> = {
-  message: MessageSquare,
+  message: Message01Icon,
   /** User prompts — same `MessageSquare` as assistant `message` rows (chat-aligned) */
-  user_message: MessageSquare,
+  user_message: Message01Icon,
   /** Fallback if functionName is still `user_input` before grouping */
-  user_input: MessageSquare,
-  thinking: Brain,
-  ask_user_questions: HelpCircle,
-  raw_event: User,
+  user_input: Message01Icon,
+  thinking: BrainIcon,
+  ask_user_questions: HelpCircleIcon,
+  raw_event: UserIcon,
 };
 
 /**

@@ -1,4 +1,4 @@
-import Download from "@hugeicons/core-free-icons/Download01Icon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { CSSProperties, FC } from "react";
 
@@ -112,7 +112,7 @@ export const DownloadProgressOrb: FC<DownloadProgressOrbProps> = ({
       </span>
       <span className="app-update-download-orb__icon" aria-hidden>
         <HugeiconsIcon
-          icon={Download}
+          icon={Download01Icon}
           data-icon="download"
           size={18}
           strokeWidth={2.2}

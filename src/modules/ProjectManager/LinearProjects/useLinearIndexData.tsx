@@ -7,9 +7,9 @@
  *   - Load all projects (and all issues when surface === "work-items")
  *   - Expose groupMode state and derived Project groupings for the projects list
  */
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Flag from "@hugeicons/core-free-icons/Flag01Icon";
-import CalendarClock from "@hugeicons/core-free-icons/TimeScheduleIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
+import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -368,7 +368,7 @@ export function useLinearIndexData({
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
             <HugeiconsIcon
-              icon={Circle}
+              icon={CircleIcon}
               data-icon="circle"
               size={13}
               strokeWidth={1.75}
@@ -383,7 +383,7 @@ export function useLinearIndexData({
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
             <HugeiconsIcon
-              icon={Flag}
+              icon={Flag01Icon}
               data-icon="flag"
               size={13}
               strokeWidth={1.75}
@@ -398,7 +398,7 @@ export function useLinearIndexData({
         label: (
           <span className="flex items-center gap-2 whitespace-nowrap">
             <HugeiconsIcon
-              icon={CalendarClock}
+              icon={TimeScheduleIcon}
               data-icon="calendar-clock"
               size={13}
               strokeWidth={1.75}
@@ -470,7 +470,7 @@ export function useLinearIndexData({
         label: t(`projects.targetDateGroups.${group}`),
         icon: (
           <HugeiconsIcon
-            icon={CalendarClock}
+            icon={TimeScheduleIcon}
             data-icon="calendar-clock"
             size={14}
             strokeWidth={1.75}

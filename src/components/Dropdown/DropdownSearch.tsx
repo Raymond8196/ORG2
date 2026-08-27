@@ -22,7 +22,7 @@
  * </DropdownPanel>
  * ```
  */
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -117,7 +117,7 @@ const DropdownSearch = forwardRef<HTMLInputElement, DropdownSearchProps>(
         onMouseDown={handleMouseDown}
       >
         <HugeiconsIcon
-          icon={Search}
+          icon={Search01Icon}
           data-icon="search"
           size={DROPDOWN_SEARCH.iconSize}
           className="flex-shrink-0 text-text-3"

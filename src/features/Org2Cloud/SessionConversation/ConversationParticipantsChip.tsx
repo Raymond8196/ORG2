@@ -1,5 +1,5 @@
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
@@ -65,7 +65,7 @@ export function ConversationParticipantsChip({
       <span className="inline-flex shrink-0 items-center gap-1.5 rounded-full bg-fill-1 px-1.5 py-0.5 text-[11px] leading-none text-text-3">
         <span className="inline-flex items-center gap-0.5">
           <HugeiconsIcon
-            icon={Users}
+            icon={UserMultipleIcon}
             data-icon="users"
             size={11}
             strokeWidth={1.75}
@@ -75,7 +75,7 @@ export function ConversationParticipantsChip({
         {counters.discussionCount > 0 && (
           <span className="inline-flex items-center gap-0.5">
             <HugeiconsIcon
-              icon={MessagesSquare}
+              icon={MessageMultiple01Icon}
               data-icon="messages-square"
               size={11}
               strokeWidth={1.75}

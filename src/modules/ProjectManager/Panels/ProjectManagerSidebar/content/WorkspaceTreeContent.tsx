@@ -1,6 +1,6 @@
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -77,7 +77,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             type: "file",
             icon: (
               <HugeiconsIcon
-                icon={BookOpen}
+                icon={BookOpen01Icon}
                 data-icon="book-open"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
@@ -95,7 +95,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             type: "file",
             icon: (
               <HugeiconsIcon
-                icon={ListChecks}
+                icon={ListChecksIcon}
                 data-icon="list-checks"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
@@ -113,7 +113,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             type: "file",
             icon: (
               <HugeiconsIcon
-                icon={Box}
+                icon={BoxIcon}
                 data-icon="box"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
@@ -131,7 +131,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             type: "file",
             icon: (
               <HugeiconsIcon
-                icon={ListChecks}
+                icon={ListChecksIcon}
                 data-icon="list-checks"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}

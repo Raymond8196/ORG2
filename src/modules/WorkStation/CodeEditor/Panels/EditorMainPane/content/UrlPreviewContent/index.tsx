@@ -7,8 +7,8 @@
  * Uses the same useInlineWebview hook as the Browser module to create
  * native webviews that bypass X-Frame-Options restrictions.
  */
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -103,7 +103,7 @@ const UrlPreviewContent: React.FC<UrlPreviewContentProps> = memo(
               onClick={handleRefreshClick}
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={14}
                   className={spinClass}
@@ -124,7 +124,7 @@ const UrlPreviewContent: React.FC<UrlPreviewContentProps> = memo(
             onClick={handleOpenExternal}
             icon={
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={14}
               />

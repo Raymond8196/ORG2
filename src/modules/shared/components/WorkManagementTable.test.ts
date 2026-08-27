@@ -1,4 +1,4 @@
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -175,13 +175,16 @@ describe("WorkManagementTable", () => {
             statusSelect: {
               value: "open",
               label: "Open",
-              icon: createElement(HugeiconsIcon, { icon: CircleDot, size: 14 }),
+              icon: createElement(HugeiconsIcon, {
+                icon: CircleDotIcon,
+                size: 14,
+              }),
               options: [
                 {
                   value: "open",
                   label: "Open",
                   icon: createElement(HugeiconsIcon, {
-                    icon: CircleDot,
+                    icon: CircleDotIcon,
                     size: 14,
                   }),
                 },

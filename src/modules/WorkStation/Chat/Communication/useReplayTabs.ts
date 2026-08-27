@@ -1,4 +1,4 @@
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
+import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -93,7 +93,7 @@ export function useReplayTabs({
         label: previewLabel,
         title: previewLabel,
         icon: createElement(HugeiconsIcon, {
-          icon: Eye,
+          icon: ViewIcon,
           size: TAB_ICON_SIZE,
           className: TAB_ICON_CLASS,
         }),

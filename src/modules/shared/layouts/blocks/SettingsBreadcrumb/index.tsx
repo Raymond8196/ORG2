@@ -19,9 +19,9 @@
  * Adding a new settings section only requires registering its URL slug
  * in `SEGMENT_REGISTRY` — no per-page wiring.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useEffect, useMemo, useRef, useState } from "react";
@@ -144,7 +144,7 @@ function isSettingsSelectorItemActive(
 
 const Separator: React.FC = () => (
   <HugeiconsIcon
-    icon={ChevronRight}
+    icon={ArrowRight01Icon}
     data-icon="chevron-right"
     size={DROPDOWN_ITEM.iconSize}
     strokeWidth={1.75}
@@ -293,7 +293,7 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
           >
             <div className={DROPDOWN_CLASSES.searchContainer}>
               <HugeiconsIcon
-                icon={Search}
+                icon={Search01Icon}
                 data-icon="search"
                 size={DROPDOWN_SEARCH.iconSize}
                 className="shrink-0 text-text-3"
@@ -371,7 +371,7 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
                           </span>
                           {isActive && (
                             <HugeiconsIcon
-                              icon={Check}
+                              icon={Tick01Icon}
                               data-icon="check"
                               size={DROPDOWN_ITEM.iconSize}
                               className="shrink-0 text-primary-6"

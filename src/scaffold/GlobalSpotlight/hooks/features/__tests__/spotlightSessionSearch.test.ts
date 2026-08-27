@@ -1,4 +1,4 @@
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { describe, expect, it, vi } from "vitest";
 
 import { resolveAgentIcon } from "@src/config/agentIcons";
@@ -183,7 +183,7 @@ describe("resolveSpotlightCloudSessionPresentation", () => {
 
     expect(presentation).toEqual({
       label: "Team session",
-      icon: Users,
+      icon: UserMultipleIcon,
     });
   });
 
@@ -213,7 +213,7 @@ describe("resolveSpotlightCloudSessionPresentation", () => {
       })
     ).toEqual({
       label: "Team session",
-      icon: Users,
+      icon: UserMultipleIcon,
     });
   });
 });

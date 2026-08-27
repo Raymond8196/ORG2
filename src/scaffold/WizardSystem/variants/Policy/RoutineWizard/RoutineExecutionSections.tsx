@@ -1,5 +1,5 @@
-import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
-import Grip from "@hugeicons/core-free-icons/GripIcon";
+import FolderGitTwoIcon from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+import GripIcon from "@hugeicons/core-free-icons/GripIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -73,7 +73,7 @@ const RoutineExecutionSections: React.FC<RoutineExecutionSectionsProps> = ({
               style={SECTION_CONTROL_STYLE}
               prefix={
                 <HugeiconsIcon
-                  icon={FolderGit2}
+                  icon={FolderGitTwoIcon}
                   data-icon="folder-git-2"
                   size={16}
                   className="text-text-2"
@@ -116,7 +116,7 @@ const RoutineExecutionSections: React.FC<RoutineExecutionSectionsProps> = ({
                 <ModelIcon agentType={draft.modelType} size={16} />
               ) : (
                 <HugeiconsIcon
-                  icon={Grip}
+                  icon={GripIcon}
                   data-icon="grip"
                   size={16}
                   className="text-text-2"

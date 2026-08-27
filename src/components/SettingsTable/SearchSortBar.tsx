@@ -1,6 +1,6 @@
 /** SettingsTable-owned search, sort, and filter toolbar. */
-import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -79,7 +79,7 @@ const SearchSortBar: React.FC<SearchSortBarProps> = ({
         onClick={filterConfig.onToggle}
         icon={
           <HugeiconsIcon
-            icon={Filter}
+            icon={FilterIcon}
             data-icon="filter"
             size={14}
             className={filterConfig.active ? "text-primary-6" : ""}
@@ -113,7 +113,7 @@ const SearchSortBar: React.FC<SearchSortBarProps> = ({
                   placeholder={searchPlaceholder}
                   prefix={
                     <HugeiconsIcon
-                      icon={Search}
+                      icon={Search01Icon}
                       data-icon="search"
                       size={14}
                       className="text-text-3"

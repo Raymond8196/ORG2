@@ -1,8 +1,8 @@
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 
@@ -71,28 +71,28 @@ export const IssueRow: React.FC<IssueRowProps> = memo(
       const iconClassName = isOpen ? "text-success-6" : "text-text-3";
       const icon = isOpen ? (
         <HugeiconsIcon
-          icon={CircleDot}
+          icon={CircleDotIcon}
           data-icon="circle-dot"
           size={14}
           strokeWidth={1.75}
         />
       ) : isDuplicate ? (
         <HugeiconsIcon
-          icon={Copy}
+          icon={Copy01Icon}
           data-icon="copy"
           size={14}
           strokeWidth={1.75}
         />
       ) : isCompleted ? (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           size={14}
           strokeWidth={1.75}
         />
       ) : (
         <HugeiconsIcon
-          icon={XCircle}
+          icon={CancelCircleIcon}
           data-icon="xcircle"
           size={14}
           strokeWidth={1.75}
@@ -134,7 +134,7 @@ export const IssueRow: React.FC<IssueRowProps> = memo(
                   className={`flex items-center gap-0.5 ${TYPOGRAPHY.secondary} text-text-3`}
                 >
                   <HugeiconsIcon
-                    icon={MessageSquare}
+                    icon={Message01Icon}
                     data-icon="message-square"
                     size={11}
                     strokeWidth={1.75}

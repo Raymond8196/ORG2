@@ -1,7 +1,7 @@
 import Button from "@/src/components/Button";
 import Modal from "@/src/scaffold/ModalSystem";
 import { cancel, onUrl, start } from "@fabianlars/tauri-plugin-oauth";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useAtom, useAtomValue } from "jotai";
@@ -180,7 +180,7 @@ const LoginModal = () => {
     >
       <div className="flex h-full w-full flex-col items-center justify-center">
         <HugeiconsIcon
-          icon={Sparkles}
+          icon={SparklesIcon}
           data-icon="sparkles"
           size={24}
           strokeWidth={1.75}

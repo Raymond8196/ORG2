@@ -1,4 +1,4 @@
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -126,7 +126,7 @@ export const ChannelWizardFooterStatus: React.FC<
   return (
     <div className="flex items-center gap-1.5">
       <HugeiconsIcon
-        icon={Check}
+        icon={Tick01Icon}
         data-icon="check"
         size={14}
         className="text-success-6"

@@ -6,9 +6,9 @@
  * Uses FOLDER_HEADER tokens for consistent styling across explorer and
  * source control panels.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -51,14 +51,14 @@ export const FolderHeaderRow: React.FC<FolderHeaderRowProps> = memo(
       <button type="button" className={FOLDER_HEADER.button} onClick={onToggle}>
         {expanded ? (
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={14}
             className="flex-shrink-0 text-text-3"
           />
         ) : (
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
             className="flex-shrink-0 text-text-3"
@@ -68,7 +68,7 @@ export const FolderHeaderRow: React.FC<FolderHeaderRowProps> = memo(
         {branchName && (
           <>
             <HugeiconsIcon
-              icon={GitBranch}
+              icon={WorkflowCircle05Icon}
               data-icon="git-branch"
               size={11}
               className="flex-shrink-0 text-text-3"

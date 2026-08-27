@@ -1,9 +1,9 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import Pin from "@hugeicons/core-free-icons/PinIcon";
-import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import PinIcon from "@hugeicons/core-free-icons/PinIcon";
+import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import React, { useCallback } from "react";
 
 import type {
@@ -65,7 +65,7 @@ export function useDecorateSessionRowActions({
             showMoreActions: true,
             rowActions: [
               {
-                icon: X,
+                icon: Cancel01Icon,
                 label: tCommon("sessions:sidebar.removeDraft", "Remove draft"),
                 onClick: () => deleteSessionCreatorDraft(draftId),
               },
@@ -85,7 +85,7 @@ export function useDecorateSessionRowActions({
         if (hasSubagentChildren) {
           const expanded = expandedSubagentParentIds.has(item.id);
           rowActions.push({
-            icon: expanded ? ChevronsDownUp : ChevronsUpDown,
+            icon: expanded ? ChevronsDownUpIcon : UnfoldMoreIcon,
             label: expanded
               ? tCommon("sessions:sidebar.hideSubagents", "Hide subagents")
               : tCommon("sessions:sidebar.showSubagents", "Show subagents"),
@@ -94,7 +94,7 @@ export function useDecorateSessionRowActions({
         }
         if (!isChildSession && !isChatPanelTuiSessionId(item.id)) {
           rowActions.push({
-            icon: session.pinned ? PinOff : Pin,
+            icon: session.pinned ? PinOffIcon : PinIcon,
             label: session.pinned ? unpinLabel : pinLabel,
             onClick: () => {
               void handleTogglePin(item.id);
@@ -103,7 +103,7 @@ export function useDecorateSessionRowActions({
         }
         if (!isCursorIdeSession(item.id)) {
           rowActions.push({
-            icon: MoreHorizontal,
+            icon: MoreHorizontalIcon,
             label: tCommon("actions.more"),
             active: activeSessionMoreMenuId === item.id,
             dataTestId: `sidebar-session-more-${item.id}`,

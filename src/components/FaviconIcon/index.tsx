@@ -14,9 +14,9 @@
  *
  * URL change resets stale error state so a new domain re-attempts the fetch.
  */
-import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useState } from "react";
 
@@ -72,7 +72,7 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
     if (isLoading) {
       return (
         <HugeiconsIcon
-          icon={Loader2}
+          icon={Loading03Icon}
           data-icon="loader-2"
           size={size}
           className="shrink-0 animate-spin text-text-3"
@@ -85,7 +85,7 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
     if (isIncognito) {
       return (
         <HugeiconsIcon
-          icon={HatGlasses}
+          icon={HatGlassesIcon}
           data-icon="hat-glasses"
           size={size}
           strokeWidth={1.75}
@@ -98,7 +98,7 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
     const globeColor = isSelected ? "text-primary-6" : fallbackColor;
     return (
       <HugeiconsIcon
-        icon={Globe}
+        icon={InternetIcon}
         data-icon="globe"
         size={size}
         strokeWidth={1.75}

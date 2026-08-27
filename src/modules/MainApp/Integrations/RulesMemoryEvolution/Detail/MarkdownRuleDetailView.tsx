@@ -1,4 +1,4 @@
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -39,7 +39,7 @@ const MarkdownRuleDetailView: React.FC<MarkdownRuleDetailViewProps> = ({
       <PanelHeader
         iconElement={
           <HugeiconsIcon
-            icon={BookOpen}
+            icon={BookOpen01Icon}
             data-icon="book-open"
             size={14}
             className="text-primary-6"

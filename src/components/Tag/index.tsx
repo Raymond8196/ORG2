@@ -32,7 +32,7 @@
  * </Tag>
  * ```
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
@@ -271,7 +271,7 @@ const Tag: React.FC<TagProps> = ({
           onClick={handleClose}
           onKeyDown={createKeyboardActivationHandler(handleCloseKeyboard)}
         >
-          <HugeiconsIcon icon={X} data-icon="x" size={14} />
+          <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
         </span>
       )}
     </span>

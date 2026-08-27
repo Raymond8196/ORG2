@@ -4,10 +4,10 @@
  * Provides type definitions and configurations for managing multiple windows
  * within the simulator environment.
  */
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 import { AppType } from "./appTypes";
@@ -65,8 +65,8 @@ export interface DockContextMenuOption {
 }
 
 export const WINDOW_ICONS: Record<string, IconSvgElement> = {
-  switchTo: ArrowLeftRight,
-  close: X,
-  maximize: Maximize2,
-  minimize: Minus,
+  switchTo: ArrowLeftRightIcon,
+  close: Cancel01Icon,
+  maximize: ArrowExpand01Icon,
+  minimize: MinusSignIcon,
 } as const;

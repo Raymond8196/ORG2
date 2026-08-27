@@ -1,4 +1,4 @@
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
@@ -75,7 +75,7 @@ describe("local channel rows", () => {
     );
     const row = items[1];
     expect(row.id).toBe(buildLocalChannelRowId("ch-a"));
-    expect(row.icon).toBe(Hash);
+    expect(row.icon).toBe(HashtagIcon);
     expect(row.label).toBe("plans");
     expect(row.searchText).toBe("plans Q3");
     expect(row.dataTestId).toBe("sidebar-local-channel-ch-a");

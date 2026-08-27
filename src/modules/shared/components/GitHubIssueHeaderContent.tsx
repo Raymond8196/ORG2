@@ -1,5 +1,5 @@
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -14,7 +14,7 @@ function IssueStateIcon({ isOpen }: { isOpen: boolean }): React.ReactNode {
   if (isOpen)
     return (
       <HugeiconsIcon
-        icon={CircleDot}
+        icon={CircleDotIcon}
         data-icon="circle-dot"
         size={14}
         strokeWidth={1.8}
@@ -22,7 +22,7 @@ function IssueStateIcon({ isOpen }: { isOpen: boolean }): React.ReactNode {
     );
   return (
     <HugeiconsIcon
-      icon={CheckCircle2}
+      icon={CheckmarkCircle01Icon}
       data-icon="check-circle-2"
       size={14}
       strokeWidth={1.8}

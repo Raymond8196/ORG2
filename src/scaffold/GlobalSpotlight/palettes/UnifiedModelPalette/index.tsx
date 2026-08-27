@@ -11,8 +11,8 @@
  *
  * Thin UI wrapper — business logic lives in useUnifiedModelPalette.
  */
-import Grip from "@hugeicons/core-free-icons/GripIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import GripIcon from "@hugeicons/core-free-icons/GripIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
@@ -315,7 +315,7 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
       buildPathSegment({
         id: "unified-model-model",
         label: selectModelLabel,
-        icon: Grip,
+        icon: GripIcon,
         template: modelTemplate,
         requiredParams: ["model"],
       }),
@@ -364,7 +364,7 @@ export const UnifiedModelPalette: React.FC<UnifiedModelPaletteProps> = ({
       data-testid="model-spotlight-refresh-button"
     >
       <HugeiconsIcon
-        icon={RefreshCw}
+        icon={Refresh04Icon}
         data-icon="refresh-cw"
         size={14}
         className={refreshSpinClass}

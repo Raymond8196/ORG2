@@ -5,7 +5,7 @@
  * backend. Shown below the file table when the user clicks the "View Index"
  * toolbar button.
  */
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 export interface MemoryIndexPanelProps {
@@ -16,7 +16,7 @@ const MemoryIndexPanel = ({ indexText }: MemoryIndexPanelProps) => (
   <div className="rounded-lg bg-primary-container px-3 py-2">
     <div className="flex items-center gap-2 pb-2">
       <HugeiconsIcon
-        icon={BookOpen}
+        icon={BookOpen01Icon}
         data-icon="book-open"
         size={14}
         className="text-text-3"

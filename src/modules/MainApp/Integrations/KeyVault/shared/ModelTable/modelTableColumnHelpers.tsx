@@ -1,6 +1,6 @@
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import CornerDownRight from "@hugeicons/core-free-icons/CornerDownRightIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import CornerDownRightIcon from "@hugeicons/core-free-icons/CornerDownRightIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -52,7 +52,7 @@ export function renderModelIconSelect(
       size={MODEL_TABLE_CONTROL_SIZE}
       placeholder={
         <HugeiconsIcon
-          icon={Box}
+          icon={BoxIcon}
           data-icon="box"
           size={14}
           className="text-text-3"
@@ -180,7 +180,7 @@ export function renderExpandedCatalogModelCell(model: string): React.ReactNode {
   return (
     <div key={`model-${model}`} className="flex min-w-0 items-center gap-1">
       <HugeiconsIcon
-        icon={CornerDownRight}
+        icon={CornerDownRightIcon}
         data-icon="corner-down-right"
         size={12}
         className="shrink-0 text-text-4"
@@ -207,7 +207,7 @@ export function renderExpandedUnifiedModelCell(
       className="flex w-full min-w-0 items-center gap-2"
     >
       <HugeiconsIcon
-        icon={CornerDownRight}
+        icon={CornerDownRightIcon}
         data-icon="corner-down-right"
         size={12}
         className="shrink-0 text-text-4"
@@ -253,7 +253,7 @@ function renderRemoveButton(
       size="default"
       icon={
         <HugeiconsIcon
-          icon={Trash2}
+          icon={Delete02Icon}
           data-icon="trash-2"
           size={14}
           className="text-danger-6"

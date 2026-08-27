@@ -1,5 +1,5 @@
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -20,7 +20,7 @@ const CommunicationTodoCheckbox: React.FC<{
     return (
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={8}
           strokeWidth={3}
@@ -33,7 +33,7 @@ const CommunicationTodoCheckbox: React.FC<{
     return (
       <div className="flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
-          icon={Lock}
+          icon={LockIcon}
           data-icon="lock"
           size={6}
           strokeWidth={2.5}
@@ -83,7 +83,7 @@ export const CommunicationTodoList: React.FC<{
             {blocked && todo.blockedBy && (
               <span className="ml-auto flex shrink-0 items-center gap-0.5 text-[10px] text-text-3/70">
                 <HugeiconsIcon
-                  icon={Lock}
+                  icon={LockIcon}
                   data-icon="lock"
                   size={8}
                   strokeWidth={2}

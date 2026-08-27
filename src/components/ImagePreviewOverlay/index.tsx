@@ -5,9 +5,9 @@
  * Toolbar (optional copy, download, close) at the top-right of the image.
  * Click backdrop or press ESC to close.
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Download from "@hugeicons/core-free-icons/Download01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -103,7 +103,7 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
                 title={t("actions.copy")}
               >
                 <HugeiconsIcon
-                  icon={Copy}
+                  icon={Copy01Icon}
                   data-icon="copy"
                   size={15}
                   strokeWidth={2}
@@ -118,7 +118,7 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
               title={t("actions.download")}
             >
               <HugeiconsIcon
-                icon={Download}
+                icon={Download01Icon}
                 data-icon="download"
                 size={15}
                 strokeWidth={2}
@@ -131,7 +131,12 @@ const ImagePreviewOverlay: React.FC<ImagePreviewOverlayProps> = memo(
               aria-label={t("imagePreview.closePreview")}
               title={t("actions.close")}
             >
-              <HugeiconsIcon icon={X} data-icon="x" size={15} strokeWidth={2} />
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                data-icon="x"
+                size={15}
+                strokeWidth={2}
+              />
             </button>
           </div>
 

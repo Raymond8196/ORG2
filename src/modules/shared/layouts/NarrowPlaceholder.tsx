@@ -13,7 +13,7 @@
  * IMPORTANT: Tailwind JIT requires static class strings.
  * Do NOT interpolate breakpoint values dynamically.
  */
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -39,7 +39,7 @@ const NarrowPlaceholder: React.FC<NarrowPlaceholderProps> = memo(
         className={`flex min-h-[120px] w-full flex-col items-center justify-center gap-2 p-4 text-center ${className}`}
       >
         <HugeiconsIcon
-          icon={Maximize2}
+          icon={ArrowExpand01Icon}
           data-icon="maximize-2"
           size={20}
           className="text-text-3"

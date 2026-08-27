@@ -1,5 +1,5 @@
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
+import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -38,11 +38,11 @@ const ClaudeCodeSetup: React.FC<ClaudeCodeSetupProps> = ({
 
   const methodOptions: SelectionGridOption<ClaudeCodeMethod>[] = useMemo(
     () => [
-      { key: "signin", label: t("keyVault.signIn"), icon: LogIn },
+      { key: "signin", label: t("keyVault.signIn"), icon: Login01Icon },
       {
         key: "autodetect",
         label: t("keyVault.autodetect"),
-        icon: ScanSearch,
+        icon: SearchAreaIcon,
       },
     ],
     [t]

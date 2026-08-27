@@ -10,7 +10,7 @@
  * the member list.
  */
 import Modal from "@/src/scaffold/ModalSystem";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, {
@@ -368,7 +368,7 @@ const ManageChannelMembersDialog: React.FC<ManageChannelMembersDialogProps> = ({
                         disabled={mutating}
                         icon={
                           <HugeiconsIcon
-                            icon={MoreHorizontal}
+                            icon={MoreHorizontalIcon}
                             data-icon="ellipsis"
                             size={14}
                           />

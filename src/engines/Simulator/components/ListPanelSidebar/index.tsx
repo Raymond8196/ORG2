@@ -9,8 +9,8 @@
  *
  * PERFORMANCE: Uses virtualization for lists > 50 items
  */
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -168,7 +168,7 @@ const DefaultListItem: React.FC<DefaultItemProps> = ({
       {/* Current indicator (when no checkbox) */}
       {!showCheckbox && item.isCurrent && (
         <HugeiconsIcon
-          icon={Circle}
+          icon={CircleIcon}
           data-icon="circle"
           size={8}
           className="fill-current text-primary-6"
@@ -313,7 +313,7 @@ export function ListPanelContent({
         <Input
           prefix={
             <HugeiconsIcon
-              icon={Search}
+              icon={Search01Icon}
               data-icon="search"
               size={14}
               strokeWidth={1.75}

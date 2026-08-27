@@ -14,7 +14,7 @@
  * chat, so the prompt itself is the only thing that's not otherwise
  * visible without scrolling back to turn 1.
  */
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useMemo, useRef } from "react";
@@ -120,7 +120,7 @@ const SubagentPromptToggleComponent: React.FC<SubagentPromptToggleProps> = ({
         aria-label={label}
         icon={
           <HugeiconsIcon
-            icon={Info}
+            icon={InformationCircleIcon}
             data-icon="info"
             size={16}
             strokeWidth={1.75}

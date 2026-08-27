@@ -7,8 +7,8 @@
  * Access ladder + visibility live in CloudSyncLevelDialog, not here.
  */
 import Modal from "@/src/scaffold/ModalSystem";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
@@ -149,9 +149,17 @@ function OrgShareSection({
                 variant="primary"
                 icon={
                   model.createdLinkCopied ? (
-                    <HugeiconsIcon icon={Check} data-icon="check" size={12} />
+                    <HugeiconsIcon
+                      icon={Tick01Icon}
+                      data-icon="check"
+                      size={12}
+                    />
                   ) : (
-                    <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
+                    <HugeiconsIcon
+                      icon={Copy01Icon}
+                      data-icon="copy"
+                      size={12}
+                    />
                   )
                 }
                 onClick={() => void model.handleCopyCreatedLink()}

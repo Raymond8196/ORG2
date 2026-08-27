@@ -1,4 +1,4 @@
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -24,7 +24,7 @@ export function NavigationMenuRowActionButton({
   dataTestId,
   onClick,
 }: NavigationMenuRowActionButtonProps): React.ReactElement {
-  const RowActionIcon = icon ?? MoreHorizontal;
+  const RowActionIcon = icon ?? MoreHorizontalIcon;
 
   return (
     <button

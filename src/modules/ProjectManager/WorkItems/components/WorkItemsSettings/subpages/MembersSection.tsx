@@ -6,7 +6,7 @@
  * rename, sync from git), the user clicks "Manage in Repo Settings"
  * to navigate to the repo-level Settings tab from Projects.
  */
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -90,7 +90,7 @@ const MembersSection: React.FC<MembersSectionProps> = ({
             <Button
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowOutUpRight}
+                  icon={SquareArrowUpRightIcon}
                   data-icon="square-arrow-out-up-right"
                   size={14}
                 />

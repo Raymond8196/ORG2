@@ -11,10 +11,10 @@
  * row's message surface in a chat-panel tab, and the row takes the ordinary
  * selected state while that tab is active.
  */
-import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import type { TFunction } from "i18next";
 import type { MouseEvent } from "react";
 
@@ -108,11 +108,11 @@ export function buildLocalChannelsMenuItems({
         id: buildLocalChannelRowId(channel.id),
         name: channel.name,
         topic: channel.topic,
-        icon: Hash,
+        icon: HashtagIcon,
         dataTestId: `sidebar-local-channel-${channel.id}`,
         rowActions: [
           {
-            icon: MoreHorizontal,
+            icon: MoreHorizontalIcon,
             label: tCommon("actions.more"),
             dataTestId: `local-channel-more-${channel.id}`,
             onClick: () => onOpenChannelMenu(channel),
@@ -143,13 +143,13 @@ export function buildLocalChannelsMenuItems({
         children: archivedChannels.map((channel) => {
           const rowActions: NavigationMenuRowAction[] = [
             {
-              icon: ArchiveRestore,
+              icon: ArchiveArrowUpIcon,
               label: t("cloud.channels.unarchive"),
               dataTestId: `local-channel-unarchive-${channel.id}`,
               onClick: () => onUnarchive(channel),
             },
             {
-              icon: Trash2,
+              icon: Delete02Icon,
               label: t("cloud.channels.deleteAction"),
               dataTestId: `local-channel-delete-${channel.id}`,
               onClick: () => onDeleteChannel(channel),
@@ -159,7 +159,7 @@ export function buildLocalChannelsMenuItems({
             id: buildLocalChannelRowId(channel.id),
             name: channel.name,
             topic: channel.topic,
-            icon: Hash,
+            icon: HashtagIcon,
             dataTestId: `sidebar-local-channel-${channel.id}`,
             rowActions,
           });

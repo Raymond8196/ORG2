@@ -1,6 +1,6 @@
-import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   type ReactNode,
@@ -257,7 +257,7 @@ function SettingsTableToolbar({
       onClick={filterConfig.onToggle}
       icon={
         <HugeiconsIcon
-          icon={Filter}
+          icon={FilterIcon}
           data-icon="filter"
           size={14}
           className={filterConfig.active ? "text-primary-6" : ""}
@@ -332,7 +332,7 @@ function SettingsTableToolbar({
                 placeholder={searchBar.searchPlaceholder}
                 prefix={
                   <HugeiconsIcon
-                    icon={Search}
+                    icon={Search01Icon}
                     data-icon="search"
                     size={14}
                     className="text-text-3"
@@ -481,7 +481,7 @@ export default function SettingsTable<RowData>({
               >
                 <span className="flex cursor-help items-center p-1">
                   <HugeiconsIcon
-                    icon={Info}
+                    icon={InformationCircleIcon}
                     data-icon="info"
                     size={14}
                     className="text-text-3"

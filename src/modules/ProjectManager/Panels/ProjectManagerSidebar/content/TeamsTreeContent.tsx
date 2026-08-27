@@ -1,5 +1,5 @@
-import Building2 from "@hugeicons/core-free-icons/Building02Icon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import Building02Icon from "@hugeicons/core-free-icons/Building02Icon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
@@ -148,7 +148,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
           expanded: localTeamsExpanded,
           icon: (
             <HugeiconsIcon
-              icon={Users}
+              icon={UserMultipleIcon}
               data-icon="users"
               size={ROW_ICON_SIZE}
               strokeWidth={ROW_ICON_STROKE}
@@ -169,7 +169,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
               type: "file",
               icon: (
                 <HugeiconsIcon
-                  icon={Building2}
+                  icon={Building02Icon}
                   data-icon="building-2"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
@@ -191,7 +191,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
           expanded: linearTeamsExpanded,
           icon: (
             <HugeiconsIcon
-              icon={Users}
+              icon={UserMultipleIcon}
               data-icon="users"
               size={ROW_ICON_SIZE}
               strokeWidth={ROW_ICON_STROKE}
@@ -256,7 +256,7 @@ export const TeamsTreeContent: React.FC<TeamsTreeContentProps> = memo(
                 type: "file",
                 icon: (
                   <HugeiconsIcon
-                    icon={Building2}
+                    icon={Building02Icon}
                     data-icon="building-2"
                     size={ROW_ICON_SIZE}
                     strokeWidth={ROW_ICON_STROKE}

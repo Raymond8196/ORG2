@@ -9,9 +9,9 @@
  * - Memoized component with chunk_id-based comparison
  * - Separate rendering paths for different modes
  */
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
@@ -52,7 +52,7 @@ function renderFallbackHeader(
   return (
     <div className="flex w-full items-center gap-3 truncate">
       <HugeiconsIcon
-        icon={Wrench}
+        icon={Wrench01Icon}
         data-icon="wrench"
         size={16}
         className="text-text-2"
@@ -97,7 +97,7 @@ const EventCollapseWrapper: React.FC<EventCollapseWrapperProps> = ({
           key="1"
           expandIcon={
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={16}
               strokeWidth={1.75}
@@ -107,7 +107,7 @@ const EventCollapseWrapper: React.FC<EventCollapseWrapperProps> = ({
           header={header}
           extra={
             <HugeiconsIcon
-              icon={Maximize2}
+              icon={ArrowExpand01Icon}
               data-icon="maximize-2"
               size={16}
               strokeWidth={1.75}

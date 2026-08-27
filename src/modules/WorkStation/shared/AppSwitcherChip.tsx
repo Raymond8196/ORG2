@@ -10,7 +10,7 @@
  * The chip never renders a sidebar collapse toggle — that lives separately in
  * the 40px workstation header.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useEffect } from "react";
 
@@ -106,7 +106,7 @@ const AppSwitcherChipComponent: React.FC<AppSwitcherChipProps> = ({
       </span>
       {hasDropdown ? (
         <HugeiconsIcon
-          icon={ChevronDown}
+          icon={ArrowDown01Icon}
           data-icon="chevron-down"
           size={12}
           className={`shrink-0 text-text-3 transition-transform ${isOpen ? "rotate-180" : ""}`}

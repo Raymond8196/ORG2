@@ -1,4 +1,4 @@
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import type { ReactNode } from "react";
 
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
@@ -61,7 +61,7 @@ export function buildCloudSectionLoadMoreItem({
     id,
     key: id,
     label,
-    icon: MoreHorizontal,
+    icon: MoreHorizontalIcon,
     iconName: "more-horizontal",
     visualTone: "secondary",
     disabled,

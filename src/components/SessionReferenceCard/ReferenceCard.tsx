@@ -1,4 +1,4 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -30,7 +30,7 @@ export const ReferenceCard: React.FC<ReferenceCardProps> = ({
   >
     <div className="flex min-w-0 flex-1 flex-col gap-2">{children}</div>
     <HugeiconsIcon
-      icon={ChevronRight}
+      icon={ArrowRight01Icon}
       data-icon="chevron-right"
       size={14}
       className="shrink-0 text-text-3"

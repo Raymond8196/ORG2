@@ -12,8 +12,8 @@
  *
  * Hover color change is scoped to the header row only (not the expanded body).
  */
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 
@@ -79,13 +79,13 @@ const ComposerStackHeader: React.FC<ComposerStackHeaderProps> = memo(
 
     const chevronNode = expanded ? (
       <HugeiconsIcon
-        icon={ChevronsDownUp}
+        icon={ChevronsDownUpIcon}
         data-icon="chevrons-down-up"
         size={ICON_SIZE}
       />
     ) : (
       <HugeiconsIcon
-        icon={ChevronsUpDown}
+        icon={UnfoldMoreIcon}
         data-icon="chevrons-up-down"
         size={ICON_SIZE}
       />

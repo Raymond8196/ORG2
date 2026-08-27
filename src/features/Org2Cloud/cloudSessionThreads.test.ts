@@ -1,5 +1,5 @@
-import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
@@ -460,8 +460,8 @@ describe("cloud fork parent hover rendering", () => {
       shortcut: "@alice · forked from @bob · 2m",
       showMoreActions: true,
       rowActions: [
-        { icon: GitFork, label: "Fork", onClick: vi.fn() },
-        { icon: MoreHorizontal, label: "More", onClick: vi.fn() },
+        { icon: GitForkIcon, label: "Fork", onClick: vi.fn() },
+        { icon: MoreHorizontalIcon, label: "More", onClick: vi.fn() },
       ],
       children: [{ id: "child", key: "child", label: "Child" }],
     });

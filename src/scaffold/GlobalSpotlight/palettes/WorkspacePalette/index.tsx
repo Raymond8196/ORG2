@@ -9,7 +9,7 @@
  *
  * Uses useSelectorKernel for unified state management.
  */
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -336,7 +336,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
     {
       labelOverride: paletteText.switchPathLabel,
       templateOverride: paletteText.switchPathTemplate,
-      iconOverride: isManageMode ? Search : undefined,
+      iconOverride: isManageMode ? Search01Icon : undefined,
     }
   );
 

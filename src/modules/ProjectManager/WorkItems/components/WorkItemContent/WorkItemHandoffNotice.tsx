@@ -1,7 +1,7 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import Clock3 from "@hugeicons/core-free-icons/Clock03Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import UserRoundCheck from "@hugeicons/core-free-icons/UserRoundCheckIcon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import Clock03Icon from "@hugeicons/core-free-icons/Clock03Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import UserRoundCheckIcon from "@hugeicons/core-free-icons/UserRoundCheckIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -38,20 +38,25 @@ const WorkItemHandoffNotice: React.FC<WorkItemHandoffNoticeProps> = ({
   const icon =
     handoff.status === "accepted" ? (
       <HugeiconsIcon
-        icon={UserRoundCheck}
+        icon={UserRoundCheckIcon}
         data-icon="user-round-check"
         size={16}
         aria-hidden
       />
     ) : handoff.status === "returned" ? (
       <HugeiconsIcon
-        icon={ArrowLeft}
+        icon={ArrowLeft02Icon}
         data-icon="arrow-left"
         size={16}
         aria-hidden
       />
     ) : (
-      <HugeiconsIcon icon={Clock3} data-icon="clock-3" size={16} aria-hidden />
+      <HugeiconsIcon
+        icon={Clock03Icon}
+        data-icon="clock-3"
+        size={16}
+        aria-hidden
+      />
     );
   const title =
     handoff.status === "accepted"
@@ -121,7 +126,7 @@ const WorkItemHandoffNotice: React.FC<WorkItemHandoffNoticeProps> = ({
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={Check}
+                  icon={Tick01Icon}
                   data-icon="check"
                   size={14}
                   aria-hidden

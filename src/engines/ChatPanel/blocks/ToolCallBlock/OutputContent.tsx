@@ -1,15 +1,15 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import SearchX from "@hugeicons/core-free-icons/SearchMinusIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import LayoutListIcon from "@hugeicons/core-free-icons/LayoutListIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import SearchMinusIcon from "@hugeicons/core-free-icons/SearchMinusIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -54,7 +54,7 @@ function ProjectToolChangeIcon({
   if (change === "added") {
     return (
       <HugeiconsIcon
-        icon={Plus}
+        icon={Add01Icon}
         data-icon="plus"
         size={13}
         className="text-success-6"
@@ -64,7 +64,7 @@ function ProjectToolChangeIcon({
   if (change === "updated") {
     return (
       <HugeiconsIcon
-        icon={Pencil}
+        icon={Pen01Icon}
         data-icon="pencil"
         size={13}
         className="text-primary-6"
@@ -74,7 +74,7 @@ function ProjectToolChangeIcon({
   if (change === "deleted") {
     return (
       <HugeiconsIcon
-        icon={Trash2}
+        icon={Delete02Icon}
         data-icon="trash-2"
         size={13}
         className="text-danger-6"
@@ -88,7 +88,7 @@ function ProjectToolChangeIcon({
 const SearchFilesEmpty: React.FC = () => (
   <>
     <HugeiconsIcon
-      icon={SearchX}
+      icon={SearchMinusIcon}
       data-icon="search-x"
       size={13}
       className="text-text-4"
@@ -129,14 +129,14 @@ const ListWorkspacesOutput: React.FC<{ workspaces: WorkspaceEntry[] }> = ({
         leading={
           workspace.kind === "git" ? (
             <HugeiconsIcon
-              icon={Code2}
+              icon={CodeIcon}
               data-icon="code-2"
               size={14}
               className="shrink-0 text-primary-6"
             />
           ) : (
             <HugeiconsIcon
-              icon={Folder}
+              icon={FolderClosedIcon}
               data-icon="folder"
               size={14}
               className="shrink-0 text-primary-6"
@@ -194,14 +194,14 @@ const JobListingOutput: React.FC<{ jobs: BackgroundJobRow[] }> = ({ jobs }) => (
       const kindIcon =
         job.jobKind === "shell" ? (
           <HugeiconsIcon
-            icon={Terminal}
+            icon={ComputerTerminal01Icon}
             data-icon="terminal"
             size={14}
             className="shrink-0 text-primary-6"
           />
         ) : (
           <HugeiconsIcon
-            icon={Bot}
+            icon={BotIcon}
             data-icon="bot"
             size={14}
             className="shrink-0 text-primary-6"
@@ -210,14 +210,14 @@ const JobListingOutput: React.FC<{ jobs: BackgroundJobRow[] }> = ({ jobs }) => (
       const statusGlyph =
         job.status === "succeeded" ? (
           <HugeiconsIcon
-            icon={CheckCircle}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle"
             size={12}
             className="text-green-500"
           />
         ) : job.status === "failed" ? (
           <HugeiconsIcon
-            icon={XCircle}
+            icon={CancelCircleIcon}
             data-icon="xcircle"
             size={12}
             className="text-red-400"
@@ -260,7 +260,7 @@ const ProjectToolListOutput: React.FC<{ rows: ProjectToolListRow[] }> = ({
           title={row.name}
           leading={
             <HugeiconsIcon
-              icon={LayoutList}
+              icon={LayoutListIcon}
               data-icon="layout-list"
               size={14}
               className="shrink-0 text-primary-6"
@@ -286,14 +286,14 @@ const LspStatusOutput: React.FC<{ data: LspStatusOutputData }> = ({ data }) => (
       const leading = isRunningRow ? (
         running ? (
           <HugeiconsIcon
-            icon={CheckCircle}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle"
             size={14}
             className="shrink-0 text-success-6"
           />
         ) : (
           <HugeiconsIcon
-            icon={Circle}
+            icon={CircleIcon}
             data-icon="circle"
             size={14}
             className="shrink-0 text-text-4"
@@ -350,7 +350,7 @@ const SearchFilesOutput: React.FC<{ files: string[]; repoPath?: string }> = ({
 const SearchNoResultOutput: React.FC<{ message: string }> = ({ message }) => (
   <div className="flex items-center justify-center gap-2 px-3 py-3">
     <HugeiconsIcon
-      icon={SearchX}
+      icon={SearchMinusIcon}
       data-icon="search-x"
       size={13}
       className="text-text-4"

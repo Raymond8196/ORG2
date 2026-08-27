@@ -3,9 +3,9 @@
  *
  * Form for cloning a repo from a GitHub URL
  */
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -97,7 +97,7 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
               prefix={
                 <HugeiconsIcon
-                  icon={Code}
+                  icon={CodeIcon}
                   data-icon="code"
                   className="text-[16px] text-text-2"
                   size={16}
@@ -118,7 +118,7 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
                   className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
                   prefix={
                     <HugeiconsIcon
-                      icon={Folder}
+                      icon={FolderClosedIcon}
                       data-icon="folder"
                       className="text-[16px] text-text-2"
                       size={16}
@@ -132,7 +132,7 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
                 iconOnly
                 icon={
                   <HugeiconsIcon
-                    icon={FolderOpen}
+                    icon={FolderOpenIcon}
                     data-icon="folder-open"
                     size={16}
                   />

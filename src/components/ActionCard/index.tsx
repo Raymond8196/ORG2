@@ -33,9 +33,9 @@
  * />
  * ```
  */
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import cn from "classnames";
 import React from "react";
@@ -58,7 +58,7 @@ const CheckboxIndicator: React.FC<{ selected: boolean }> = ({ selected }) => (
   >
     {selected && (
       <HugeiconsIcon
-        icon={Check}
+        icon={Tick01Icon}
         data-icon="check"
         size={10}
         className="text-white"
@@ -84,7 +84,7 @@ const InfoTooltip: React.FC<{ content: string }> = ({ content }) => (
       className="flex-shrink-0 cursor-help text-text-3 hover:text-text-2"
       onClick={(event) => event.stopPropagation()}
     >
-      <HugeiconsIcon icon={Info} data-icon="info" size={14} />
+      <HugeiconsIcon icon={InformationCircleIcon} data-icon="info" size={14} />
     </span>
   </Tooltip>
 );
@@ -173,7 +173,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
       <Tooltip content={tooltip} showArrow={false} position="top">
         <span className="flex-shrink-0 cursor-help">
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={14}
             className="text-primary-6"
@@ -183,7 +183,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
     ) : (
       <span className="flex size-6 flex-shrink-0 items-center justify-center rounded-full bg-primary-1">
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={14}
           className="text-primary-6"
@@ -231,7 +231,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
 
         {showArrow && (
           <HugeiconsIcon
-            icon={ArrowRight}
+            icon={ArrowRight02Icon}
             data-icon="arrow-right"
             size={14}
             className="invisible flex-shrink-0 text-text-1 group-hover:visible group-active:visible"
@@ -273,7 +273,7 @@ const ActionCard: React.FC<ActionCardProps> = ({
           {trailingCheck}
           {showArrow && (
             <HugeiconsIcon
-              icon={ArrowRight}
+              icon={ArrowRight02Icon}
               data-icon="arrow-right"
               size={14}
               className="invisible flex-shrink-0 text-text-1 group-hover:visible group-active:visible"

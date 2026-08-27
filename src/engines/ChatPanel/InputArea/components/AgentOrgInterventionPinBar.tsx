@@ -1,4 +1,4 @@
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -79,7 +79,7 @@ const AgentOrgInterventionPinBar: React.FC<AgentOrgInterventionPinBarProps> =
                 onClick={() => void onReturnToWork()}
                 icon={
                   <HugeiconsIcon
-                    icon={Play}
+                    icon={PlayIcon}
                     data-icon="play"
                     size={12}
                     strokeWidth={2}

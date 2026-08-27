@@ -1,7 +1,7 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
   useCallback,
@@ -129,12 +129,12 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
       {
         key: LOCAL_SOURCE,
         label: t("navigation:collaboration.localOrg"),
-        icon: Laptop,
+        icon: LaptopIcon,
       },
       {
         key: CLOUD_SOURCE,
         label: t("navigation:cloud.orgManagement.create.sourceCloud"),
-        icon: Cloud,
+        icon: CloudIcon,
         dataTestId: "create-collab-org-source-cloud",
       },
     ],
@@ -146,13 +146,13 @@ const CreateCollabOrgView: React.FC<CreateCollabOrgViewProps> = ({
       {
         key: CREATE_MODE,
         label: t("navigation:collaboration.createOrg"),
-        icon: Plus,
+        icon: Add01Icon,
         dataTestId: "create-collab-org-mode-create",
       },
       {
         key: JOIN_MODE,
         label: t("navigation:collaboration.joinOrg"),
-        icon: LogIn,
+        icon: Login01Icon,
         dataTestId: "create-collab-org-mode-join",
       },
     ],

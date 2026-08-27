@@ -1,4 +1,4 @@
-import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -377,7 +377,7 @@ const WorkItemProperties: React.FC<WorkItemPropertiesProps> = ({
               iconOnly
               icon={
                 <HugeiconsIcon
-                  icon={ListChevronsUpDown}
+                  icon={ListChevronsDownUpIcon}
                   data-icon="list-chevrons-up-down"
                   size={DROPDOWN_ITEM.iconSize}
                 />

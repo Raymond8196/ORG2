@@ -1,10 +1,10 @@
 /**
  * RailItemStatus — CI badge shown at the end of a rail row (e.g. the PR row).
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import LoaderCircle from "@hugeicons/core-free-icons/LoaderCircleIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
+import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 
 import type { FocusedChatRailItem } from "./types";
@@ -23,22 +23,26 @@ export function RailItemStatus({
   const icon =
     status.state === "success" ? (
       <HugeiconsIcon
-        icon={CheckCircle2}
+        icon={CheckmarkCircle01Icon}
         data-icon="check-circle-2"
         {...commonProps}
       />
     ) : status.state === "failure" ? (
-      <HugeiconsIcon icon={XCircle} data-icon="xcircle" {...commonProps} />
+      <HugeiconsIcon
+        icon={CancelCircleIcon}
+        data-icon="xcircle"
+        {...commonProps}
+      />
     ) : status.state === "checking" || status.state === "pending" ? (
       <HugeiconsIcon
-        icon={LoaderCircle}
+        icon={LoaderCircleIcon}
         data-icon="loader-circle"
         {...commonProps}
         className="shrink-0 animate-spin"
       />
     ) : (
       <HugeiconsIcon
-        icon={CircleSlash}
+        icon={CircleSlashIcon}
         data-icon="circle-slash"
         {...commonProps}
       />

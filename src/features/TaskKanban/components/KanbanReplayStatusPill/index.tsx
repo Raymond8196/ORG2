@@ -23,11 +23,11 @@
  * stepping the cursor through `kanbanReplayEventsAtom` until the last
  * event is reached.
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
-import Pause from "@hugeicons/core-free-icons/PauseIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
+import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
@@ -285,7 +285,7 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
                 className="flex h-5 w-5 transform-gpu items-center justify-center rounded-full text-white hover:bg-white/15 hover:text-white disabled:cursor-not-allowed disabled:opacity-40"
               >
                 {React.createElement(HugeiconsIcon, {
-                  icon: MousePointer2,
+                  icon: Cursor02Icon,
                   size: 12,
                   strokeWidth: 1.75,
                 })}
@@ -310,7 +310,7 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
               aria-label={t("simulator.replay.previousEvent")}
             >
               {React.createElement(HugeiconsIcon, {
-                icon: ChevronLeft,
+                icon: ArrowLeft01Icon,
                 size: 14,
                 strokeWidth: 1.5,
               })}
@@ -336,7 +336,7 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
               }
             >
               {React.createElement(HugeiconsIcon, {
-                icon: isPlaying ? Pause : Play,
+                icon: isPlaying ? PauseIcon : PlayIcon,
                 size: 12,
                 fill: "currentColor",
                 strokeWidth: 0,
@@ -351,7 +351,7 @@ const KanbanReplayStatusPill: React.FC = memo(() => {
               aria-label={t("simulator.replay.nextEvent")}
             >
               {React.createElement(HugeiconsIcon, {
-                icon: ChevronRight,
+                icon: ArrowRight01Icon,
                 size: 14,
                 strokeWidth: 1.5,
               })}

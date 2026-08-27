@@ -4,7 +4,7 @@
  * Spotlight-style account › model breadcrumb used in model palette rows
  * and model-pill hover tooltips.
  */
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -80,7 +80,7 @@ export const ModelSelectionBreadcrumb: React.FC<ModelSelectionBreadcrumbProps> =
           <span className="inline-flex shrink-0 items-center gap-0.5 text-[11px] font-medium text-text-3">
             {thinking && (
               <HugeiconsIcon
-                icon={Brain}
+                icon={BrainIcon}
                 data-icon="brain"
                 size={11}
                 strokeWidth={1.8}

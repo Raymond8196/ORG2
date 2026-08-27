@@ -4,8 +4,8 @@
  * Search bar with action/value pills and a contextual input placeholder.
  * Backspace removes segments.
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -99,7 +99,7 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
 
   const renderBackChevron = () => (
     <HugeiconsIcon
-      icon={ChevronLeft}
+      icon={ArrowLeft01Icon}
       data-icon="chevron-left"
       size={13}
       strokeWidth={2.5}
@@ -147,7 +147,7 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
               />
             ) : (
               <HugeiconsIcon
-                icon={Search}
+                icon={Search01Icon}
                 data-icon="search"
                 className="text-text-2"
                 size={SPOTLIGHT_TOKENS.iconSize}

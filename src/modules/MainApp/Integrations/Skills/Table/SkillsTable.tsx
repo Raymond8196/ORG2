@@ -1,6 +1,6 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -253,7 +253,7 @@ export const SkillsTable: React.FC<SkillsTableProps> = ({
                   size="small"
                   icon={
                     <HugeiconsIcon
-                      icon={Trash2}
+                      icon={Delete02Icon}
                       data-icon="trash-2"
                       size={14}
                       className="text-danger-6"
@@ -313,7 +313,7 @@ export const SkillsTable: React.FC<SkillsTableProps> = ({
           size="default"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               className={refreshSpinClass}
@@ -330,7 +330,7 @@ export const SkillsTable: React.FC<SkillsTableProps> = ({
       <Button
         variant="secondary"
         size="default"
-        icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+        icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
         onClick={onCreate}
         data-testid="integrations-skills-create-button"
       >

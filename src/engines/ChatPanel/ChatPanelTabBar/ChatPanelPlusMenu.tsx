@@ -2,13 +2,13 @@
  * ChatPanelPlusMenu — the "+" button and its dropdown, placed in the chat
  * panel header toolbar (left of the "..." menu).
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import BriefcaseBusiness from "@hugeicons/core-free-icons/Briefcase02Icon";
-import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
-import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import PictureInPicture2 from "@hugeicons/core-free-icons/PictureInPicture01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import Briefcase02Icon from "@hugeicons/core-free-icons/Briefcase02Icon";
+import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
+import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
+import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import PictureInPicture01Icon from "@hugeicons/core-free-icons/PictureInPicture01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -55,7 +55,7 @@ export function PlusMenuContent({
       id: "launchpad",
       icon: (
         <HugeiconsIcon
-          icon={LayoutGrid}
+          icon={DashboardSquare01Icon}
           data-icon="layout-grid"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
@@ -69,7 +69,7 @@ export function PlusMenuContent({
       id: "work-management",
       icon: (
         <HugeiconsIcon
-          icon={Columns3}
+          icon={LayoutThreeColumnIcon}
           data-icon="columns-3"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
@@ -82,7 +82,7 @@ export function PlusMenuContent({
       id: "runtime",
       icon: (
         <HugeiconsIcon
-          icon={Gauge}
+          icon={GaugeIcon}
           data-icon="gauge"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
@@ -95,7 +95,7 @@ export function PlusMenuContent({
       id: "new-project",
       icon: (
         <HugeiconsIcon
-          icon={Box}
+          icon={BoxIcon}
           data-icon="box"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
@@ -108,7 +108,7 @@ export function PlusMenuContent({
       id: "new-work-item",
       icon: (
         <HugeiconsIcon
-          icon={BriefcaseBusiness}
+          icon={Briefcase02Icon}
           data-icon="briefcase-business"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
@@ -121,7 +121,7 @@ export function PlusMenuContent({
       id: "side-chat",
       icon: (
         <HugeiconsIcon
-          icon={PictureInPicture2}
+          icon={PictureInPicture01Icon}
           data-icon="picture-in-picture-2"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
@@ -219,7 +219,7 @@ export function ChatPanelPlusMenu({
           nativeTitle={false}
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={HEADER_ICON_SIZE.md}
             strokeWidth={2}

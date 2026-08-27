@@ -3,12 +3,12 @@
  *
  * Form for cloning a repo from connected GitHub accounts
  */
-import Filter from "@hugeicons/core-free-icons/FilterIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -118,7 +118,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
               prefix={
                 <HugeiconsIcon
-                  icon={Filter}
+                  icon={FilterIcon}
                   data-icon="filter"
                   className="text-[16px] text-text-2"
                   size={16}
@@ -153,14 +153,14 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                         <div className="flex items-center gap-2">
                           {repo.is_private ? (
                             <HugeiconsIcon
-                              icon={Lock}
+                              icon={LockIcon}
                               data-icon="lock"
                               className="text-[12px] text-text-2"
                               size={12}
                             />
                           ) : (
                             <HugeiconsIcon
-                              icon={Globe}
+                              icon={InternetIcon}
                               data-icon="globe"
                               className="text-[12px] text-text-2"
                               size={12}
@@ -204,7 +204,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                   className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
                   prefix={
                     <HugeiconsIcon
-                      icon={Folder}
+                      icon={FolderClosedIcon}
                       data-icon="folder"
                       className="text-[16px] text-text-2"
                       size={16}
@@ -218,7 +218,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                 iconOnly
                 icon={
                   <HugeiconsIcon
-                    icon={FolderOpen}
+                    icon={FolderOpenIcon}
                     data-icon="folder-open"
                     size={16}
                   />
@@ -257,7 +257,7 @@ const CloneGitHubForm: React.FC<CloneGitHubFormProps> = ({
                 size="default"
                 icon={
                   <HugeiconsIcon
-                    icon={SquareArrowOutUpRight}
+                    icon={SquareArrowUpRightIcon}
                     data-icon="square-arrow-out-up-right"
                     size={14}
                   />

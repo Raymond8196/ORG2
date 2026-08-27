@@ -1,4 +1,4 @@
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
@@ -48,7 +48,7 @@ export function InlineOptionPill({
     >
       {selected && (
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={10}
           className="text-white"

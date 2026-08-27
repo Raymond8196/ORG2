@@ -7,7 +7,7 @@
  *
  * Extracted from RepoDetailPage.tsx to keep it under 600 lines.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -68,7 +68,7 @@ export const AddEnvVarRow: React.FC<{
           <Button
             variant="primary"
             size="mini"
-            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={12} />}
+            icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={12} />}
             loading={saving}
             disabled={!key.trim()}
             onClick={handleAdd}
@@ -141,7 +141,7 @@ export const AddScriptRow: React.FC<{
           <Button
             variant="primary"
             size="mini"
-            icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={12} />}
+            icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={12} />}
             loading={saving}
             disabled={!name.trim() || !command.trim()}
             onClick={handleAdd}

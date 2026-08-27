@@ -1,10 +1,10 @@
-import CaseSensitive from "@hugeicons/core-free-icons/CaseSensitiveIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import CaseSensitiveIcon from "@hugeicons/core-free-icons/CaseSensitiveIcon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,7 +28,7 @@ function smartIcon(kind: SmartSuggestionKind): ReactNode {
     case "pr":
       return (
         <HugeiconsIcon
-          icon={GitPullRequest}
+          icon={GitPullRequestIcon}
           data-icon="git-pull-request"
           size={14}
           strokeWidth={1.75}
@@ -37,7 +37,7 @@ function smartIcon(kind: SmartSuggestionKind): ReactNode {
     case "issue":
       return (
         <HugeiconsIcon
-          icon={CircleDot}
+          icon={CircleDotIcon}
           data-icon="circle-dot"
           size={14}
           strokeWidth={1.75}
@@ -46,7 +46,7 @@ function smartIcon(kind: SmartSuggestionKind): ReactNode {
     case "branch":
       return (
         <HugeiconsIcon
-          icon={GitBranch}
+          icon={WorkflowCircle05Icon}
           data-icon="git-branch"
           size={14}
           strokeWidth={1.75}
@@ -55,7 +55,7 @@ function smartIcon(kind: SmartSuggestionKind): ReactNode {
     case "customRef":
       return (
         <HugeiconsIcon
-          icon={Hash}
+          icon={HashtagIcon}
           data-icon="hash"
           size={14}
           strokeWidth={1.75}
@@ -64,7 +64,7 @@ function smartIcon(kind: SmartSuggestionKind): ReactNode {
     case "name":
       return (
         <HugeiconsIcon
-          icon={CaseSensitive}
+          icon={CaseSensitiveIcon}
           data-icon="case-sensitive"
           size={14}
           strokeWidth={1.75}
@@ -73,7 +73,7 @@ function smartIcon(kind: SmartSuggestionKind): ReactNode {
     default:
       return (
         <HugeiconsIcon
-          icon={Sparkles}
+          icon={SparklesIcon}
           data-icon="sparkles"
           size={14}
           strokeWidth={1.75}
@@ -120,7 +120,7 @@ export function WorktreeSmartTab({
         {loading && (
           <div className="flex h-[180px] items-center justify-center text-text-3">
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={16}
               className="animate-spin"

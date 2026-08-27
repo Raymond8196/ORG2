@@ -1,5 +1,5 @@
-import Grip from "@hugeicons/core-free-icons/GripIcon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import GripIcon from "@hugeicons/core-free-icons/GripIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -313,7 +313,7 @@ const SessionCreatorOrgMembersPanel: React.FC<SessionCreatorOrgMembersPanelProps
                             />
                           ) : (
                             <HugeiconsIcon
-                              icon={Grip}
+                              icon={GripIcon}
                               data-icon="grip"
                               size={PILL_SM_ICON_SIZE}
                               strokeWidth={1.75}
@@ -367,7 +367,7 @@ const SessionCreatorOrgMembersPanel: React.FC<SessionCreatorOrgMembersPanelProps
             hideOrgs
             hideCliAgents
             titleLabel={agentPickerMember?.name}
-            titleIcon={Users}
+            titleIcon={UserMultipleIcon}
             placeholderLabel={
               agentPickerMember
                 ? t("creator.orgMembers.selectBaseAgentForRole", {

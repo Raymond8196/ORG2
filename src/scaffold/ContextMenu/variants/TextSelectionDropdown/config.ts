@@ -4,14 +4,14 @@
  * Configuration for the text selection dropdown that appears
  * when text is selected in terminal, browser, or editor views.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
-import MessageCircleQuestion from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
-import TextQuote from "@hugeicons/core-free-icons/TextQuoteIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
+import MessageCircleQuestionMarkIcon from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
+import TextQuoteIcon from "@hugeicons/core-free-icons/TextQuoteIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 // ============================================
@@ -43,15 +43,15 @@ export interface SessionItem {
 // ============================================
 
 export const ICON_CONFIG = {
-  askAgent: MessageCircleQuestion,
-  addContext: Plus,
-  addFile: FileCode,
-  addLines: TextQuote,
-  session: History,
-  newSession: Plus,
-  arrow: ArrowRight,
-  arrowBack: ArrowLeft,
-  check: Check,
+  askAgent: MessageCircleQuestionMarkIcon,
+  addContext: Add01Icon,
+  addFile: FileScriptIcon,
+  addLines: TextQuoteIcon,
+  session: WorkHistoryIcon,
+  newSession: Add01Icon,
+  arrow: ArrowRight02Icon,
+  arrowBack: ArrowLeft02Icon,
+  check: Tick01Icon,
 } as const;
 
 // ============================================

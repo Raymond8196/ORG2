@@ -1,6 +1,6 @@
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
@@ -70,7 +70,7 @@ export function StatusPrioritySection({
       icon:
         option.id === "open" ? (
           <HugeiconsIcon
-            icon={CircleDot}
+            icon={CircleDotIcon}
             data-icon="circle-dot"
             size={13}
             strokeWidth={1.8}
@@ -78,7 +78,7 @@ export function StatusPrioritySection({
           />
         ) : option.id === "closed" ? (
           <HugeiconsIcon
-            icon={CheckCircle2}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle-2"
             size={13}
             strokeWidth={1.8}
@@ -86,7 +86,7 @@ export function StatusPrioritySection({
           />
         ) : (
           <HugeiconsIcon
-            icon={Circle}
+            icon={CircleIcon}
             data-icon="circle"
             size={13}
             strokeWidth={1.8}

@@ -4,7 +4,7 @@
  * Consolidates the add workspace modal flow used by RepoSelector and SessionSourceSelector.
  * Manages modal stages, form hooks, and provides shared add workspace menu items.
  */
-import FolderPlus from "@hugeicons/core-free-icons/FolderAddIcon";
+import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -266,7 +266,7 @@ export function useAddWorkspaceFlow(
       type: "action" as const,
       id: "add-workspace",
       label: addWorkspaceText.actionPath.label,
-      icon: FolderPlus,
+      icon: FolderAddIcon,
       color: "",
       data: {
         template: addWorkspaceText.actionPath.template,
@@ -279,7 +279,8 @@ export function useAddWorkspaceFlow(
   const getSourceSegment = useCallback(
     (stage: AddWorkspaceModalStage) => {
       if (!stage) return null;
-      const icon = stage === "add-workspace-new" ? ICONS.newRepo : FolderPlus;
+      const icon =
+        stage === "add-workspace-new" ? ICONS.newRepo : FolderAddIcon;
       return {
         id: stage,
         type: "source" as const,

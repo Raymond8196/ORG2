@@ -1,6 +1,6 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronUp from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, forwardRef, useId, useState } from "react";
 
@@ -103,7 +103,7 @@ export const LaunchpadActionCard = forwardRef<
         {action.title}
       </span>
       <HugeiconsIcon
-        icon={ChevronRight}
+        icon={ArrowRight01Icon}
         data-icon="chevron-right"
         size={14}
         strokeWidth={1.8}
@@ -193,7 +193,7 @@ export function LaunchpadActionGrid({
               shape="circle"
               icon={
                 <HugeiconsIcon
-                  icon={Ellipsis}
+                  icon={EllipsisIcon}
                   data-icon="ellipsis"
                   size={14}
                   strokeWidth={1.8}
@@ -218,7 +218,7 @@ export function LaunchpadActionGrid({
               shape="circle"
               icon={
                 <HugeiconsIcon
-                  icon={ChevronUp}
+                  icon={ArrowUp01Icon}
                   data-icon="chevron-up"
                   size={14}
                   strokeWidth={1.8}

@@ -3,8 +3,8 @@
  *
  * Priority configurations for work items and projects.
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -66,7 +66,7 @@ export const WORK_ITEM_PRIORITY_OPTIONS: DropdownOption<WorkItemPriority>[] = [
     value: "none",
     label: "No priority",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Minus,
+      icon: MinusSignIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: PRIORITY_COLORS.none,
@@ -75,7 +75,7 @@ export const WORK_ITEM_PRIORITY_OPTIONS: DropdownOption<WorkItemPriority>[] = [
     value: "urgent",
     label: "Urgent",
     icon: React.createElement(HugeiconsIcon, {
-      icon: AlertCircle,
+      icon: AlertCircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: PRIORITY_COLORS.urgent,
@@ -125,7 +125,7 @@ export const STORY_PRIORITY_OPTIONS: ProjectPriorityOption[] = [
     value: "urgent",
     label: "Urgent",
     icon: React.createElement(HugeiconsIcon, {
-      icon: AlertCircle,
+      icon: AlertCircleIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: PRIORITY_COLORS.urgent,
@@ -161,7 +161,7 @@ export const STORY_PRIORITY_OPTIONS: ProjectPriorityOption[] = [
     value: "none",
     label: "No priority",
     icon: React.createElement(HugeiconsIcon, {
-      icon: Minus,
+      icon: MinusSignIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: PRIORITY_COLORS.none,

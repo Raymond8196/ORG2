@@ -4,8 +4,8 @@
  *
  * Extracted from LaunchpadDashboard.tsx to keep it under 600 lines.
  */
-import Expand from "@hugeicons/core-free-icons/ExpandIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import ExpandIcon from "@hugeicons/core-free-icons/ExpandIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -36,7 +36,7 @@ export const LaunchpadAgentActionStrip: React.FC<LaunchpadAgentActionStripProps>
             size="small"
             shape="round"
             className="shrink-0"
-            icon={<HugeiconsIcon icon={Play} data-icon="play" size={14} />}
+            icon={<HugeiconsIcon icon={PlayIcon} data-icon="play" size={14} />}
             onClick={agent.onLaunch}
           >
             {t("navigation:launchpad.actions.startSession", {
@@ -48,7 +48,9 @@ export const LaunchpadAgentActionStrip: React.FC<LaunchpadAgentActionStripProps>
             size="small"
             shape="round"
             className="shrink-0"
-            icon={<HugeiconsIcon icon={Expand} data-icon="expand" size={14} />}
+            icon={
+              <HugeiconsIcon icon={ExpandIcon} data-icon="expand" size={14} />
+            }
             onClick={agent.onOpenDetails}
           >
             {t("navigation:launchpad.actions.openDetails", {

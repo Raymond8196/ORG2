@@ -1,4 +1,4 @@
-import Play from "@hugeicons/core-free-icons/PlayIcon";
+import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -200,7 +200,7 @@ export function GroupChatPausedBanner({
               onClick={onResume}
               icon={
                 <HugeiconsIcon
-                  icon={Play}
+                  icon={PlayIcon}
                   data-icon="play"
                   size={12}
                   strokeWidth={2}

@@ -1,7 +1,7 @@
 /**
  * Edit-mode image thumbnail with overlay preview and optional remove (X).
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 
@@ -47,7 +47,12 @@ const EditModeImageThumbnail: React.FC<{
             aria-label={`Remove ${alt}`}
             data-testid="edit-mode-image-remove"
           >
-            <HugeiconsIcon icon={X} data-icon="x" size={10} strokeWidth={2.5} />
+            <HugeiconsIcon
+              icon={Cancel01Icon}
+              data-icon="x"
+              size={10}
+              strokeWidth={2.5}
+            />
           </button>
         )}
       </div>

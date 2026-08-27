@@ -1,4 +1,4 @@
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -46,7 +46,7 @@ export const HoverCardUrlRow: React.FC<HoverCardUrlRowProps> = ({ url }) => {
     <HoverCardRow
       icon={
         <HugeiconsIcon
-          icon={Globe}
+          icon={InternetIcon}
           data-icon="globe"
           size={13}
           strokeWidth={1.75}

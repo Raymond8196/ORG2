@@ -12,7 +12,7 @@
  *
  * No text editor, no submit, no event hooks.
  */
-import Lock from "@hugeicons/core-free-icons/LockIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -49,7 +49,7 @@ const SessionReadOnlyBar: React.FC<SessionReadOnlyBarProps> = memo(
               <ContextInfoButton variant="toolbar" />
               <div className="flex cursor-default select-none items-center gap-1 text-text-4 opacity-60">
                 <HugeiconsIcon
-                  icon={Lock}
+                  icon={LockIcon}
                   data-icon="lock"
                   size={11}
                   strokeWidth={1.75}

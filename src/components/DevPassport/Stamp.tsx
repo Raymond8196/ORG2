@@ -1,30 +1,30 @@
 /**
  * DevPassport Stamp Component
  */
-import Anchor from "@hugeicons/core-free-icons/AnchorIcon";
-import Award from "@hugeicons/core-free-icons/Award01Icon";
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import Bug from "@hugeicons/core-free-icons/Bug01Icon";
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Coffee from "@hugeicons/core-free-icons/Coffee01Icon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Cpu from "@hugeicons/core-free-icons/CpuIcon";
-import Database from "@hugeicons/core-free-icons/DatabaseIcon";
-import Zap from "@hugeicons/core-free-icons/FlashIcon";
-import Hexagon from "@hugeicons/core-free-icons/HexagonIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Key from "@hugeicons/core-free-icons/Key01Icon";
-import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import Radio from "@hugeicons/core-free-icons/RadioIcon";
-import Rocket from "@hugeicons/core-free-icons/RocketIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
-import Shield from "@hugeicons/core-free-icons/Shield01Icon";
-import Wifi from "@hugeicons/core-free-icons/Wifi01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import AnchorIcon from "@hugeicons/core-free-icons/AnchorIcon";
+import Award01Icon from "@hugeicons/core-free-icons/Award01Icon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
+import Bug01Icon from "@hugeicons/core-free-icons/Bug01Icon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import Coffee01Icon from "@hugeicons/core-free-icons/Coffee01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import CpuIcon from "@hugeicons/core-free-icons/CpuIcon";
+import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
+import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
+import HexagonIcon from "@hugeicons/core-free-icons/HexagonIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
+import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import RadioIcon from "@hugeicons/core-free-icons/RadioIcon";
+import RocketIcon from "@hugeicons/core-free-icons/RocketIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import ServerStack01Icon from "@hugeicons/core-free-icons/ServerStack01Icon";
+import Shield01Icon from "@hugeicons/core-free-icons/Shield01Icon";
+import Wifi01Icon from "@hugeicons/core-free-icons/Wifi01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
@@ -148,33 +148,33 @@ const getShapeConfig = (
 
 const Stamp: React.FC<StampProps> = ({ data }) => {
   const iconMap: Record<string, IconSvgElement> = {
-    code: Code,
-    bug: Bug,
-    coffee: Coffee,
-    rocket: Rocket,
-    award: Award,
-    server: Server,
-    database: Database,
-    cloud: Cloud,
-    cpu: Cpu,
-    git: GitBranch,
-    terminal: Terminal,
-    zap: Zap,
-    globe: Globe,
-    lock: Lock,
-    search: Search,
-    wifi: Wifi,
-    laptop: Laptop,
-    brain: Brain,
-    layers: Layers,
-    shield: Shield,
-    key: Key,
-    radio: Radio,
-    anchor: Anchor,
-    hexagon: Hexagon,
+    code: CodeIcon,
+    bug: Bug01Icon,
+    coffee: Coffee01Icon,
+    rocket: RocketIcon,
+    award: Award01Icon,
+    server: ServerStack01Icon,
+    database: DatabaseIcon,
+    cloud: CloudIcon,
+    cpu: CpuIcon,
+    git: WorkflowCircle05Icon,
+    terminal: ComputerTerminal01Icon,
+    zap: FlashIcon,
+    globe: InternetIcon,
+    lock: LockIcon,
+    search: Search01Icon,
+    wifi: Wifi01Icon,
+    laptop: LaptopIcon,
+    brain: BrainIcon,
+    layers: Layers01Icon,
+    shield: Shield01Icon,
+    key: Key01Icon,
+    radio: RadioIcon,
+    anchor: AnchorIcon,
+    hexagon: HexagonIcon,
   };
 
-  const IconComponent = iconMap[data.icon.toLowerCase()] || Code;
+  const IconComponent = iconMap[data.icon.toLowerCase()] || CodeIcon;
   const shape = data.shape || "round";
   const shapeConfig = getShapeConfig(shape, data.color);
 

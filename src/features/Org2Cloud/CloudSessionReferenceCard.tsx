@@ -1,4 +1,4 @@
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { atom, useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
 import React, { useCallback, useMemo } from "react";
@@ -39,7 +39,7 @@ export interface CloudSessionReferenceCardProps {
 }
 
 function renderAgentIcon(iconId: string | undefined) {
-  const AgentIcon = iconId ? resolveAgentIcon(iconId) : Users;
+  const AgentIcon = iconId ? resolveAgentIcon(iconId) : UserMultipleIcon;
   return <AnyIcon icon={AgentIcon} size={12} strokeWidth={1.75} />;
 }
 

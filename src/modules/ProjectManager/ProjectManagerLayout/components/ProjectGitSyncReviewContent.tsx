@@ -1,6 +1,6 @@
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -143,7 +143,7 @@ export const ProjectGitSyncReviewContent: React.FC<
       <div className="flex h-11 shrink-0 items-center justify-between border-b border-border-1 px-4">
         <div className="flex min-w-0 items-center gap-2">
           <HugeiconsIcon
-            icon={AlertTriangle}
+            icon={Alert01Icon}
             data-icon="alert-triangle"
             size={16}
             className="shrink-0 text-warning-6"
@@ -162,7 +162,7 @@ export const ProjectGitSyncReviewContent: React.FC<
           onClick={() => void handleSyncAgain()}
         >
           <HugeiconsIcon
-            icon={RefreshCw}
+            icon={Refresh04Icon}
             data-icon="refresh-cw"
             size={14}
             className={syncing ? "animate-spin" : ""}
@@ -216,7 +216,11 @@ export const ProjectGitSyncReviewContent: React.FC<
                   loading={saving}
                   onClick={() => void handleSaveResolved()}
                 >
-                  <HugeiconsIcon icon={Check} data-icon="check" size={14} />
+                  <HugeiconsIcon
+                    icon={Tick01Icon}
+                    data-icon="check"
+                    size={14}
+                  />
                   {t("gitSyncReview.saveResolved")}
                 </Button>
               </div>

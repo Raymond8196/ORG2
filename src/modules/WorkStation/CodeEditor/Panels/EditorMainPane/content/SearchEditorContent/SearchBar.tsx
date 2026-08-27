@@ -4,7 +4,7 @@
  * Shared-styled search controls for the search editor tab.
  * Uses the same reusable input/select components as other tabs.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -66,7 +66,7 @@ export const SearchBar: React.FC<SearchBarProps> = memo(
 
         {isLoading && (
           <HugeiconsIcon
-            icon={Loader2}
+            icon={Loading03Icon}
             data-icon="loader-2"
             size={SPINNER_TOKENS.default}
             className="animate-spin text-text-3"

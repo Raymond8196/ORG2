@@ -1,7 +1,7 @@
 /**
  * WorktreeListBlock — Header row + expandable worktree details.
  */
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -131,7 +131,7 @@ const renderWorktreeRow = (entry: WorktreeEntryItem) => (
     title={entry.path}
     leading={
       <HugeiconsIcon
-        icon={GitBranch}
+        icon={WorkflowCircle05Icon}
         data-icon="git-branch"
         size={14}
         className="shrink-0 text-primary-6"

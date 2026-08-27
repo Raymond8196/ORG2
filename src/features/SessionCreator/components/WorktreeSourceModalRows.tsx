@@ -1,4 +1,4 @@
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
@@ -52,7 +52,7 @@ export function WorktreeSourceRow({
       )}
       {selected && (
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={14}
           strokeWidth={1.75}

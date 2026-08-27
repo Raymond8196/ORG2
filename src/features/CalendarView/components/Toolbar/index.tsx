@@ -4,8 +4,8 @@
  * Toolbar with Day/Week/Month toggle and navigation controls.
  * Layout: [Scale Toggle] ... < [Date Range] > [Today]
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -106,7 +106,7 @@ const CalendarToolbar: React.FC<CalendarToolbarProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={ChevronLeft}
+              icon={ArrowLeft01Icon}
               data-icon="chevron-left"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -126,7 +126,7 @@ const CalendarToolbar: React.FC<CalendarToolbarProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}

@@ -10,9 +10,9 @@
  * active variant is chosen by the `general.modelPickerStyle` setting and
  * dispatched in `ModelPill`.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -87,7 +87,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
     if (isCurrent) {
       return (
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
@@ -149,7 +149,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
       )}
       {submenuSide && (
         <HugeiconsIcon
-          icon={ChevronRight}
+          icon={ArrowRight01Icon}
           data-icon="chevron-right"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
@@ -479,7 +479,7 @@ export const UnifiedModelDropdown: React.FC<UnifiedModelDropdownProps> = ({
       >
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
-            icon={Search}
+            icon={Search01Icon}
             data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"

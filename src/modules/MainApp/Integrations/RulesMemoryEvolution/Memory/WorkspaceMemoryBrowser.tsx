@@ -5,10 +5,10 @@
  * and allows reading and editing their contents. Calls into the Tauri backend via
  * `rpc.workspaceMemory.*` commands.
  */
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -174,7 +174,13 @@ const WorkspaceMemoryBrowser: React.FC = () => {
           <Button
             variant="secondary"
             size="small"
-            icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={Delete02Icon}
+                data-icon="trash-2"
+                size={14}
+              />
+            }
             iconOnly
             onClick={() => handleDelete(entry.filename)}
             aria-label={t("common:actions.delete")}
@@ -237,7 +243,13 @@ const WorkspaceMemoryBrowser: React.FC = () => {
       </div>
       <Button
         onClick={handleShowIndex}
-        icon={<HugeiconsIcon icon={BookOpen} data-icon="book-open" size={14} />}
+        icon={
+          <HugeiconsIcon
+            icon={BookOpen01Icon}
+            data-icon="book-open"
+            size={14}
+          />
+        }
         iconOnly
         title={t("indexing.workspaceMemoryViewIndex")}
       />
@@ -249,7 +261,11 @@ const WorkspaceMemoryBrowser: React.FC = () => {
           });
         }}
         icon={
-          <HugeiconsIcon icon={FolderOpen} data-icon="folder-open" size={14} />
+          <HugeiconsIcon
+            icon={FolderOpenIcon}
+            data-icon="folder-open"
+            size={14}
+          />
         }
         iconOnly
         title={t("storage.openFolder")}
@@ -258,7 +274,7 @@ const WorkspaceMemoryBrowser: React.FC = () => {
         onClick={handleRefreshClick}
         icon={
           <HugeiconsIcon
-            icon={RefreshCw}
+            icon={Refresh04Icon}
             data-icon="refresh-cw"
             size={14}
             className={spinClass}
@@ -269,7 +285,9 @@ const WorkspaceMemoryBrowser: React.FC = () => {
       />
       <Button
         onClick={handleClearAll}
-        icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
+        icon={
+          <HugeiconsIcon icon={Delete02Icon} data-icon="trash-2" size={14} />
+        }
         iconOnly
         disabled={files.length === 0}
         title={t("indexing.workspaceMemoryClearAll")}
@@ -333,7 +351,7 @@ const WorkspaceMemoryBrowser: React.FC = () => {
             ) : (
               <div className="flex min-h-[96px] items-center justify-center gap-2 text-xs text-text-3">
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={12}
                   className="animate-spin"

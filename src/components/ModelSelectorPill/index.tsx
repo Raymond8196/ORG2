@@ -6,7 +6,7 @@
  * the left, effort/variant on the right (when editable). Each segment
  * opens its own picker — model palette vs {@link ModelPropertiesDropdown}.
  */
-import Grip from "@hugeicons/core-free-icons/GripIcon";
+import GripIcon from "@hugeicons/core-free-icons/GripIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
@@ -128,7 +128,7 @@ const ModelSelectorPill = forwardRef<HTMLButtonElement, ModelSelectorPillProps>(
           />
         ) : (
           <HugeiconsIcon
-            icon={Grip}
+            icon={GripIcon}
             data-icon="grip"
             size={iconSize}
             strokeWidth={1.75}

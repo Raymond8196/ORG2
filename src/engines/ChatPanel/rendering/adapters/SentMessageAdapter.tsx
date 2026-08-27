@@ -1,5 +1,5 @@
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -219,14 +219,14 @@ export const SentMessageAdapter: React.FC<UniversalEventProps> = (props) => {
           <div className="w-full overflow-hidden rounded-xl border border-success-6/20 bg-success-6/5">
             <div className="flex items-center gap-2 border-b border-success-6/10 px-3 py-2 text-xs font-medium text-text-1">
               <HugeiconsIcon
-                icon={CheckCircle2}
+                icon={CheckmarkCircle01Icon}
                 data-icon="check-circle-2"
                 size={13}
                 className="shrink-0 text-success-6"
               />
               <span>{t("common:status.completed")}</span>
               <span className="ml-auto inline-flex items-center gap-1 rounded-full bg-fill-3 px-2 py-0.5 text-[10px] font-normal text-text-3">
-                <HugeiconsIcon icon={Inbox} data-icon="inbox" size={10} />
+                <HugeiconsIcon icon={InboxIcon} data-icon="inbox" size={10} />
                 {destination}
               </span>
             </div>

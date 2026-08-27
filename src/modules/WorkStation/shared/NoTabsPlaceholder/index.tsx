@@ -7,16 +7,16 @@
  * Usage:
  *   <NoTabsPlaceholder icon="editor" actions={quickActions} />
  */
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import ChartNoAxesGantt from "@hugeicons/core-free-icons/ChartNoAxesGanttIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Database from "@hugeicons/core-free-icons/DatabaseIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import Power from "@hugeicons/core-free-icons/PowerServiceIcon";
-import Phone from "@hugeicons/core-free-icons/SmartPhone01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
+import ChartNoAxesGanttIcon from "@hugeicons/core-free-icons/ChartNoAxesGanttIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import PowerServiceIcon from "@hugeicons/core-free-icons/PowerServiceIcon";
+import SmartPhone01Icon from "@hugeicons/core-free-icons/SmartPhone01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -64,16 +64,16 @@ export interface NoTabsPlaceholderProps {
 // ============================================
 
 const ICON_MAP: Record<PlaceholderIcon, IconSvgElement> = {
-  editor: Code,
-  "source-control": GitBranch,
-  browser: Globe,
-  database: Database,
-  project: ChartNoAxesGantt,
-  simulator: Power,
-  messages: MessagesSquare,
-  chat: MessageCircle,
-  cargo: Phone,
-  canvas: Layout,
+  editor: CodeIcon,
+  "source-control": WorkflowCircle05Icon,
+  browser: InternetIcon,
+  database: DatabaseIcon,
+  project: ChartNoAxesGanttIcon,
+  simulator: PowerServiceIcon,
+  messages: MessageMultiple01Icon,
+  chat: BubbleChatIcon,
+  cargo: SmartPhone01Icon,
+  canvas: Layout01Icon,
 };
 
 // ============================================

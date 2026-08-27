@@ -1,4 +1,4 @@
-import Boxes from "@hugeicons/core-free-icons/BoxesIcon";
+import BoxesIcon from "@hugeicons/core-free-icons/BoxesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -40,7 +40,7 @@ export const BucketIcon: React.FC<BucketIconProps> = ({
   }
   return (
     <HugeiconsIcon
-      icon={Boxes}
+      icon={BoxesIcon}
       data-icon="boxes"
       size={size}
       className={className}

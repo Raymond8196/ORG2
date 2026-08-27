@@ -1,5 +1,5 @@
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -210,7 +210,7 @@ const PullRequestSubmissionRow: React.FC<{
             title={t("actions.openOnGitHub", "Open on GitHub")}
           >
             <HugeiconsIcon
-              icon={SquareArrowOutUpRight}
+              icon={SquareArrowUpRightIcon}
               data-icon="square-arrow-out-up-right"
               size={14}
             />
@@ -226,7 +226,7 @@ const PullRequestSubmissionRow: React.FC<{
       {(branchLabel || pullRequest.repoFullName) && (
         <div className="mt-1 flex min-w-0 items-center gap-1 text-[11px] text-text-3">
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={12}
             className="shrink-0"

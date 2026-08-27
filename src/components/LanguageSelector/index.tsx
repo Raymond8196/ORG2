@@ -15,7 +15,7 @@
  * <LanguageSelector size="small" appearance="ghost" />
  * ```
  */
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
@@ -122,7 +122,11 @@ export function LanguageSelector({
       appearance={appearance}
       prefix={
         showIcon ? (
-          <HugeiconsIcon icon={Globe} data-icon="globe" className="h-4 w-4" />
+          <HugeiconsIcon
+            icon={InternetIcon}
+            data-icon="globe"
+            className="h-4 w-4"
+          />
         ) : undefined
       }
       className={className}

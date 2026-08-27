@@ -15,7 +15,7 @@
  * session-level transcript action (`SessionHeaderActionsMenu`), and this is the
  * same idea one turn down.
  */
-import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
+import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useRef } from "react";
@@ -175,7 +175,7 @@ const RawPromptToggleComponent: React.FC<RawPromptToggleProps> = ({
         onClick={handleClick}
       >
         <HugeiconsIcon
-          icon={Braces}
+          icon={FirstBracketIcon}
           data-icon="braces"
           size={14}
           strokeWidth={1.75}

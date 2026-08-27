@@ -1,5 +1,5 @@
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
@@ -193,7 +193,7 @@ const AuthenticatedForm: React.FC<AuthenticatedFormProps> = ({
             className={LOGIN_ACTION_BUTTON_CLASS}
             icon={
               <HugeiconsIcon
-                icon={LogIn}
+                icon={Login01Icon}
                 data-icon="log-in"
                 className="h-5 w-5"
               />
@@ -209,7 +209,7 @@ const AuthenticatedForm: React.FC<AuthenticatedFormProps> = ({
             className={LOGIN_ACTION_BUTTON_CLASS}
             icon={
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 className="h-5 w-5"
               />

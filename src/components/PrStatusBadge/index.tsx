@@ -1,7 +1,7 @@
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { memo } from "react";
@@ -32,11 +32,13 @@ const SIZE_CLASSES = {
 function StatusIcon({ name }: { name: PrStatusIconName }) {
   switch (name) {
     case "merge":
-      return <HugeiconsIcon icon={GitMerge} data-icon="git-merge" size={10} />;
+      return (
+        <HugeiconsIcon icon={GitMergeIcon} data-icon="git-merge" size={10} />
+      );
     case "closed":
       return (
         <HugeiconsIcon
-          icon={GitPullRequestClosed}
+          icon={GitPullRequestClosedIcon}
           data-icon="git-pull-request-closed"
           size={10}
         />
@@ -44,7 +46,7 @@ function StatusIcon({ name }: { name: PrStatusIconName }) {
     case "draft":
       return (
         <HugeiconsIcon
-          icon={GitPullRequestDraft}
+          icon={GitPullRequestDraftIcon}
           data-icon="git-pull-request-draft"
           size={10}
         />
@@ -53,7 +55,7 @@ function StatusIcon({ name }: { name: PrStatusIconName }) {
     default:
       return (
         <HugeiconsIcon
-          icon={GitPullRequest}
+          icon={GitPullRequestIcon}
           data-icon="git-pull-request"
           size={10}
         />

@@ -11,8 +11,8 @@
  * change is persisted via the supplied `onApply` callback (which the
  * caller wires to `saveKey` with `default_variants`).
  */
-import Brain from "@hugeicons/core-free-icons/BrainIcon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -84,7 +84,7 @@ export const VariantPill: React.FC<VariantPillProps> = ({
           }`}
         >
           <HugeiconsIcon
-            icon={Brain}
+            icon={BrainIcon}
             data-icon="brain"
             size={12}
             strokeWidth={1.75}
@@ -126,7 +126,7 @@ export const VariantPill: React.FC<VariantPillProps> = ({
       )}
       {editable && (
         <HugeiconsIcon
-          icon={Pencil}
+          icon={Pen01Icon}
           data-icon="pencil"
           className={
             active

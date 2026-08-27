@@ -1,7 +1,7 @@
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Chromium from "@hugeicons/core-free-icons/InternetIcon";
-import PanelsTopLeft from "@hugeicons/core-free-icons/PanelsTopLeftIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import PanelsTopLeftIcon from "@hugeicons/core-free-icons/PanelsTopLeftIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useSetAtom } from "jotai";
@@ -139,7 +139,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
         <Button
           variant="tertiary"
           size="mini"
-          icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={13} />}
+          icon={<HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={13} />}
           iconOnly
           aria-label={t("cards.url.copyUrl")}
           title={t("cards.url.copyUrl")}
@@ -150,7 +150,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
           size="mini"
           icon={
             <HugeiconsIcon
-              icon={Chromium}
+              icon={InternetIcon}
               data-icon="chrome"
               size={13}
               strokeWidth={1.75}
@@ -168,7 +168,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
             loading={openingPr}
             icon={
               <HugeiconsIcon
-                icon={GitPullRequest}
+                icon={GitPullRequestIcon}
                 data-icon="git-pull-request"
                 size={13}
                 strokeWidth={1.75}
@@ -195,7 +195,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
                       onClick={() => void handleOpenAsPullRequest()}
                     >
                       <HugeiconsIcon
-                        icon={GitPullRequest}
+                        icon={GitPullRequestIcon}
                         data-icon="git-pull-request"
                         size={14}
                         aria-hidden
@@ -204,7 +204,7 @@ const LinkHoverCardContent: React.FC<LinkHoverCardContentProps> = ({
                     </Menu.Item>
                     <Menu.Item key="web-page" onClick={handleOpenAsWebPage}>
                       <HugeiconsIcon
-                        icon={PanelsTopLeft}
+                        icon={PanelsTopLeftIcon}
                         data-icon="panels-top-left"
                         size={14}
                         aria-hidden

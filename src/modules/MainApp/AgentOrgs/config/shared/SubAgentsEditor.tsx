@@ -32,8 +32,8 @@
  * have removed legitimate specialist-as-sub-agent configurations
  * from the picker.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
@@ -122,7 +122,7 @@ const AddSubAgentButton: React.FC<AddSubAgentButtonProps> = ({
         size="default"
         icon={
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={DROPDOWN_ITEM.iconSize}
           />
@@ -369,7 +369,7 @@ const SubAgentsEditor: React.FC<SubAgentsEditorProps> = ({
               <Button
                 icon={
                   <HugeiconsIcon
-                    icon={X}
+                    icon={Cancel01Icon}
                     data-icon="x"
                     size={DROPDOWN_ITEM.iconSize}
                   />

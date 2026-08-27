@@ -7,15 +7,15 @@
  * inline via `GitCommitDetailContent`, which automatically fetches the PR ref
  * when the commit is not local yet.
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotDashed from "@hugeicons/core-free-icons/CircleDotDashedIcon";
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotDashedIcon from "@hugeicons/core-free-icons/CircleDotDashedIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import SecurityCheckIcon from "@hugeicons/core-free-icons/SecurityCheckIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -149,7 +149,11 @@ function CommitCheckStatus({
 }): React.ReactNode {
   const isSuccess = checks.state === "success";
   const isFailure = checks.state === "failure";
-  const Icon = isSuccess ? CheckCircle2 : isFailure ? XCircle : CircleDotDashed;
+  const Icon = isSuccess
+    ? CheckmarkCircle01Icon
+    : isFailure
+      ? CancelCircleIcon
+      : CircleDotDashedIcon;
   return (
     <span
       className={`inline-flex items-center gap-1 font-medium tabular-nums ${
@@ -228,7 +232,7 @@ function PrCommitCard({
               <span aria-hidden>·</span>
               <span className="inline-flex items-center gap-1 text-success-6">
                 <HugeiconsIcon
-                  icon={ShieldCheck}
+                  icon={SecurityCheckIcon}
                   data-icon="shield-check"
                   size={13}
                   strokeWidth={1.9}
@@ -249,14 +253,14 @@ function PrCommitCard({
           icon={
             copied ? (
               <HugeiconsIcon
-                icon={Check}
+                icon={Tick01Icon}
                 data-icon="check"
                 size={13}
                 strokeWidth={1.75}
               />
             ) : (
               <HugeiconsIcon
-                icon={Copy}
+                icon={Copy01Icon}
                 data-icon="copy"
                 size={13}
                 strokeWidth={1.75}
@@ -276,7 +280,7 @@ function PrCommitCard({
         <ActivityHeaderActionButton
           icon={
             <HugeiconsIcon
-              icon={Code2}
+              icon={CodeIcon}
               data-icon="code-2"
               size={14}
               strokeWidth={1.75}
@@ -372,7 +376,7 @@ export const PrCommitsTab: React.FC<PrCommitsTabProps> = ({
             size="mini"
             icon={
               <HugeiconsIcon
-                icon={ChevronLeft}
+                icon={ArrowLeft01Icon}
                 data-icon="chevron-left"
                 size={14}
                 strokeWidth={2}
@@ -433,7 +437,7 @@ export const PrCommitsTab: React.FC<PrCommitsTabProps> = ({
             <div className="flex h-5 items-center gap-2 text-[12px] font-medium text-text-2">
               <span className="flex size-5 shrink-0 items-center justify-center rounded-full bg-fill-2 text-text-2">
                 <HugeiconsIcon
-                  icon={GitCommitHorizontal}
+                  icon={GitCommitHorizontalIcon}
                   data-icon="git-commit-horizontal"
                   size={13}
                   strokeWidth={1.8}

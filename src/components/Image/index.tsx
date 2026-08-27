@@ -34,8 +34,8 @@
  * />
  * ```
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useState } from "react";
 
@@ -170,7 +170,11 @@ const Image: React.FC<ImageProps> = ({
       <div className={`image-wrapper ${className}`} style={{ width, height }}>
         {loader || (
           <div className="image-loader">
-            <HugeiconsIcon icon={ImageIcon} data-icon="image-icon" size={24} />
+            <HugeiconsIcon
+              icon={Image01Icon}
+              data-icon="image-icon"
+              size={24}
+            />
           </div>
         )}
       </div>
@@ -183,7 +187,11 @@ const Image: React.FC<ImageProps> = ({
       <div className={`image-wrapper ${className}`} style={{ width, height }}>
         {errorNode || (
           <div className="image-error">
-            <HugeiconsIcon icon={ImageIcon} data-icon="image-icon" size={24} />
+            <HugeiconsIcon
+              icon={Image01Icon}
+              data-icon="image-icon"
+              size={24}
+            />
             <span>Failed to load</span>
           </div>
         )}
@@ -210,7 +218,7 @@ const Image: React.FC<ImageProps> = ({
           <div className="image-preview-content">
             <img src={src} alt={alt} />
             <HugeiconsIcon
-              icon={X}
+              icon={Cancel01Icon}
               data-icon="x"
               className="image-preview-close"
               size={24}

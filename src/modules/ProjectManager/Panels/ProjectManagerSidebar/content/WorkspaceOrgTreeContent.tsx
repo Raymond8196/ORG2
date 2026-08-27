@@ -6,10 +6,10 @@
  *
  * Extracted from OrgSidebarTreeContent.tsx to reduce file size.
  */
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -58,7 +58,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               type: "file",
               icon: (
                 <HugeiconsIcon
-                  icon={ListChecks}
+                  icon={ListChecksIcon}
                   data-icon="list-checks"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
@@ -76,7 +76,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               type: "file",
               icon: (
                 <HugeiconsIcon
-                  icon={Box}
+                  icon={BoxIcon}
                   data-icon="box"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
@@ -94,7 +94,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               type: "file",
               icon: (
                 <HugeiconsIcon
-                  icon={Layers}
+                  icon={Layers01Icon}
                   data-icon="layers"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}
@@ -113,7 +113,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               type: "file",
               icon: (
                 <HugeiconsIcon
-                  icon={MoreHorizontal}
+                  icon={MoreHorizontalIcon}
                   data-icon="ellipsis"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}

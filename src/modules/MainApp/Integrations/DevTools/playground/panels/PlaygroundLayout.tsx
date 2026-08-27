@@ -1,6 +1,6 @@
-import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
-import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
-import RotateCcw from "@hugeicons/core-free-icons/RotateLeft01Icon";
+import ColorPickerIcon from "@hugeicons/core-free-icons/ColorPickerIcon";
+import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
+import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -103,7 +103,11 @@ export function PlaygroundSidebarHeader({
               size="small"
               htmlType="button"
               icon={
-                <HugeiconsIcon icon={Braces} data-icon="braces" size={12} />
+                <HugeiconsIcon
+                  icon={FirstBracketIcon}
+                  data-icon="braces"
+                  size={12}
+                />
               }
               iconOnly
               title="JSON"
@@ -116,7 +120,11 @@ export function PlaygroundSidebarHeader({
               size="small"
               htmlType="button"
               icon={
-                <HugeiconsIcon icon={Palette} data-icon="palette" size={12} />
+                <HugeiconsIcon
+                  icon={ColorPickerIcon}
+                  data-icon="palette"
+                  size={12}
+                />
               }
               iconOnly
               title="Tokens"
@@ -128,7 +136,7 @@ export function PlaygroundSidebarHeader({
             htmlType="button"
             icon={
               <HugeiconsIcon
-                icon={RotateCcw}
+                icon={RotateLeft01Icon}
                 data-icon="rotate-ccw"
                 size={12}
               />

@@ -13,7 +13,7 @@
  * height, hover, focus ring, chevron) identical to `Select` so settings
  * rows stay consistent.
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
@@ -114,7 +114,7 @@ const SpotlightSelectTrigger = forwardRef<
         )}
         <div className="select-suffix">
           <HugeiconsIcon
-            icon={ChevronDown}
+            icon={ArrowDown01Icon}
             data-icon="chevron-down"
             size={16}
             className={`select-arrow shrink-0 transition-transform ${

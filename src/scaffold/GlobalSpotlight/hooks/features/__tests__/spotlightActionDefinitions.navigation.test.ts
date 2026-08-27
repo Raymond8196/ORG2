@@ -1,4 +1,4 @@
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -15,7 +15,7 @@ describe("Spotlight session search action icons", () => {
       (action) => action.id === "search-all-sessions"
     );
 
-    expect(metadataSearch?.icon).toBe(Search);
+    expect(metadataSearch?.icon).toBe(Search01Icon);
     // Under lucide this asserted `displayName === "DatabaseSearch"`. Hugeicons
     // icons are data, not components, so identity is asserted on the glyph's
     // actual shape: the custom database-search mark is five elements, the last

@@ -3,8 +3,8 @@
  *
  * Renders the My Station / Agent's Station icon segmented toggle.
  */
-import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
-import Laptop from "@hugeicons/core-free-icons/LaptopIcon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
+import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback } from "react";
@@ -91,7 +91,7 @@ const StationModePill: React.FC = () => {
       <IconSwitchButton
         label={mySegment}
         tooltipLabel={t("actions.switchToStation", { station: mySegment })}
-        icon={Laptop}
+        icon={LaptopIcon}
         selected={stationMode === "my-station"}
         onClick={() => handleChange("my-station")}
         testId="station-mode-my-station"
@@ -100,7 +100,7 @@ const StationModePill: React.FC = () => {
       <IconSwitchButton
         label={agentSegment}
         tooltipLabel={t("actions.switchToStation", { station: agentSegment })}
-        icon={Infinity}
+        icon={Infinity01Icon}
         selected={stationMode === "agent-station"}
         onClick={() => handleChange("agent-station")}
         testId="station-mode-agent-station"

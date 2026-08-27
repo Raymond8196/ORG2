@@ -1,5 +1,5 @@
-import AtSign from "@hugeicons/core-free-icons/AtIcon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
+import AtIcon from "@hugeicons/core-free-icons/AtIcon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -33,7 +33,7 @@ const CommentMentionDetail: React.FC<CommentMentionDetailProps> = ({
     <TeamInboxDetailLayout
       title={targetTitle}
       subtitle={t("teamInbox.detail.mentionSubtitle")}
-      icon={AtSign}
+      icon={AtIcon}
       unread={item.readAt === null}
       markReadLabel={t("teamInbox.actions.markRead")}
       markUnreadLabel={t("teamInbox.actions.markUnread")}
@@ -44,7 +44,7 @@ const CommentMentionDetail: React.FC<CommentMentionDetailProps> = ({
       )}
       openIcon={
         <HugeiconsIcon
-          icon={MessageSquare}
+          icon={Message01Icon}
           data-icon="message-square"
           size={14}
           aria-hidden

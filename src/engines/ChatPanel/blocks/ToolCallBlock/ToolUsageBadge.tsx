@@ -1,5 +1,5 @@
-import ArrowDownToDot from "@hugeicons/core-free-icons/ArrowDownToDotIcon";
-import ArrowUpFromDot from "@hugeicons/core-free-icons/ArrowUpFromDotIcon";
+import ArrowDownToDotIcon from "@hugeicons/core-free-icons/ArrowDownToDotIcon";
+import ArrowUpFromDotIcon from "@hugeicons/core-free-icons/ArrowUpFromDotIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
@@ -42,7 +42,7 @@ export const UsagePairBadge: React.FC<UsagePairBadgeProps> = ({
       {inputTokens > 0 && (
         <span className="inline-flex items-center gap-0.5">
           <HugeiconsIcon
-            icon={ArrowUpFromDot}
+            icon={ArrowUpFromDotIcon}
             data-icon="arrow-up-from-dot"
             size={11}
             strokeWidth={2}
@@ -56,7 +56,7 @@ export const UsagePairBadge: React.FC<UsagePairBadgeProps> = ({
       {outputTokens > 0 && (
         <span className="inline-flex items-center gap-0.5">
           <HugeiconsIcon
-            icon={ArrowDownToDot}
+            icon={ArrowDownToDotIcon}
             data-icon="arrow-down-to-dot"
             size={11}
             strokeWidth={2}

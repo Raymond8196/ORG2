@@ -1,10 +1,10 @@
-import DraftingCompass from "@hugeicons/core-free-icons/AiGenerativeIcon";
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import AiGenerativeIcon from "@hugeicons/core-free-icons/AiGenerativeIcon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -335,7 +335,7 @@ export function useAgentControlPalette({
         type: "action" as const,
         id: "agent-control",
         label: "ADE Manager",
-        icon: DraftingCompass,
+        icon: AiGenerativeIcon,
         color: "",
       },
     ],
@@ -353,10 +353,10 @@ export function useAgentControlPalette({
   const statusIcon =
     latestActivity?.status === "running" ||
     (!latestActivity && runStatus === "sending")
-      ? Loader2
+      ? Loading03Icon
       : latestActivity?.status === "failed" || runStatus === "error"
-        ? XCircle
-        : CheckCircle2;
+        ? CancelCircleIcon
+        : CheckmarkCircle01Icon;
 
   return {
     activityItems,
@@ -394,9 +394,9 @@ export function useAgentControlPalette({
     showStatusLine: runStatus !== "idle" || Boolean(controlSessionId),
     submitDisabled: !draftText.trim(),
     toolbarActions: {
-      previousIcon: ChevronLeft,
-      nextIcon: ChevronRight,
-      latestIcon: ChevronsRight,
+      previousIcon: ArrowLeft01Icon,
+      nextIcon: ArrowRight01Icon,
+      latestIcon: ArrowRightDoubleIcon,
     },
   };
 }

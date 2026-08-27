@@ -6,10 +6,10 @@
  * the user pin or unpin them. Renders via a React portal so it's never
  * clipped by the parent's overflow.
  */
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Pin from "@hugeicons/core-free-icons/PinIcon";
-import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import PinIcon from "@hugeicons/core-free-icons/PinIcon";
+import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -256,7 +256,7 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
               }}
             >
               <HugeiconsIcon
-                icon={ArrowUp}
+                icon={ArrowUp02Icon}
                 data-icon="arrow-up"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={2}
@@ -269,14 +269,14 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
             >
               {isPinned ? (
                 <HugeiconsIcon
-                  icon={PinOff}
+                  icon={PinOffIcon}
                   data-icon="pin-off"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={Pin}
+                  icon={PinIcon}
                   data-icon="pin"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
@@ -323,7 +323,7 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
         {/* Search header */}
         <div className={DROPDOWN_CLASSES.searchContainer}>
           <HugeiconsIcon
-            icon={Search}
+            icon={Search01Icon}
             data-icon="search"
             size={DROPDOWN_ITEM.iconSize}
             className="shrink-0 text-text-3"

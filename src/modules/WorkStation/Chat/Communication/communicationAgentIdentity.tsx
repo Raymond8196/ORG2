@@ -1,4 +1,4 @@
-import Bot from "@hugeicons/core-free-icons/BotIcon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useMemo } from "react";
@@ -102,7 +102,7 @@ export function useCommunicationAgentIdentity(
         ),
         agentIcon: (
           <HugeiconsIcon
-            icon={Bot}
+            icon={BotIcon}
             data-icon="bot"
             size={COMMUNICATION_AVATAR_ICON_SIZE}
             className="text-primary-6"

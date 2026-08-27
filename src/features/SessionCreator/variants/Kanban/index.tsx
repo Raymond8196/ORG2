@@ -1,4 +1,4 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,7 +33,12 @@ const SessionCreatorKanban: React.FC<SessionCreatorKanbanProps> = ({
       shape="round"
       iconOnly
       icon={
-        <HugeiconsIcon icon={X} data-icon="x" size={14} strokeWidth={1.75} />
+        <HugeiconsIcon
+          icon={Cancel01Icon}
+          data-icon="x"
+          size={14}
+          strokeWidth={1.75}
+        />
       }
       title={t("tooltips.hidePanel")}
       aria-label={t("tooltips.hidePanel")}

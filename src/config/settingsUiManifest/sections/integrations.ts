@@ -1,6 +1,6 @@
-import AppWindow from "@hugeicons/core-free-icons/AppWindowIcon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import UserRoundCog from "@hugeicons/core-free-icons/UserRoundCogIcon";
+import AppWindowIcon from "@hugeicons/core-free-icons/AppWindowIcon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
+import UserRoundCogIcon from "@hugeicons/core-free-icons/UserRoundCogIcon";
 
 import type { SettingsKey } from "@src/config/settingsSchema";
 import { AGENT_BROWSER_SETTING_KEYS } from "@src/config/settingsSchema/registry/agentBrowser";
@@ -26,7 +26,7 @@ export const INTEGRATIONS_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     tab: "integrations",
     labelKey: "modelsTabs.myRoles",
     headingTitleKey: "modelsTabs.myRoles",
-    icon: UserRoundCog,
+    icon: UserRoundCogIcon,
     coveredKeys: [...MY_ROLE_SETTING_KEYS],
   },
   {
@@ -34,7 +34,7 @@ export const INTEGRATIONS_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     tab: "integrations",
     labelKey: "categories.housekeeper",
     headingTitleKey: "categories.housekeeper",
-    icon: Sparkles,
+    icon: SparklesIcon,
     coveredKeys: [
       "housekeeper.enabled",
       "housekeeper.accountId",
@@ -51,7 +51,7 @@ export const INTEGRATIONS_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     tab: "integrations",
     labelKey: "builtInTools.tabDesktopControl",
     headingTitleKey: "builtInTools.tabDesktopControl",
-    icon: AppWindow,
+    icon: AppWindowIcon,
     coveredKeys: [
       AGENT_BROWSER_SETTING_KEYS.PROVIDER,
       AGENT_BROWSER_SETTING_KEYS.AGENT_BROWSER_CLI_PATH,

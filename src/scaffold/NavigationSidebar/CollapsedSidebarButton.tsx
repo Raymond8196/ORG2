@@ -1,4 +1,4 @@
-import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
+import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
@@ -56,7 +56,7 @@ const CollapsedSidebarButtonComponent: React.FC = () => {
             aria-label={label}
             icon={
               <HugeiconsIcon
-                icon={PanelLeft}
+                icon={PanelLeftIcon}
                 data-icon="panel-left"
                 size={16}
                 strokeWidth={2}

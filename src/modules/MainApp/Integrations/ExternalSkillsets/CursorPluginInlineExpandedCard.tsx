@@ -1,8 +1,8 @@
-import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import React, { useCallback, useEffect, useState } from "react";
@@ -168,7 +168,7 @@ const CursorPluginInlineExpandedCard: React.FC<
           className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-left hover:bg-fill-1"
         >
           <HugeiconsIcon
-            icon={Layers}
+            icon={Layers01Icon}
             data-icon="layers"
             size={12}
             className="shrink-0 text-text-3"
@@ -179,7 +179,7 @@ const CursorPluginInlineExpandedCard: React.FC<
                 {skill.name}
               </span>
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={11}
                 className="shrink-0 text-text-3"
@@ -217,7 +217,7 @@ const CursorPluginInlineExpandedCard: React.FC<
           className="flex min-w-0 items-center gap-2 overflow-hidden rounded-md px-3 py-2 text-left hover:bg-fill-1"
         >
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={12}
             className="shrink-0 text-text-3"
@@ -228,7 +228,7 @@ const CursorPluginInlineExpandedCard: React.FC<
                 {hook.label}
               </span>
               <HugeiconsIcon
-                icon={SquareArrowOutUpRight}
+                icon={SquareArrowUpRightIcon}
                 data-icon="square-arrow-out-up-right"
                 size={11}
                 className="shrink-0 text-text-3"
@@ -271,10 +271,10 @@ const CursorPluginInlineExpandedCard: React.FC<
               className="inline-flex items-center gap-1.5 rounded border border-border-2 px-3 py-1.5 text-[12px] text-text-2 transition-colors hover:bg-fill-3 hover:text-text-1"
             >
               {mcpCopied ? (
-                <HugeiconsIcon icon={Check} data-icon="check" size={12} />
+                <HugeiconsIcon icon={Tick01Icon} data-icon="check" size={12} />
               ) : (
                 <HugeiconsIcon
-                  icon={Clipboard}
+                  icon={ClipboardIcon}
                   data-icon="clipboard"
                   size={12}
                 />

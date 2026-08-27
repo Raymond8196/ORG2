@@ -11,7 +11,7 @@
  * View mode (kanban / diary) is driven by the `?view=` URL search param,
  * toggled from the Kanban Workstation header tabs.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, {
@@ -405,7 +405,7 @@ const Kanban: React.FC<TaskKanbanProps> = ({
                   className="flex h-8 w-8 shrink-0 cursor-pointer items-center justify-center rounded-full bg-bg-1 text-text-2 shadow-md ring-1 ring-border-2 transition-colors hover:text-text-1"
                 >
                   <HugeiconsIcon
-                    icon={Plus}
+                    icon={Add01Icon}
                     data-icon="plus"
                     size={16}
                     strokeWidth={1.75}

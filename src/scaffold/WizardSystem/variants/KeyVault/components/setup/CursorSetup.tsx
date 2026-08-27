@@ -6,9 +6,9 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
+import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -63,16 +63,16 @@ const CursorSetup: React.FC<CursorSetupProps> = ({
 
   const cursorSetupOptions: SelectionGridOption<CursorMethod>[] = useMemo(
     () => [
-      { key: "guided", label: t("keyVault.guidedSetup"), icon: Globe },
+      { key: "guided", label: t("keyVault.guidedSetup"), icon: InternetIcon },
       {
         key: "autodetect",
         label: t("keyVault.autodetect"),
-        icon: ScanSearch,
+        icon: SearchAreaIcon,
       },
       {
         key: "enter_token",
         label: t("keyVault.enterToken"),
-        icon: Keyboard,
+        icon: KeyboardIcon,
       },
     ],
     [t]

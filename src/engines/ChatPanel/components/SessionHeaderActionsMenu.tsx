@@ -1,16 +1,16 @@
-import Clipboard from "@hugeicons/core-free-icons/ClipboardIcon";
-import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import FolderOutput from "@hugeicons/core-free-icons/FolderOutputIcon";
-import Link from "@hugeicons/core-free-icons/Link01Icon";
-import Link2 from "@hugeicons/core-free-icons/Link02Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import PanelLeft from "@hugeicons/core-free-icons/PanelLeftIcon";
-import PanelRight from "@hugeicons/core-free-icons/PanelRightIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import Share2 from "@hugeicons/core-free-icons/Share02Icon";
+import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
+import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import FolderOutputIcon from "@hugeicons/core-free-icons/FolderOutputIcon";
+import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
+import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
+import PanelRightIcon from "@hugeicons/core-free-icons/PanelRightIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import Share02Icon from "@hugeicons/core-free-icons/Share02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
@@ -168,7 +168,7 @@ export const SessionHeaderActionsMenu: React.FC<
         data-testid={triggerTestId}
         icon={
           <HugeiconsIcon
-            icon={MoreHorizontal}
+            icon={MoreHorizontalIcon}
             data-icon="ellipsis"
             size={HEADER_ICON_SIZE}
             strokeWidth={2}
@@ -195,7 +195,7 @@ export const SessionHeaderActionsMenu: React.FC<
                 onClick={handleOpenSearch}
               >
                 <HugeiconsIcon
-                  icon={Search}
+                  icon={Search01Icon}
                   data-icon="search"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
@@ -210,7 +210,7 @@ export const SessionHeaderActionsMenu: React.FC<
               disabled={!currentSessionId}
             >
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
@@ -232,14 +232,14 @@ export const SessionHeaderActionsMenu: React.FC<
             >
               {moveToWorkstation ? (
                 <HugeiconsIcon
-                  icon={PanelLeft}
+                  icon={PanelLeftIcon}
                   data-icon="panel-left"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={PanelRight}
+                  icon={PanelRightIcon}
                   data-icon="panel-right"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
@@ -264,7 +264,7 @@ export const SessionHeaderActionsMenu: React.FC<
                   disabled={eventsLength === 0}
                 >
                   <HugeiconsIcon
-                    icon={Clipboard}
+                    icon={ClipboardIcon}
                     data-icon="clipboard"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
@@ -285,7 +285,7 @@ export const SessionHeaderActionsMenu: React.FC<
                   data-testid="view-raw-session-transcript"
                 >
                   <HugeiconsIcon
-                    icon={Braces}
+                    icon={FirstBracketIcon}
                     data-icon="braces"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
@@ -306,7 +306,7 @@ export const SessionHeaderActionsMenu: React.FC<
               data-testid="session-track-as-project-button"
             >
               <HugeiconsIcon
-                icon={FolderKanban}
+                icon={FolderKanbanIcon}
                 data-icon="folder-kanban"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
@@ -323,7 +323,7 @@ export const SessionHeaderActionsMenu: React.FC<
               data-testid="session-link-work-item-button"
             >
               <HugeiconsIcon
-                icon={Link2}
+                icon={Link02Icon}
                 data-icon="link-2"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
@@ -337,7 +337,7 @@ export const SessionHeaderActionsMenu: React.FC<
               data-testid="session-notification-mute-row"
             >
               <HugeiconsIcon
-                icon={BellOff}
+                icon={NotificationOff01Icon}
                 data-icon="bell-off"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
@@ -365,7 +365,7 @@ export const SessionHeaderActionsMenu: React.FC<
                 data-testid="cloud-session-share-settings-button"
               >
                 <HugeiconsIcon
-                  icon={Share2}
+                  icon={Share02Icon}
                   data-icon="share-2"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
@@ -383,7 +383,7 @@ export const SessionHeaderActionsMenu: React.FC<
                 data-testid="session-copy-url-button"
               >
                 <HugeiconsIcon
-                  icon={Link}
+                  icon={Link01Icon}
                   data-icon="link"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
@@ -400,7 +400,7 @@ export const SessionHeaderActionsMenu: React.FC<
                   disabled={!activeSessionExists}
                 >
                   <HugeiconsIcon
-                    icon={FolderOutput}
+                    icon={FolderOutputIcon}
                     data-icon="folder-output"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}

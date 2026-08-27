@@ -7,9 +7,9 @@
  *  - `memory`    — embedded {@link WorkspaceMemoryBrowser}
  *  - `evolution` — empty placeholder, agent-evolution surface lands here
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -258,7 +258,7 @@ export const RulesMemoryEvolutionTable: React.FC<
               variant="secondary"
               size="small"
               icon={
-                <HugeiconsIcon icon={Pencil} data-icon="pencil" size={14} />
+                <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={14} />
               }
               iconOnly
               onClick={() => openRuleInEditor(rule)}
@@ -271,7 +271,11 @@ export const RulesMemoryEvolutionTable: React.FC<
                 appearance="outline"
                 size="small"
                 icon={
-                  <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />
+                  <HugeiconsIcon
+                    icon={Delete02Icon}
+                    data-icon="trash-2"
+                    size={14}
+                  />
                 }
                 iconOnly
                 onClick={() => onDeleteMarkdownRule(rule)}
@@ -306,7 +310,7 @@ export const RulesMemoryEvolutionTable: React.FC<
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+      icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
       onClick={onAdd}
     >
       {t("addOptions.addRule")}

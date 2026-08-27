@@ -1,4 +1,4 @@
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -377,7 +377,7 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
                 size="small"
                 icon={
                   <HugeiconsIcon
-                    icon={ChevronsUpDown}
+                    icon={UnfoldMoreIcon}
                     data-icon="chevrons-up-down"
                     size={14}
                   />

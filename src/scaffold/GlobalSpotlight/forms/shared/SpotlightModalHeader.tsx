@@ -3,7 +3,7 @@
  *
  * Enhanced terminal-style modal header with status indicators
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -98,7 +98,7 @@ const SpotlightModalHeader: React.FC<SpotlightModalHeaderProps> = ({
           className="flex h-8 w-8 items-center justify-center rounded-lg border border-transparent text-text-2 hover:border-red-500/20 hover:bg-red-500/10 hover:text-red-500"
           title={t("close")}
         >
-          <HugeiconsIcon icon={X} data-icon="x" size={18} />
+          <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={18} />
         </button>
       </div>
     </div>

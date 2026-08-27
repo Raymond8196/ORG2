@@ -1,7 +1,7 @@
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Chromium from "@hugeicons/core-free-icons/InternetIcon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
@@ -295,7 +295,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     data-testid="turn-metadata-commit"
                   >
                     <HugeiconsIcon
-                      icon={GitCommitHorizontal}
+                      icon={GitCommitHorizontalIcon}
                       data-icon="git-commit-horizontal"
                       {...ARTIFACT_ICON_PROPS}
                     />
@@ -321,7 +321,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                     data-testid="turn-metadata-pr"
                   >
                     <HugeiconsIcon
-                      icon={GitPullRequest}
+                      icon={GitPullRequestIcon}
                       data-icon="git-pull-request"
                       {...ARTIFACT_ICON_PROPS}
                     />
@@ -329,7 +329,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                       {artifactLabel(artifact)}
                     </span>
                     <HugeiconsIcon
-                      icon={Chromium}
+                      icon={InternetIcon}
                       data-icon="chrome"
                       size={14}
                       strokeWidth={1.75}
@@ -392,7 +392,7 @@ const TurnMetadataFooter: React.FC<TurnMetadataFooterProps> = memo(
                   aria-expanded={expanded}
                 >
                   <HugeiconsIcon
-                    icon={MoreHorizontal}
+                    icon={MoreHorizontalIcon}
                     data-icon="ellipsis"
                     size={16}
                     className="shrink-0"

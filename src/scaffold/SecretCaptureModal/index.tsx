@@ -23,9 +23,9 @@
  *     Rust broker is slow to acknowledge, the plaintext leaves React state
  *     the moment the IPC promise rejects/resolves.
  */
-import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
+import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import SecurityCheckIcon from "@hugeicons/core-free-icons/SecurityCheckIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type FC,
@@ -66,7 +66,7 @@ function kindIcon(kind: SecretKind) {
     case "api_key":
       return (
         <HugeiconsIcon
-          icon={KeyRound}
+          icon={Key02Icon}
           data-icon="key-round"
           size={16}
           aria-hidden
@@ -75,7 +75,7 @@ function kindIcon(kind: SecretKind) {
     case "oauth_token":
       return (
         <HugeiconsIcon
-          icon={ShieldCheck}
+          icon={SecurityCheckIcon}
           data-icon="shield-check"
           size={16}
           aria-hidden
@@ -85,7 +85,7 @@ function kindIcon(kind: SecretKind) {
     case "other":
     default:
       return (
-        <HugeiconsIcon icon={Lock} data-icon="lock" size={16} aria-hidden />
+        <HugeiconsIcon icon={LockIcon} data-icon="lock" size={16} aria-hidden />
       );
   }
 }
@@ -291,7 +291,7 @@ export const SecretCaptureModal: FC = () => {
       <div className="flex flex-col gap-4">
         <div className="bg-warn-1/10 flex items-start gap-2 rounded-md px-3 py-2 text-xs text-text-2">
           <HugeiconsIcon
-            icon={ShieldCheck}
+            icon={SecurityCheckIcon}
             data-icon="shield-check"
             size={14}
             className="text-warn-2 mt-[2px] shrink-0"

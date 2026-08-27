@@ -4,11 +4,11 @@
  * CI status for a PR's head commit: modern check-runs + legacy commit statuses
  * from `github_get_checks`, grouped by outcome with a rolled-up summary line.
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleSlash from "@hugeicons/core-free-icons/CircleSlashIcon";
-import Loader from "@hugeicons/core-free-icons/Loading01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
+import Loading01Icon from "@hugeicons/core-free-icons/Loading01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -28,7 +28,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
     case "success":
       return (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           size={15}
           strokeWidth={1.9}
@@ -38,7 +38,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
     case "failure":
       return (
         <HugeiconsIcon
-          icon={XCircle}
+          icon={CancelCircleIcon}
           data-icon="xcircle"
           size={15}
           strokeWidth={1.9}
@@ -48,7 +48,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
     case "pending":
       return (
         <HugeiconsIcon
-          icon={Loader}
+          icon={Loading01Icon}
           data-icon="loader"
           size={15}
           strokeWidth={1.9}
@@ -58,7 +58,7 @@ function StateIcon({ state }: { state: CiCheckState }): React.ReactNode {
     default:
       return (
         <HugeiconsIcon
-          icon={CircleSlash}
+          icon={CircleSlashIcon}
           data-icon="circle-slash"
           size={15}
           strokeWidth={1.9}
@@ -111,7 +111,7 @@ function CheckRow({
           title={t("git.pr.details", "Details")}
         >
           <HugeiconsIcon
-            icon={SquareArrowOutUpRight}
+            icon={SquareArrowUpRightIcon}
             data-icon="square-arrow-out-up-right"
             size={13}
             strokeWidth={1.9}

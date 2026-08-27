@@ -11,7 +11,7 @@
  * update }` shape, and both serialize the disabled arrays at the same
  * top-level path inside the legacy blob.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
@@ -302,7 +302,7 @@ const AgentMcpSection: React.FC<AgentMcpSectionProps> = ({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+      icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
       onClick={handleAddServer}
       data-testid="agent-orgs-add-mcp-button"
     >

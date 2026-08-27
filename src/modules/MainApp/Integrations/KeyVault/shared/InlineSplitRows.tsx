@@ -1,4 +1,4 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import cn from "classnames";
 import React from "react";
@@ -125,7 +125,7 @@ export function InlineSplitAddKeyRow({
       className="flex h-9 min-h-9 w-full cursor-pointer items-center gap-1.5 rounded-md px-3 text-xs text-text-2 hover:bg-fill-1"
     >
       <span className="flex h-[14px] w-[14px] shrink-0 items-center justify-center text-text-3">
-        <HugeiconsIcon icon={Plus} data-icon="plus" size={14} />
+        <HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />
       </span>
       <span className="truncate">{label}</span>
     </button>

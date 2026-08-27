@@ -1,13 +1,13 @@
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import Fingerprint from "@hugeicons/core-free-icons/FingerPrintIcon";
-import Save from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import GitCommitVertical from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
-import GitFork from "@hugeicons/core-free-icons/GitForkIcon";
-import Grip from "@hugeicons/core-free-icons/GripIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
-import Timer from "@hugeicons/core-free-icons/Timer01Icon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
+import FingerPrintIcon from "@hugeicons/core-free-icons/FingerPrintIcon";
+import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
+import GitCommitVerticalIcon from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
+import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
+import GripIcon from "@hugeicons/core-free-icons/GripIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
+import Timer01Icon from "@hugeicons/core-free-icons/Timer01Icon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
@@ -507,7 +507,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={Grip}
+                      icon={GripIcon}
                       data-icon="grip"
                       size={13}
                       strokeWidth={1.75}
@@ -523,7 +523,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={GitBranch}
+                icon={WorkflowCircle05Icon}
                 data-icon="git-branch"
                 size={13}
                 strokeWidth={1.75}
@@ -585,7 +585,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={GitFork}
+                icon={GitForkIcon}
                 data-icon="git-fork"
                 size={13}
                 strokeWidth={1.75}
@@ -606,14 +606,14 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
             icon={
               underlyingSessionId ? (
                 <HugeiconsIcon
-                  icon={Fingerprint}
+                  icon={FingerPrintIcon}
                   data-icon="fingerprint"
                   size={13}
                   strokeWidth={1.75}
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={Save}
+                  icon={FloppyDiskIcon}
                   data-icon="save"
                   size={13}
                   strokeWidth={1.75}
@@ -639,7 +639,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
                   <span>{formatCompactSessionId(underlyingSessionId)}</span>
                   {copiedForSessionId === sessionId && (
                     <HugeiconsIcon
-                      icon={Check}
+                      icon={Tick01Icon}
                       data-icon="check"
                       size={12}
                       strokeWidth={2}
@@ -673,7 +673,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
                   onClick={() => handleRevealPath(storageRowPath)}
                 >
                   <HugeiconsIcon
-                    icon={Save}
+                    icon={FloppyDiskIcon}
                     data-icon="save"
                     size={12}
                     strokeWidth={1.75}
@@ -687,7 +687,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Diff}
+                icon={DiffIcon}
                 data-icon="diff"
                 size={13}
                 strokeWidth={1.75}
@@ -702,7 +702,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Timer}
+                icon={Timer01Icon}
                 data-icon="timer"
                 size={13}
                 strokeWidth={1.75}
@@ -740,7 +740,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={Clock}
+              icon={Clock01Icon}
               data-icon="clock"
               size={13}
               strokeWidth={1.75}
@@ -756,7 +756,7 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
         <HoverCardRow
           icon={
             <HugeiconsIcon
-              icon={GitCommitVertical}
+              icon={GitCommitVerticalIcon}
               data-icon="git-commit-vertical"
               size={13}
               strokeWidth={1.75}

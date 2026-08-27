@@ -8,8 +8,8 @@
  *
  * Repo-agnostic: all state is owned by the caller (`useSourceControlSidebarModule`).
  */
-import Ellipsis from "@hugeicons/core-free-icons/EllipsisIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -192,7 +192,7 @@ const SourceControlFilterHeader: React.FC<SourceControlFilterHeaderProps> =
                     className={DROPDOWN_CLASSES.menuActionItem}
                   >
                     <HugeiconsIcon
-                      icon={RefreshCw}
+                      icon={Refresh04Icon}
                       data-icon="refresh-cw"
                       size={HEADER_ICON_SIZE.sm}
                       className={refreshSpinClass}
@@ -222,7 +222,7 @@ const SourceControlFilterHeader: React.FC<SourceControlFilterHeaderProps> =
                   }
                   icon={
                     <HugeiconsIcon
-                      icon={Ellipsis}
+                      icon={EllipsisIcon}
                       data-icon="ellipsis"
                       size={HEADER_ICON_SIZE.sm}
                       strokeWidth={1.75}

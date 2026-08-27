@@ -11,14 +11,14 @@
  *
  * Shared between ChatView and PlaygroundChatPanel.
  */
-import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import CircleHelp from "@hugeicons/core-free-icons/HelpCircleIcon";
-import MessageCircleMore from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
-import BellRing from "@hugeicons/core-free-icons/NotificationBubbleIcon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import ClipboardListIcon from "@hugeicons/core-free-icons/ClipboardListIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
+import MessageCircleMoreIcon from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
+import NotificationBubbleIcon from "@hugeicons/core-free-icons/NotificationBubbleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 
@@ -101,7 +101,7 @@ export function createFileInlineSection({
 
   return {
     key: "files",
-    icon: React.createElement(HugeiconsIcon, { icon: Diff, size: 13 }),
+    icon: React.createElement(HugeiconsIcon, { icon: DiffIcon, size: 13 }),
     count: fileChangeStats.count,
     content: React.createElement(
       "span",
@@ -297,7 +297,7 @@ export function useComposerSections({
       sections.push({
         key: "question",
         icon: React.createElement(HugeiconsIcon, {
-          icon: CircleHelp,
+          icon: HelpCircleIcon,
           size: 13,
         }),
         count: 0,
@@ -310,7 +310,10 @@ export function useComposerSections({
     if (hasPermission && permissionCollapsed) {
       sections.push({
         key: "permission",
-        icon: React.createElement(HugeiconsIcon, { icon: BellRing, size: 13 }),
+        icon: React.createElement(HugeiconsIcon, {
+          icon: NotificationBubbleIcon,
+          size: 13,
+        }),
         count: 0,
         label: "Permission",
         active: false,
@@ -322,7 +325,7 @@ export function useComposerSections({
       sections.push({
         key: "modeswitch",
         icon: React.createElement(HugeiconsIcon, {
-          icon: ArrowLeftRight,
+          icon: ArrowLeftRightIcon,
           size: 13,
         }),
         count: 0,
@@ -336,7 +339,7 @@ export function useComposerSections({
       sections.push({
         key: "plan",
         icon: React.createElement(HugeiconsIcon, {
-          icon: ClipboardList,
+          icon: ClipboardListIcon,
           size: 13,
         }),
         count: 0,
@@ -353,7 +356,7 @@ export function useComposerSections({
       sections.push({
         key: "queue",
         icon: React.createElement(HugeiconsIcon, {
-          icon: MessageCircleMore,
+          icon: MessageCircleMoreIcon,
           size: 13,
         }),
         count: queueCount,
@@ -365,7 +368,10 @@ export function useComposerSections({
     if (hasProcess) {
       sections.push({
         key: "process",
-        icon: React.createElement(HugeiconsIcon, { icon: Terminal, size: 13 }),
+        icon: React.createElement(HugeiconsIcon, {
+          icon: ComputerTerminal01Icon,
+          size: 13,
+        }),
         count: processVisibleCount,
         active: processExpanded,
         onExpand: toggleProcess,
@@ -386,7 +392,7 @@ export function useComposerSections({
       sections.push({
         key: "git-artifacts",
         icon: React.createElement(HugeiconsIcon, {
-          icon: GitCommitHorizontal,
+          icon: GitCommitHorizontalIcon,
           size: 13,
         }),
         count: gitArtifactCount,

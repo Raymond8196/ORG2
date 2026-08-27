@@ -1,6 +1,6 @@
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import CheckSquare from "@hugeicons/core-free-icons/CheckmarkSquare01Icon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import CheckmarkSquare01Icon from "@hugeicons/core-free-icons/CheckmarkSquare01Icon";
+import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -126,7 +126,7 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
                 t("teamInbox.handoff.chooseDestination")}
             </span>
             <HugeiconsIcon
-              icon={ArrowRight}
+              icon={ArrowRight02Icon}
               data-icon="arrow-right"
               size={13}
               aria-hidden
@@ -138,7 +138,7 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
               <>
                 <span aria-hidden>·</span>
                 <HugeiconsIcon
-                  icon={FolderKanban}
+                  icon={FolderKanbanIcon}
                   data-icon="folder-kanban"
                   size={13}
                   aria-hidden
@@ -164,7 +164,7 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
               {draft.todoCount > 0 ? (
                 <span className="inline-flex items-center gap-1">
                   <HugeiconsIcon
-                    icon={CheckSquare}
+                    icon={CheckmarkSquare01Icon}
                     data-icon="check-square"
                     size={12}
                     aria-hidden

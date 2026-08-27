@@ -8,7 +8,7 @@
  * forced-worktree interception, and the launch handler that fans out instead
  * of launching one session.
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useSetAtom } from "jotai";
@@ -218,7 +218,7 @@ export function useChatPanelMultiRunner({
               shape="round"
               icon={
                 <HugeiconsIcon
-                  icon={ChevronLeft}
+                  icon={ArrowLeft01Icon}
                   data-icon="chevron-left"
                   size={16}
                   strokeWidth={1.9}

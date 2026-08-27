@@ -1,10 +1,10 @@
-import ChevronsRight from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import LayoutDashboard from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import List from "@hugeicons/core-free-icons/ListIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import ListIcon from "@hugeicons/core-free-icons/ListIcon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
@@ -251,7 +251,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
               />
             ) : (
               <HugeiconsIcon
-                icon={Box}
+                icon={BoxIcon}
                 data-icon="box"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
@@ -290,7 +290,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
           data-testid="chat-panel-project-properties-toggle"
           icon={
             <HugeiconsIcon
-              icon={Info}
+              icon={InformationCircleIcon}
               data-icon="info"
               size={HEADER_ICON_SIZE.sm}
             />
@@ -628,7 +628,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
                 data-testid="chat-panel-project-properties-collapse"
               >
                 <HugeiconsIcon
-                  icon={ChevronsRight}
+                  icon={ArrowRightDoubleIcon}
                   data-icon="chevrons-right"
                   size={14}
                   strokeWidth={1.75}
@@ -680,21 +680,21 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
         icon:
           tab === "overview" ? (
             <HugeiconsIcon
-              icon={LayoutDashboard}
+              icon={DashboardSquare01Icon}
               data-icon="layout-dashboard"
               size={15}
               strokeWidth={1.8}
             />
           ) : tab === "list" ? (
             <HugeiconsIcon
-              icon={List}
+              icon={ListIcon}
               data-icon="list"
               size={15}
               strokeWidth={1.8}
             />
           ) : (
             <HugeiconsIcon
-              icon={Columns3}
+              icon={LayoutThreeColumnIcon}
               data-icon="columns-3"
               size={15}
               strokeWidth={1.8}
@@ -766,7 +766,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
                 aria-pressed={Boolean(searchQuery)}
                 icon={
                   <HugeiconsIcon
-                    icon={Search}
+                    icon={Search01Icon}
                     data-icon="search"
                     size={HEADER_ICON_SIZE.sm}
                   />

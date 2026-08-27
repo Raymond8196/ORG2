@@ -1,4 +1,4 @@
-import FileText from "@hugeicons/core-free-icons/File02Icon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -61,7 +61,7 @@ function buildTreeNode<TFile extends DiffFileSectionData>(
       : {
           icon: (
             <HugeiconsIcon
-              icon={FileText}
+              icon={File02Icon}
               data-icon="file-text"
               size={14}
               className="text-text-3"

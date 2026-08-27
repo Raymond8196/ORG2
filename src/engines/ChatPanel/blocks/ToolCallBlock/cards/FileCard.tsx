@@ -1,4 +1,4 @@
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -61,7 +61,7 @@ const FileCard: React.FC<FileCardProps> = ({ card }) => {
         title={t("cards.openFile")}
       >
         <HugeiconsIcon
-          icon={SquareArrowOutUpRight}
+          icon={SquareArrowUpRightIcon}
           data-icon="square-arrow-out-up-right"
           size={13}
         />

@@ -4,15 +4,15 @@
  * Centralized configuration for the unified context menu.
  * Includes icon definitions, menu items, and keyboard shortcuts.
  */
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import File from "@hugeicons/core-free-icons/File01Icon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import File01Icon from "@hugeicons/core-free-icons/File01Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 // ============================================
@@ -56,16 +56,16 @@ export interface RecentFile {
 // ============================================
 
 export const ICON_CONFIG = {
-  recent: Clock,
-  files: File,
-  folders: Folder,
-  sessions: History,
-  projects: ListChecks,
-  arrow: ArrowRight,
-  arrowBack: ArrowLeft,
-  search: Search,
-  loading: Loader2,
-  empty: File,
+  recent: Clock01Icon,
+  files: File01Icon,
+  folders: FolderClosedIcon,
+  sessions: WorkHistoryIcon,
+  projects: ListChecksIcon,
+  arrow: ArrowRight02Icon,
+  arrowBack: ArrowLeft02Icon,
+  search: Search01Icon,
+  loading: Loading03Icon,
+  empty: File01Icon,
 } as const;
 
 // ============================================

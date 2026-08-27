@@ -7,7 +7,7 @@
  * When an editor slot is present, the editor uses the full-width row above
  * the shared toolbar controls.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -92,7 +92,7 @@ const ComposerBar: React.FC<ComposerBarProps> = memo(
           data-testid="composer-skills-tools-button"
         >
           <HugeiconsIcon
-            icon={Plus}
+            icon={Add01Icon}
             data-icon="plus"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={1.75}

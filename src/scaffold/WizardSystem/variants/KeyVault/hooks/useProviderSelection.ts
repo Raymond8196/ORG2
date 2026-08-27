@@ -7,11 +7,11 @@
  *
  * Extracted from ApiSetup.tsx to keep it under 600 lines.
  */
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Key from "@hugeicons/core-free-icons/Key01Icon";
-import Keyboard from "@hugeicons/core-free-icons/KeyboardIcon";
-import LogIn from "@hugeicons/core-free-icons/Login01Icon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
+import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
+import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
+import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
+import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -213,19 +213,27 @@ export function useProviderSelection({
     const agentType = data.agent_type as string;
     if (agentType === CLI_AGENT.CURSOR) {
       return [
-        { key: "guided", label: t("keyVault.guidedSetup"), icon: Globe },
+        { key: "guided", label: t("keyVault.guidedSetup"), icon: InternetIcon },
         {
           key: "autodetect",
           label: t("keyVault.autodetect"),
-          icon: ScanSearch,
+          icon: SearchAreaIcon,
         },
-        { key: "enter_token", label: t("keyVault.enterToken"), icon: Keyboard },
+        {
+          key: "enter_token",
+          label: t("keyVault.enterToken"),
+          icon: KeyboardIcon,
+        },
       ];
     }
     if (agentType === CLI_AGENT.COPILOT) {
       return [
-        { key: "has_key", label: t("keyVault.copilotHasKey"), icon: Key },
-        { key: "create", label: t("keyVault.copilotCreateKey"), icon: Globe },
+        { key: "has_key", label: t("keyVault.copilotHasKey"), icon: Key01Icon },
+        {
+          key: "create",
+          label: t("keyVault.copilotCreateKey"),
+          icon: InternetIcon,
+        },
       ];
     }
     if (agentType === CLI_AGENT.KIRO) {
@@ -233,30 +241,34 @@ export function useProviderSelection({
         {
           key: "autodetect",
           label: t("keyVault.autodetect"),
-          icon: ScanSearch,
+          icon: SearchAreaIcon,
         },
-        { key: "signin", label: t("keyVault.signIn"), icon: LogIn },
+        { key: "signin", label: t("keyVault.signIn"), icon: Login01Icon },
       ];
     }
     if (agentType === CLI_AGENT.CLAUDE_CODE) {
       return [
-        { key: "signin", label: t("keyVault.signIn"), icon: LogIn },
+        { key: "signin", label: t("keyVault.signIn"), icon: Login01Icon },
         {
           key: "autodetect",
           label: t("keyVault.autodetect"),
-          icon: ScanSearch,
+          icon: SearchAreaIcon,
         },
       ];
     }
     if (agentType === CLI_AGENT.CODEX) {
       return [
-        { key: "signin", label: t("keyVault.signIn"), icon: LogIn },
+        { key: "signin", label: t("keyVault.signIn"), icon: Login01Icon },
         {
           key: "autodetect",
           label: t("keyVault.autodetect"),
-          icon: ScanSearch,
+          icon: SearchAreaIcon,
         },
-        { key: "enter_token", label: t("keyVault.enterToken"), icon: Keyboard },
+        {
+          key: "enter_token",
+          label: t("keyVault.enterToken"),
+          icon: KeyboardIcon,
+        },
       ];
     }
     return [];

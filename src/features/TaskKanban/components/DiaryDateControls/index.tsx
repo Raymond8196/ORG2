@@ -1,5 +1,5 @@
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -106,7 +106,7 @@ const DiaryDateControls: React.FC<DiaryDateControlsProps> = ({
         iconOnly
         icon={
           <HugeiconsIcon
-            icon={ChevronLeft}
+            icon={ArrowLeft01Icon}
             data-icon="chevron-left"
             size={14}
           />
@@ -133,7 +133,7 @@ const DiaryDateControls: React.FC<DiaryDateControlsProps> = ({
         iconOnly
         icon={
           <HugeiconsIcon
-            icon={ChevronRight}
+            icon={ArrowRight01Icon}
             data-icon="chevron-right"
             size={14}
           />

@@ -4,10 +4,10 @@
  * Toolbar with view scope toggle and navigation controls.
  * Layout: [Scale Toggle] ... [Zoom] < [Date Range] > [Today]
  */
-import ChevronLeft from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ZoomIn from "@hugeicons/core-free-icons/ZoomInAreaIcon";
-import ZoomOut from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
+import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ZoomInAreaIcon from "@hugeicons/core-free-icons/ZoomInAreaIcon";
+import ZoomOutAreaIcon from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -150,7 +150,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
                 <HugeiconsIcon
-                  icon={ZoomOut}
+                  icon={ZoomOutAreaIcon}
                   data-icon="zoom-out"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -172,7 +172,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
               {...PANEL_HEADER_TOKENS.actionButton}
               icon={
                 <HugeiconsIcon
-                  icon={ZoomIn}
+                  icon={ZoomInAreaIcon}
                   data-icon="zoom-in"
                   size={PANEL_HEADER_TOKENS.buttonIconSize}
                   strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -191,7 +191,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={ChevronLeft}
+              icon={ArrowLeft01Icon}
               data-icon="chevron-left"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}
@@ -213,7 +213,7 @@ const GanttToolbar: React.FC<GanttToolbarProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={ChevronRight}
+              icon={ArrowRight01Icon}
               data-icon="chevron-right"
               size={PANEL_HEADER_TOKENS.buttonIconSize}
               strokeWidth={PANEL_HEADER_TOKENS.iconStrokeWidth}

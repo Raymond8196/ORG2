@@ -9,10 +9,10 @@
  *   - Sections come from the final provider request payload only.
  *   - Categories with no live data are hidden, no mock/placeholder values.
  */
-import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
@@ -354,7 +354,11 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                     className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors hover:bg-fill-2 hover:text-text-2"
                     aria-label={t("common:actions.close")}
                   >
-                    <HugeiconsIcon icon={X} data-icon="x" size={12} />
+                    <HugeiconsIcon
+                      icon={Cancel01Icon}
+                      data-icon="x"
+                      size={12}
+                    />
                   </button>
                 </div>
 
@@ -434,13 +438,13 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                   <span className="flex h-5 w-5 items-center justify-center rounded text-text-3 transition-colors group-hover:bg-fill-2 group-hover:text-text-2">
                     {manualCompactOpen ? (
                       <HugeiconsIcon
-                        icon={ChevronsDownUp}
+                        icon={ChevronsDownUpIcon}
                         data-icon="chevrons-down-up"
                         size={12}
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={ChevronsUpDown}
+                        icon={UnfoldMoreIcon}
                         data-icon="chevrons-up-down"
                         size={12}
                       />
@@ -469,7 +473,7 @@ const ContextInfoButton: React.FC<ContextInfoButtonProps> = memo(
                       data-testid="context-info-manual-compact-button"
                       icon={
                         <HugeiconsIcon
-                          icon={Archive}
+                          icon={ArchiveIcon}
                           data-icon="archive"
                           size={14}
                         />

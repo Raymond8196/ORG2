@@ -1,5 +1,5 @@
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   Suspense,
@@ -65,7 +65,7 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
     <div className="flex h-full items-center justify-center p-4">
       <div className="flex max-w-sm flex-col items-center gap-3 text-center">
         <HugeiconsIcon
-          icon={Layout}
+          icon={Layout01Icon}
           data-icon="panels-top-left"
           size={24}
           strokeWidth={1.5}
@@ -88,7 +88,7 @@ const NonEmbeddedUrlNotice: React.FC<{ url: string }> = ({ url }) => {
           onClick={() => window.open(url, "_blank", "noopener,noreferrer")}
           icon={
             <HugeiconsIcon
-              icon={SquareArrowOutUpRight}
+              icon={SquareArrowUpRightIcon}
               data-icon="square-arrow-out-up-right"
               size={14}
             />

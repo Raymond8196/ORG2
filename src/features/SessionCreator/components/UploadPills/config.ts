@@ -1,13 +1,13 @@
 /**
  * UploadPills Configuration
  */
-import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import File from "@hugeicons/core-free-icons/File01Icon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import ImageIcon from "@hugeicons/core-free-icons/Image01Icon";
-import Sheet from "@hugeicons/core-free-icons/SheetIcon";
+import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import File01Icon from "@hugeicons/core-free-icons/File01Icon";
+import File02Icon from "@hugeicons/core-free-icons/File02Icon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
+import SheetIcon from "@hugeicons/core-free-icons/SheetIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 
 // ============================================
@@ -35,21 +35,21 @@ export const getFileTypeIcon = (
   const ext = fileName.split(".").pop()?.toLowerCase();
 
   if (fileType === "image" || IMAGE_EXTENSIONS.includes(ext || "")) {
-    return ImageIcon;
+    return Image01Icon;
   }
 
   // Document files
   if (["pdf"].includes(ext || "")) {
-    return FileText; // PDF icon - using FileText as closest match
+    return File02Icon; // PDF icon - using FileText as closest match
   }
   if (["doc", "docx"].includes(ext || "")) {
-    return FileText; // Word document
+    return File02Icon; // Word document
   }
   if (["xls", "xlsx", "numbers"].includes(ext || "")) {
-    return Sheet; // Excel/Spreadsheet
+    return SheetIcon; // Excel/Spreadsheet
   }
   if (["ppt", "pptx"].includes(ext || "")) {
-    return FileText; // PowerPoint - using FileText as closest match
+    return File02Icon; // PowerPoint - using FileText as closest match
   }
 
   // Code files
@@ -68,26 +68,26 @@ export const getFileTypeIcon = (
       "go",
     ].includes(ext || "")
   ) {
-    return Code;
+    return CodeIcon;
   }
 
   // Text files
   if (["txt", "md", "json", "xml", "yaml", "yml"].includes(ext || "")) {
-    return FileText;
+    return File02Icon;
   }
 
   // Archive files
   if (["zip", "tar", "gz", "rar", "7z"].includes(ext || "")) {
-    return Archive;
+    return ArchiveIcon;
   }
 
   // Folder
   if (fileType === "folder") {
-    return Folder;
+    return FolderClosedIcon;
   }
 
   // Default file icon
-  return File;
+  return File01Icon;
 };
 
 // ============================================

@@ -1,7 +1,7 @@
 /**
  * StyleEditsFooter — Pending style edits summary and actions (Design / CSS panels).
  */
-import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -45,7 +45,7 @@ export const StyleEditsFooter: React.FC<StyleEditsFooterProps> = memo(
               iconOnly
               icon={
                 <HugeiconsIcon
-                  icon={Undo2}
+                  icon={Undo02Icon}
                   data-icon="undo-2"
                   size={14}
                   strokeWidth={1.75}

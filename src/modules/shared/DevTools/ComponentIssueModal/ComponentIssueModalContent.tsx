@@ -7,7 +7,7 @@
  * - ComponentIssuePayloadView: full payload detail view
  * - ComponentIssueSuggestions: component suggestions list / empty state / legend
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -73,7 +73,7 @@ export function ComponentIssueDetailSection({
             onClick={() => onCopyField(label, copyValue)}
             aria-label={`Copy ${label}`}
           >
-            <HugeiconsIcon icon={Copy} data-icon="copy" size={16} />
+            <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={16} />
           </button>
         )}
       </div>
@@ -127,7 +127,7 @@ export function ComponentIssueSuggestions({
                   onClick={() => onCopyField("File path", suggestion.filePath)}
                   title="Copy file path"
                 >
-                  <HugeiconsIcon icon={Copy} data-icon="copy" size={16} />
+                  <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={16} />
                 </button>
               </div>
               <div className="component-issue-suggestion-file">

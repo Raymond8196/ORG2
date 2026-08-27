@@ -1,5 +1,5 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 
 import {
   SESSION_GROUP_LABELS,
@@ -193,7 +193,7 @@ function workspaceHeaderActions(
   if (!actions) return undefined;
   const rowActions: NavigationMenuRowAction[] = [
     {
-      icon: MoreHorizontal,
+      icon: MoreHorizontalIcon,
       label: actions.moreActionsLabel,
       dataTestId: `sidebar-workspace-more-${key}`,
       onClick: () => actions.onOpenMenu(key),
@@ -201,7 +201,7 @@ function workspaceHeaderActions(
   ];
   if (key !== NO_WORKSPACE_KEY) {
     rowActions.push({
-      icon: Plus,
+      icon: Add01Icon,
       label: actions.createSessionLabel,
       dataTestId: `sidebar-workspace-new-session-${key}`,
       onClick: () => actions.onCreateSession(key),

@@ -1,4 +1,4 @@
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -237,7 +237,9 @@ const LocalModelSetup: React.FC<AgentSetupProps> = ({
               variant="secondary"
               appearance="outline"
               size="default"
-              icon={<HugeiconsIcon icon={Check} data-icon="check" size={14} />}
+              icon={
+                <HugeiconsIcon icon={Tick01Icon} data-icon="check" size={14} />
+              }
               onClick={() => addModel(selectedPreset.models[0])}
             >
               {t("keyVault.localModel.addSuggestedModel")}

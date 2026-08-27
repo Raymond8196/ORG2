@@ -1,8 +1,8 @@
-import ArrowDown from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import Maximize2 from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowUp from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
+import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
+import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -65,7 +65,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={ArrowUp}
+              icon={ArrowUp02Icon}
               data-icon="arrow-up"
               {...headerIconProps}
             />
@@ -79,7 +79,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={ArrowDown}
+              icon={ArrowDown02Icon}
               data-icon="arrow-down"
               {...headerIconProps}
             />
@@ -96,7 +96,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               {...headerIconProps}
               className={spinClass}
@@ -111,7 +111,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
           {...PANEL_HEADER_TOKENS.actionButton}
           icon={
             <HugeiconsIcon
-              icon={Maximize2}
+              icon={ArrowExpand01Icon}
               data-icon="maximize-2"
               {...headerIconProps}
             />
@@ -122,7 +122,13 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
       )}
       <Button
         {...PANEL_HEADER_TOKENS.actionButton}
-        icon={<HugeiconsIcon icon={X} data-icon="x" {...headerIconProps} />}
+        icon={
+          <HugeiconsIcon
+            icon={Cancel01Icon}
+            data-icon="x"
+            {...headerIconProps}
+          />
+        }
         onClick={onClick}
         title={t("actions.close")}
       />

@@ -1,17 +1,17 @@
 /**
  * TimelineSection Configuration
  */
-import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import GitCommit from "@hugeicons/core-free-icons/GitCommitIcon";
-import Pin from "@hugeicons/core-free-icons/PinIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
+import GitCommitIcon from "@hugeicons/core-free-icons/GitCommitIcon";
+import PinIcon from "@hugeicons/core-free-icons/PinIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 
 // Icon configuration
 export const TIMELINE_ICONS = {
-  commit: GitCommit,
-  pin: Pin,
-  refresh: RefreshCw,
-  openDiff: Diff,
+  commit: GitCommitIcon,
+  pin: PinIcon,
+  refresh: Refresh04Icon,
+  openDiff: DiffIcon,
 } as const;
 
 // Constants

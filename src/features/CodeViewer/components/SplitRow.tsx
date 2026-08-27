@@ -4,9 +4,9 @@
  * Displays a single row in the split diff view
  * Shows old content on left, new content on right, with line numbers in center
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Minus from "@hugeicons/core-free-icons/MinusSignIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -91,7 +91,7 @@ export const SplitRow = React.memo<SplitRowProps>(
     const oldIcon =
       oldType === "remove" ? (
         <HugeiconsIcon
-          icon={Minus}
+          icon={MinusSignIcon}
           data-icon="minus"
           size={12}
           strokeWidth={2.5}
@@ -100,7 +100,7 @@ export const SplitRow = React.memo<SplitRowProps>(
     const newIcon =
       newType === "add" ? (
         <HugeiconsIcon
-          icon={Plus}
+          icon={Add01Icon}
           data-icon="plus"
           size={12}
           strokeWidth={2.5}
@@ -184,7 +184,7 @@ export const SplitRow = React.memo<SplitRowProps>(
               >
                 {isRangeStart && rangeFullySelected && (
                   <HugeiconsIcon
-                    icon={Check}
+                    icon={Tick01Icon}
                     data-icon="check"
                     size={14}
                     strokeWidth={2.5}
@@ -194,7 +194,7 @@ export const SplitRow = React.memo<SplitRowProps>(
                   rangePartiallySelected &&
                   !rangeFullySelected && (
                     <HugeiconsIcon
-                      icon={Minus}
+                      icon={MinusSignIcon}
                       data-icon="minus"
                       size={14}
                       strokeWidth={2.5}

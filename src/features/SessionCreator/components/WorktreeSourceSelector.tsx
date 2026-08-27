@@ -1,8 +1,8 @@
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
+import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import React, {
   useCallback,
   useEffect,
@@ -123,7 +123,7 @@ export const WorktreeSourceSelector: React.FC<WorktreeSourceSelectorProps> = ({
               detail: t("sessions:creator.worktreeSource.branchCustomRefHint", {
                 defaultValue: "Tag, commit, or any git ref",
               }),
-              icon: Hash,
+              icon: HashtagIcon,
               source,
             },
           ],
@@ -143,10 +143,10 @@ export const WorktreeSourceSelector: React.FC<WorktreeSourceSelectorProps> = ({
             label: option.name,
             meta: formatBranchTimestamp(option),
             icon: option.worktreePath
-              ? Folder
+              ? FolderClosedIcon
               : option.isRemote
-                ? Cloud
-                : GitBranch,
+                ? CloudIcon
+                : WorkflowCircle05Icon,
             source,
           };
         }),
@@ -168,7 +168,7 @@ export const WorktreeSourceSelector: React.FC<WorktreeSourceSelectorProps> = ({
         id: option.id,
         label: option.source.label,
         detail: option.detail,
-        icon: GitPullRequest,
+        icon: GitPullRequestIcon,
         source: option.source,
         resolveMeta: option.resolveMeta,
       }));

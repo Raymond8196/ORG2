@@ -1,5 +1,5 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import MousePointer2 from "@hugeicons/core-free-icons/Cursor02Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useRef, useState } from "react";
@@ -104,7 +104,7 @@ const CanvasSelectionPill: React.FC<CanvasSelectionPillProps> = ({
       iconNode={
         isHovered ? (
           <HugeiconsIcon
-            icon={X}
+            icon={Cancel01Icon}
             data-icon="x"
             size={PILL_SIZE.iconSize}
             strokeWidth={2}
@@ -112,7 +112,7 @@ const CanvasSelectionPill: React.FC<CanvasSelectionPillProps> = ({
           />
         ) : (
           <HugeiconsIcon
-            icon={MousePointer2}
+            icon={Cursor02Icon}
             data-icon="mouse-pointer-2"
             size={PILL_SIZE.iconSize}
             strokeWidth={1.75}
@@ -438,7 +438,12 @@ const CanvasDesignSurface: React.FC<CanvasDesignSurfaceProps> = ({
                   )}
                   onClick={inspector.clearSelection}
                 >
-                  <HugeiconsIcon icon={X} data-icon="x" size={15} aria-hidden />
+                  <HugeiconsIcon
+                    icon={Cancel01Icon}
+                    data-icon="x"
+                    size={15}
+                    aria-hidden
+                  />
                 </IconButton>
               )}
             </>

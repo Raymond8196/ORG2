@@ -12,8 +12,8 @@
  *   onRemove={(fileId) => handleRemoveFile(fileId)}
  * />
  */
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import Image from "@hugeicons/core-free-icons/Image01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { createElement, useCallback, useEffect, useMemo } from "react";
 
@@ -96,7 +96,7 @@ const ImagePill: React.FC<ImagePillProps> = ({
       >
         <div className="flex h-full w-full items-center justify-center">
           <HugeiconsIcon
-            icon={Image}
+            icon={Image01Icon}
             data-icon="image"
             size={20}
             className="text-text-3"
@@ -125,7 +125,7 @@ const ImagePill: React.FC<ImagePillProps> = ({
       ) : (
         <div className="flex h-full w-full items-center justify-center bg-bg-3">
           <HugeiconsIcon
-            icon={Image}
+            icon={Image01Icon}
             data-icon="image"
             size={20}
             className="text-text-3"
@@ -139,7 +139,12 @@ const ImagePill: React.FC<ImagePillProps> = ({
         onClick={handleRemove}
         aria-label={`Remove ${file.name || "image"}`}
       >
-        <HugeiconsIcon icon={X} data-icon="x" size={12} strokeWidth={2} />
+        <HugeiconsIcon
+          icon={Cancel01Icon}
+          data-icon="x"
+          size={12}
+          strokeWidth={2}
+        />
       </button>
 
       {/* File name tooltip on hover */}
@@ -206,7 +211,12 @@ const UploadPill: React.FC<UploadPillProps> = ({
         onClick={handleRemove}
         aria-label={`Remove ${file.name}`}
       >
-        <HugeiconsIcon icon={X} data-icon="x" size={10} strokeWidth={2} />
+        <HugeiconsIcon
+          icon={Cancel01Icon}
+          data-icon="x"
+          size={10}
+          strokeWidth={2}
+        />
       </button>
     </div>
   );

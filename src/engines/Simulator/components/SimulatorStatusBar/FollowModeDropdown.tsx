@@ -1,5 +1,5 @@
-import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
+import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useMemo } from "react";
@@ -68,8 +68,8 @@ export const FollowModeDropdown: React.FC = () => {
   );
 
   const triggerIcon: IconSvgElement | null = isAllApps
-    ? InfinityIcon
-    : (getActiveAppIcon(activeApp) ?? Layers);
+    ? Infinity01Icon
+    : (getActiveAppIcon(activeApp) ?? Layers01Icon);
 
   const handleSelectAgent = useCallback(() => {
     setFollowAppLock(null);
@@ -132,7 +132,7 @@ export const FollowModeDropdown: React.FC = () => {
                 } w-full justify-between gap-2`}
               >
                 <HugeiconsIcon
-                  icon={InfinityIcon}
+                  icon={Infinity01Icon}
                   data-icon="infinity-icon"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={2}
@@ -155,7 +155,7 @@ export const FollowModeDropdown: React.FC = () => {
                 } w-full justify-between gap-2 disabled:cursor-not-allowed disabled:opacity-40`}
               >
                 {React.createElement(HugeiconsIcon, {
-                  icon: getActiveAppIcon(activeApp) ?? Layers,
+                  icon: getActiveAppIcon(activeApp) ?? Layers01Icon,
                   size: 12,
                   strokeWidth: 2,
                 })}

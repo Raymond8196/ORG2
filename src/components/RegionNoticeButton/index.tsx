@@ -1,4 +1,4 @@
-import Globe2 from "@hugeicons/core-free-icons/InternetIcon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 
@@ -58,7 +58,7 @@ const RegionNoticeButton: React.FC<RegionNoticeButtonProps> = ({
             aria-expanded={open}
             icon={
               <HugeiconsIcon
-                icon={Globe2}
+                icon={InternetIcon}
                 data-icon="globe-2"
                 size={iconSize}
                 strokeWidth={2}

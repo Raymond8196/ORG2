@@ -1,5 +1,5 @@
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -374,7 +374,7 @@ export default function BuilderProfilePanel() {
           data-testid="builder-profile-refresh"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               className={`h-3.5 w-3.5 ${spinClass ?? ""}`}
             />
@@ -390,7 +390,7 @@ export default function BuilderProfilePanel() {
             data-testid="builder-profile-know-more"
             icon={
               <HugeiconsIcon
-                icon={ArrowRight}
+                icon={ArrowRight02Icon}
                 data-icon="arrow-right"
                 className="h-3.5 w-3.5"
               />

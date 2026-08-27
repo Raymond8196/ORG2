@@ -8,11 +8,11 @@
  * Shows files read/edited and search operations
  * up to the current replay point via tab-specific tree panels.
  */
-import Compass from "@hugeicons/core-free-icons/CompassIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import ListTree from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import List from "@hugeicons/core-free-icons/ListIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import CompassIcon from "@hugeicons/core-free-icons/CompassIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
+import ListIcon from "@hugeicons/core-free-icons/ListIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -115,14 +115,14 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         icon:
           fileOperationsViewMode === "list" ? (
             <HugeiconsIcon
-              icon={ListTree}
+              icon={HierarchyFilesIcon}
               data-icon="list-tree"
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
             />
           ) : (
             <HugeiconsIcon
-              icon={List}
+              icon={ListIcon}
               data-icon="list"
               size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
               strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
@@ -322,7 +322,7 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         label: t("simulator.replay.ide.fileSidebar.tabExplore"),
         icon: (
           <HugeiconsIcon
-            icon={Compass}
+            icon={CompassIcon}
             data-icon="compass"
             size={PANEL_CONSTANTS.TAB_ICON_SIZE}
           />
@@ -374,7 +374,7 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         label: t("simulator.replay.ide.fileSidebar.tabEdit"),
         icon: (
           <HugeiconsIcon
-            icon={GitBranch}
+            icon={WorkflowCircle05Icon}
             data-icon="git-branch"
             size={PANEL_CONSTANTS.TAB_ICON_SIZE}
           />
@@ -408,7 +408,7 @@ const FileSidebarComponent: React.FC<FileSidebarProps> = ({
         label: t("simulator.replay.ide.fileSidebar.tabTerminal"),
         icon: (
           <HugeiconsIcon
-            icon={Terminal}
+            icon={ComputerTerminal01Icon}
             data-icon="terminal"
             size={PANEL_CONSTANTS.TAB_ICON_SIZE}
           />

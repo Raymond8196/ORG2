@@ -1,7 +1,7 @@
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import FolderCog from "@hugeicons/core-free-icons/FolderCogIcon";
-import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import FolderCogIcon from "@hugeicons/core-free-icons/FolderCogIcon";
+import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -69,7 +69,7 @@ function appTypeIcon(appType: SetupRepoAppType): React.ReactNode {
   if (appType === "web")
     return (
       <HugeiconsIcon
-        icon={SquareArrowOutUpRight}
+        icon={SquareArrowUpRightIcon}
         data-icon="square-arrow-out-up-right"
         size={12}
         className={cls}
@@ -78,7 +78,7 @@ function appTypeIcon(appType: SetupRepoAppType): React.ReactNode {
   if (appType === "cli")
     return (
       <HugeiconsIcon
-        icon={Terminal}
+        icon={ComputerTerminal01Icon}
         data-icon="terminal"
         size={12}
         className={cls}
@@ -87,7 +87,7 @@ function appTypeIcon(appType: SetupRepoAppType): React.ReactNode {
   if (appType === "desktop")
     return (
       <HugeiconsIcon
-        icon={FolderCog}
+        icon={FolderCogIcon}
         data-icon="folder-cog"
         size={12}
         className={cls}
@@ -95,7 +95,7 @@ function appTypeIcon(appType: SetupRepoAppType): React.ReactNode {
     );
   return (
     <HugeiconsIcon
-      icon={Terminal}
+      icon={ComputerTerminal01Icon}
       data-icon="terminal"
       size={12}
       className={cls}
@@ -246,7 +246,7 @@ const EnvVarsContent: React.FC<{ envVars: SetupRepoEnvVar[] }> = ({
         className="flex items-start gap-1.5 rounded px-1.5 py-1 hover:bg-fill-2"
       >
         <HugeiconsIcon
-          icon={KeyRound}
+          icon={Key02Icon}
           data-icon="key-round"
           size={11}
           className="mt-0.5 shrink-0 text-text-3"
@@ -285,7 +285,7 @@ const LaunchAppContent: React.FC<{
     {url && (
       <div className="flex items-center gap-1.5 rounded px-1.5 py-1 hover:bg-fill-2">
         <HugeiconsIcon
-          icon={SquareArrowOutUpRight}
+          icon={SquareArrowUpRightIcon}
           data-icon="square-arrow-out-up-right"
           size={11}
           className="shrink-0 text-text-3"
@@ -298,7 +298,7 @@ const LaunchAppContent: React.FC<{
     {command && (
       <div className="flex items-center gap-1.5 rounded px-1.5 py-1 hover:bg-fill-2">
         <HugeiconsIcon
-          icon={Terminal}
+          icon={ComputerTerminal01Icon}
           data-icon="terminal"
           size={11}
           className="shrink-0 text-text-3"

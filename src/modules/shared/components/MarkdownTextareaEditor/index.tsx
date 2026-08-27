@@ -1,13 +1,13 @@
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Heading2 from "@hugeicons/core-free-icons/Heading02Icon";
-import ListOrdered from "@hugeicons/core-free-icons/LeftToRightListNumberIcon";
-import LinkIcon from "@hugeicons/core-free-icons/Link01Icon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import List from "@hugeicons/core-free-icons/ListIcon";
-import Quote from "@hugeicons/core-free-icons/QuoteIcon";
-import Bold from "@hugeicons/core-free-icons/TextBoldIcon";
-import Italic from "@hugeicons/core-free-icons/TextItalicIcon";
-import Strikethrough from "@hugeicons/core-free-icons/TextStrikethroughIcon";
+import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
+import Heading02Icon from "@hugeicons/core-free-icons/Heading02Icon";
+import LeftToRightListNumberIcon from "@hugeicons/core-free-icons/LeftToRightListNumberIcon";
+import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import ListIcon from "@hugeicons/core-free-icons/ListIcon";
+import QuoteIcon from "@hugeicons/core-free-icons/QuoteIcon";
+import TextBoldIcon from "@hugeicons/core-free-icons/TextBoldIcon";
+import TextItalicIcon from "@hugeicons/core-free-icons/TextItalicIcon";
+import TextStrikethroughIcon from "@hugeicons/core-free-icons/TextStrikethroughIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
@@ -409,7 +409,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.heading2"),
       icon: (
         <HugeiconsIcon
-          icon={Heading2}
+          icon={Heading02Icon}
           data-icon="heading-2"
           size={TOOLBAR_ICON_SIZE}
         />
@@ -419,7 +419,11 @@ const MarkdownTextareaEditor = forwardRef<
       format: "bold",
       label: t("creator.toolbar.bold"),
       icon: (
-        <HugeiconsIcon icon={Bold} data-icon="bold" size={TOOLBAR_ICON_SIZE} />
+        <HugeiconsIcon
+          icon={TextBoldIcon}
+          data-icon="bold"
+          size={TOOLBAR_ICON_SIZE}
+        />
       ),
     },
     {
@@ -427,7 +431,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.italic"),
       icon: (
         <HugeiconsIcon
-          icon={Italic}
+          icon={TextItalicIcon}
           data-icon="italic"
           size={TOOLBAR_ICON_SIZE}
         />
@@ -438,7 +442,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.strikethrough"),
       icon: (
         <HugeiconsIcon
-          icon={Strikethrough}
+          icon={TextStrikethroughIcon}
           data-icon="strikethrough"
           size={TOOLBAR_ICON_SIZE}
         />
@@ -448,7 +452,11 @@ const MarkdownTextareaEditor = forwardRef<
       format: "inlineCode",
       label: t("creator.toolbar.inlineCode"),
       icon: (
-        <HugeiconsIcon icon={Code} data-icon="code" size={TOOLBAR_ICON_SIZE} />
+        <HugeiconsIcon
+          icon={CodeIcon}
+          data-icon="code"
+          size={TOOLBAR_ICON_SIZE}
+        />
       ),
     },
     {
@@ -456,7 +464,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.link"),
       icon: (
         <HugeiconsIcon
-          icon={LinkIcon}
+          icon={Link01Icon}
           data-icon="link-icon"
           size={TOOLBAR_ICON_SIZE}
         />
@@ -467,7 +475,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.quote"),
       icon: (
         <HugeiconsIcon
-          icon={Quote}
+          icon={QuoteIcon}
           data-icon="quote"
           size={TOOLBAR_ICON_SIZE}
         />
@@ -477,7 +485,11 @@ const MarkdownTextareaEditor = forwardRef<
       format: "bulletList",
       label: t("creator.toolbar.bulletList"),
       icon: (
-        <HugeiconsIcon icon={List} data-icon="list" size={TOOLBAR_ICON_SIZE} />
+        <HugeiconsIcon
+          icon={ListIcon}
+          data-icon="list"
+          size={TOOLBAR_ICON_SIZE}
+        />
       ),
     },
     {
@@ -485,7 +497,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.numberedList"),
       icon: (
         <HugeiconsIcon
-          icon={ListOrdered}
+          icon={LeftToRightListNumberIcon}
           data-icon="list-ordered"
           size={TOOLBAR_ICON_SIZE}
         />
@@ -496,7 +508,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.taskList"),
       icon: (
         <HugeiconsIcon
-          icon={ListChecks}
+          icon={ListChecksIcon}
           data-icon="list-checks"
           size={TOOLBAR_ICON_SIZE}
         />

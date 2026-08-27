@@ -3,7 +3,7 @@
  * live machine load, today / 7d usage headline, installed-agent icons, and a
  * staleness line. The whole card opens the member drilldown.
  */
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -73,7 +73,7 @@ export function AgentIcon({
         size={16}
         fallback={
           <HugeiconsIcon
-            icon={Terminal}
+            icon={ComputerTerminal01Icon}
             data-icon="terminal"
             size={16}
             className="text-text-3"

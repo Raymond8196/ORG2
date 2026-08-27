@@ -4,11 +4,11 @@
  * Header for the Projects page with breadcrumb and action buttons.
  * Uses shared WorkStation header tokens for consistent styling.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Boxes from "@hugeicons/core-free-icons/BoxesIcon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import BoxesIcon from "@hugeicons/core-free-icons/BoxesIcon";
+import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -85,7 +85,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
             ...segment,
             icon: segment.icon ?? (
               <HugeiconsIcon
-                icon={Boxes}
+                icon={BoxesIcon}
                 data-icon="boxes"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
@@ -127,7 +127,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
           title={t("common:actions.search")}
           icon={
             <HugeiconsIcon
-              icon={Search}
+              icon={Search01Icon}
               data-icon="search"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={2}
@@ -147,7 +147,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               title={t("common:actions.collapseAll")}
               icon={
                 <HugeiconsIcon
-                  icon={ListChevronsDownUp}
+                  icon={ListChevronsDownUpIcon}
                   data-icon="list-chevrons-down-up"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={2}
@@ -165,7 +165,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               title={t("common:actions.refresh")}
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={HEADER_ICON_SIZE.sm}
                   strokeWidth={2}
@@ -185,7 +185,7 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
               data-testid="projects-create-project"
               icon={
                 <HugeiconsIcon
-                  icon={Plus}
+                  icon={Add01Icon}
                   data-icon="plus"
                   size={HEADER_ICON_SIZE.md}
                   strokeWidth={2}

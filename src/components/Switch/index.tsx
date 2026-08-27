@@ -33,7 +33,7 @@
  * <Switch checked={checked} onCheckedChange={setChecked} showAxLabel />
  * ```
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
@@ -211,7 +211,7 @@ const Switch = forwardRef<HTMLButtonElement, SwitchProps>(
         <span className="switch-handle">
           {loading ? (
             <HugeiconsIcon
-              icon={Loader2}
+              icon={Loading03Icon}
               data-icon="loader-2"
               size={SPINNER_TOKENS.small}
               className="animate-spin"

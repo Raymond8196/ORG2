@@ -12,10 +12,10 @@
  * `useSessionRawTranscript` is called with `enabled = isRaw`, so a session that
  * never opens Raw pays neither the transcript load nor the JSON serialization.
  */
-import GanttChart from "@hugeicons/core-free-icons/ChartGanttIcon";
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import ChartGanttIcon from "@hugeicons/core-free-icons/ChartGanttIcon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
+import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -58,11 +58,11 @@ export function resolveSessionViewMode(
   return state.sessionId === sessionId ? state.mode : "gui";
 }
 
-const MODE_ICONS: Record<SessionViewMode, typeof MessagesSquare> = {
-  gui: MessagesSquare,
-  timeline: GanttChart,
-  changes: FileDiff,
-  raw: Braces,
+const MODE_ICONS: Record<SessionViewMode, typeof MessageMultiple01Icon> = {
+  gui: MessageMultiple01Icon,
+  timeline: ChartGanttIcon,
+  changes: FileDiffIcon,
+  raw: FirstBracketIcon,
 };
 
 const MODE_ICON_SIZE = 14;

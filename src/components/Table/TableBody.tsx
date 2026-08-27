@@ -1,6 +1,6 @@
-import ChevronsDownUp from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import ChevronsUpDown from "@hugeicons/core-free-icons/UnfoldMoreIcon";
+import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
+import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
+import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { Cell, Row, flexRender } from "@tanstack/react-table";
 import React, { useState } from "react";
@@ -157,7 +157,7 @@ export function TableBody<T>({
               {noDataElement || (
                 <>
                   <HugeiconsIcon
-                    icon={Inbox}
+                    icon={InboxIcon}
                     data-icon="inbox"
                     size={48}
                     className="opacity-40"
@@ -234,14 +234,14 @@ export function TableBody<T>({
                       >
                         {isExpanded ? (
                           <HugeiconsIcon
-                            icon={ChevronsDownUp}
+                            icon={ChevronsDownUpIcon}
                             data-icon="chevrons-down-up"
                             size={14}
                             className="shrink-0"
                           />
                         ) : (
                           <HugeiconsIcon
-                            icon={ChevronsUpDown}
+                            icon={UnfoldMoreIcon}
                             data-icon="chevrons-up-down"
                             size={14}
                             className="shrink-0"

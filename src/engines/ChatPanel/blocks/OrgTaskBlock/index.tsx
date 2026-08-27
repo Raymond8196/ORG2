@@ -6,9 +6,9 @@
  * Reuses TaskCard's CSS class names and KanbanBoard utilities for visual
  * consistency with the Kanban board.
  */
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import PlayCircleIcon from "@hugeicons/core-free-icons/PlayCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -113,7 +113,7 @@ function getStatusIcon(status?: string): React.ReactNode {
   if (status === "completed") {
     return (
       <HugeiconsIcon
-        icon={CheckCircle2}
+        icon={CheckmarkCircle01Icon}
         data-icon="check-circle-2"
         size={13}
         strokeWidth={2}
@@ -125,7 +125,7 @@ function getStatusIcon(status?: string): React.ReactNode {
   if (status === "in_progress") {
     return (
       <HugeiconsIcon
-        icon={PlayCircle}
+        icon={PlayCircleIcon}
         data-icon="play-circle"
         size={13}
         strokeWidth={2}
@@ -137,7 +137,7 @@ function getStatusIcon(status?: string): React.ReactNode {
   if (status === "pending") {
     return (
       <HugeiconsIcon
-        icon={CircleDot}
+        icon={CircleDotIcon}
         data-icon="circle-dot"
         size={13}
         strokeWidth={2}

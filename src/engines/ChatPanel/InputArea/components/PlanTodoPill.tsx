@@ -1,7 +1,7 @@
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useEffect, useId, useMemo } from "react";
@@ -36,7 +36,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={8}
           strokeWidth={3}
@@ -48,7 +48,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
   if (normalizedStatus === "in_progress") {
     return (
       <HugeiconsIcon
-        icon={ChevronRight}
+        icon={ArrowRight01Icon}
         data-icon="chevron-right"
         size={14}
         strokeWidth={2}
@@ -60,7 +60,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <span className="flex h-3.5 w-3.5 shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
-          icon={Lock}
+          icon={LockIcon}
           data-icon="lock"
           size={6}
           strokeWidth={2.5}
@@ -142,7 +142,7 @@ const PlanTodoPill: React.FC<PlanTodoPillProps> = memo(({ sessionId }) => {
         shape="round"
         icon={
           <HugeiconsIcon
-            icon={ListTodo}
+            icon={ListTodoIcon}
             data-icon="list-todo"
             size={13}
             strokeWidth={1.75}
@@ -173,7 +173,7 @@ const PlanTodoPill: React.FC<PlanTodoPillProps> = memo(({ sessionId }) => {
           >
             <DropdownHeader>
               <HugeiconsIcon
-                icon={ListTodo}
+                icon={ListTodoIcon}
                 data-icon="list-todo"
                 size={13}
                 strokeWidth={1.75}
@@ -218,7 +218,7 @@ const PlanTodoPill: React.FC<PlanTodoPillProps> = memo(({ sessionId }) => {
                     {blocked && todo.blockedBy && (
                       <span className="mt-0.5 flex shrink-0 items-center gap-0.5 text-[10px] text-text-3/70">
                         <HugeiconsIcon
-                          icon={Lock}
+                          icon={LockIcon}
                           data-icon="lock"
                           size={8}
                           strokeWidth={2}

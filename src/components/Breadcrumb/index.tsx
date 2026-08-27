@@ -28,7 +28,7 @@
  * </Breadcrumb>
  * ```
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, ReactNode, isValidElement } from "react";
 import { useNavigate } from "react-router-dom";
@@ -150,7 +150,7 @@ const Breadcrumb: React.FC<BreadcrumbProps> & {
       separator
     ) : (
       <HugeiconsIcon
-        icon={ChevronRight}
+        icon={ArrowRight01Icon}
         data-icon="chevron-right"
         size={14}
         strokeWidth={1.75}

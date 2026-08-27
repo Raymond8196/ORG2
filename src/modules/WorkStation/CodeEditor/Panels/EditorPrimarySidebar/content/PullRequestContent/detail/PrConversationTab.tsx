@@ -10,9 +10,9 @@
  * Reuses the shared timeline primitives so it renders identically to the Issue
  * detail view.
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useMemo, useRef, useState } from "react";
@@ -84,7 +84,7 @@ function reviewVerb(
         label: t("git.pr.activity.approved", "approved these changes"),
         icon: (
           <HugeiconsIcon
-            icon={CheckCircle2}
+            icon={CheckmarkCircle01Icon}
             data-icon="check-circle-2"
             size={14}
             strokeWidth={1.9}
@@ -97,7 +97,7 @@ function reviewVerb(
         label: t("git.pr.activity.changesRequested", "requested changes"),
         icon: (
           <HugeiconsIcon
-            icon={XCircle}
+            icon={CancelCircleIcon}
             data-icon="xcircle"
             size={14}
             strokeWidth={1.9}
@@ -110,7 +110,7 @@ function reviewVerb(
         label: t("git.pr.activity.reviewDismissed", "dismissed a review"),
         icon: (
           <HugeiconsIcon
-            icon={FileDiff}
+            icon={FileDiffIcon}
             data-icon="file-diff"
             size={14}
             strokeWidth={1.9}
@@ -123,7 +123,7 @@ function reviewVerb(
         label: t("git.pr.activity.reviewed", "reviewed"),
         icon: (
           <HugeiconsIcon
-            icon={FileDiff}
+            icon={FileDiffIcon}
             data-icon="file-diff"
             size={14}
             strokeWidth={1.9}

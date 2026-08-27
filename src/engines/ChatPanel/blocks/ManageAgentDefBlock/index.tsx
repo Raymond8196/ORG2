@@ -8,7 +8,7 @@
  *
  * List/get actions with no agent name collapse to title-only.
  */
-import Bot from "@hugeicons/core-free-icons/BotIcon";
+import BotIcon from "@hugeicons/core-free-icons/BotIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -117,7 +117,7 @@ function AgentDefCard({
       <div className="kanban-task-card__header mb-0">
         <div className="flex min-w-0 items-center gap-1.5">
           <HugeiconsIcon
-            icon={Bot}
+            icon={BotIcon}
             data-icon="bot"
             size={12}
             strokeWidth={1.75}

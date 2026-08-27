@@ -1,6 +1,6 @@
 /** Shared activity timeline primitives used by work items, work logs, issues, and PRs. */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -75,14 +75,14 @@ export function TimelineCopyButton({
       icon={
         copied ? (
           <HugeiconsIcon
-            icon={Check}
+            icon={Tick01Icon}
             data-icon="check"
             size={12}
             strokeWidth={1.75}
           />
         ) : (
           <HugeiconsIcon
-            icon={Copy}
+            icon={Copy01Icon}
             data-icon="copy"
             size={12}
             strokeWidth={1.75}

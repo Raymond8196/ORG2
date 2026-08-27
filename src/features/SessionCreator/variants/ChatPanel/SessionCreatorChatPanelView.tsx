@@ -1,8 +1,8 @@
-import CircleArrowUp from "@hugeicons/core-free-icons/CircleArrowUp01Icon";
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
-import Airplay from "@hugeicons/core-free-icons/ScreenRotationIcon";
+import CircleArrowUp01Icon from "@hugeicons/core-free-icons/CircleArrowUp01Icon";
+import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
+import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import ScreenRotationIcon from "@hugeicons/core-free-icons/ScreenRotationIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -301,7 +301,7 @@ const SessionCreatorChatPanelView: React.FC<
                 shape="round"
                 icon={
                   <HugeiconsIcon
-                    icon={Network}
+                    icon={HierarchyCircle01Icon}
                     data-icon="network"
                     size={14}
                     strokeWidth={1.75}
@@ -330,7 +330,7 @@ const SessionCreatorChatPanelView: React.FC<
           type="warning"
           icon={
             <HugeiconsIcon
-              icon={CircleArrowUp}
+              icon={CircleArrowUp01Icon}
               data-icon="circle-arrow-up"
               size={14}
               strokeWidth={1.8}
@@ -345,7 +345,7 @@ const SessionCreatorChatPanelView: React.FC<
                 size="small"
                 icon={
                   <HugeiconsIcon
-                    icon={BellOff}
+                    icon={NotificationOff01Icon}
                     data-icon="bell-off"
                     size={14}
                     strokeWidth={1.8}
@@ -365,7 +365,7 @@ const SessionCreatorChatPanelView: React.FC<
                 size="small"
                 icon={
                   <HugeiconsIcon
-                    icon={RefreshCw}
+                    icon={Refresh04Icon}
                     data-icon="refresh-cw"
                     size={14}
                     strokeWidth={1.8}
@@ -551,7 +551,7 @@ const SessionCreatorChatPanelView: React.FC<
                 }}
               >
                 <HugeiconsIcon
-                  icon={Airplay}
+                  icon={ScreenRotationIcon}
                   data-icon="airplay"
                   size={13}
                   strokeWidth={1.75}

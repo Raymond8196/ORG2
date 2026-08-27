@@ -11,10 +11,10 @@
  * The pane never renders when the subagent has no todos; this keeps cells
  * without a plan from leaving a hover hot-zone that points at nothing.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useMemo } from "react";
@@ -46,7 +46,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <div className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full bg-green-600/80">
         <HugeiconsIcon
-          icon={Check}
+          icon={Tick01Icon}
           data-icon="check"
           size={7}
           strokeWidth={3}
@@ -58,7 +58,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
   if (norm === "in_progress") {
     return (
       <HugeiconsIcon
-        icon={ChevronRight}
+        icon={ArrowRight01Icon}
         data-icon="chevron-right"
         size={12}
         strokeWidth={2}
@@ -70,7 +70,7 @@ const TodoStatusIcon: React.FC<{ status: string; blocked?: boolean }> = ({
     return (
       <div className="flex h-3 w-3 shrink-0 items-center justify-center rounded-full border-[1.5px] border-dashed border-text-3/40">
         <HugeiconsIcon
-          icon={Lock}
+          icon={LockIcon}
           data-icon="lock"
           size={5}
           strokeWidth={2.5}
@@ -115,7 +115,7 @@ const SubagentPinnedPreviewPopoverComponent: React.FC<
     >
       <div className="flex items-center gap-1.5 border-b border-border-2/60 px-3 py-1.5">
         <HugeiconsIcon
-          icon={ListTodo}
+          icon={ListTodoIcon}
           data-icon="list-todo"
           size={12}
           strokeWidth={1.75}

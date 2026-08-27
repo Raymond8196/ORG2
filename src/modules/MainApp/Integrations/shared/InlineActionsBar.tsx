@@ -29,8 +29,8 @@
  * />
  * ```
  */
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -99,7 +99,7 @@ const InlineActionsBar: React.FC<InlineActionsBarProps> = ({
       list.push({
         key: "edit",
         label: editLabel ?? t("actions.edit"),
-        icon: <HugeiconsIcon icon={Pencil} data-icon="pencil" size={12} />,
+        icon: <HugeiconsIcon icon={Pen01Icon} data-icon="pencil" size={12} />,
         variant: editVariant,
         onClick: onEdit,
         disabled: editDisabled,
@@ -110,7 +110,9 @@ const InlineActionsBar: React.FC<InlineActionsBarProps> = ({
       list.push({
         key: "delete",
         label: deleteLabel ?? t("actions.delete"),
-        icon: <HugeiconsIcon icon={Trash2} data-icon="trash-2" size={12} />,
+        icon: (
+          <HugeiconsIcon icon={Delete02Icon} data-icon="trash-2" size={12} />
+        ),
         variant: "danger",
         appearance: "outline",
         onClick: onDelete,

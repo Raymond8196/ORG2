@@ -1,6 +1,6 @@
-import History from "@hugeicons/core-free-icons/BubbleChatIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
+import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
 import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -42,17 +42,17 @@ export const WorkstationSidebarViewSwitcher: React.FC<WorkstationSidebarViewSwit
       {
         key: "work-items",
         label: t("labels.workItems"),
-        icon: ListTodo,
+        icon: ListTodoIcon,
       },
       {
         key: "sessions",
         label: t("routes.sessions"),
-        icon: History,
+        icon: BubbleChatIcon,
       },
       {
         key: "channels",
         label: t("routes.channels"),
-        icon: Hash,
+        icon: HashtagIcon,
       },
     ];
 

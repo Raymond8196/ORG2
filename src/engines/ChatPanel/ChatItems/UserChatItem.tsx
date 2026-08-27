@@ -1,9 +1,9 @@
-import ClipboardCheck from "@hugeicons/core-free-icons/ClipboardCheckIcon";
-import File from "@hugeicons/core-free-icons/File01Icon";
-import Image from "@hugeicons/core-free-icons/Image01Icon";
-import PencilLine from "@hugeicons/core-free-icons/PencilEdit01Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import Undo2 from "@hugeicons/core-free-icons/Undo02Icon";
+import ClipboardCheckIcon from "@hugeicons/core-free-icons/ClipboardCheckIcon";
+import File01Icon from "@hugeicons/core-free-icons/File01Icon";
+import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
+import PencilEdit01Icon from "@hugeicons/core-free-icons/PencilEdit01Icon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
+import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
@@ -104,7 +104,7 @@ const CachedFileChip: FC<{
       >
         {isImg ? (
           <HugeiconsIcon
-            icon={Image}
+            icon={Image01Icon}
             data-icon="image"
             size={13}
             strokeWidth={1.75}
@@ -112,7 +112,7 @@ const CachedFileChip: FC<{
           />
         ) : (
           <HugeiconsIcon
-            icon={File}
+            icon={File01Icon}
             data-icon="file"
             size={13}
             strokeWidth={1.75}
@@ -143,7 +143,7 @@ const CachedFileChip: FC<{
           ) : (
             <div className="flex h-full flex-col items-center justify-center">
               <HugeiconsIcon
-                icon={File}
+                icon={File01Icon}
                 data-icon="file"
                 size={32}
                 strokeWidth={1.75}
@@ -426,7 +426,7 @@ const UserChatItem = ({
           {isRepoSetup ? (
             <div className="flex items-center gap-2 py-0.5">
               <HugeiconsIcon
-                icon={Sparkles}
+                icon={SparklesIcon}
                 data-icon="sparkles"
                 size={14}
                 className="text-primary-6"
@@ -438,7 +438,7 @@ const UserChatItem = ({
           ) : isPlanApproved ? (
             <div className="flex items-center gap-2 py-0.5">
               <HugeiconsIcon
-                icon={ClipboardCheck}
+                icon={ClipboardCheckIcon}
                 data-icon="clipboard-check"
                 size={14}
                 className="text-primary-6"
@@ -549,7 +549,7 @@ const UserChatItem = ({
                   }}
                 >
                   <HugeiconsIcon
-                    icon={Undo2}
+                    icon={Undo02Icon}
                     data-icon="undo-2"
                     size={15}
                     strokeWidth={1.75}
@@ -567,7 +567,7 @@ const UserChatItem = ({
                   }}
                 >
                   <HugeiconsIcon
-                    icon={PencilLine}
+                    icon={PencilEdit01Icon}
                     data-icon="pencil-line"
                     size={14}
                     strokeWidth={1.75}

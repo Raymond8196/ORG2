@@ -3,9 +3,9 @@
  *
  * Displays console log entries with filtering and search capabilities.
  */
-import BrushCleaning from "@hugeicons/core-free-icons/BrushCleaningIcon";
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
@@ -140,13 +140,13 @@ function ConsoleLogEntryRow({
             icon={
               copiedId === entry.id ? (
                 <HugeiconsIcon
-                  icon={Check}
+                  icon={Tick01Icon}
                   data-icon="check"
                   size={12}
                   className="text-success-6"
                 />
               ) : (
-                <HugeiconsIcon icon={Copy} data-icon="copy" size={12} />
+                <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={12} />
               )
             }
             iconOnly
@@ -418,7 +418,7 @@ export const ConsoleTab: React.FC<ConsoleTabProps> = memo(
               aria-label={t("tooltips.clearConsole")}
             >
               <HugeiconsIcon
-                icon={BrushCleaning}
+                icon={BrushCleaningIcon}
                 data-icon="brush-cleaning"
                 size={HEADER_ICON_SIZE.sm}
               />

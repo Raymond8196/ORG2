@@ -3,7 +3,7 @@
  *
  * Header component for sidebars with optional title, tabs, and actions.
  */
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
@@ -142,7 +142,7 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = React.memo(
             >
               {action.loading ? (
                 <HugeiconsIcon
-                  icon={Loader2}
+                  icon={Loading03Icon}
                   data-icon="loader-2"
                   size={SPINNER_TOKENS.default}
                   strokeWidth={2}

@@ -1,4 +1,4 @@
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -155,7 +155,7 @@ export const DbPreviewView: React.FC<DbPreviewViewProps> = memo(
           className="rounded p-1 text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
         >
           <HugeiconsIcon
-            icon={RefreshCw}
+            icon={Refresh04Icon}
             data-icon="refresh-cw"
             size={13}
             className={spinClass}

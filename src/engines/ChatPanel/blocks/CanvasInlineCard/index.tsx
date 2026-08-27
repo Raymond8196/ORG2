@@ -17,7 +17,7 @@
  *   - url: not embedded to avoid iframe memory overhead
  *   - a2ui: DOMPurify sanitizes type="html" elements in A2UIRenderer
  */
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
+import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -164,7 +164,7 @@ const CanvasInlineCard: React.FC<CanvasInlineCardProps> = ({
         <EventBlockHeaderIcon
           icon={
             <HugeiconsIcon
-              icon={Layout}
+              icon={Layout01Icon}
               data-icon="panels-top-left"
               size={14}
               className="text-primary-6"

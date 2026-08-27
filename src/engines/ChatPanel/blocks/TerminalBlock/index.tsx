@@ -5,7 +5,7 @@
  * output content lives in the shared filled body shell, separated by a subtle
  * divider without additional section labels.
  */
-import Square from "@hugeicons/core-free-icons/SquareIcon";
+import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
@@ -83,7 +83,7 @@ export const TerminalStopButton: React.FC<TerminalStopButtonProps> = ({
         <div className="h-2.5 w-2.5 animate-spin rounded-full border-2 border-current border-t-transparent" />
       ) : (
         <HugeiconsIcon
-          icon={Square}
+          icon={SquareIcon}
           data-icon="square"
           size={10}
           fill="currentColor"

@@ -2,10 +2,10 @@
  * Commit marker tooltip/dropdown UI components for DiaryPanel.
  * Extracted to keep DiaryPanel/index.tsx under the 600-line limit.
  */
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import UserRound from "@hugeicons/core-free-icons/UserCircleIcon";
+import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -72,7 +72,7 @@ export const DiaryCommitHoverCardContent: React.FC<
         <DiaryCommitHoverCardRow
           icon={
             <HugeiconsIcon
-              icon={GitCommitHorizontal}
+              icon={GitCommitHorizontalIcon}
               data-icon="git-commit-horizontal"
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
@@ -88,7 +88,7 @@ export const DiaryCommitHoverCardContent: React.FC<
         <DiaryCommitHoverCardRow
           icon={
             <HugeiconsIcon
-              icon={Clock}
+              icon={Clock01Icon}
               data-icon="clock"
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
@@ -107,7 +107,7 @@ export const DiaryCommitHoverCardContent: React.FC<
         <DiaryCommitHoverCardRow
           icon={
             <HugeiconsIcon
-              icon={UserRound}
+              icon={UserCircleIcon}
               data-icon="user-round"
               size={DROPDOWN_ITEM.iconSize}
               strokeWidth={1.75}
@@ -124,7 +124,7 @@ export const DiaryCommitHoverCardContent: React.FC<
           <DiaryCommitHoverCardRow
             icon={
               <HugeiconsIcon
-                icon={Hash}
+                icon={HashtagIcon}
                 data-icon="hash"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}
@@ -221,7 +221,7 @@ export const DiaryCommitBucketDropdown: React.FC<
                     className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full min-w-0 justify-start text-left`}
                   >
                     <HugeiconsIcon
-                      icon={GitCommitHorizontal}
+                      icon={GitCommitHorizontalIcon}
                       data-icon="git-commit-horizontal"
                       size={DROPDOWN_ITEM.iconSize}
                       strokeWidth={1.75}

@@ -1,4 +1,4 @@
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -777,7 +777,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
           />
         }
         onAddNew={handleOpenSpotlight}
-        addIcon={Search}
+        addIcon={Search01Icon}
         addLabel={tCommon("actions.search")}
         addTooltipContent={
           <SidebarSearchShortcutTooltip

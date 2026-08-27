@@ -1,4 +1,4 @@
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -73,7 +73,7 @@ export const AccountInlineActionsBar: React.FC<
           disabled={refreshing}
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               className={spinClass}
@@ -92,7 +92,7 @@ export const AccountInlineActionsBar: React.FC<
           disabled={refreshingModels}
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               className={modelSpinClass}

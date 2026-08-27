@@ -21,7 +21,7 @@
  * memory toggle, extract memories, auto-dream) live on each agent's
  * Memory & Evolution tab.
  */
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
+import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { homeDir } from "@tauri-apps/api/path";
@@ -90,7 +90,7 @@ const ConfigGeneralSection: React.FC<ConfigGeneralSectionProps> = ({
             <Button
               icon={
                 <HugeiconsIcon
-                  icon={FolderOpen}
+                  icon={FolderOpenIcon}
                   data-icon="folder-open"
                   size={14}
                 />

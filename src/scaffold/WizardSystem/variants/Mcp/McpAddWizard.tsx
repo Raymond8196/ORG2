@@ -7,10 +7,10 @@
  * Uses WizardShell, WizardStepLayout, SectionContainer, SectionRow, SelectionGrid.
  * State and handlers live in useMcpAddWizard.ts.
  */
-import XCircle from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
+import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
+import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -152,12 +152,12 @@ const McpAddWizard: React.FC<McpAddWizardProps> = ({
                   {
                     key: "global" as const,
                     label: t("mcp.scopeGlobal"),
-                    icon: Globe,
+                    icon: InternetIcon,
                   },
                   {
                     key: "workspace" as const,
                     label: t("mcp.scopeWorkspace"),
-                    icon: Terminal,
+                    icon: ComputerTerminal01Icon,
                   },
                 ]}
                 selected={w.scope}
@@ -370,7 +370,7 @@ const McpAddWizard: React.FC<McpAddWizardProps> = ({
               {w.testResult.success ? (
                 <span className="flex items-center gap-1.5">
                   <HugeiconsIcon
-                    icon={CheckCircle2}
+                    icon={CheckmarkCircle01Icon}
                     data-icon="check-circle-2"
                     size={14}
                   />
@@ -378,7 +378,11 @@ const McpAddWizard: React.FC<McpAddWizardProps> = ({
                 </span>
               ) : (
                 <span className="flex items-center gap-1.5">
-                  <HugeiconsIcon icon={XCircle} data-icon="xcircle" size={14} />
+                  <HugeiconsIcon
+                    icon={CancelCircleIcon}
+                    data-icon="xcircle"
+                    size={14}
+                  />
                   {w.testResult.error ?? t("mcp.connectionFailed")}
                 </span>
               )}

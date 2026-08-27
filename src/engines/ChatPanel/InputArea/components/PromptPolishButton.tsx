@@ -1,5 +1,5 @@
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
@@ -53,7 +53,7 @@ const PromptPolishButton: React.FC<PromptPolishButtonProps> = memo(
       >
         {control.isPolishing ? (
           <HugeiconsIcon
-            icon={Loader2}
+            icon={Loading03Icon}
             data-icon="loader-2"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}
@@ -61,7 +61,7 @@ const PromptPolishButton: React.FC<PromptPolishButtonProps> = memo(
           />
         ) : (
           <HugeiconsIcon
-            icon={Sparkles}
+            icon={SparklesIcon}
             data-icon="sparkles"
             size={INPUT_AREA_BUTTONS.iconSize}
             strokeWidth={2}

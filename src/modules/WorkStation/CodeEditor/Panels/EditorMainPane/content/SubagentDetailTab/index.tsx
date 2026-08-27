@@ -6,8 +6,8 @@
  * `NestedActivityList` (same renderer as the inline chat-in-chat view),
  * with the final result displayed as markdown.
  */
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Check from "@hugeicons/core-free-icons/Tick01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -61,7 +61,7 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
         icon: (
           <div className="flex h-5 w-5 items-center justify-center rounded-full bg-green-600/80">
             <HugeiconsIcon
-              icon={Check}
+              icon={Tick01Icon}
               data-icon="check"
               size={12}
               strokeWidth={3}
@@ -122,7 +122,7 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
           <div className="mb-6">
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-text-3">
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={12}
               />
@@ -139,7 +139,7 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
           <div className="mb-6">
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-text-3">
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={12}
               />
@@ -159,7 +159,7 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
           <div className="mb-6">
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-danger-5">
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={12}
               />
@@ -176,7 +176,7 @@ const SubagentDetailTab: React.FC<SubagentDetailTabProps> = memo(({ data }) => {
           <div>
             <div className="mb-2 flex items-center gap-1.5 text-[12px] font-medium text-text-3">
               <HugeiconsIcon
-                icon={ChevronRight}
+                icon={ArrowRight01Icon}
                 data-icon="chevron-right"
                 size={12}
               />

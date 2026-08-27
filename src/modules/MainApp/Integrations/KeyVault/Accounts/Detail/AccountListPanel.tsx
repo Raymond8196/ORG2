@@ -9,9 +9,9 @@
  * - Add Account button
  */
 import Button from "@/src/components/Button";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -63,7 +63,11 @@ const AccountListPanel: React.FC<AccountListPanelProps> = ({
             onClick={onBack}
             className="flex items-center justify-center rounded-md p-1 text-text-2 transition-colors hover:bg-fill-2 hover:text-text-1"
           >
-            <HugeiconsIcon icon={ArrowLeft} data-icon="arrow-left" size={16} />
+            <HugeiconsIcon
+              icon={ArrowLeft02Icon}
+              data-icon="arrow-left"
+              size={16}
+            />
           </button>
           <span className="text-[13px] font-medium text-text-1">
             {title ?? t("modelsTabs.myAccounts")}
@@ -76,7 +80,7 @@ const AccountListPanel: React.FC<AccountListPanelProps> = ({
         <Input
           prefix={
             <HugeiconsIcon
-              icon={Search}
+              icon={Search01Icon}
               data-icon="search"
               size={14}
               strokeWidth={1.75}
@@ -118,7 +122,7 @@ const AccountListPanel: React.FC<AccountListPanelProps> = ({
         <Button
           variant="primary"
           size="large"
-          icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={16} />}
+          icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={16} />}
           long
           onClick={onAddAccount}
           data-testid="key-vault-add-account-button"

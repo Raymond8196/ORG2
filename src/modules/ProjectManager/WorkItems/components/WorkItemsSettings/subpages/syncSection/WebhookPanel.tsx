@@ -16,8 +16,8 @@
  * modal closes — the Rust `webhookStatus` command is intentionally
  * write-only for secret material.
  */
-import Copy from "@hugeicons/core-free-icons/Copy01Icon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -229,7 +229,9 @@ const WebhookPanel: React.FC<WebhookPanelProps> = ({ slug, adapter }) => {
               </code>
               <Button
                 size="mini"
-                icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
+                icon={
+                  <HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={12} />
+                }
                 onClick={copyUrlPath}
               >
                 {t("settings.sync.webhook.copyUrl")}
@@ -241,7 +243,7 @@ const WebhookPanel: React.FC<WebhookPanelProps> = ({ slug, adapter }) => {
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={RefreshCw}
+                  icon={Refresh04Icon}
                   data-icon="refresh-cw"
                   size={14}
                 />
@@ -299,7 +301,7 @@ const InstallInfoModal: React.FC<InstallInfoModalProps> = ({
       <div className="flex items-center gap-2">
         <Button
           size="mini"
-          icon={<HugeiconsIcon icon={Copy} data-icon="copy" size={12} />}
+          icon={<HugeiconsIcon icon={Copy01Icon} data-icon="copy" size={12} />}
           onClick={onCopySecret}
         >
           {t("settings.sync.webhook.copySecret")}

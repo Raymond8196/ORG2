@@ -4,7 +4,7 @@
  * Status bar for Project Manager, styled to match EditorStatusBar.
  * Right: work item count, member count, sync status.
  */
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
+import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -61,7 +61,7 @@ const ProjectStatusBar: React.FC<ProjectStatusBarProps> = memo(
           {activeMemberCount != null && (
             <StatusBarSegment>
               <HugeiconsIcon
-                icon={Users}
+                icon={UserMultipleIcon}
                 data-icon="users"
                 size={12}
                 className="text-text-1"

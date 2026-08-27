@@ -7,13 +7,13 @@
  * - Usage locations
  * - "Find Component" button when index lookup fails
  */
-import ChevronDown from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ChevronRight from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import FileCode from "@hugeicons/core-free-icons/FileScriptIcon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import Loader2 from "@hugeicons/core-free-icons/Loading03Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import SquareArrowOutUpRight from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
+import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
+import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
+import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
+import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
+import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
+import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -186,7 +186,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
             >
               <div className="flex items-center gap-1.5 rounded px-3 py-1.5 text-[11px]">
                 <HugeiconsIcon
-                  icon={Layers}
+                  icon={Layers01Icon}
                   data-icon="layers"
                   size={12}
                   className="shrink-0 text-primary-6"
@@ -202,7 +202,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
           {isLoading && (
             <span className="mb-3 flex items-center gap-2 text-[11px] text-text-3">
               <HugeiconsIcon
-                icon={Loader2}
+                icon={Loading03Icon}
                 data-icon="loader-2"
                 size={SPINNER_TOKENS.small}
                 className="animate-spin"
@@ -223,7 +223,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                 onClick={() => handleOpenFile(definition.path, definition.line)}
               >
                 <HugeiconsIcon
-                  icon={FileCode}
+                  icon={FileScriptIcon}
                   data-icon="file-code"
                   size={14}
                   className="mt-0.5 shrink-0 text-success-6"
@@ -243,7 +243,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                   </div>
                 </div>
                 <HugeiconsIcon
-                  icon={SquareArrowOutUpRight}
+                  icon={SquareArrowUpRightIcon}
                   data-icon="square-arrow-out-up-right"
                   size={10}
                   className="mt-1 shrink-0 text-text-3"
@@ -267,13 +267,13 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                   >
                     {showAllUsages ? (
                       <HugeiconsIcon
-                        icon={ChevronDown}
+                        icon={ArrowDown01Icon}
                         data-icon="chevron-down"
                         size={12}
                       />
                     ) : (
                       <HugeiconsIcon
-                        icon={ChevronRight}
+                        icon={ArrowRight01Icon}
                         data-icon="chevron-right"
                         size={12}
                       />
@@ -291,7 +291,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                       onClick={() => handleOpenFile(usage.path, usage.line)}
                     >
                       <HugeiconsIcon
-                        icon={FileCode}
+                        icon={FileScriptIcon}
                         data-icon="file-code"
                         size={14}
                         className="mt-0.5 shrink-0 text-warning-6"
@@ -311,7 +311,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                         </div>
                       </div>
                       <HugeiconsIcon
-                        icon={SquareArrowOutUpRight}
+                        icon={SquareArrowUpRightIcon}
                         data-icon="square-arrow-out-up-right"
                         size={10}
                         className="mt-1 shrink-0 text-text-3"
@@ -344,7 +344,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                       size="small"
                       icon={
                         <HugeiconsIcon
-                          icon={Search}
+                          icon={Search01Icon}
                           data-icon="search"
                           size={12}
                           className={isSearching ? "animate-pulse" : ""}
@@ -378,7 +378,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                           className="justify-start border-t border-border-1 px-3 py-1.5 text-left"
                         >
                           <HugeiconsIcon
-                            icon={FileCode}
+                            icon={FileScriptIcon}
                             data-icon="file-code"
                             size={12}
                             className="shrink-0 text-warning-6"
@@ -397,7 +397,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                             </div>
                           </div>
                           <HugeiconsIcon
-                            icon={SquareArrowOutUpRight}
+                            icon={SquareArrowUpRightIcon}
                             data-icon="square-arrow-out-up-right"
                             size={10}
                             className="shrink-0 text-text-3"

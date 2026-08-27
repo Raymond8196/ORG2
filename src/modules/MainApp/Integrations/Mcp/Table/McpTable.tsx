@@ -1,8 +1,8 @@
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
-import MoreHorizontal from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import Power from "@hugeicons/core-free-icons/PowerServiceIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
+import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
+import PowerServiceIcon from "@hugeicons/core-free-icons/PowerServiceIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -394,7 +394,7 @@ export const McpTable: React.FC<McpTableProps> = ({
                   size="small"
                   icon={
                     <HugeiconsIcon
-                      icon={Trash2}
+                      icon={Delete02Icon}
                       data-icon="trash-2"
                       size={14}
                       className="text-danger-6"
@@ -423,7 +423,7 @@ export const McpTable: React.FC<McpTableProps> = ({
                       >
                         <span className="inline-flex items-center gap-2">
                           <HugeiconsIcon
-                            icon={RefreshCw}
+                            icon={Refresh04Icon}
                             data-icon="refresh-cw"
                             size={12}
                           />
@@ -438,7 +438,7 @@ export const McpTable: React.FC<McpTableProps> = ({
                     aria-label={t("common:actions.more")}
                   >
                     <HugeiconsIcon
-                      icon={MoreHorizontal}
+                      icon={MoreHorizontalIcon}
                       data-icon="ellipsis"
                       size={14}
                     />
@@ -470,7 +470,7 @@ export const McpTable: React.FC<McpTableProps> = ({
     <Button
       variant="secondary"
       size="default"
-      icon={<HugeiconsIcon icon={Plus} data-icon="plus" size={14} />}
+      icon={<HugeiconsIcon icon={Add01Icon} data-icon="plus" size={14} />}
       onClick={() =>
         onAdd(activeScopeTab === "workspace" ? "workspace" : "global")
       }
@@ -504,7 +504,7 @@ export const McpTable: React.FC<McpTableProps> = ({
             variant="tertiary"
             icon={
               <HugeiconsIcon
-                icon={RefreshCw}
+                icon={Refresh04Icon}
                 data-icon="refresh-cw"
                 size={12}
               />
@@ -519,7 +519,13 @@ export const McpTable: React.FC<McpTableProps> = ({
             <Button
               size="small"
               variant="tertiary"
-              icon={<HugeiconsIcon icon={Power} data-icon="power" size={12} />}
+              icon={
+                <HugeiconsIcon
+                  icon={PowerServiceIcon}
+                  data-icon="power"
+                  size={12}
+                />
+              }
               onClick={handleBulkEnable}
             >
               {t("mcp.bulkEnable")}
@@ -527,7 +533,13 @@ export const McpTable: React.FC<McpTableProps> = ({
             <Button
               size="small"
               variant="tertiary"
-              icon={<HugeiconsIcon icon={Power} data-icon="power" size={12} />}
+              icon={
+                <HugeiconsIcon
+                  icon={PowerServiceIcon}
+                  data-icon="power"
+                  size={12}
+                />
+              }
               onClick={handleBulkDisable}
             >
               {t("mcp.bulkDisable")}

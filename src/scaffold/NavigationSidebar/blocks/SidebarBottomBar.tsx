@@ -8,9 +8,9 @@
  *
  * Right side hosts compact contextual actions and the update control.
  */
-import Circle from "@hugeicons/core-free-icons/CircleIcon";
-import HatGlasses from "@hugeicons/core-free-icons/HatGlassesIcon";
-import Moon from "@hugeicons/core-free-icons/MoonIcon";
+import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
+import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
+import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -52,9 +52,9 @@ interface SidebarBottomBarProps {
 }
 
 const PRESENCE_ICON: Record<BuiltInPresenceMode, IconSvgElement> = {
-  [USER_PRESENCE_MODE.ONLINE]: Circle,
-  [USER_PRESENCE_MODE.INVISIBLE]: HatGlasses,
-  [USER_PRESENCE_MODE.AWAY]: Moon,
+  [USER_PRESENCE_MODE.ONLINE]: CircleIcon,
+  [USER_PRESENCE_MODE.INVISIBLE]: HatGlassesIcon,
+  [USER_PRESENCE_MODE.AWAY]: MoonIcon,
 };
 
 const PRESENCE_COLOR: Record<BuiltInPresenceMode, string> = {
@@ -304,7 +304,7 @@ export const PresenceMenuButton: React.FC<PresenceMenuButtonProps> = ({
     ? PRESENCE_ICON[mode]
     : activeCustomRole
       ? resolveCustomRoleIcon(activeCustomRole.iconId)
-      : Circle;
+      : CircleIcon;
   const colorClass = isBuiltInPresenceMode(mode)
     ? PRESENCE_COLOR[mode]
     : CUSTOM_ROLE_COLOR_CLASS;

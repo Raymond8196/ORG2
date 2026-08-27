@@ -1,4 +1,4 @@
-import Funnel from "@hugeicons/core-free-icons/FunnelIcon";
+import FunnelIcon from "@hugeicons/core-free-icons/FunnelIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -29,7 +29,7 @@ export const SectionFilterInput: React.FC<SectionFilterInputProps> = ({
       <Input
         prefix={
           <HugeiconsIcon
-            icon={Funnel}
+            icon={FunnelIcon}
             data-icon="funnel"
             size={14}
             strokeWidth={1.75}
@@ -74,7 +74,7 @@ export function makeSectionFilterAction({
     key,
     icon: (
       <HugeiconsIcon
-        icon={Funnel}
+        icon={FunnelIcon}
         data-icon="funnel"
         size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
         strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}

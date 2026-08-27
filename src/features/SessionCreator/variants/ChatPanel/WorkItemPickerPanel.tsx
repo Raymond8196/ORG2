@@ -1,12 +1,12 @@
-import ArrowLeft from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosed from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraft from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import ListFilter from "@hugeicons/core-free-icons/ListFilterIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import RefreshCw from "@hugeicons/core-free-icons/Refresh04Icon";
+import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
+import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import ListFilterIcon from "@hugeicons/core-free-icons/ListFilterIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -80,7 +80,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
       label: t("common:actions.all"),
       icon: (
         <HugeiconsIcon
-          icon={ListFilter}
+          icon={ListFilterIcon}
           data-icon="list-filter"
           size={14}
           strokeWidth={1.8}
@@ -92,7 +92,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
       label: t("projects:workItems.label"),
       icon: (
         <HugeiconsIcon
-          icon={ListTodo}
+          icon={ListTodoIcon}
           data-icon="list-todo"
           size={14}
           strokeWidth={1.8}
@@ -104,7 +104,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
       label: t("sessions:kanban.sidebar.githubIssues"),
       icon: (
         <HugeiconsIcon
-          icon={CircleDot}
+          icon={CircleDotIcon}
           data-icon="circle-dot"
           size={14}
           strokeWidth={1.8}
@@ -116,7 +116,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
       label: t("sessions:kanban.sidebar.githubPrs"),
       icon: (
         <HugeiconsIcon
-          icon={GitPullRequest}
+          icon={GitPullRequestIcon}
           data-icon="git-pull-request"
           size={14}
           strokeWidth={1.8}
@@ -138,7 +138,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
             size="small"
             icon={
               <HugeiconsIcon
-                icon={ArrowLeft}
+                icon={ArrowLeft02Icon}
                 data-icon="arrow-left"
                 size={14}
                 strokeWidth={1.8}
@@ -166,7 +166,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
           size="small"
           icon={
             <HugeiconsIcon
-              icon={RefreshCw}
+              icon={Refresh04Icon}
               data-icon="refresh-cw"
               size={14}
               strokeWidth={1.8}
@@ -231,15 +231,15 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
             const Icon =
               option.kind === "github_pr"
                 ? prIconName === "draft"
-                  ? GitPullRequestDraft
+                  ? GitPullRequestDraftIcon
                   : prIconName === "merge"
-                    ? GitMerge
+                    ? GitMergeIcon
                     : prIconName === "closed"
-                      ? GitPullRequestClosed
-                      : GitPullRequest
+                      ? GitPullRequestClosedIcon
+                      : GitPullRequestIcon
                 : option.kind === "workitem"
-                  ? ListTodo
-                  : CircleDot;
+                  ? ListTodoIcon
+                  : CircleDotIcon;
             const iconColorClass =
               option.kind === "github_pr"
                 ? getPrStatusVariant(prStatus).textClass

@@ -1,4 +1,4 @@
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
@@ -255,7 +255,9 @@ const GuideHighlightOverlay: React.FC = () => {
                 size="mini"
                 variant="tertiary"
                 appearance="ghost"
-                icon={<HugeiconsIcon icon={X} data-icon="x" size={14} />}
+                icon={
+                  <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
+                }
                 aria-label="Dismiss guide highlight"
                 onClick={clearHighlight}
               />

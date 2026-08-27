@@ -3,11 +3,11 @@
  * (and its icons) load lazily on the first toast instead of sitting in
  * the startup graph of every module that imports the `Message` API.
  */
-import AlertTriangle from "@hugeicons/core-free-icons/Alert01Icon";
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import X from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
+import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
+import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
+import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { FC } from "react";
@@ -27,11 +27,11 @@ import {
 // Config
 // ============================================
 
-const ICONS: Record<MessageType, typeof CheckCircle2> = {
-  success: CheckCircle2,
-  error: AlertCircle,
-  warning: AlertTriangle,
-  info: Info,
+const ICONS: Record<MessageType, typeof CheckmarkCircle01Icon> = {
+  success: CheckmarkCircle01Icon,
+  error: AlertCircleIcon,
+  warning: Alert01Icon,
+  info: InformationCircleIcon,
 };
 
 const TYPE_STYLES: Record<MessageType, { border: string; icon: string }> = {
@@ -208,7 +208,7 @@ const MessageItem = ({
           onClick={handleClose}
           aria-label={t("actions.close")}
         >
-          <HugeiconsIcon icon={X} data-icon="x" size={14} />
+          <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
         </button>
       )}
     </motion.div>

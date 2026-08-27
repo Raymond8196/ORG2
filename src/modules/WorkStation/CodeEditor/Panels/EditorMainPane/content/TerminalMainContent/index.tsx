@@ -5,7 +5,7 @@ import {
   type UseTerminalStateReturn,
   getTerminalDisplayTitle,
 } from "@/src/engines/TerminalCore/types";
-import Trash2 from "@hugeicons/core-free-icons/Delete02Icon";
+import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { Suspense, memo, useCallback, useEffect, useMemo } from "react";
@@ -154,7 +154,13 @@ const TerminalMainContent: React.FC<TerminalMainContentProps> = ({
             iconOnly
             title={t("tooltips.killTerminal")}
             onClick={handleKillTerminal}
-            icon={<HugeiconsIcon icon={Trash2} data-icon="trash-2" size={14} />}
+            icon={
+              <HugeiconsIcon
+                icon={Delete02Icon}
+                data-icon="trash-2"
+                size={14}
+              />
+            }
           />
           {!isAgentTerminal && (
             <TerminalInfoButton

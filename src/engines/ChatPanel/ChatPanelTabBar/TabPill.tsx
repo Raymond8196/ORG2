@@ -7,21 +7,21 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import Gauge from "@hugeicons/core-free-icons/GaugeIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Hash from "@hugeicons/core-free-icons/HashtagIcon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import Info from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Columns3 from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import MessageSquarePlus from "@hugeicons/core-free-icons/MessageAdd01Icon";
-import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
-import TerminalSquare from "@hugeicons/core-free-icons/SquareTerminalIcon";
+import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
+import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
+import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
+import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
+import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
+import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
+import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import MessageAdd01Icon from "@hugeicons/core-free-icons/MessageAdd01Icon";
+import Settings02Icon from "@hugeicons/core-free-icons/Settings02Icon";
+import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
@@ -156,7 +156,7 @@ export const TabPill = memo(function TabPill({
   if (tab.type === "terminal") {
     icon = (
       <HugeiconsIcon
-        icon={TerminalSquare}
+        icon={SquareTerminalIcon}
         data-icon="terminal-square"
         size={16}
         strokeWidth={1.75}
@@ -167,7 +167,7 @@ export const TabPill = memo(function TabPill({
     if (createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT) {
       icon = (
         <HugeiconsIcon
-          icon={Box}
+          icon={BoxIcon}
           data-icon="box"
           size={16}
           strokeWidth={1.75}
@@ -177,7 +177,7 @@ export const TabPill = memo(function TabPill({
     } else if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
       icon = (
         <HugeiconsIcon
-          icon={ListChecks}
+          icon={ListChecksIcon}
           data-icon="list-checks"
           size={16}
           strokeWidth={1.75}
@@ -197,7 +197,7 @@ export const TabPill = memo(function TabPill({
     } else {
       icon = (
         <HugeiconsIcon
-          icon={LayoutGrid}
+          icon={DashboardSquare01Icon}
           data-icon="layout-grid"
           size={16}
           strokeWidth={1.75}
@@ -208,7 +208,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "runtime") {
     icon = (
       <HugeiconsIcon
-        icon={Gauge}
+        icon={GaugeIcon}
         data-icon="gauge"
         size={16}
         strokeWidth={1.75}
@@ -218,7 +218,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "team-inbox") {
     icon = (
       <HugeiconsIcon
-        icon={Inbox}
+        icon={InboxIcon}
         data-icon="inbox"
         size={16}
         strokeWidth={1.75}
@@ -229,8 +229,8 @@ export const TabPill = memo(function TabPill({
     // Private cloud channels carry the same lock the sidebar row uses.
     const ChannelIcon =
       tab.channel?.scope === "cloud" && tab.channel.visibility === "private"
-        ? Lock
-        : Hash;
+        ? LockIcon
+        : HashtagIcon;
     icon = (
       <AnyIcon
         icon={ChannelIcon}
@@ -242,7 +242,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "workspace") {
     icon = (
       <HugeiconsIcon
-        icon={Info}
+        icon={InformationCircleIcon}
         data-icon="info"
         size={16}
         strokeWidth={1.75}
@@ -252,7 +252,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "organization") {
     icon = (
       <HugeiconsIcon
-        icon={Settings2}
+        icon={Settings02Icon}
         data-icon="settings-2"
         size={16}
         strokeWidth={1.75}
@@ -262,8 +262,8 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "work-management") {
     const WorkManagementIcon =
       tab.managementSection === WORK_MANAGEMENT_SECTION.KANBAN
-        ? Columns3
-        : ListTodo;
+        ? LayoutThreeColumnIcon
+        : ListTodoIcon;
     icon = React.createElement(HugeiconsIcon, {
       icon: WorkManagementIcon,
       size: 16,
@@ -273,7 +273,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "github-issue") {
     icon = (
       <HugeiconsIcon
-        icon={CircleDot}
+        icon={CircleDotIcon}
         data-icon="circle-dot"
         size={16}
         strokeWidth={1.75}
@@ -283,7 +283,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "github-pr") {
     icon = (
       <HugeiconsIcon
-        icon={GitPullRequest}
+        icon={GitPullRequestIcon}
         data-icon="git-pull-request"
         size={16}
         strokeWidth={1.75}
@@ -312,7 +312,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "project") {
     icon = (
       <HugeiconsIcon
-        icon={Box}
+        icon={BoxIcon}
         data-icon="box"
         size={16}
         strokeWidth={1.75}
@@ -322,7 +322,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "work-item") {
     icon = (
       <HugeiconsIcon
-        icon={ListChecks}
+        icon={ListChecksIcon}
         data-icon="list-checks"
         size={16}
         strokeWidth={1.75}
@@ -340,7 +340,7 @@ export const TabPill = memo(function TabPill({
   } else {
     icon = (
       <HugeiconsIcon
-        icon={MessageSquarePlus}
+        icon={MessageAdd01Icon}
         data-icon="message-square-plus"
         size={16}
         strokeWidth={1.75}

@@ -1,35 +1,35 @@
-import Activity from "@hugeicons/core-free-icons/Activity01Icon";
-import ArchiveRestore from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import Archive from "@hugeicons/core-free-icons/ArchiveIcon";
-import ArrowRightLeft from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import CopyCheck from "@hugeicons/core-free-icons/Copy02Icon";
-import CopyX from "@hugeicons/core-free-icons/CopyXIcon";
-import Flag from "@hugeicons/core-free-icons/Flag01Icon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import GitCompareArrows from "@hugeicons/core-free-icons/GitCompareIcon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import SquareKanban from "@hugeicons/core-free-icons/KanbanIcon";
-import Link2 from "@hugeicons/core-free-icons/Link02Icon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import MessagesSquare from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import Bell from "@hugeicons/core-free-icons/Notification01Icon";
-import BellOff from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import Pencil from "@hugeicons/core-free-icons/Pen01Icon";
-import Pin from "@hugeicons/core-free-icons/PinIcon";
-import PinOff from "@hugeicons/core-free-icons/PinOffIcon";
-import Rocket from "@hugeicons/core-free-icons/RocketIcon";
-import ShieldBan from "@hugeicons/core-free-icons/SecurityBlockIcon";
-import Unlock from "@hugeicons/core-free-icons/SquareUnlock01Icon";
-import TagIcon from "@hugeicons/core-free-icons/Tag01Icon";
-import Unlink2 from "@hugeicons/core-free-icons/Unlink02Icon";
-import UserPlus from "@hugeicons/core-free-icons/UserAdd01Icon";
-import UserMinus from "@hugeicons/core-free-icons/UserMinus01Icon";
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import Activity01Icon from "@hugeicons/core-free-icons/Activity01Icon";
+import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
+import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
+import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
+import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
+import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
+import Copy02Icon from "@hugeicons/core-free-icons/Copy02Icon";
+import CopyXIcon from "@hugeicons/core-free-icons/CopyXIcon";
+import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
+import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
+import GitCompareIcon from "@hugeicons/core-free-icons/GitCompareIcon";
+import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
+import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
+import KanbanIcon from "@hugeicons/core-free-icons/KanbanIcon";
+import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
+import LockIcon from "@hugeicons/core-free-icons/LockIcon";
+import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
+import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+import Notification01Icon from "@hugeicons/core-free-icons/Notification01Icon";
+import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
+import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
+import PinIcon from "@hugeicons/core-free-icons/PinIcon";
+import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
+import RocketIcon from "@hugeicons/core-free-icons/RocketIcon";
+import SecurityBlockIcon from "@hugeicons/core-free-icons/SecurityBlockIcon";
+import SquareUnlock01Icon from "@hugeicons/core-free-icons/SquareUnlock01Icon";
+import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
+import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
+import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
+import UserMinus01Icon from "@hugeicons/core-free-icons/UserMinus01Icon";
+import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
+import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -105,7 +105,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "assigned":
       return (
         <HugeiconsIcon
-          icon={UserPlus}
+          icon={UserAdd01Icon}
           data-icon="user-plus"
           {...EVENT_ICON_PROPS}
         />
@@ -113,7 +113,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "unassigned":
       return (
         <HugeiconsIcon
-          icon={UserMinus}
+          icon={UserMinus01Icon}
           data-icon="user-minus"
           {...EVENT_ICON_PROPS}
         />
@@ -122,7 +122,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "unlabeled":
       return (
         <HugeiconsIcon
-          icon={TagIcon}
+          icon={Tag01Icon}
           data-icon="tag-icon"
           {...EVENT_ICON_PROPS}
         />
@@ -130,12 +130,16 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "milestoned":
     case "demilestoned":
       return (
-        <HugeiconsIcon icon={Flag} data-icon="flag" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon
+          icon={Flag01Icon}
+          data-icon="flag"
+          {...EVENT_ICON_PROPS}
+        />
       );
     case "closed":
       return (
         <HugeiconsIcon
-          icon={CheckCircle2}
+          icon={CheckmarkCircle01Icon}
           data-icon="check-circle-2"
           {...EVENT_ICON_PROPS}
         />
@@ -143,27 +147,35 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "reopened":
       return (
         <HugeiconsIcon
-          icon={CircleDot}
+          icon={CircleDotIcon}
           data-icon="circle-dot"
           {...EVENT_ICON_PROPS}
         />
       );
     case "renamed":
       return (
-        <HugeiconsIcon icon={Pencil} data-icon="pencil" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon
+          icon={Pen01Icon}
+          data-icon="pencil"
+          {...EVENT_ICON_PROPS}
+        />
       );
     case "locked":
       return (
-        <HugeiconsIcon icon={Lock} data-icon="lock" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon icon={LockIcon} data-icon="lock" {...EVENT_ICON_PROPS} />
       );
     case "unlocked":
       return (
-        <HugeiconsIcon icon={Unlock} data-icon="unlock" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon
+          icon={SquareUnlock01Icon}
+          data-icon="unlock"
+          {...EVENT_ICON_PROPS}
+        />
       );
     case "cross-referenced":
       return (
         <HugeiconsIcon
-          icon={GitPullRequest}
+          icon={GitPullRequestIcon}
           data-icon="git-pull-request"
           {...EVENT_ICON_PROPS}
         />
@@ -171,29 +183,35 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "referenced":
       return (
         <HugeiconsIcon
-          icon={GitCommitHorizontal}
+          icon={GitCommitHorizontalIcon}
           data-icon="git-commit-horizontal"
           {...EVENT_ICON_PROPS}
         />
       );
     case "connected":
       return (
-        <HugeiconsIcon icon={Link2} data-icon="link-2" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon
+          icon={Link02Icon}
+          data-icon="link-2"
+          {...EVENT_ICON_PROPS}
+        />
       );
     case "disconnected":
       return (
         <HugeiconsIcon
-          icon={Unlink2}
+          icon={Unlink02Icon}
           data-icon="unlink-2"
           {...EVENT_ICON_PROPS}
         />
       );
     case "pinned":
-      return <HugeiconsIcon icon={Pin} data-icon="pin" {...EVENT_ICON_PROPS} />;
+      return (
+        <HugeiconsIcon icon={PinIcon} data-icon="pin" {...EVENT_ICON_PROPS} />
+      );
     case "unpinned":
       return (
         <HugeiconsIcon
-          icon={PinOff}
+          icon={PinOffIcon}
           data-icon="pin-off"
           {...EVENT_ICON_PROPS}
         />
@@ -203,7 +221,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "comment_deleted":
       return (
         <HugeiconsIcon
-          icon={MessageSquare}
+          icon={Message01Icon}
           data-icon="message-square"
           {...EVENT_ICON_PROPS}
         />
@@ -211,19 +229,23 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "marked_as_duplicate":
       return (
         <HugeiconsIcon
-          icon={CopyCheck}
+          icon={Copy02Icon}
           data-icon="copy-check"
           {...EVENT_ICON_PROPS}
         />
       );
     case "unmarked_as_duplicate":
       return (
-        <HugeiconsIcon icon={CopyX} data-icon="copy-x" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon
+          icon={CopyXIcon}
+          data-icon="copy-x"
+          {...EVENT_ICON_PROPS}
+        />
       );
     case "transferred":
       return (
         <HugeiconsIcon
-          icon={ArrowRightLeft}
+          icon={ArrowLeftRightIcon}
           data-icon="arrow-right-left"
           {...EVENT_ICON_PROPS}
         />
@@ -231,19 +253,23 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "converted_to_discussion":
       return (
         <HugeiconsIcon
-          icon={MessagesSquare}
+          icon={MessageMultiple01Icon}
           data-icon="messages-square"
           {...EVENT_ICON_PROPS}
         />
       );
     case "subscribed":
       return (
-        <HugeiconsIcon icon={Bell} data-icon="bell" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon
+          icon={Notification01Icon}
+          data-icon="bell"
+          {...EVENT_ICON_PROPS}
+        />
       );
     case "unsubscribed":
       return (
         <HugeiconsIcon
-          icon={BellOff}
+          icon={NotificationOff01Icon}
           data-icon="bell-off"
           {...EVENT_ICON_PROPS}
         />
@@ -253,7 +279,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "removed_from_project":
       return (
         <HugeiconsIcon
-          icon={SquareKanban}
+          icon={KanbanIcon}
           data-icon="square-kanban"
           {...EVENT_ICON_PROPS}
         />
@@ -261,7 +287,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "archived":
       return (
         <HugeiconsIcon
-          icon={Archive}
+          icon={ArchiveIcon}
           data-icon="archive"
           {...EVENT_ICON_PROPS}
         />
@@ -269,7 +295,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "unarchived":
       return (
         <HugeiconsIcon
-          icon={ArchiveRestore}
+          icon={ArchiveArrowUpIcon}
           data-icon="archive-restore"
           {...EVENT_ICON_PROPS}
         />
@@ -277,7 +303,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "merged":
       return (
         <HugeiconsIcon
-          icon={GitMerge}
+          icon={GitMergeIcon}
           data-icon="git-merge"
           {...EVENT_ICON_PROPS}
         />
@@ -285,7 +311,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "committed":
       return (
         <HugeiconsIcon
-          icon={GitCommitHorizontal}
+          icon={GitCommitHorizontalIcon}
           data-icon="git-commit-horizontal"
           {...EVENT_ICON_PROPS}
         />
@@ -295,7 +321,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "head_ref_force_pushed":
       return (
         <HugeiconsIcon
-          icon={GitBranch}
+          icon={WorkflowCircle05Icon}
           data-icon="git-branch"
           {...EVENT_ICON_PROPS}
         />
@@ -305,7 +331,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "automatic_base_change_succeeded":
       return (
         <HugeiconsIcon
-          icon={GitCompareArrows}
+          icon={GitCompareIcon}
           data-icon="git-compare-arrows"
           {...EVENT_ICON_PROPS}
         />
@@ -313,18 +339,24 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     case "deployed":
     case "deployment_environment_changed":
       return (
-        <HugeiconsIcon icon={Rocket} data-icon="rocket" {...EVENT_ICON_PROPS} />
+        <HugeiconsIcon
+          icon={RocketIcon}
+          data-icon="rocket"
+          {...EVENT_ICON_PROPS}
+        />
       );
     case "ready_for_review":
     case "review_requested":
     case "review_request_removed":
     case "reviewed":
     case "review_dismissed":
-      return <HugeiconsIcon icon={Eye} data-icon="eye" {...EVENT_ICON_PROPS} />;
+      return (
+        <HugeiconsIcon icon={ViewIcon} data-icon="eye" {...EVENT_ICON_PROPS} />
+      );
     case "user_blocked":
       return (
         <HugeiconsIcon
-          icon={ShieldBan}
+          icon={SecurityBlockIcon}
           data-icon="shield-ban"
           {...EVENT_ICON_PROPS}
         />
@@ -332,7 +364,7 @@ function TimelineEventIcon({ event }: { event: string }): React.ReactNode {
     default:
       return (
         <HugeiconsIcon
-          icon={Activity}
+          icon={Activity01Icon}
           data-icon="activity"
           {...EVENT_ICON_PROPS}
         />
@@ -361,7 +393,7 @@ function CrossReferenceLink({
     >
       {source.is_pull_request ? (
         <HugeiconsIcon
-          icon={GitPullRequest}
+          icon={GitPullRequestIcon}
           data-icon="git-pull-request"
           size={12}
           strokeWidth={1.8}
@@ -369,7 +401,7 @@ function CrossReferenceLink({
         />
       ) : (
         <HugeiconsIcon
-          icon={CircleDot}
+          icon={CircleDotIcon}
           data-icon="circle-dot"
           size={12}
           strokeWidth={1.8}
