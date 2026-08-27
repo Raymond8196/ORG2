@@ -3,11 +3,10 @@
  *
  * Search input component for sidebars with optional action buttons.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Input from "@src/components/Input";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 
 import { SIDEBAR_STYLE } from "../config";
 import type { SidebarSearchProps } from "../types";

@@ -1,6 +1,3 @@
-import Calendar02Icon from "@hugeicons/core-free-icons/Calendar02Icon";
-import CalendarRemove01Icon from "@hugeicons/core-free-icons/CalendarRemove01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { createPortal } from "react-dom";
 
@@ -16,6 +13,11 @@ import {
   SearchableDropdown,
 } from "@src/components/PropertyField/PropertyFieldEditable";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
+import {
+  Calendar02Icon,
+  CalendarRemove01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   formatLocalMonthDay,
   isSameLocalDay,

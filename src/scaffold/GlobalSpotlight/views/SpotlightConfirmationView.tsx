@@ -4,9 +4,10 @@
  * Renders the confirmation page for actions without modals
  * Separated from main component for better maintainability
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
+
+import type { IconSvgElement } from "@src/icons";
 
 import type { UseConfirmationPageReturn } from "../hooks/core/types";
 

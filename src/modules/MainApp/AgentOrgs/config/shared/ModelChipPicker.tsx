@@ -5,8 +5,6 @@
  * add or remove chips but cannot type unregistered model IDs. Used for
  * Reliability Fallback Models in the SDE Agent config.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +16,7 @@ import {
   useAgentCompatibility,
   useModelAccountLookup,
 } from "@src/hooks/models";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import { formatModelNameFull } from "@src/util/formatModelName";
 
 interface ModelChipPickerProps {

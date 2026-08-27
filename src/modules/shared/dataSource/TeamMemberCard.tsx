@@ -3,8 +3,6 @@
  * live machine load, today / 7d usage headline, installed-agent icons, and a
  * staleness line. The whole card opens the member drilldown.
  */
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +13,7 @@ import type {
   MemberRuntimeListEntry,
   OrgRuntimeTelemetry,
 } from "@src/features/Org2Cloud/memberRuntime/types";
+import { ComputerTerminal01Icon, HugeiconsIcon } from "@src/icons";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import BuilderTypeAvatar from "./BuilderTypeAvatar";

@@ -3,11 +3,9 @@
  *
  * Displays staged files with unstage and diff actions
  */
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import { FileDiffIcon, HugeiconsIcon, MinusSignIcon } from "@src/icons";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
 import type { GitFile } from "@src/types/git/types";
 

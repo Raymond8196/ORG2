@@ -22,14 +22,11 @@
  * <Input errorMessage="Name already exists" errorPlacement="left" />
  * ```
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import ViewOffIcon from "@hugeicons/core-free-icons/ViewOffIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
 import type { FieldAppearance } from "@src/components/controlAppearance";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { Cancel01Icon, HugeiconsIcon, ViewIcon, ViewOffIcon } from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import "./index.scss";

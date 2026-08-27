@@ -59,7 +59,7 @@ export interface SessionPrefixConfig {
   category: DispatchCategory;
   /** Agent variant for Rust-native agents; undefined for non-agent sessions */
   variant?: RustAgentType;
-  /** Lucide icon slug for UI display */
+  /** Icon slug (lucide-era vocabulary) for UI display */
   iconId: string;
   /** Agent definition ID for built-in agents (e.g., "builtin:os") */
   defId?: string;
@@ -382,7 +382,7 @@ export function composerIdFromSessionId(sessionId: string): string | null {
 }
 
 /**
- * Map a session ID to a Lucide icon slug based on its prefix.
+ * Map a session ID to an icon slug based on its prefix.
  * Pair with `resolveAgentIcon()` from `@src/config/agentIcons` to get the component.
  *
  * Uses the prefix registry — no need to edit this function when adding new agents.

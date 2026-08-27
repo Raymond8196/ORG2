@@ -7,10 +7,9 @@
  * - ComponentIssuePayloadView: full payload detail view
  * - ComponentIssueSuggestions: component suggestions list / empty state / legend
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import { Copy01Icon, HugeiconsIcon } from "@src/icons";
 import { getConfidenceLabel } from "@src/util/config/componentMapping";
 import type { ComponentIssuePayload } from "@src/util/core/error/componentIssueTracker/";
 

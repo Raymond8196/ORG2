@@ -1,5 +1,3 @@
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 
@@ -9,6 +7,7 @@ import SettingsTable, {
   SETTINGS_TABLE_COL,
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
+import { HugeiconsIcon, ViewIcon } from "@src/icons";
 import type { HubSkillResult } from "@src/types/extensions";
 
 interface FindSkillsResultsProps {

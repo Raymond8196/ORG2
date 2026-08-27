@@ -14,10 +14,6 @@
  * </SidebarBase>
  * ```
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import i18next from "i18next";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
@@ -33,6 +29,12 @@ import {
 import { createLogger } from "@src/hooks/logger";
 import { useSettingValue } from "@src/hooks/settings/useSettings";
 import { useSidebarState } from "@src/hooks/ui/sidebar/useSidebarState";
+import {
+  Add01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  PanelLeftIcon,
+} from "@src/icons";
 import {
   PANE_WIDTH_TRANSITION_CLASSES,
   getSidebarSurfaceBackgroundStyle,

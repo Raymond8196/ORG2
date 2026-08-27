@@ -1,9 +1,6 @@
 /**
  * DevPassport Book Component
  */
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FingerPrintIcon from "@hugeicons/core-free-icons/FingerPrintIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 
 // File type icons for passport watermark
@@ -12,6 +9,7 @@ import PythonIcon from "@src/assets/fileTypeIcons/python.svg";
 import ReactIcon from "@src/assets/fileTypeIcons/react.svg";
 import RustIcon from "@src/assets/fileTypeIcons/rust.svg";
 import TsIcon from "@src/assets/fileTypeIcons/typescript.svg";
+import { CodeIcon, FingerPrintIcon, HugeiconsIcon } from "@src/icons";
 
 import Stamp from "./Stamp";
 import type { PageContent, StampData, UserProfile } from "./types";

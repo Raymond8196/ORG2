@@ -1,7 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +13,12 @@ import {
   type TerminalSession,
   getTerminalDisplayTitle,
 } from "@src/engines/TerminalCore/types";
+import {
+  Infinity01Icon,
+  Cancel01Icon,
+  ComputerTerminal01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { shellProcessMapAtom } from "@src/store/session/shellProcessAtom";
 
 interface AgentSessionRowProps {

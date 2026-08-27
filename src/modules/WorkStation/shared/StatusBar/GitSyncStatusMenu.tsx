@@ -1,14 +1,3 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowDownToLineIcon from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import ArrowUpFromLineIcon from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
-import CloudDownloadIcon from "@hugeicons/core-free-icons/CloudDownloadIcon";
-import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
-import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
-import GitCompareIcon from "@hugeicons/core-free-icons/GitCompareIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -21,6 +10,20 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import {
+  ArrowDown01Icon,
+  ArrowDown02Icon,
+  ArrowDownToLineIcon,
+  ArrowUp02Icon,
+  ArrowUpFromLineIcon,
+  CloudDownloadIcon,
+  CloudUploadIcon,
+  EllipsisIcon,
+  GitCompareIcon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Refresh04Icon,
+} from "@src/icons";
 import { classNames } from "@src/util/ui/classNames";
 
 import { StatusBarButton, StatusBarLabel } from "./StatusBarBase";

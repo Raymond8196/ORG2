@@ -16,8 +16,6 @@
  * styling unified across products without forcing a single atom shape on
  * every consumer.
  */
-import LeftToRightListBulletIcon from "@hugeicons/core-free-icons/LeftToRightListBulletIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,6 +25,7 @@ import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip"
 import { PanelLeftIcon, PanelRightIcon } from "@src/components/PanelIcons";
 import type { TooltipProps } from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { HugeiconsIcon, LeftToRightListBulletIcon } from "@src/icons";
 import {
   simulatorPrimarySidebarCollapsedAtom,
   simulatorPrimarySidebarPositionAtom,

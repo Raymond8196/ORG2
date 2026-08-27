@@ -3,15 +3,17 @@
  *
  * Icons and constants for the outline view
  */
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
-import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
-import FunctionSquareIcon from "@hugeicons/core-free-icons/FunctionSquareIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import TypeIcon from "@hugeicons/core-free-icons/TypeIcon";
-import VariableIcon from "@hugeicons/core-free-icons/VariableIcon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  BoxIcon,
+  CodeIcon,
+  FileScriptIcon,
+  FirstBracketIcon,
+  FunctionSquareIcon,
+  HashtagIcon,
+  type IconSvgElement,
+  TypeIcon,
+  VariableIcon,
+} from "@src/icons";
 
 import type { SymbolKind } from "./types";
 

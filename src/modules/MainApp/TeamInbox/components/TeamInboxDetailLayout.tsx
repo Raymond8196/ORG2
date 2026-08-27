@@ -1,10 +1,13 @@
-import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
+import {
+  HugeiconsIcon,
+  type IconSvgElement,
+  Mail01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import {
   DETAIL_PANEL_TOKENS,
   DetailPanelContainer,

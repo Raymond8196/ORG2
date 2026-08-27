@@ -1,10 +1,7 @@
 /**
  * TimelineSection Configuration
  */
-import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
-import GitCommitIcon from "@hugeicons/core-free-icons/GitCommitIcon";
-import PinIcon from "@hugeicons/core-free-icons/PinIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
+import { DiffIcon, GitCommitIcon, PinIcon, Refresh04Icon } from "@src/icons";
 
 // Icon configuration
 export const TIMELINE_ICONS = {

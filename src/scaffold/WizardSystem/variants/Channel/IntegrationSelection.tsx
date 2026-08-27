@@ -1,5 +1,3 @@
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +5,7 @@ import Input from "@src/components/Input";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 import {
   COMING_SOON_CHANNEL_TYPES,
   LIVE_CHANNEL_TYPES,

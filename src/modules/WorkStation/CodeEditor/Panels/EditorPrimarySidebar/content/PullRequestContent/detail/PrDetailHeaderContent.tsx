@@ -1,10 +1,12 @@
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  GitMergeIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitPullRequestIcon,
+} from "@src/icons";
 import GitHubDetailHeaderContent from "@src/modules/shared/components/GitHubDetailHeaderContent";
 import {
   getPrStatusIconName,

@@ -4,11 +4,13 @@
  * Provides type definitions and configurations for managing multiple windows
  * within the simulator environment.
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  ArrowExpand01Icon,
+  ArrowLeftRightIcon,
+  Cancel01Icon,
+  type IconSvgElement,
+  MinusSignIcon,
+} from "@src/icons";
 
 import { AppType } from "./appTypes";
 

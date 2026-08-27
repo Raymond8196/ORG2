@@ -1,14 +1,3 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
-import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
-import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   useCallback,
@@ -38,6 +27,19 @@ import {
   useDropdownEngine,
 } from "@src/hooks/dropdown";
 import { useAppNavigation } from "@src/hooks/navigation";
+import {
+  ArrowRight01Icon,
+  BubbleChatIcon,
+  CircleIcon,
+  Cursor02Icon,
+  GaugeIcon,
+  HelpCircleIcon,
+  HugeiconsIcon,
+  LaptopIcon,
+  Login01Icon,
+  Settings01Icon,
+  Sun01Icon,
+} from "@src/icons";
 import { useAppearanceState } from "@src/modules/MainApp/Settings/sections/useAppearanceState";
 import { openAgentControlSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import { ADE_MANAGER_TOGGLE_SHORTCUT_ID } from "@src/scaffold/GlobalSpotlight/palettes/AgentControlPalette/constants";

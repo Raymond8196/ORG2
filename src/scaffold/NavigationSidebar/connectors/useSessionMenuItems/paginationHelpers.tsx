@@ -1,5 +1,4 @@
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-
+import { MoreHorizontalIcon } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { SESSION_LIST_CATEGORIES } from "@src/store/session";
 import type {

@@ -4,10 +4,6 @@
  * Header for detail panels with title, navigation (prev/next), close, and optional actions.
  * Uses shared WorkStation header tokens for consistent styling.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import {
@@ -15,6 +11,12 @@ import {
   HEADER_CLASSES,
   HEADER_ICON_SIZE,
 } from "@src/config/workstation/tokens";
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import { useWindowDrag } from "../FloatingWindow/useWindowDrag";
 

@@ -1,10 +1,7 @@
-import AppWindowIcon from "@hugeicons/core-free-icons/AppWindowIcon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import UserRoundCogIcon from "@hugeicons/core-free-icons/UserRoundCogIcon";
-
 import type { SettingsKey } from "@src/config/settingsSchema";
 import { AGENT_BROWSER_SETTING_KEYS } from "@src/config/settingsSchema/registry/agentBrowser";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";
+import { AppWindowIcon, SparklesIcon, UserRoundCogIcon } from "@src/icons";
 
 const MY_ROLE_SETTING_KEYS = [
   "agent.sde.questionAutoSkipTimeoutByPresence",

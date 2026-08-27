@@ -1,9 +1,8 @@
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import DropdownOptionsRenderer from "./DropdownOptionsRenderer";
 import { DROPDOWN_CLASSES, DROPDOWN_ITEM } from "./tokens";

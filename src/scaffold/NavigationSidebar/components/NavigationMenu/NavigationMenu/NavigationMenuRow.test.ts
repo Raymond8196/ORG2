@@ -1,11 +1,11 @@
 // @vitest-environment jsdom
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import { act, createElement } from "react";
 import { createRoot } from "react-dom/client";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 
 import { REFRESH_ICON_TOKENS } from "@src/components/RefreshIcon/tokens";
+import { Refresh04Icon } from "@src/icons";
 
 import type { NavigationMenuItem } from "../config";
 import {

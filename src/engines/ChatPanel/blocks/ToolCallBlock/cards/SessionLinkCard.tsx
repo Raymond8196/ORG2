@@ -1,9 +1,8 @@
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import PrStatusBadge from "@src/components/PrStatusBadge";
+import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
 import { formatStatNumber } from "@src/shared/pr/formatStatNumber";
 
 import { ToolResultCardFrameLink } from "./ToolResultCardFrame";

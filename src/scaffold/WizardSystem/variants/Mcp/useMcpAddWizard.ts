@@ -2,10 +2,6 @@
  * State and handlers for McpAddWizard.
  * Extracted to keep the component under the UI line limit.
  */
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import {
   type Dispatch,
   type SetStateAction,
@@ -16,6 +12,12 @@ import {
 import { useTranslation } from "react-i18next";
 
 import type { McpConfigScope } from "@src/api/tauri/rpc/schemas/mcp";
+import {
+  ComputerTerminal01Icon,
+  FlashIcon,
+  type IconSvgElement,
+  InternetIcon,
+} from "@src/icons";
 import type {
   McpServerConfig,
   McpTestResult,

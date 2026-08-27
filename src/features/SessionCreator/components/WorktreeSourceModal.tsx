@@ -1,14 +1,16 @@
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { resolvePrWorktreeBase } from "@src/api/tauri/github";
 import type { GitHubIssue, OpenPRItem } from "@src/api/tauri/github";
 import GitHubIcon from "@src/assets/channelIcons/github.svg";
+import {
+  CircleDotIcon,
+  GitPullRequestIcon,
+  HashtagIcon,
+  HugeiconsIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { useWorktreeMap } from "@src/scaffold/GlobalSpotlight/palettes/BranchPalette/useWorktreeMap";
 import Modal from "@src/scaffold/ModalSystem";
 import type {

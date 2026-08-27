@@ -1,4 +1,3 @@
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 
@@ -6,6 +5,7 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_PANEL,
 } from "@src/components/Dropdown/tokens";
+import { HugeiconsIcon } from "@src/icons";
 import type { SlashItem, SlashItemCategory } from "@src/types/extensions";
 
 import { categoryIcon } from "./constants";

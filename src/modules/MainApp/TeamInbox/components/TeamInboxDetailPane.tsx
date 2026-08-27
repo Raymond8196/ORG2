@@ -4,13 +4,15 @@
  * Right pane of the Team Inbox split view: a selected pull request, the
  * load/empty placeholders, or the detail for the selected Inbox row.
  */
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  HugeiconsIcon,
+  InternetIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import type { ManagedPrItem } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import { LoadingBar } from "@src/modules/shared/layouts/blocks";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";

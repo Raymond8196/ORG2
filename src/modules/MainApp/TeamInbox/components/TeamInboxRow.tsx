@@ -1,10 +1,12 @@
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import MessageSquareMoreIcon from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { forwardRef, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import {
+  HugeiconsIcon,
+  ListChecksIcon,
+  MessageSquareMoreIcon,
+} from "@src/icons";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
 import {

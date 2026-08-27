@@ -6,11 +6,6 @@
  *
  * Extracted from OrgSidebarTreeContent.tsx to reduce file size.
  */
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { VirtuosoHandle } from "react-virtuoso";
@@ -20,6 +15,13 @@ import {
   type FlattenedTreeNode,
   VirtualizedStickyTree,
 } from "@src/components/VirtualizedStickyTree";
+import {
+  BoxIcon,
+  HugeiconsIcon,
+  Layers01Icon,
+  ListChecksIcon,
+  MoreHorizontalIcon,
+} from "@src/icons";
 import { STORY_ORG_SCOPE } from "@src/store/workstation/tabs/factories/project";
 
 import {

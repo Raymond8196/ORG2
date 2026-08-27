@@ -3,46 +3,47 @@
  *
  * Configuration for the activity simulator grid layout and icons
  */
-import Activity01Icon from "@hugeicons/core-free-icons/Activity01Icon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import Bug01Icon from "@hugeicons/core-free-icons/Bug01Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
-import Edit04Icon from "@hugeicons/core-free-icons/Edit04Icon";
-import File01Icon from "@hugeicons/core-free-icons/File01Icon";
-import FilePlusIcon from "@hugeicons/core-free-icons/FilePlusIcon";
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
-import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import FolderSearchIcon from "@hugeicons/core-free-icons/FolderSearchIcon";
-import Forward01Icon from "@hugeicons/core-free-icons/Forward01Icon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import LayoutListIcon from "@hugeicons/core-free-icons/LayoutListIcon";
-import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
-import Location01Icon from "@hugeicons/core-free-icons/Location01Icon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
-import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
-import PlayCircleIcon from "@hugeicons/core-free-icons/PlayCircleIcon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import RewindIcon from "@hugeicons/core-free-icons/RewindIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import ServerStack01Icon from "@hugeicons/core-free-icons/ServerStack01Icon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import SkipBackIcon from "@hugeicons/core-free-icons/SkipBackIcon";
-import SmartPhone01Icon from "@hugeicons/core-free-icons/SmartPhone01Icon";
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
-import SquareStackIcon from "@hugeicons/core-free-icons/SquareStackIcon";
-import StopCircleIcon from "@hugeicons/core-free-icons/StopCircleIcon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
-
+import {
+  Activity01Icon,
+  ArrowDown01Icon,
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  Bug01Icon,
+  Clock01Icon,
+  CodeIcon,
+  ComputerTerminal01Icon,
+  DashboardSquare01Icon,
+  DatabaseIcon,
+  Edit04Icon,
+  File01Icon,
+  FilePlusIcon,
+  FlashIcon,
+  FloppyDiskIcon,
+  FolderSearchIcon,
+  Forward01Icon,
+  type IconSvgElement,
+  InternetIcon,
+  LayoutListIcon,
+  Link01Icon,
+  Location01Icon,
+  LockIcon,
+  Message01Icon,
+  MonitorIcon,
+  PauseIcon,
+  PlayCircleIcon,
+  PlayIcon,
+  RewindIcon,
+  Search01Icon,
+  ServerStack01Icon,
+  Settings01Icon,
+  SkipBackIcon,
+  SmartPhone01Icon,
+  SquareIcon,
+  SquareStackIcon,
+  StopCircleIcon,
+  ViewIcon,
+  Wrench01Icon,
+} from "@src/icons";
 import { SimulatorGridLayout } from "@src/store/ui/simulatorAtom";
 
 // Layout configuration
@@ -55,7 +56,7 @@ export interface LayoutConfig {
 // Re-export the type
 export type GridLayout = SimulatorGridLayout;
 
-// Icon configuration - using Lucide icons
+// Icon configuration - hugeicons glyph data
 export const ICON_CONFIG: Record<string, IconSvgElement> = {
   // Grid layout icons
   grid1x1: LayoutListIcon,
@@ -150,7 +151,7 @@ export const STYLE_CONFIG = {
   browserHeaderHeight: "40px",
 };
 
-// Event type to icon mapping - using Lucide icons
+// Event type to icon mapping - hugeicons glyph data
 export const EVENT_TYPE_ICONS: Record<string, IconSvgElement> = {
   run_command_line: ComputerTerminal01Icon,
   codebase_search: Search01Icon,

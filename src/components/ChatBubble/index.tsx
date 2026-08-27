@@ -9,13 +9,12 @@
  * - ChatBubbleHeader: sender name + timestamp + optional extras
  * - ChatBubbleBody: rounded card with variant-based background
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { Copy01Icon, HugeiconsIcon } from "@src/icons";
 
 export const CHAT_BUBBLE_WIDTH_TOKENS = {
   row: `mx-auto flex w-full min-w-0 gap-3 overflow-hidden ${DETAIL_PANEL_TOKENS.contentMaxWidth}`,

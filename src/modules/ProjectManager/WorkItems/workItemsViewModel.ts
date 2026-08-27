@@ -1,11 +1,10 @@
-import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
-
 import {
   DEFAULT_KANBAN_COLUMNS,
   GITHUB_ISSUE_KANBAN_COLUMNS,
   type KanbanColumnConfig,
   type KanbanTask,
 } from "@src/features/KanbanBoard";
+import { UserCircleIcon } from "@src/icons";
 import type {
   StatusCounts,
   StatusFilterType,

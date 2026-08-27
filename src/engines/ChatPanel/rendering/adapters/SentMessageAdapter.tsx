@@ -1,6 +1,3 @@
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +8,7 @@ import {
   useLifecycleLabels,
 } from "@src/engines/SessionCore/rendering/registry/useToolLabel";
 import type { UniversalEventProps } from "@src/engines/SessionCore/rendering/types/universalProps";
+import { CheckmarkCircle01Icon, HugeiconsIcon, InboxIcon } from "@src/icons";
 
 import AgentMessageCard from "../../blocks/ToolCallBlock/cards/AgentMessageCard";
 import { parseAgentMessageCard } from "../../blocks/ToolCallBlock/helpers";

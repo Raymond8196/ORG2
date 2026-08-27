@@ -7,9 +7,9 @@
  * When `actionButton` is provided the chevron is replaced by the action area
  * and the outer element becomes a `<div>` so the nested button is valid HTML.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface BrowseCardProps {
   /** Primary display name */

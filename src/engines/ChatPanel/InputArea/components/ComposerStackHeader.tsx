@@ -12,10 +12,9 @@
  *
  * Hover color change is scoped to the header row only (not the expanded body).
  */
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
+
+import { ChevronsDownUpIcon, HugeiconsIcon, UnfoldMoreIcon } from "@src/icons";
 
 export interface ComposerStackHeaderProps {
   /** Header label text */

@@ -1,7 +1,5 @@
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import Tag from "@src/components/Tag";
+import { HugeiconsIcon, Link02Icon } from "@src/icons";
 import type {
   WorkItem as WorkItemExtended,
   WorkItemProject,

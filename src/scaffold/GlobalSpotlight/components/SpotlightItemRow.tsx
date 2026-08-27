@@ -4,13 +4,6 @@
  * Memoized row renderer for spotlight items.
  * Handles icons, labels, status indicators, git badges, and keyboard shortcuts.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CornerDownRightIcon from "@hugeicons/core-free-icons/CornerDownRightIcon";
-import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +14,15 @@ import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { KeyboardShortcut } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
 import { createLogger } from "@src/hooks/logger";
+import {
+  ArrowRight01Icon,
+  CornerDownRightIcon,
+  DiffIcon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+  LockIcon,
+  Tick01Icon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
 import {

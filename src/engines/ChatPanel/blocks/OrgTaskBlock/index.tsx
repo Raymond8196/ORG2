@@ -6,10 +6,6 @@
  * Reuses TaskCard's CSS class names and KanbanBoard utilities for visual
  * consistency with the Kanban board.
  */
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import PlayCircleIcon from "@hugeicons/core-free-icons/PlayCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +15,12 @@ import { getToolIconComponent } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
 import type { ResolvedOrgTaskOperationOutcome } from "@src/engines/SessionCore/rendering/orgTaskOutcome";
 import { PriorityIndicator } from "@src/features/KanbanBoard/utils/priority";
+import {
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  HugeiconsIcon,
+  PlayCircleIcon,
+} from "@src/icons";
 import { formatSmartDateTime } from "@src/util/data/formatters/date";
 
 import {
@@ -88,7 +90,7 @@ export interface OrgTaskBlockProps {
  * Resolve the header icon from the Rust tool registry (`task_create`
  * → `clipboard-copy`, `task_update` → `clipboard-pen`). Keeping this in
  * sync with Rust `icon_id` per the frontend ↔ backend alignment rule —
- * we deliberately do not hardcode Lucide components here.
+ * we deliberately do not hardcode glyph bindings here.
  */
 function getActionIcon(action: OrgTaskAction) {
   const toolName = action === "create" ? "task_create" : "task_update";
@@ -100,7 +102,7 @@ function getActionIcon(action: OrgTaskAction) {
 
 /**
  * Title-row status indicator: maps the task's lifecycle status to a 13px
- * Lucide glyph + color matching the existing AgentOrgTaskList chip palette.
+ * Icon glyph + color matching the existing AgentOrgTaskList chip palette.
  * Returns `null` for unknown / missing status so the icon slot collapses
  * silently. The "blocked" derived state is intentionally not handled here
  * — `OrgTaskBlock` only sees a single task's `blocks` / `blockedBy` ids,

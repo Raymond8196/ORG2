@@ -1,6 +1,3 @@
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -18,6 +15,7 @@ import {
   useDropdownEngine,
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { HugeiconsIcon, Refresh04Icon, Tick01Icon } from "@src/icons";
 import { useSelectorKernel } from "@src/scaffold/GlobalSpotlight/palettes/core";
 import {
   PaletteBody,

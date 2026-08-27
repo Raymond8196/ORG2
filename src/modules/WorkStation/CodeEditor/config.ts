@@ -3,9 +3,7 @@
  *
  * Configuration constants and icons for the CodeEditor component.
  */
-import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
+import { FileScriptIcon, FolderOpenIcon, Search01Icon } from "@src/icons";
 
 // ============================================
 // Icon Configuration

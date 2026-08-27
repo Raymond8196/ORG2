@@ -7,25 +7,27 @@
  * or secondary, modal or dock — can reuse the same tab + slot contract.
  *
  * Both `bottom` and `right` positions render the same icon-only square tab
- * buttons. Each button shows only the Lucide icon from `tab.icon`; hovering
+ * buttons. Each button shows only the glyph from `tab.icon`; hovering
  * reveals a plain-text tooltip with the tab label (no keyboard shortcut).
  *
  * Tabs and content stay mounted across position toggles — only the
  * chrome flavour swaps. Caller owns the active tab state.
  */
-import ArrowUpDown from "@hugeicons/core-free-icons/ArrowUpDownIcon";
-import Layers from "@hugeicons/core-free-icons/Layers01Icon";
-import ScrollText from "@hugeicons/core-free-icons/ScrollIcon";
-import SquareChevronRight from "@hugeicons/core-free-icons/SquareChevronRightIcon";
-import FlaskConical from "@hugeicons/core-free-icons/TestTubeIcon";
-import TriangleAlert from "@hugeicons/core-free-icons/TriangleAlertIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import React, { memo, useCallback } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
+import {
+  ArrowUpDownIcon as ArrowUpDown,
+  TestTubeIcon as FlaskConical,
+  type IconSvgElement,
+  Layers01Icon as Layers,
+  ScrollIcon as ScrollText,
+  SquareChevronRightIcon as SquareChevronRight,
+  TriangleAlertIcon as TriangleAlert,
+} from "@src/icons";
 import type { SecondaryPanelPosition } from "@src/store/ui/workStationAtom";
 
 export { PanelPositionToggle } from "./PositionToggle";

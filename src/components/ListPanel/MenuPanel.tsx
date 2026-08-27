@@ -7,11 +7,11 @@
  *
  * Used by: Integrations, Dev Records, Wallet, Creator Studio, Settings, etc.
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import TabPill from "@src/components/TabPill";
+import type { IconSvgElement } from "@src/icons";
 import {
   ListPanelScrollArea,
   ListPanelTabPillRow,

@@ -1,7 +1,3 @@
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +7,12 @@ import { HeaderSectionSeparator } from "@src/components/HeaderSectionSeparator";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useRepoGitInitialization } from "@src/hooks/git";
+import {
+  CircleDotIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  WorkHistoryIcon,
+} from "@src/icons";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
 import { workStationPrimarySidebarCollapsedPersistAtom } from "@src/store/ui/workStationAtom";
 import { activeStatusBarAppAtom } from "@src/store/ui/workStationLayout/statusBarAtoms";

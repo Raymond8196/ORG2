@@ -1,8 +1,6 @@
 import Button from "@/src/components/Button";
 import Modal from "@/src/scaffold/ModalSystem";
 import { cancel, onUrl, start } from "@fabianlars/tauri-plugin-oauth";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useAtom, useAtomValue } from "jotai";
 import { useState } from "react";
@@ -14,6 +12,7 @@ import {
 } from "@src/api/http/auth/login";
 import { SERVICE_AUTH_STORAGE_KEYS } from "@src/config/serviceAuth";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, SparklesIcon } from "@src/icons";
 import { loginModalFixAtom, loginModalVisibleAtom } from "@src/store";
 import { userAtom } from "@src/store/user";
 import type { IUserInfo } from "@src/types/core/user";

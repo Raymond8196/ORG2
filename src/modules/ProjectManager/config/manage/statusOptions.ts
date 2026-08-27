@@ -3,16 +3,18 @@
  *
  * Status configurations for work items and projects.
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleDashedIcon,
+  CircleIcon,
+  Clock01Icon,
+  HugeiconsIcon,
+  Layers01Icon,
+} from "@src/icons";
 import type { ProjectStatus } from "@src/types/core/project";
 import type { DropdownOption } from "@src/types/core/shared";
 import {

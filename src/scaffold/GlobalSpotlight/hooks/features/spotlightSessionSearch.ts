@@ -1,5 +1,3 @@
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
   type CloudSessionReference,
@@ -14,6 +12,7 @@ import {
   remoteSessionsEntryForIdentity,
 } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
 import { resolveSessionReferenceTitle } from "@src/features/Org2Cloud/resolveSessionReferenceTitle";
+import { UserMultipleIcon } from "@src/icons";
 import {
   isSessionCompletedUnread,
   isSessionPendingAsking,

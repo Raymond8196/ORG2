@@ -1,13 +1,15 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { LogicalPosition } from "@tauri-apps/api/dpi";
 import { open } from "@tauri-apps/plugin-shell";
 import type { TFunction } from "i18next";
 import React, { memo, useCallback, useMemo, useSyncExternalStore } from "react";
 
 import i18n from "@src/i18n";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  SquareIcon,
+} from "@src/icons";
 import {
   closeWindow,
   maxWindow,

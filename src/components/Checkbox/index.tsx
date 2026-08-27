@@ -31,9 +31,6 @@
  * </Checkbox.Group>
  * ```
  */
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   createContext,
   useCallback,
@@ -44,6 +41,7 @@ import React, {
   useState,
 } from "react";
 
+import { HugeiconsIcon, MinusSignIcon, Tick01Icon } from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 type CheckboxSize = "mini" | "small" | "default" | "large";

@@ -24,8 +24,9 @@
  * This component degrades that to a missing icon: it renders `null`, and in dev
  * it warns once with whatever context the caller supplied via `data-icon`.
  */
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { type ComponentType } from "react";
+
+import { HugeiconsIcon, type IconSvgElement } from "@src/icons";
 
 /**
  * An icon that is either hugeicons glyph data or a component (brand mark,

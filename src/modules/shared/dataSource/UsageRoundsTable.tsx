@@ -1,5 +1,3 @@
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +13,7 @@ import SettingsTable, {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import Tooltip from "@src/components/Tooltip";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import { SECTION_SUBHEADING_CLASSES } from "@src/modules/shared/layouts/SectionLayout";
 import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 import { formatRelativeElapsedShort } from "@src/util/data/formatters/date";

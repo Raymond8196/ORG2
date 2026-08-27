@@ -9,10 +9,6 @@
  * Data comes from shellProcessMapAtom (status "running" | "background") and
  * subagentJobMapAtom (status "running"), both filtered by the active session.
  */
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,6 +23,12 @@ import {
   COMPOSER_STACK_ROW_LABEL,
 } from "@src/config/composerStackTokens";
 import { createLogger } from "@src/hooks/logger";
+import {
+  BotIcon,
+  Delete02Icon,
+  HugeiconsIcon,
+  SquareTerminalIcon,
+} from "@src/icons";
 import { killAgentShellProcess } from "@src/services/terminal";
 import { activeSessionIdAtom } from "@src/store/session";
 import {

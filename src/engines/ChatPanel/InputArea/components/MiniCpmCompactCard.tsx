@@ -1,5 +1,3 @@
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +7,7 @@ import {
   setHousekeeperContextCompactionEnabled,
 } from "@src/api/tauri/agent";
 import Switch from "@src/components/Switch";
+import { HugeiconsIcon, SparklesIcon } from "@src/icons";
 import { startVisibilityAwarePoller } from "@src/shared/scheduling/visibilityAwarePoller";
 
 const EMPTY_STATE: HousekeeperContextCompactionState = {

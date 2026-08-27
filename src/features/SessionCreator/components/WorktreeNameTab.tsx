@@ -1,9 +1,8 @@
-import CaseSensitiveIcon from "@hugeicons/core-free-icons/CaseSensitiveIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import Input from "@src/components/Input";
+import { CaseSensitiveIcon, HugeiconsIcon } from "@src/icons";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
 
 import {

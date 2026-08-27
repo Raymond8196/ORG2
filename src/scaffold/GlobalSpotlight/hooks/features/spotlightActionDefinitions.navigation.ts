@@ -14,24 +14,25 @@
  * - `EDITOR_ACTIONS`           — editor palette modes (file / command / symbol).
  * - `QUICK_NAVIGATION_ACTIONS` — work-station tab switchers (terminal, SCM).
  */
-import AiGenerativeIcon from "@hugeicons/core-free-icons/AiGenerativeIcon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import DockIcon from "@hugeicons/core-free-icons/DockIcon";
-import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
-import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { type IconSvgElement } from "@hugeicons/react";
-
 import { ACTION_ID } from "@src/ActionSystem";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import {
+  AiGenerativeIcon,
+  BoxIcon,
+  DockIcon,
+  FolderAddIcon,
+  FolderTreeIcon,
+  GitPullRequestIcon,
+  type IconSvgElement,
+  LayoutThreeColumnIcon,
+  PencilEdit02Icon,
+  PlayIcon,
+  Refresh04Icon,
+  Search01Icon,
+  SparklesIcon,
+  SquareTerminalIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 import type {
   SpotlightEditorActionDefinition,

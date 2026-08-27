@@ -12,10 +12,6 @@
  *   - CreateProjectView (create)
  *   - CreateWorkItemView (create)
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +22,12 @@ import {
 } from "@src/config/workstation/tokens";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { useResizeHandle } from "@src/hooks/ui/useResizeHandle";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  ArrowUp01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { PANEL_FOOTER_TOKENS } from "@src/modules/shared/layouts/blocks";
 import { VerticalResizeHandle } from "@src/scaffold/Resize";

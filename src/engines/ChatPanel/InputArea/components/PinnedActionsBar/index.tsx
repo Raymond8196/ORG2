@@ -9,9 +9,6 @@
  *
  * Design: uses shared secondary buttons so pinned actions match other composer controls.
  */
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, {
   memo,
@@ -34,6 +31,7 @@ import UserActionButton from "@src/engines/ChatPanel/InputArea/components/UserAc
 import { useCanvasForTurn } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/useCanvasForTurn";
 import { buildBuiltinSlashItems } from "@src/engines/ChatPanel/hooks/useInputArea/builtinSlashItems";
 import { useSlashItemsCache } from "@src/engines/ChatPanel/hooks/useInputArea/useSlashItemsCache";
+import { HugeiconsIcon, Layout01Icon, MoreHorizontalIcon } from "@src/icons";
 import { EditorTabService } from "@src/services/workStation/EditorTabService";
 import {
   type PinnedAction,

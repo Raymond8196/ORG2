@@ -11,16 +11,6 @@
  *
  * [chevron] [Search icon] [input] [Aa] [ab] [o*] [book] [↑] [↓]
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CaseSensitiveIcon from "@hugeicons/core-free-icons/CaseSensitiveIcon";
-import RegexIcon from "@hugeicons/core-free-icons/RegexIcon";
-import WholeWordIcon from "@hugeicons/core-free-icons/WholeWordIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +19,18 @@ import {
   HEADER_ICON_SIZE,
 } from "@src/config/workstation/tokens";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import {
+  ArrowDown01Icon,
+  ArrowDown02Icon,
+  ArrowRight01Icon,
+  ArrowUp02Icon,
+  BookOpen01Icon,
+  Cancel01Icon,
+  CaseSensitiveIcon,
+  HugeiconsIcon,
+  RegexIcon,
+  WholeWordIcon,
+} from "@src/icons";
 
 import {
   SEARCH_WRAPPER_PANEL,

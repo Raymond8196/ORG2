@@ -4,12 +4,15 @@
  * Collapsible group component for sidebar items.
  * Styled to match NavigationMenu for consistency.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import {
+  Add01Icon,
+  ChevronsDownUpIcon,
+  HugeiconsIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 
 import { NavigationMenuRowActionButton } from "../components/NavigationMenu/NavigationMenu/RowActionButton";
 import type { SidebarGroupProps, SidebarItemData } from "../types";

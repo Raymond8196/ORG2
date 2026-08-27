@@ -6,13 +6,15 @@
  *   - "preview": shows metadata + zoom controls
  *   - "diff": shows old → new file info with color-coded sizes
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import ZoomInAreaIcon from "@hugeicons/core-free-icons/ZoomInAreaIcon";
-import ZoomOutAreaIcon from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
+import {
+  ArrowExpand01Icon,
+  ArrowRight02Icon,
+  HugeiconsIcon,
+  ZoomInAreaIcon,
+  ZoomOutAreaIcon,
+} from "@src/icons";
 import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,

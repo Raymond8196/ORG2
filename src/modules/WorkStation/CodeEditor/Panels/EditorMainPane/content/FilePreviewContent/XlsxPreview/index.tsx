@@ -1,5 +1,3 @@
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -18,6 +16,7 @@ import {
 } from "@src/api/tauri/spreadsheetXlsx";
 import Message from "@src/components/Message";
 import { Placeholder } from "@src/components/Placeholder";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 import { invalidateFileCache } from "@src/modules/WorkStation/CodeEditor/hooks/fileContent/useFileContent";
 import { UnsavedChangesBar } from "@src/modules/WorkStation/shared";
 import { getFileName } from "@src/util/file/pathUtils";

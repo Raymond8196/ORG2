@@ -1,5 +1,3 @@
-import ClipboardCheckIcon from "@hugeicons/core-free-icons/ClipboardCheckIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -10,6 +8,7 @@ import {
 import { ChatImageThumbnailRow } from "@src/components/ChatImageThumbnail";
 import UserMessageContent from "@src/engines/ChatPanel/ChatHistory/components/UserMessageContent";
 import { stripExpandedPillContent } from "@src/engines/ChatPanel/InputArea/utils/pillContentParser";
+import { ClipboardCheckIcon, HugeiconsIcon } from "@src/icons";
 
 import { computeUserBubbleLayout } from "../userBubbleLayout";
 

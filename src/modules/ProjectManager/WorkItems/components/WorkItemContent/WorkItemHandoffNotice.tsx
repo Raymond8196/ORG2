@@ -1,14 +1,16 @@
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import Clock03Icon from "@hugeicons/core-free-icons/Clock03Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import UserRoundCheckIcon from "@hugeicons/core-free-icons/UserRoundCheckIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { WorkItemHandoff } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Textarea from "@src/components/Textarea";
+import {
+  ArrowLeft02Icon,
+  Clock03Icon,
+  HugeiconsIcon,
+  Tick01Icon,
+  UserRoundCheckIcon,
+} from "@src/icons";
 import Modal from "@src/scaffold/ModalSystem";
 
 interface WorkItemHandoffNoticeProps {

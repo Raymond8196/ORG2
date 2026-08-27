@@ -11,9 +11,6 @@
  *
  * Thin UI wrapper — business logic lives in useUnifiedModelPalette.
  */
-import GripIcon from "@hugeicons/core-free-icons/GripIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
   useCallback,
@@ -25,6 +22,7 @@ import React, {
 
 import { useFilteredItems } from "@src/hooks/search";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { GripIcon, HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import { spotlightOpenAtom } from "@src/store";
 import { agentNameAtom } from "@src/store/session/creatorStateAtom";
 

@@ -8,13 +8,16 @@
  *
  * Uses BaseStatusBar for consistent layout.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+
+import {
+  Add01Icon,
+  Alert01Icon,
+  BrushCleaningIcon,
+  CancelCircleIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import {
   BaseStatusBar,

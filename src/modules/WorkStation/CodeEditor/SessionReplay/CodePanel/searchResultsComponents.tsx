@@ -4,10 +4,6 @@
  * Shared UI sub-components for SearchResultsContent.
  * Extracted to keep the main component file under 600 lines.
  */
-import File01Icon from "@hugeicons/core-free-icons/File01Icon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -15,6 +11,12 @@ import {
   COUNT_BADGE,
   getCountBadgeSizeClass,
 } from "@src/config/workstation/tokens";
+import {
+  File01Icon,
+  FolderOpenIcon,
+  HugeiconsIcon,
+  Search01Icon,
+} from "@src/icons";
 import BreadcrumbFileHeader from "@src/modules/shared/components/FileHeader/BreadcrumbFileHeader";
 
 import { getBasename, toRepoFirstDisplayPath } from "./pathUtils";

@@ -38,12 +38,10 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import GripVerticalIcon from "@hugeicons/core-free-icons/GripVerticalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type ReactNode, useCallback, useMemo } from "react";
 
 import Button from "@src/components/Button";
+import { Add01Icon, GripVerticalIcon, HugeiconsIcon } from "@src/icons";
 import { useWebViewSensors } from "@src/lib/dndKit";
 
 // ── Public Types ──

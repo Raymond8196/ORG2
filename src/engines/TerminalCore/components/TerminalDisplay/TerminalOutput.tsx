@@ -13,10 +13,10 @@
  * - Handles various backend output formats
  * - Optional scrolling with max height
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import Ansi from "ansi-to-react";
 import React, { memo, useMemo } from "react";
+
+import { Alert01Icon, HugeiconsIcon } from "@src/icons";
 
 import { processAnsiContent } from "./utils/ansiProcessor";
 import {

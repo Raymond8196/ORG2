@@ -3,11 +3,6 @@
  * header for the canvas app: title, streaming pulse, Canvas/Source/Compare
  * switcher, and the Design / Reload / Share controls.
  */
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import PenTool01Icon from "@hugeicons/core-free-icons/PenTool01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Share02Icon from "@hugeicons/core-free-icons/Share02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +12,13 @@ import IconButton from "@src/components/IconButton";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import TabPill from "@src/components/TabPill";
 import { NoDragRegion } from "@src/components/WindowChrome";
+import {
+  HugeiconsIcon,
+  Layout01Icon,
+  PenTool01Icon,
+  Refresh04Icon,
+  Share02Icon,
+} from "@src/icons";
 
 import type { CanvasViewTab } from "./canvasInteractionState";
 

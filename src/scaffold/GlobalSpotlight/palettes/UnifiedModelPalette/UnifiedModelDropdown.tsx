@@ -10,10 +10,6 @@
  * active variant is chosen by the `general.modelPickerStyle` setting and
  * dispatched in `ModelPill`.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -37,6 +33,12 @@ import {
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Search01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { SpotlightItem } from "../../shared";

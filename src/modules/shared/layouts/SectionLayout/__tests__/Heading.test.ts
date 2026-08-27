@@ -1,7 +1,8 @@
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+
+import { CircleIcon } from "@src/icons";
 
 import SectionHeading from "../Heading";
 import { SECTION_INTRO_TOKENS } from "../tokens";

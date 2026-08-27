@@ -12,17 +12,19 @@
  * body (children) and subtitle render below the header.
  * When action is an object, InlineAlert builds a secondary Button at 28px height.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import TriangleAlertIcon from "@hugeicons/core-free-icons/TriangleAlertIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
 import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
+import {
+  Cancel01Icon,
+  ChevronsDownUpIcon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+  Tick01Icon,
+  TriangleAlertIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 
 /**
  * Shared neutral surface — flat outline, no tone accent, and a half-strength

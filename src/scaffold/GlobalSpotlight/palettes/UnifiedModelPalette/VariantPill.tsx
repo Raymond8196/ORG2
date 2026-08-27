@@ -11,12 +11,10 @@
  * change is persisted via the supplied `onApply` callback (which the
  * caller wires to `saveKey` with `default_variants`).
  */
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import ModelPropertiesDropdown from "@src/components/ModelPropertiesDropdown";
+import { BrainIcon, HugeiconsIcon, Pen01Icon } from "@src/icons";
 import {
   formatReasoningLevel,
   parseModelVariant,

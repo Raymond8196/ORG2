@@ -1,9 +1,8 @@
-import BoxesIcon from "@hugeicons/core-free-icons/BoxesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { UsageBucket } from "@src/api/tauri/usageDashboard";
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
+import { BoxesIcon, HugeiconsIcon } from "@src/icons";
 
 /**
  * Visual metadata for the four source buckets the Usage dashboard scopes to —

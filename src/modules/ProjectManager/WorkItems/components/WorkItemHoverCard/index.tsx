@@ -1,12 +1,4 @@
 /** Hover-card presentation owned by Project Manager work items. */
-import Building02Icon from "@hugeicons/core-free-icons/Building02Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitCommitVerticalIcon from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
-import TagsIcon from "@hugeicons/core-free-icons/TagsIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +7,16 @@ import HoverCardBase, {
   type HoverCardPosition,
   HoverCardRow,
 } from "@src/components/SessionHoverCard/HoverCardBase";
+import {
+  Building02Icon,
+  Clock01Icon,
+  Flag01Icon,
+  FolderKanbanIcon,
+  GitCommitVerticalIcon,
+  HugeiconsIcon,
+  TagsIcon,
+  UserIcon,
+} from "@src/icons";
 import {
   WORK_ITEM_PRIORITY_OPTIONS,
   WORK_ITEM_STATUS_OPTIONS,

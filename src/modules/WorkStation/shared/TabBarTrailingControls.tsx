@@ -8,14 +8,12 @@
  * `activeStatusBarCallbacksAtom` because AppShell registers handlers per
  * active app (Code Editor → bottom panel, Browser → DevTools).
  */
-import PencilRulerIcon from "@hugeicons/core-free-icons/PencilRulerIcon";
-import SidebarBottomIcon from "@hugeicons/core-free-icons/SidebarBottomIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
+import { HugeiconsIcon, PencilRulerIcon, SidebarBottomIcon } from "@src/icons";
 import {
   workStationDevToolsCollapsedAtom,
   workStationEditorSecondaryCollapsedAtom,

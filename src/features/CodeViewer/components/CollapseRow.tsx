@@ -3,12 +3,14 @@
  *
  * Displays a collapsed section placeholder that can be expanded
  */
-import ArrowDownFromLineIcon from "@hugeicons/core-free-icons/ArrowDownFromLineIcon";
-import ArrowUpFromLineIcon from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
-import FoldVerticalIcon from "@hugeicons/core-free-icons/FoldVerticalIcon";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  ArrowDownFromLineIcon,
+  ArrowUpFromLineIcon,
+  FoldVerticalIcon,
+} from "@src/icons";
 
 import type { CollapsedSection } from "../types";
 

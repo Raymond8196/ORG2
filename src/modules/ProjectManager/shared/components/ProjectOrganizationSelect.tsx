@@ -1,9 +1,8 @@
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { FC, ReactNode } from "react";
 
 import Select from "@src/components/Select";
 import type { SelectOption, SelectProps } from "@src/components/Select";
+import { HierarchyCircle01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface ProjectOrganizationSelectProps {
   value: SelectProps["value"];

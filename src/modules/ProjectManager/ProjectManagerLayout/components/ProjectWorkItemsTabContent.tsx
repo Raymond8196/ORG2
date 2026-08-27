@@ -1,5 +1,3 @@
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +9,7 @@ import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { HugeiconsIcon, ListTodoIcon } from "@src/icons";
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";
 import WorkItemsPageHeader from "@src/modules/ProjectManager/WorkItems/components/WorkItemsPageHeader";
 import WorkItemsStatusFilterSelect from "@src/modules/ProjectManager/WorkItems/components/WorkItemsStatusFilterSelect";

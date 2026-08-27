@@ -5,11 +5,10 @@
  * message body. The primitive is deliberately conversation-agnostic so chat,
  * replay, and inbox surfaces can share it without importing turn state.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
 import Message from "@src/components/Message";
+import { Copy01Icon, HugeiconsIcon } from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 export interface MessageFooterTimestampProps {

@@ -1,7 +1,3 @@
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +10,12 @@ import {
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
+import {
+  InternetIcon,
+  Key02Icon,
+  KeyboardIcon,
+  SearchAreaIcon,
+} from "@src/icons";
 import type { ChannelProbeResult } from "@src/modules/MainApp/Integrations/Connections/Channels/types";
 import {
   SECTION_CONTROL_STYLE,

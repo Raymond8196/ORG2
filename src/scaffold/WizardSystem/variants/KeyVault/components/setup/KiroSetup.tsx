@@ -8,14 +8,13 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import { KiroSessionSetup } from "@src/features/SessionSetup";
+import { Login01Icon, SearchAreaIcon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SectionContainer,

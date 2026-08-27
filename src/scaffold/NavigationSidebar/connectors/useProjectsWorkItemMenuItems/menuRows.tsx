@@ -1,19 +1,21 @@
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import type { LinkedSession } from "@src/api/http/project";
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import {
+  BotIcon,
+  BoxIcon,
+  ChevronsDownUpIcon,
+  ComputerTerminal01Icon,
+  HierarchyCircle01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  MoreHorizontalIcon,
+  PencilEdit02Icon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { renderBreathingStatusDot } from "@src/scaffold/NavigationSidebar/connectors/useSessionMenuItems/statusIndicators";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";

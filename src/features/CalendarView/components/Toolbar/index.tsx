@@ -4,13 +4,11 @@
  * Toolbar with Day/Week/Month toggle and navigation controls.
  * Layout: [Scale Toggle] ... < [Date Range] > [Today]
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
+import { ArrowLeft01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 import {

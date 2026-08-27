@@ -1,7 +1,3 @@
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -10,6 +6,12 @@ import type { AvailableAgent } from "@src/api/tauri/rpc/schemas/validation";
 import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import { CodeMirrorEditor } from "@src/features/CodeMirror/Editor";
+import {
+  Copy01Icon,
+  FolderOpenIcon,
+  HugeiconsIcon,
+  Pen01Icon,
+} from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SECTION_PATH_TEXT_CLASSES,

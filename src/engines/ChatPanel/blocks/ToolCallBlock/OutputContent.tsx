@@ -1,19 +1,21 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import LayoutListIcon from "@hugeicons/core-free-icons/LayoutListIcon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import SearchMinusIcon from "@hugeicons/core-free-icons/SearchMinusIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
+import {
+  Add01Icon,
+  BotIcon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleIcon,
+  CodeIcon,
+  ComputerTerminal01Icon,
+  Delete02Icon,
+  FolderClosedIcon,
+  HugeiconsIcon,
+  LayoutListIcon,
+  Pen01Icon,
+  SearchMinusIcon,
+} from "@src/icons";
 import { getDirectory, getFileName } from "@src/util/file/pathUtils";
 import { formatRepoPathForDisplay } from "@src/util/file/repoPathDisplay";
 

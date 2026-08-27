@@ -8,10 +8,6 @@
  *
  * Right side hosts compact contextual actions and the update control.
  */
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
-import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +21,13 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import PillGroup, { type PillGroupSegment } from "@src/components/PillGroup";
+import {
+  CircleIcon,
+  HatGlassesIcon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  MoonIcon,
+} from "@src/icons";
 import {
   userPresenceAtom,
   userPresenceModeAtom,

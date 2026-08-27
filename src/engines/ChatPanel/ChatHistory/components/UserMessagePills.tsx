@@ -5,8 +5,6 @@
  * References render as ordinary links; only explicit member mentions retain
  * pill treatment. Session references are lifted into cards before this layer.
  */
-import AtIcon from "@hugeicons/core-free-icons/AtIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
 import BasePill from "@src/components/ComposerInput/BasePill";
@@ -15,6 +13,7 @@ import {
   resolvePostedReferenceHref,
 } from "@src/components/ComposerInput/postedReferenceHref";
 import { PILL_SIZE } from "@src/config/pillTokens";
+import { AtIcon, HugeiconsIcon } from "@src/icons";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import { type MentionSegment, type PillSegment } from "./userMessageSegments";

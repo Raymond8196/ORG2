@@ -1,5 +1,3 @@
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -24,6 +22,7 @@ import {
 } from "@src/hooks/keyVault/accountQuotaDisplay";
 import { createLogger } from "@src/hooks/logger";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SECTION_SUBHEADING_CLASSES,

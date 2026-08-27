@@ -1,11 +1,10 @@
-import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
 import Avatar from "@src/components/Avatar";
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
 import { Option } from "@src/components/PropertyField/PropertyFieldEditable";
+import { HugeiconsIcon, UserCircleIcon } from "@src/icons";
 
 export interface WorkManagementAssigneeOption {
   id: string;

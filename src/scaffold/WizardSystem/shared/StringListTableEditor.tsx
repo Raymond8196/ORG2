@@ -2,8 +2,6 @@
  * Single-column string list editor for wizard forms (required binaries, env names, etc.).
  * Matches SettingsTable styling used by KvTableEditor (dense + noPx).
  */
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
 import Button from "@src/components/Button";
@@ -12,6 +10,7 @@ import SettingsTable, {
   SETTINGS_TABLE_COL,
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
+import { Delete02Icon, HugeiconsIcon } from "@src/icons";
 
 interface IndexedStringRow {
   index: number;

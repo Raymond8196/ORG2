@@ -8,12 +8,6 @@
  * - Provider's own listing view (shows verification progress)
  * - Admin views
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -25,6 +19,14 @@ import type {
 import InlineAlert from "@src/components/InlineAlert";
 import Tag from "@src/components/Tag";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import {
+  Alert01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  Clock01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+} from "@src/icons";
 
 export interface VerificationStatusBadgeProps {
   /** Listing status (pending, approved, rejected, etc.) */

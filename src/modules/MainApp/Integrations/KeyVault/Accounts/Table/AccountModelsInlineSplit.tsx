@@ -1,5 +1,3 @@
-import ArrangeByLettersZAIcon from "@hugeicons/core-free-icons/ArrangeByLettersZAIcon";
-import ArrangeByNumbersOneNineIcon from "@hugeicons/core-free-icons/ArrangeByNumbersOneNineIcon";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +7,10 @@ import Switch from "@src/components/Switch";
 import Tooltip from "@src/components/Tooltip";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { accountModelIds } from "@src/hooks/models/useModelAccountLookup";
+import {
+  ArrangeByLettersZAIcon,
+  ArrangeByNumbersOneNineIcon,
+} from "@src/icons";
 import {
   applyModelGroupToEnabledSet,
   getModelGroupEnableSummary,

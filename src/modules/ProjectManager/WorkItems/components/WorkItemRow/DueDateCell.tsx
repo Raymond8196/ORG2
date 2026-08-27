@@ -1,8 +1,7 @@
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { Calendar01Icon, HugeiconsIcon } from "@src/icons";
 
 import { DateQuickAssignDropdown } from "../WorkItemProperties/DateQuickAssignDropdown";
 

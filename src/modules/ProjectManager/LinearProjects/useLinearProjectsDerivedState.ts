@@ -1,5 +1,3 @@
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement, useMemo } from "react";
 
 import type {
@@ -7,6 +5,7 @@ import type {
   LinearProjectSummary,
   LinearWorkflowStateSummary,
 } from "@src/api/http/integrations";
+import { CircleIcon, HugeiconsIcon } from "@src/icons";
 import type { WorkItemExternalStatusConfig } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties/types";
 import type { StatusFilterType } from "@src/modules/ProjectManager/WorkItems/types";
 import {

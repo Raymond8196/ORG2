@@ -1,6 +1,3 @@
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +19,7 @@ import {
   resolveQuotaPlanLabel,
 } from "@src/hooks/keyVault/accountQuotaDisplay";
 import { useCopyCheck } from "@src/hooks/ui";
+import { Copy01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { InfoRow } from "@src/modules/shared/layouts/blocks/InfoRow";
 import InlineExpandedSplitCard from "@src/modules/shared/layouts/blocks/InlineExpandedSplitCard";
 import { copyText } from "@src/util/data/clipboard";

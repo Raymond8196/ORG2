@@ -1,6 +1,6 @@
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import type { ReactNode } from "react";
 
+import { MoreHorizontalIcon } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 
 import { separator } from "../useSessionMenuItems/menuItemBuilders";

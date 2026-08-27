@@ -28,10 +28,10 @@
  * </Breadcrumb>
  * ```
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, ReactNode, isValidElement } from "react";
 import { useNavigate } from "react-router-dom";
+
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 interface BreadcrumbItem {
   label: string;

@@ -1,6 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   Suspense,
   lazy,
@@ -28,6 +25,7 @@ import Select from "@src/components/Select";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { DEBOUNCE_DELAYS, useDebouncedCallback } from "@src/hooks/perf";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { Cancel01Icon, HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SECTION_SUBHEADING_CLASSES,

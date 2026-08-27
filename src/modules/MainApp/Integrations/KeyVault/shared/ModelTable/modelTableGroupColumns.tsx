@@ -1,6 +1,4 @@
 /** Group-view columns for the Key Vault ModelTable. */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import ModelPropertiesDropdown from "@src/components/ModelPropertiesDropdown";
@@ -9,6 +7,7 @@ import {
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
 import Switch from "@src/components/Switch";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 import { resolveDefaultVariant } from "@src/util/defaultModelVariant";
 import { formatModelNameFull } from "@src/util/formatModelName";
 import {

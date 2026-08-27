@@ -7,9 +7,6 @@
  * "keys" inline cards use (`InlineInfoCard` + `INFO_CARD_TOKENS`), so the two
  * expanded-row surfaces read identically.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +16,7 @@ import type {
 } from "@src/api/tauri/externalHistory";
 import Button from "@src/components/Button";
 import { INFO_CARD_TOKENS } from "@src/config/detailPanelTokens";
+import { Copy01Icon, FolderOpenIcon, HugeiconsIcon } from "@src/icons";
 import InlineInfoCard from "@src/modules/shared/layouts/blocks/InlineInfoCard";
 import { copyText } from "@src/util/data/clipboard";
 

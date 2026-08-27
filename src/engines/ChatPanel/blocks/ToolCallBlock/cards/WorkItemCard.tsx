@@ -1,13 +1,16 @@
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import {
+  AlertCircleIcon,
+  ArrowDown02Icon,
+  ArrowUp02Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleIcon,
+  Clock01Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+} from "@src/icons";
 
 import type {
   WorkItemCardData,

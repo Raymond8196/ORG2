@@ -1,15 +1,17 @@
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import SearchInput from "@src/components/SearchInput";
+import {
+  CloudIcon,
+  FolderClosedIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Refresh04Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
 
 import {

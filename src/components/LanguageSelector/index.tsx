@@ -15,8 +15,6 @@
  * <LanguageSelector size="small" appearance="ghost" />
  * ```
  */
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -32,6 +30,7 @@ import {
   getFollowSystemLanguageLabel,
   resolveLanguagePreference,
 } from "@src/i18n";
+import { HugeiconsIcon, InternetIcon } from "@src/icons";
 import { languageAtom } from "@src/store/ui/languageAtom";
 
 // ============================================================================

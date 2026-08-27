@@ -20,10 +20,6 @@ import {
   workspaceFileStatusMapAtom,
   workspaceFolderStatusMapAtom,
 } from "@/src/store/git";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
   forwardRef,
@@ -61,6 +57,12 @@ import {
   updateFileTreeMemoryEntry,
 } from "@src/hooks/perf/runtimeMemoryStats";
 import { useElementDimensions } from "@src/hooks/ui/layout/useElementDimensions";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  FilterIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { FolderHeaderRow } from "@src/modules/WorkStation/shared/FolderHeaderRow";
 import { fileTreeSelectedPathAtom } from "@src/store/ui/fileTreeSelectionAtom";
 

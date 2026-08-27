@@ -1,12 +1,14 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { ReviewComment } from "@src/api/http/project";
 import Button from "@src/components/Button";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Copy01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 import ReviewSeverityIcon from "./ReviewSeverityIcon";

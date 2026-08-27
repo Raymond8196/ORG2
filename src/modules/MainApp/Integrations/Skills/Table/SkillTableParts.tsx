@@ -1,11 +1,8 @@
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Home01Icon from "@hugeicons/core-free-icons/Home01Icon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 
 import { SETTINGS_TABLE_CELL } from "@src/components/SettingsTable";
 import type { CursorRepo } from "@src/hooks/policies";
+import { CodeIcon, Home01Icon, HugeiconsIcon, UserIcon } from "@src/icons";
 import { SKILL_SOURCE } from "@src/types/extensions";
 
 import {

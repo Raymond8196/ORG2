@@ -1,12 +1,14 @@
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Tooltip from "@src/components/Tooltip";
+import {
+  BubbleChatIcon,
+  HashtagIcon,
+  type IconSvgElement,
+  ListTodoIcon,
+} from "@src/icons";
 
 export type WorkstationSidebarViewKey = "channels" | "work-items" | "sessions";
 

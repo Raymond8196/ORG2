@@ -1,10 +1,9 @@
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
 
 import { buildIntegrationsPath } from "@src/config/mainAppPaths";
+import { HugeiconsIcon, Settings01Icon } from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import Modal from "@src/scaffold/ModalSystem";
 

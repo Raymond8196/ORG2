@@ -1,7 +1,3 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +7,12 @@ import type {
   ReviewComment,
 } from "@src/api/http/project";
 import Button from "@src/components/Button";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import DiffSummary from "./DiffSummary";
 import FileRow from "./FileRow";

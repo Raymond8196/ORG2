@@ -1,13 +1,3 @@
-import ArrowLeftDoubleIcon from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
-import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import File01Icon from "@hugeicons/core-free-icons/File01Icon";
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import LayoutListIcon from "@hugeicons/core-free-icons/LayoutListIcon";
-import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -34,6 +24,18 @@ import { useBranchPullRequestStatus } from "@src/hooks/git/useBranchPullRequestS
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
 import { useCloseTabWithGuard } from "@src/hooks/tabHost/useCloseTabWithGuard";
+import {
+  ArrowLeftDoubleIcon,
+  ArrowRightDoubleIcon,
+  File01Icon,
+  FileDiffIcon,
+  FolderClosedIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  LayoutListIcon,
+  SquareTerminalIcon,
+} from "@src/icons";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";

@@ -1,6 +1,4 @@
 // @vitest-environment jsdom
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -14,6 +12,7 @@ import {
   vi,
 } from "vitest";
 
+import { InternetIcon, SquareArrowUpRightIcon } from "@src/icons";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import AssignedWorkItemDetail from "../components/AssignedWorkItemDetail";

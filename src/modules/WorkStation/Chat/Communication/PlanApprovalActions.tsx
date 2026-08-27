@@ -9,15 +9,17 @@
  * relevant edit actions (Cancel + Save) are shown; the unrelated actions
  * (Edit toggle, Open in My Station) are hidden.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import {
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  HugeiconsIcon,
+  Pen01Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 const ICON_SIZE = 12;
 

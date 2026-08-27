@@ -3,11 +3,6 @@
  * plaintext secret exactly once — shown until the row reloads, never
  * persisted on the frontend.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +16,13 @@ import {
 import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Copy01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 const DELIVERY_STATUS_TONE: Record<string, string> = {

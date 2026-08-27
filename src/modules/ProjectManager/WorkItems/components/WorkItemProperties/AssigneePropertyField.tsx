@@ -1,7 +1,3 @@
-import AtIcon from "@hugeicons/core-free-icons/AtIcon";
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
 import Avatar from "@src/components/Avatar";
@@ -14,6 +10,12 @@ import {
   type FieldRowVariant,
   Option,
 } from "@src/components/PropertyField/PropertyFieldEditable";
+import {
+  AtIcon,
+  HierarchyCircle01Icon,
+  HugeiconsIcon,
+  UserIcon,
+} from "@src/icons";
 import type { Person } from "@src/types/core/shared";
 import {
   GITHUB_ISSUE_STATUS,

@@ -8,8 +8,6 @@
  * while still rendering with the same `GitFileList` + `CodeMirrorDiff`
  * side-by-side formatting as the commit-history view.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -18,6 +16,7 @@ import type { GitHubReviewComment, PrFile } from "@src/api/tauri/github";
 import { Placeholder } from "@src/components/Placeholder";
 import type { GitFileStatus } from "@src/config/gitStatus";
 import { CodeMirrorDiff } from "@src/features/CodeMirror";
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import {
   FileHeader,
   GIT_FILE_LIST_MAX_WIDTH,

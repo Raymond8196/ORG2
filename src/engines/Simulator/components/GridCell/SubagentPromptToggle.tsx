@@ -14,8 +14,6 @@
  * chat, so the prompt itself is the only thing that's not otherwise
  * visible without scrolling back to turn 1.
  */
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -31,6 +29,7 @@ import UserMessageContent from "@src/engines/ChatPanel/ChatHistory/components/Us
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { chatEventsForSessionAtomFamily } from "@src/engines/SessionCore/derived/sessionScopedChatEvents";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { HugeiconsIcon, InformationCircleIcon } from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 const PROMPT_PANEL_WIDTH = 440;

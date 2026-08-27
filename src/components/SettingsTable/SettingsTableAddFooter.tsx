@@ -4,10 +4,8 @@
  * Renders a text button with Plus icon.  Pass as the `footer` prop of
  * SettingsTable, or use the `addFooter` shorthand prop (see SettingsTable).
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import Button from "@src/components/Button";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface SettingsTableAddFooterProps {
   label: string;

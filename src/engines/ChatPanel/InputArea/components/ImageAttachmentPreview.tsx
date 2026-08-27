@@ -4,12 +4,11 @@
  * Displays pasted/dropped image thumbnails above the chat input.
  * Click opens fullscreen preview overlay with download/close.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
 
 import ImagePreviewOverlay from "@src/components/ImagePreviewOverlay";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import {
   type ChatImageAttachment,
   chatImageAttachmentsAtom,

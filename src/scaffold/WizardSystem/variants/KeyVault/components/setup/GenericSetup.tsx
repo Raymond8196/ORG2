@@ -14,9 +14,6 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
-import ClipboardCopyIcon from "@hugeicons/core-free-icons/ClipboardCopyIcon";
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import { useAtomValue } from "jotai";
 import type { FC } from "react";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -27,6 +24,7 @@ import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import Textarea from "@src/components/Textarea";
+import { ClipboardCopyIcon, KeyboardIcon, SearchAreaIcon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SectionContainer,

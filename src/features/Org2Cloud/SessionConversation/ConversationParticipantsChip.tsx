@@ -1,12 +1,14 @@
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Tooltip from "@src/components/Tooltip";
 import { getSessionForkedFrom } from "@src/features/TeamCollaboration/forkSession";
+import {
+  HugeiconsIcon,
+  MessageMultiple01Icon,
+  UserMultipleIcon,
+} from "@src/icons";
 import { sessionByIdAtom } from "@src/store/session";
 
 import { org2CloudRemoteSessionsAtom } from "../org2CloudRemoteSessionsAtom";

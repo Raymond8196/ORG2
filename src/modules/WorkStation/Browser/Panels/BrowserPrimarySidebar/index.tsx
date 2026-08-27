@@ -14,17 +14,19 @@ import {
   PrimarySidebarLayout,
   type PrimarySidebarTab,
 } from "@/src/modules/WorkStation/shared";
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
+import {
+  Add01Icon,
+  CodeIcon,
+  FilterIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  Pen01Icon,
+  WorkHistoryIcon,
+} from "@src/icons";
 
 import {
   DesignTabGlobalTokens,

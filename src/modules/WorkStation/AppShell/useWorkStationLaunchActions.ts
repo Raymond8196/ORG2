@@ -11,21 +11,23 @@
  * request a session (the Browser host is pre-mounted via `visitedModes`
  * seeding) instead of adding a `mainPane` tab.
  */
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import FileSearchIcon from "@hugeicons/core-free-icons/FileSearchIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import Shield02Icon from "@hugeicons/core-free-icons/Shield02Icon";
-import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import {
+  BoxIcon,
+  DashboardSquare01Icon,
+  FileDiffIcon,
+  FileSearchIcon,
+  FolderClosedIcon,
+  type IconSvgElement,
+  InternetIcon,
+  ListTodoIcon,
+  Shield02Icon,
+  SquareTerminalIcon,
+} from "@src/icons";
 import { focusBrowserUrlBar } from "@src/modules/WorkStation/Browser/Panels/BrowserMainPane/components/WebUrlBar";
 import { openEditorSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import {

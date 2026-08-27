@@ -1,6 +1,3 @@
-import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import {
   FieldRow,
@@ -8,6 +5,7 @@ import {
   Option,
   SearchableDropdown,
 } from "@src/components/PropertyField/PropertyFieldEditable";
+import { HugeiconsIcon, Tag01Icon } from "@src/icons";
 import type {
   WorkItem as WorkItemExtended,
   WorkItemLabel,

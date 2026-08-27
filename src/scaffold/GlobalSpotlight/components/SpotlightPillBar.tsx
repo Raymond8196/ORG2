@@ -5,9 +5,9 @@
  * own content (e.g. SessionCreatorPalette) and only need the back-chevron
  * pill for navigation context.
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { ArrowLeft01Icon, HugeiconsIcon } from "@src/icons";
 
 import { SPOTLIGHT_CLASSES, SPOTLIGHT_TOKENS } from "../constants";
 import type { PathSegment } from "../types";

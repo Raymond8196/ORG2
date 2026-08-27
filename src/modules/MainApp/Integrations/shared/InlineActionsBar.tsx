@@ -29,14 +29,12 @@
  * />
  * ```
  */
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import type { ButtonAppearance, ButtonVariant } from "@src/components/Button";
+import { Delete02Icon, HugeiconsIcon, Pen01Icon } from "@src/icons";
 
 export interface InlineAction {
   /** Stable key for React reconciliation + test ids. */

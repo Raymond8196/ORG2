@@ -1,13 +1,15 @@
 // ============================================
 // PanelContent Component
 // ============================================
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { Virtuoso } from "react-virtuoso";
 
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 import type {
   ApiCall,
   ApiCallHotspot,

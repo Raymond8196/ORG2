@@ -11,13 +11,6 @@
  * - VirtualizedStickyTree with sticky directory headers (tree mode)
  * - Hidden scrollbar
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -40,6 +33,15 @@ import {
   stickyRowPadding,
 } from "@src/components/VirtualizedStickyTree";
 import { getStatusColorForFile } from "@src/config/gitStatus";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  FilterIcon,
+  HierarchyFilesIcon,
+  HugeiconsIcon,
+  ListIcon,
+  Search01Icon,
+} from "@src/icons";
 import type { GitFile } from "@src/types/git/types";
 import { getFileName } from "@src/util/file/pathUtils";
 

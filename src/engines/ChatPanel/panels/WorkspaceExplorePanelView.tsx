@@ -12,12 +12,6 @@
  * clone form uses — so cloned repos automatically register as ORGII
  * workspaces.
  */
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import StarIcon from "@hugeicons/core-free-icons/StarIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { open as openExternal } from "@tauri-apps/plugin-shell";
 import { useAtomValue } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -38,6 +32,14 @@ import TabPill from "@src/components/TabPill";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Download01Icon,
+  GitForkIcon,
+  HugeiconsIcon,
+  Search01Icon,
+  SquareArrowUpRightIcon,
+  StarIcon,
+} from "@src/icons";
 import {
   effectiveWorkspaceDefaultRepoLocationAtom,
   workspaceCustomDefaultRepoPathAtom,

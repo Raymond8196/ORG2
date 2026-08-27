@@ -1,9 +1,7 @@
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { ArrowLeft01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
 import Modal from "@src/scaffold/ModalSystem";
 

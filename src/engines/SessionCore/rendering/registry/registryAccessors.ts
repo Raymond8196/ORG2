@@ -3,15 +3,17 @@
  *
  * Utility functions for working with the event registry
  */
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import type { ComponentType, LazyExoticComponent } from "react";
 
 import { getToolIconComponent } from "@src/config/toolIcons";
 import { resolveToolName } from "@src/engines/SessionCore/rendering/registry/toolAliases";
+import {
+  BrainIcon,
+  HelpCircleIcon,
+  type IconSvgElement,
+  Message01Icon,
+  UserIcon,
+} from "@src/icons";
 
 import { getAllEventTypes } from "./events";
 
@@ -72,7 +74,7 @@ const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, IconSvgElement> = {
 };
 
 /**
- * Lucide icon for a trajectory row: same rules as chat `ToolCallBlock` / `getToolIconComponent`
+ * Icon for a trajectory row: same rules as chat `ToolCallBlock` / `getToolIconComponent`
  * (Rust `list_all_tools` icon ids + `TOOL_ICON_COMPONENTS` fallbacks). Pass the group's
  * representative `functionName` (first event) so grouped `command` / `search` resolve correctly.
  */

@@ -9,14 +9,16 @@
  * allow-forms, no allow-popups-to-escape-sandbox. No eval bridge is injected
  * into the document. External URLs are never loaded.
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  ArrowExpand01Icon,
+  ArrowShrink01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { IFRAME_STYLE_NONCE, stampStyleNonces } from "@src/util/iframeCspNonce";
 
 // ─── helpers ─────────────────────────────────────────────────────────────────

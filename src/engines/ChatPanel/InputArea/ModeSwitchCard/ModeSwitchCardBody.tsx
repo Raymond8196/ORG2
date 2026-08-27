@@ -1,5 +1,3 @@
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +6,7 @@ import {
   ChatStatusSegmentedBar,
   ChatStatusTwoLineContent,
 } from "@src/engines/ChatPanel/components/ChatStatusBanners";
+import { ArrowLeftRightIcon, HugeiconsIcon } from "@src/icons";
 
 import { MODE_LABELS } from "./useModeSwitchActions";
 

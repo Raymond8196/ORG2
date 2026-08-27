@@ -5,22 +5,25 @@
  * including failed operations. Data comes from gitOperationHistoryAtom
  * which is populated by backend WebSocket events.
  */
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ArrowDownToLineIcon from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
-import ArrowUpFromLineIcon from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  AlertCircleIcon,
+  ArrowDownToLineIcon,
+  ArrowUpFromLineIcon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  GitCommitHorizontalIcon,
+  GitMergeIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   type GitOperation,
   gitOperationHistoryAtom,

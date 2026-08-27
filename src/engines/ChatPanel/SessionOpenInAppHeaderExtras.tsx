@@ -1,5 +1,3 @@
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -13,6 +11,7 @@ import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import Tooltip from "@src/components/Tooltip";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 const log = createLogger("ChatPanel");

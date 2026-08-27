@@ -1,13 +1,3 @@
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import FingerPrintIcon from "@hugeicons/core-free-icons/FingerPrintIcon";
-import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import PinIcon from "@hugeicons/core-free-icons/PinIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +5,18 @@ import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Clock01Icon,
+  FingerPrintIcon,
+  GitForkIcon,
+  HugeiconsIcon,
+  Message01Icon,
+  PinIcon,
+  Tick01Icon,
+  UserMultipleIcon,
+  ViewIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { copyText } from "@src/util/data/clipboard";
 import {

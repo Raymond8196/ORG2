@@ -1,5 +1,3 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 
 import FilePathBreadcrumb from "@src/components/FilePathBreadcrumb";
@@ -16,6 +14,7 @@ import {
   stickyRowPadding,
 } from "@src/components/VirtualizedStickyTree";
 import { AGENT_DOT_TOKENS } from "@src/engines/Simulator/config";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 
 import {
   type FileTreeInput,

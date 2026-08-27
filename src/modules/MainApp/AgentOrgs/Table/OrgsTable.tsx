@@ -5,9 +5,6 @@
  * WorkStation `agent-config` tab (`variant: "org"`) hosting the existing
  * `OrgDetailView`, so editing semantics stay identical to before.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +14,7 @@ import SettingsTable, {
   SETTINGS_TABLE_COL,
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
+import { Add01Icon, Delete02Icon, HugeiconsIcon } from "@src/icons";
 import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
 
 import type { OrgMember } from "../types";

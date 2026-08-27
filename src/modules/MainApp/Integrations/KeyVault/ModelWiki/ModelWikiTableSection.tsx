@@ -1,7 +1,3 @@
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import Message02Icon from "@hugeicons/core-free-icons/Message02Icon";
-import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +10,12 @@ import SettingsTable, {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import Tooltip from "@src/components/Tooltip";
+import {
+  BrainIcon,
+  HugeiconsIcon,
+  Message02Icon,
+  Wrench01Icon,
+} from "@src/icons";
 import { normalizedIncludes } from "@src/util/search/fuzzy";
 
 import {

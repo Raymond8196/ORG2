@@ -1,36 +1,38 @@
 /**
  * Icon Helper for Shortcut Actions
  *
- * Maps icon names (Lucide icon component names) to actual Lucide icon components.
+ * Maps icon names (lucide-era component names) to hugeicons glyph data.
  */
-import AppWindow from "@hugeicons/core-free-icons/AppWindowIcon";
-import ArrowLeftRight from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ArrowRight from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import CheckCircle from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Clock from "@hugeicons/core-free-icons/Clock01Icon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import FileEdit from "@hugeicons/core-free-icons/Edit04Icon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
-import Repeat from "@hugeicons/core-free-icons/RepeatIcon";
-import Milestone from "@hugeicons/core-free-icons/RoadLocation01Icon";
-import Rocket from "@hugeicons/core-free-icons/RocketIcon";
-import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
-import Split from "@hugeicons/core-free-icons/SplitIcon";
-import Timer from "@hugeicons/core-free-icons/Timer01Icon";
-import Type from "@hugeicons/core-free-icons/TypeIcon";
-import Eye from "@hugeicons/core-free-icons/ViewIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { createLogger } from "@src/hooks/logger";
+import {
+  AppWindowIcon as AppWindow,
+  ArrowLeftRightIcon as ArrowLeftRight,
+  ArrowRight02Icon as ArrowRight,
+  CheckmarkCircle01Icon as CheckCircle,
+  Clock01Icon as Clock,
+  ViewIcon as Eye,
+  Edit04Icon as FileEdit,
+  File02Icon as FileText,
+  FolderClosedIcon as Folder,
+  WorkflowCircle05Icon as GitBranch,
+  GitMergeIcon as GitMerge,
+  type IconSvgElement,
+  InboxIcon as Inbox,
+  ListTodoIcon as ListTodo,
+  RoadLocation01Icon as Milestone,
+  PlayIcon as Play,
+  PlayCircleIcon as PlayCircle,
+  RepeatIcon as Repeat,
+  RocketIcon as Rocket,
+  Settings02Icon as Settings2,
+  SplitIcon as Split,
+  ComputerTerminal01Icon as Terminal,
+  Timer01Icon as Timer,
+  TypeIcon as Type,
+} from "@src/icons";
 
 const log = createLogger("iconHelper");
 

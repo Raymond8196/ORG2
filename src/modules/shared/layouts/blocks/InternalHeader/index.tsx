@@ -7,10 +7,10 @@
  *
  * Standard: no border, wide padding (px-6), solid panel background.
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import type { IconSvgElement } from "@src/icons";
 
 // ============================================
 // Tokens
@@ -39,7 +39,7 @@ export interface InternalHeaderProps {
   /** Hugeicons icon data (size=14 applied automatically) */
   icon?: IconSvgElement;
 
-  /** Custom icon element for non-Lucide icons */
+  /** Custom icon element for non-glyph icons */
   iconElement?: React.ReactNode;
 
   /** Right-side actions (buttons, etc.) */

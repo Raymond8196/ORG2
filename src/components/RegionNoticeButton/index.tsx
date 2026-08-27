@@ -1,11 +1,10 @@
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
+import { HugeiconsIcon, InternetIcon } from "@src/icons";
 
 interface RegionNoticeButtonProps {
   title: string;

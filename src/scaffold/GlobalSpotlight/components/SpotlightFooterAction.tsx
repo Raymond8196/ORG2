@@ -3,9 +3,9 @@
  *
  * Small clickable pill rendered alongside the keyboard-shortcuts footer.
  */
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
 
 export interface SpotlightFooterActionProps {
   label: string;

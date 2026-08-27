@@ -1,11 +1,10 @@
 /**
  * DesignTabPages - Pages section for DesignTab sidebar
  */
-import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import type { TreePanelNode } from "@src/components/TreePanelSidebar/types";
+import { FileScriptIcon, HugeiconsIcon } from "@src/icons";
 
 import { TREE_ICON_SIZE } from "../config";
 import type { DesignTabPagesProps, PageItem } from "../types";

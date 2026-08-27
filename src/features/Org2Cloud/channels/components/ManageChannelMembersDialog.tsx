@@ -10,8 +10,6 @@
  * the member list.
  */
 import Modal from "@/src/scaffold/ModalSystem";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, {
   useCallback,
@@ -28,6 +26,7 @@ import Checkbox from "@src/components/Checkbox";
 import Dropdown from "@src/components/Dropdown";
 import type { DropdownOption } from "@src/components/Dropdown/types";
 import { ChannelDialogErrorNotice } from "@src/features/DiscussionChannels/components/ChannelDialogPrimitives";
+import { HugeiconsIcon, MoreHorizontalIcon } from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 
 import { bumpOrg2CloudChannelsVersionAtom } from "../channelsAtom";

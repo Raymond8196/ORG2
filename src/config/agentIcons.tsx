@@ -22,23 +22,6 @@
  * adding a new agent in Rust, use an existing Lucide-style slug for
  * `icon_id` and add it here if not already present.
  */
-import AiGenerativeIcon from "@hugeicons/core-free-icons/AiGenerativeIcon";
-import BookEditIcon from "@hugeicons/core-free-icons/BookEditIcon";
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import ChartColumnIcon from "@hugeicons/core-free-icons/ChartColumnIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import CursorPointer02Icon from "@hugeicons/core-free-icons/CursorPointer02Icon";
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
-import Plant01Icon from "@hugeicons/core-free-icons/Plant01Icon";
-import RecordIcon from "@hugeicons/core-free-icons/RecordIcon";
-import Shaka01Icon from "@hugeicons/core-free-icons/Shaka01Icon";
-import TestTubeIcon from "@hugeicons/core-free-icons/TestTubeIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import { type RenderableIcon } from "@src/components/AnyIcon";
@@ -48,6 +31,25 @@ import {
   getIconProviderFromType,
   isIconProvider,
 } from "@src/components/ModelIcon/config";
+import {
+  AiGenerativeIcon,
+  BookEditIcon,
+  BotIcon,
+  BrainIcon,
+  ChartColumnIcon,
+  CodeIcon,
+  ComputerTerminal01Icon,
+  CursorPointer02Icon,
+  HierarchyCircle01Icon,
+  type IconSvgElement,
+  MonitorIcon,
+  Plant01Icon,
+  RecordIcon,
+  Shaka01Icon,
+  TestTubeIcon,
+  UserIcon,
+  UserMultipleIcon,
+} from "@src/icons";
 
 /**
  * What the agent-icon registry actually hands out: hugeicons glyph data

@@ -1,10 +1,3 @@
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +5,15 @@ import { Placeholder } from "@src/components/Placeholder";
 import PrCiStatusIndicator from "@src/components/PrCiStatusIndicator";
 import type { SelectOption } from "@src/components/Select";
 import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
+import {
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  CircleSlashIcon,
+  Copy01Icon,
+  GitMergeIcon,
+  GitPullRequestDraftIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   WorkManagementTable,
   type WorkManagementTableRow,

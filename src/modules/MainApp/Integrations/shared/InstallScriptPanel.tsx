@@ -7,10 +7,6 @@
  *
  * Used by CLI Clients, LSP, and Lint Tools inline expanded cards.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +15,12 @@ import Message from "@src/components/Message";
 import PrerequisiteAlert from "@src/components/PrerequisiteAlert";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
+import {
+  Copy01Icon,
+  Delete02Icon,
+  Download01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 import { InlineCardColumnStack } from "../KeyVault/shared/InlineCardPrimitives";

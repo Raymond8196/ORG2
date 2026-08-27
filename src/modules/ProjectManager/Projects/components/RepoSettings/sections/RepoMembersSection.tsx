@@ -4,16 +4,6 @@
  *
  * This is the repo-level variant (no Project tab — that lives in WorkItemsSettings).
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, {
   useCallback,
@@ -29,6 +19,18 @@ import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  Add01Icon,
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  Pen01Icon,
+  Refresh04Icon,
+  Tick01Icon,
+  UserAdd01Icon,
+} from "@src/icons";
 import { ClaimIdentityModal } from "@src/modules/ProjectManager/shared/components";
 import {
   SECTION_ACTION_GAP_CLASSES,

@@ -1,10 +1,8 @@
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { ArrowLeft02Icon, HugeiconsIcon, Message01Icon } from "@src/icons";
 
 export type WorkItemThreadView = "overview" | "discussion";
 

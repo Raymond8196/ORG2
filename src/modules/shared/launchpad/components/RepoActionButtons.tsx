@@ -1,10 +1,3 @@
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import ExpandIcon from "@hugeicons/core-free-icons/ExpandIcon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import FolderSearchIcon from "@hugeicons/core-free-icons/FolderSearchIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { openPath } from "@tauri-apps/plugin-opener";
 import { useSetAtom } from "jotai";
 import React, { useCallback } from "react";
@@ -16,6 +9,15 @@ import Message from "@src/components/Message";
 import { ROUTES } from "@src/config/routes";
 import { useRepoLoader } from "@src/hooks/git/useRepoSelection";
 import { createLogger } from "@src/hooks/logger";
+import {
+  BubbleChatIcon,
+  Cancel01Icon,
+  Delete02Icon,
+  ExpandIcon,
+  FolderOpenIcon,
+  FolderSearchIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { selectedRepoIdAtom } from "@src/store/repo";
 import type { Repo } from "@src/store/repo/types";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";

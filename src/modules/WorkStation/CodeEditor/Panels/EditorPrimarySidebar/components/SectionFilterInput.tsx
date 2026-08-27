@@ -1,10 +1,9 @@
-import FunnelIcon from "@hugeicons/core-free-icons/FunnelIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Input from "@src/components/Input";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
+import { FunnelIcon, HugeiconsIcon } from "@src/icons";
 import { PANEL_CONSTANTS } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/config";
 
 // ─── Filter Input Row ─────────────────────────────────────────────────────────

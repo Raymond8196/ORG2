@@ -2,9 +2,6 @@
  * Atomic row components for SlashCommandMenu.
  * Each renders one list entry, taking its own data and shared active/hover state.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +15,7 @@ import type {
   AgentExecMode,
   ComposerModeEntry,
 } from "@src/config/sessionCreatorConfig";
+import { ArrowRight01Icon, HugeiconsIcon, Image01Icon } from "@src/icons";
 import { MenuItemRow } from "@src/scaffold/ContextMenu/ResultItems";
 import type { SlashItem, SlashItemCategory } from "@src/types/extensions";
 

@@ -1,13 +1,3 @@
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import ListFilterIcon from "@hugeicons/core-free-icons/ListFilterIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +8,18 @@ import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
 import { getListItemClasses } from "@src/components/ListPanel";
 import PrCiStatusIndicator from "@src/components/PrCiStatusIndicator";
 import SearchInput from "@src/components/SearchInput";
+import {
+  ArrowLeft02Icon,
+  CircleDotIcon,
+  GitMergeIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  ListFilterIcon,
+  ListTodoIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   getPrStatusIconName,
   getPrStatusVariant,

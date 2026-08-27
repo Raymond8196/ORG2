@@ -7,10 +7,6 @@
  *
  * Uses shared TreeRow components for base rendering.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +16,7 @@ import {
   TreeRowBase,
 } from "@src/components/TreeRow";
 import type { GitStatusInfo, TreeRowNode } from "@src/components/TreeRow";
+import { Add01Icon, MinusSignIcon, Tick01Icon, Undo02Icon } from "@src/icons";
 import type { GitFile } from "@src/types/git/types";
 
 export interface GitFileTreeNode {

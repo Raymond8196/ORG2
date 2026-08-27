@@ -1,14 +1,3 @@
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import MessageSquareMoreIcon from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, {
   type ReactNode,
   useCallback,
@@ -25,6 +14,20 @@ import InlineAlert from "@src/components/InlineAlert";
 import { LIST_PANEL_SECTIONS } from "@src/components/ListPanel";
 import { Placeholder } from "@src/components/Placeholder";
 import SearchInput from "@src/components/SearchInput";
+import {
+  GitMergeIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  InboxIcon,
+  InformationCircleIcon,
+  ListChecksIcon,
+  MessageSquareMoreIcon,
+  Refresh04Icon,
+  TickDouble01Icon,
+} from "@src/icons";
 import {
   type ManagedPrItem,
   getManagedPullRequestKey,

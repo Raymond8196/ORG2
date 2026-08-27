@@ -1,9 +1,8 @@
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { ArrowLeftRightIcon, HugeiconsIcon } from "@src/icons";
 import type { SecondaryPanelPosition } from "@src/store/ui/workStationAtom";
 
 import { HEADER_ICON_SIZE } from "../tokens";

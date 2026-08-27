@@ -4,11 +4,10 @@
  * Reusable info icon with tooltip for explaining commands, options, or hints.
  * Used in LINT (install commands), Git settings (pull strategies), etc.
  */
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import Tooltip from "@src/components/Tooltip";
+import { HugeiconsIcon, InformationCircleIcon } from "@src/icons";
 
 export interface HintWithInfoProps {
   /** Tooltip content (plain text or React node) */

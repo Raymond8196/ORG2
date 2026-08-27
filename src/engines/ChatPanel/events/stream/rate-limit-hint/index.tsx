@@ -5,8 +5,6 @@
  *
  * Rendered via the event registry under `rate_limit_hint`.
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -23,6 +21,7 @@ import {
   useNormalizedEventProps,
 } from "@src/engines/SessionCore/rendering/props";
 import type { EventVariant } from "@src/engines/SessionCore/rendering/types/universalProps";
+import { Alert01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface RateLimitHintEventProps extends RawEventInput {
   variant?: EventVariant;

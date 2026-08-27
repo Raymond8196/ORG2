@@ -10,14 +10,17 @@
  * The chip never renders a sidebar collapse toggle — that lives separately in
  * the 40px workstation header.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo, useEffect } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
+import {
+  ArrowDown01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+} from "@src/icons";
 
 import {
   AppSwitcherDropdownPanel,

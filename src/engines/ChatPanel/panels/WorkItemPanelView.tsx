@@ -1,8 +1,3 @@
-import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
@@ -31,6 +26,13 @@ import { usePublishChatPanelHeader } from "@src/engines/ChatPanel/header";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
+import {
+  ArrowRightDoubleIcon,
+  Delete02Icon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+  ListChecksIcon,
+} from "@src/icons";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
 import { WorkItemDetailHeaderBreadcrumb } from "@src/modules/ProjectManager/WorkItems/components/WorkItemDetail/WorkItemDetailHeader";
 import WorkItemProperties from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties";

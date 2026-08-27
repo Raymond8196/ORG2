@@ -3,9 +3,8 @@
  *
  * Shared types for the reusable KanbanBoard component.
  */
-import type { IconSvgElement } from "@hugeicons/react";
-
 import type { CliAgentType } from "@src/api/types/keys";
+import type { IconSvgElement } from "@src/icons";
 import type { Label } from "@src/types/core/shared";
 import type { WorkItemStatus } from "@src/types/core/workItem";
 
@@ -69,7 +68,7 @@ export interface KanbanTask {
   resultStatus?: KanbanResultStatus;
   /** Display label for the agent runtime / agent type that owns the task. */
   agentLabel?: string;
-  /** Rust-resolved Lucide icon id for Rust-native agents. */
+  /** Rust-resolved icon id (lucide-era slugs) for Rust-native agents. */
   agentIconId?: string;
   /** CLI agent type for branded CLI icons. */
   cliAgentType?: CliAgentType;
@@ -103,7 +102,7 @@ export interface KanbanTask {
   /**
    * Auxiliary metadata pills rendered inline in the footer-left strip
    * (next to priority / agent / model). Each entry can optionally
-   * include a small Lucide icon for quick scan and a CSS color string
+   * include a small icon glyph for quick scan and a CSS color string
    * applied to both the icon and the text (e.g. `var(--color-success-6)`
    * for completed-todo timestamps). Used for low-importance metadata
    * that should sit at the same visual layer as the other footer pills

@@ -8,13 +8,12 @@
  *
  * List/get actions with no agent name collapse to title-only.
  */
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { getToolIcon } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
+import { BotIcon, HugeiconsIcon } from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
 import {

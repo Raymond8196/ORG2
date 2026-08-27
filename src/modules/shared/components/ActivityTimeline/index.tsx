@@ -1,12 +1,10 @@
 /** Shared activity timeline primitives used by work items, work logs, issues, and PRs. */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button, { type ButtonProps } from "@src/components/Button";
 import { useCopyCheck } from "@src/hooks/ui";
+import { Copy01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { normalizeScrollTrailLabel } from "@src/modules/shared/layouts/blocks/ScrollTrail";
 import { copyText } from "@src/util/data/clipboard";
 import {

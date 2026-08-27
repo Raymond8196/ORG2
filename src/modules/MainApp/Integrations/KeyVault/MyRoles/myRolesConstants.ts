@@ -4,14 +4,11 @@
  * Shared tab identifiers, presence-guidance defaults and profile-preset
  * scaffolding for the My Roles section.
  */
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
-import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
-
 import type {
   FamiliarLanguageTechStack,
   UserTechSavvySelection,
 } from "@src/config/profile/userProfile";
+import { CircleIcon, HatGlassesIcon, MoonIcon } from "@src/icons";
 import { USER_PRESENCE_MODE } from "@src/types/userPresence";
 
 export const MY_ROLES_TAB = {

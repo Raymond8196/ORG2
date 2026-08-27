@@ -6,8 +6,6 @@
  *
  * Used by PermissionCard (live session) and ApprovalPreview (DevTools playground).
  */
-import NotificationBubbleIcon from "@hugeicons/core-free-icons/NotificationBubbleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +14,7 @@ import {
   CHAT_COMPOSER_STACK_BAR_INNER_PADDING_X_CLASS,
   COMPOSER_CARD_SHELL_CLASSES,
 } from "@src/config/composerStackTokens";
+import { HugeiconsIcon, NotificationBubbleIcon } from "@src/icons";
 
 import ComposerStackHeader from "../components/ComposerStackHeader";
 

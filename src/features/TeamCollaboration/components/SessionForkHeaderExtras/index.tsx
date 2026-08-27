@@ -1,5 +1,3 @@
-import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +9,7 @@ import Tooltip from "@src/components/Tooltip";
 import { org2CloudRemoteSessionsAtom } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
 import { useCloudSessionActions } from "@src/features/Org2Cloud/useCloudSessionActions";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
+import { GitForkIcon, HugeiconsIcon } from "@src/icons";
 import { openOrReplaceSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { Session } from "@src/store/session/sessionAtom/types";

@@ -5,10 +5,6 @@
  * same container, textarea, bottom bar with CompoundPill + AddActionsDropdown.
  * Uses creatorDefaultModelSelectionAtom for model persistence (same as main session creator).
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import GripIcon from "@hugeicons/core-free-icons/GripIcon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -33,6 +29,12 @@ import {
 import type { AdvancedConfig } from "@src/features/SessionCreator/types";
 import { useModelPillLabel } from "@src/hooks/models";
 import { useValidatedLastPair } from "@src/hooks/models/useValidatedLastPair";
+import {
+  Cancel01Icon,
+  GripIcon,
+  HugeiconsIcon,
+  SparklesIcon,
+} from "@src/icons";
 import {
   type RepoSetupContext,
   useRepoSetup,

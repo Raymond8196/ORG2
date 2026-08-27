@@ -1,8 +1,3 @@
-import Book02Icon from "@hugeicons/core-free-icons/Book02Icon";
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import DiamondIcon from "@hugeicons/core-free-icons/DiamondIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -15,6 +10,12 @@ import {
   Option,
   SearchableDropdown,
 } from "@src/components/PropertyField/PropertyFieldEditable";
+import {
+  Book02Icon,
+  BookOpen01Icon,
+  DiamondIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import type {
   WorkItem as WorkItemExtended,
   WorkItemMilestone,

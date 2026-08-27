@@ -7,12 +7,6 @@
  *
  * Similar to Zoom's status bar at the bottom of meetings
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
-import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,6 +24,14 @@ import {
   replayModeAtom,
   simulatorEventCountAtom,
 } from "@src/engines/SessionCore";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Cursor02Icon,
+  HugeiconsIcon,
+  PauseIcon,
+  PlayIcon,
+} from "@src/icons";
 import {
   simulatorFollowAppLockAtom,
   simulatorSelectedAppAtom,

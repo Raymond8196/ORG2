@@ -5,9 +5,6 @@
  * (manage_story, manage_work_item, delegate_story) using the same row/detail
  * surfaces as the Project Manager where those components are safe to reuse.
  */
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import LayoutListIcon from "@hugeicons/core-free-icons/LayoutListIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +12,7 @@ import { Placeholder } from "@src/components/Placeholder";
 import type { SessionEvent } from "@src/engines/SessionCore";
 import type { SimulatorAppProps } from "@src/engines/Simulator/apps/core/types";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
+import { File02Icon, HugeiconsIcon, LayoutListIcon } from "@src/icons";
 import { ProjectRow } from "@src/modules/ProjectManager/Projects/components";
 import {
   WorkItemContent,

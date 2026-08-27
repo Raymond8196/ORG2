@@ -1,6 +1,6 @@
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { AlertCircleIcon, HugeiconsIcon } from "@src/icons";
 
 import type { TaskPriority } from "../types";
 

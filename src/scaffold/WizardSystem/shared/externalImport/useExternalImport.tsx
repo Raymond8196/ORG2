@@ -11,10 +11,6 @@
  * `targetRepoPath`, so one ORGII workspace can import into multiple repos
  * without collapsing them into a single import destination.
  */
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import ShieldAlertIcon from "@hugeicons/core-free-icons/ShieldAlertIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -43,6 +39,7 @@ import {
 import SplitButton from "@src/components/SplitButton";
 import { createLogger } from "@src/hooks/logger";
 import type { CursorRepo } from "@src/hooks/policies";
+import { CodeIcon, HugeiconsIcon, ShieldAlertIcon, UserIcon } from "@src/icons";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
 import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
 

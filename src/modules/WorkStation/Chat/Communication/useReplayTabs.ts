@@ -1,9 +1,8 @@
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getToolIcon } from "@src/config/toolIcons";
+import { HugeiconsIcon, ViewIcon } from "@src/icons";
 
 import type { ReplayTab } from "../../shared";
 import type { MessageViewMode } from "./types";

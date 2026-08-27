@@ -33,11 +33,10 @@
  * <Switch checked={checked} onCheckedChange={setChecked} showAxLabel />
  * ```
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import "./index.scss";

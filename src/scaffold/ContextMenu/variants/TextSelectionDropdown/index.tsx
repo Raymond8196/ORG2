@@ -21,9 +21,6 @@
  *   onAddToContext={handleAddToContext}
  * />
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   memo,
@@ -41,6 +38,7 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
 } from "@src/components/Dropdown/tokens";
+import { Add01Icon, HugeiconsIcon, WorkHistoryIcon } from "@src/icons";
 import { Session, recentSessionsAtom } from "@src/store/session";
 import { stripPillReferences } from "@src/util/session/stripPillReferences";
 import { getViewportSize } from "@src/util/ui/window/viewport";

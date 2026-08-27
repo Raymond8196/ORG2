@@ -1,8 +1,7 @@
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { CSSProperties, FC } from "react";
 
 import ProgressBar from "@src/components/ProgressBar";
+import { Download01Icon, HugeiconsIcon } from "@src/icons";
 
 import "./DownloadProgress.scss";
 

@@ -8,16 +8,18 @@
  * When onTestModel is provided, each model is tested via a lightweight
  * completion request before being added to the list.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
+import {
+  Add01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 
 export interface DeploymentModelInputProps {
   models: string[];

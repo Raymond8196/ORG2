@@ -8,9 +8,6 @@
  *
  * Repo-agnostic: all state is owned by the caller (`useSourceControlSidebarModule`).
  */
-import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +18,7 @@ import type { DropdownOption } from "@src/components/Dropdown/types";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import Select from "@src/components/Select";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { EllipsisIcon, HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import type { SourceControlFilterMode } from "@src/store/workstation/codeEditor/sourceControlTypes";
 

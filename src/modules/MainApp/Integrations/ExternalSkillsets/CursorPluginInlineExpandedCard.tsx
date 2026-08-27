@@ -1,9 +1,3 @@
-import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { readTextFile } from "@tauri-apps/plugin-fs";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +5,14 @@ import { useTranslation } from "react-i18next";
 import type { CursorPluginInfo } from "@src/api/tauri/rpc/procedures/agentOrgs";
 import { createLogger } from "@src/hooks/logger";
 import { useCopyCheck } from "@src/hooks/ui";
+import {
+  ClipboardIcon,
+  HugeiconsIcon,
+  Layers01Icon,
+  SquareArrowUpRightIcon,
+  Tick01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { InfoRow } from "@src/modules/shared/layouts/blocks/InfoRow";
 import { copyText } from "@src/util/data/clipboard";
 import { extractSkillPreviewDescription } from "@src/util/skills/skillFrontmatter";

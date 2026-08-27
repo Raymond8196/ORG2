@@ -1,11 +1,13 @@
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import BanIcon from "@hugeicons/core-free-icons/BanIcon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Edit04Icon from "@hugeicons/core-free-icons/Edit04Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  AlertCircleIcon,
+  BanIcon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  Edit04Icon,
+  type IconSvgElement,
+  Loading03Icon,
+  Wrench01Icon,
+} from "@src/icons";
 
 export interface SessionFileChange {
   path: string;

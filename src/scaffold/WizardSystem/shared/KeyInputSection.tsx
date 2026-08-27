@@ -4,9 +4,6 @@
  * Extracted from GenericSetup for reuse across KeyVaultAccount and Listing wizards.
  * Supports three methods: Autodetect, Enter Key, Extract Config.
  */
-import ClipboardCopyIcon from "@hugeicons/core-free-icons/ClipboardCopyIcon";
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +12,7 @@ import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import Textarea from "@src/components/Textarea";
+import { ClipboardCopyIcon, KeyboardIcon, SearchAreaIcon } from "@src/icons";
 import {
   SectionContainer,
   SectionRow,

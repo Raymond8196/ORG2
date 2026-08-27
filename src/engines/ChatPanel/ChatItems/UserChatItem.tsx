@@ -1,10 +1,3 @@
-import ClipboardCheckIcon from "@hugeicons/core-free-icons/ClipboardCheckIcon";
-import File01Icon from "@hugeicons/core-free-icons/File01Icon";
-import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
-import PencilEdit01Icon from "@hugeicons/core-free-icons/PencilEdit01Icon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   type FC,
@@ -31,6 +24,15 @@ import type { ConversationSenderStamp } from "@src/features/Org2Cloud/SessionCon
 import { CONVERSATION_SENDER_ARG } from "@src/features/Org2Cloud/SessionConversation/continuationEvents";
 import { discussionPayloadOf } from "@src/features/Org2Cloud/SessionConversation/discussionEvents";
 import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import {
+  ClipboardCheckIcon,
+  File01Icon,
+  HugeiconsIcon,
+  Image01Icon,
+  PencilEdit01Icon,
+  SparklesIcon,
+  Undo02Icon,
+} from "@src/icons";
 import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
 import {
   formatSmartDateTime,

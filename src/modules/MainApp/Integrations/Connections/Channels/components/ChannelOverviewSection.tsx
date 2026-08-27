@@ -4,12 +4,11 @@
  * Displays channel overview info using the shared InfoCard pattern.
  * Shows type, account ID, live connection status, and last probe result.
  */
-import ChevronsLeftRightEllipsisIcon from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import { ChevronsLeftRightEllipsisIcon, HugeiconsIcon } from "@src/icons";
 import { InfoCard } from "@src/modules/shared/layouts/blocks";
 
 import { CHANNEL_TYPES } from "../config";

@@ -8,17 +8,19 @@
  * Shows files read/edited and search operations
  * up to the current replay point via tab-specific tree panels.
  */
-import CompassIcon from "@hugeicons/core-free-icons/CompassIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import { resolveToolName } from "@src/engines/SessionCore/rendering/registry/toolAliases";
+import {
+  CompassIcon,
+  ComputerTerminal01Icon,
+  HierarchyFilesIcon,
+  HugeiconsIcon,
+  ListIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { formatToolArg } from "@src/util/ui/rendering/formatToolName";
 import { getToolDisplayLabelFromRegistry } from "@src/util/ui/rendering/registryToolLabel";
 

@@ -6,8 +6,6 @@
  * compact row shape as attempted edits instead of rendering a separate red
  * error row.
  */
-import Briefcase01Icon from "@hugeicons/core-free-icons/Briefcase01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -18,6 +16,7 @@ import {
   useToolLabelText,
 } from "@src/engines/SessionCore/rendering/registry";
 import type { UniversalEventProps } from "@src/engines/SessionCore/rendering/types/universalProps";
+import { Briefcase01Icon, HugeiconsIcon } from "@src/icons";
 import { getFileName } from "@src/util/file/pathUtils";
 import { extractSkillNameFromPath } from "@src/util/skills/skillPath";
 

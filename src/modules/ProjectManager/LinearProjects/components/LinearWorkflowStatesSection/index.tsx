@@ -1,11 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +9,16 @@ import type {
 } from "@src/api/http/integrations";
 import type { LinearTeamSummary } from "@src/api/http/integrations/linearProjects";
 import Button from "@src/components/Button";
+import {
+  Add01Icon,
+  Cancel01Icon,
+  CircleIcon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Pen01Icon,
+  Refresh04Icon,
+  Tick01Icon,
+} from "@src/icons";
 
 interface LinearWorkflowStatesSectionProps {
   team?: LinearTeamSummary;

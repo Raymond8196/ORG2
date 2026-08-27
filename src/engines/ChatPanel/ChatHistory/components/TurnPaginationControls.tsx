@@ -5,16 +5,6 @@
  * selector, current time-range label, and previous / next / last-round
  * buttons.
  */
-import AiNetworkIcon from "@hugeicons/core-free-icons/AiNetworkIcon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ClockArrowDownIcon from "@hugeicons/core-free-icons/ClockArrowDownIcon";
-import ClockArrowUpIcon from "@hugeicons/core-free-icons/ClockArrowUpIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -32,6 +22,18 @@ import Tooltip from "@src/components/Tooltip";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import {
+  AiNetworkIcon,
+  ArrowDown01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  ArrowRightDoubleIcon,
+  Cancel01Icon,
+  ClockArrowDownIcon,
+  ClockArrowUpIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+} from "@src/icons";
 import { isAgentOrgMemberEmpty } from "@src/util/agentOrg/memberActivity";
 
 interface TurnPaginationControlsProps {

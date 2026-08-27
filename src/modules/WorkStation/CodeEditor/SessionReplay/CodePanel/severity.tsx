@@ -7,11 +7,14 @@
  * the rest of the user-facing LSP/lint surface — see `.archive/README.md`. They
  * are inlined here because this rendering is unrelated to LSP diagnostics.
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import {
+  Alert01Icon,
+  AlertCircleIcon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+} from "@src/icons";
 
 export type DiagnosticSeverity = "error" | "warning" | "info" | "hint";
 

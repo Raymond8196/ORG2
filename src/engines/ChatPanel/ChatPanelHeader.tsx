@@ -1,8 +1,3 @@
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ComputerVideoIcon from "@hugeicons/core-free-icons/ComputerVideoIcon";
-import PanelRightIcon from "@hugeicons/core-free-icons/PanelRightIcon";
-import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import React from "react";
@@ -14,6 +9,13 @@ import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailing
 import Tooltip from "@src/components/Tooltip";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { getCollapsedSidebarChromeOffset } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
+import {
+  ArrowExpand01Icon,
+  ComputerVideoIcon,
+  HugeiconsIcon,
+  PanelRightIcon,
+  SquareTerminalIcon,
+} from "@src/icons";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { CollapsedSidebarButton } from "@src/scaffold/NavigationSidebar/CollapsedSidebarButton";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";

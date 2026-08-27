@@ -13,11 +13,6 @@
  * otherwise stacked under the flow title above the description. Reuses
  * commit-history + issue-timeline formatting throughout.
  */
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -27,6 +22,13 @@ import InlineBanner, {
 } from "@src/components/InlineBanner";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useElementDimensions } from "@src/hooks/ui/layout/useElementDimensions";
+import {
+  FileDiffIcon,
+  GitCommitHorizontalIcon,
+  HugeiconsIcon,
+  ListChecksIcon,
+  MessageMultiple01Icon,
+} from "@src/icons";
 import { ExternalBrowserButton } from "@src/modules/WorkStation/shared/ExternalBrowserButton";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import {

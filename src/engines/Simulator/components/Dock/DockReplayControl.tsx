@@ -21,7 +21,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import { AppType } from "../../types/appTypes";
 import { DOCK_APPS, DOCK_APP_SEGMENTS, getAppById } from "./config";
 import {
-  DOCK_LUCIDE_ICON_PROPS,
+  DOCK_ICON_PROPS,
   DockIconColumn,
   DockSegmentDivider,
   StationDockGlassPill,
@@ -104,7 +104,7 @@ export const DockReplayControl: FC<DockReplayControlProps> = memo(
                       onContextMenu={(e) => handleContextMenu(app.id, e)}
                       title={app.name}
                     >
-                      <AnyIcon icon={app.icon} {...DOCK_LUCIDE_ICON_PROPS} />
+                      <AnyIcon icon={app.icon} {...DOCK_ICON_PROPS} />
                     </div>
                   </DockIconColumn>
                 );
@@ -122,10 +122,7 @@ export const DockReplayControl: FC<DockReplayControlProps> = memo(
                   onContextMenu={(e) => handleContextMenu(activeAppInfo.id, e)}
                   title={activeAppInfo.name}
                 >
-                  <AnyIcon
-                    icon={activeAppInfo.icon}
-                    {...DOCK_LUCIDE_ICON_PROPS}
-                  />
+                  <AnyIcon icon={activeAppInfo.icon} {...DOCK_ICON_PROPS} />
                 </div>
               </DockIconColumn>
             </>

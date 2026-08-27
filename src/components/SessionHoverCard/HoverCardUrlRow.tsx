@@ -1,8 +1,7 @@
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, InternetIcon } from "@src/icons";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 import { HoverCardRow } from "./HoverCardBase";

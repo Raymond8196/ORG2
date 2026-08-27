@@ -7,18 +7,20 @@
  * Project trailing bar) from the
  * main tab-bar component.
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import PanelRightIcon from "@hugeicons/core-free-icons/PanelRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { type ReactNode, startTransition, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation } from "react-router-dom";
 
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
+import {
+  ArrowExpand01Icon,
+  ArrowShrink01Icon,
+  BubbleChatIcon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  PanelRightIcon,
+} from "@src/icons";
 import ProjectManagerWorkItemsTabBarTrailing from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectManagerWorkItemsTabBarTrailing";
 import { TabBarPlusMenu } from "@src/modules/WorkStation/AppShell/TabBarPlusMenu";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";

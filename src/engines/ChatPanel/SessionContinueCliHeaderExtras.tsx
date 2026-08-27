@@ -1,5 +1,3 @@
-import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +20,7 @@ import Tooltip from "@src/components/Tooltip";
 import type { AvailableAgent } from "@src/config/cliAgents";
 import type { ChatPanelCliTerminalLaunchOptions } from "@src/engines/ChatPanel/types";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, SquareTerminalIcon } from "@src/icons";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 

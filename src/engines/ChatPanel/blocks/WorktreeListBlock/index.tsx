@@ -1,12 +1,11 @@
 /**
  * WorktreeListBlock — Header row + expandable worktree details.
  */
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { getToolIcon } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
+import { HugeiconsIcon, WorkflowCircle05Icon } from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
 import {

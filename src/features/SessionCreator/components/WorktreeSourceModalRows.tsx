@@ -1,8 +1,7 @@
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import { getListItemClasses } from "@src/components/ListPanel";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 const SOURCE_LIST_CLASS =
   "min-h-0 max-h-72 w-full flex-1 overflow-y-auto overscroll-contain p-0 scrollbar-hide";

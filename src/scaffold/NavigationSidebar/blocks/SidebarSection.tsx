@@ -25,9 +25,9 @@
  *   <SidebarGroup ... />
  * </SidebarSection>
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { ArrowLeft01Icon, HugeiconsIcon } from "@src/icons";
 
 import type { SidebarSectionProps } from "../types";
 import { renderSidebarIcon } from "../utils/renderIcon";

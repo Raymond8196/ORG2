@@ -19,8 +19,6 @@
  * live in `buildRuntimeScanningPanelColumns`. This file wires that state to
  * the tab/search UI and the table/expandable-row layout.
  */
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -31,6 +29,7 @@ import Select from "@src/components/Select";
 import SettingsTable from "@src/components/SettingsTable";
 import Switch from "@src/components/Switch";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   SECTION_CONTROL_STYLE,
   SectionContainer,

@@ -5,8 +5,6 @@
  * Supports combined diff view for consolidated file operations.
  * Uses shared FileHeader with breadcrumbs and code/preview toggle.
  */
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +14,7 @@ import { getToolDisplayBehavior } from "@src/engines/SessionCore/rendering/regis
 import { TOOL_DISPLAY_BEHAVIOR } from "@src/engines/SessionCore/rendering/registry/types";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
 import { VirtualizedModernDiff } from "@src/features/CodeViewer/VirtualizedModernDiff";
+import { ComputerTerminal01Icon, HugeiconsIcon } from "@src/icons";
 import { ImagePreview } from "@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/FilePreviewContent/ImagePreview";
 import {
   NoTabsPlaceholder,

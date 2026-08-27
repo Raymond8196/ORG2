@@ -6,12 +6,6 @@
  * - Sync Changes button (when have commits to sync)
  * - Commit button with dropdown for advanced actions
  */
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +14,14 @@ import Dropdown from "@src/components/Dropdown";
 import Menu from "@src/components/Menu";
 import SplitButton from "@src/components/SplitButton";
 import Textarea from "@src/components/Textarea";
+import {
+  ArrowDown02Icon,
+  ArrowUp02Icon,
+  CloudUploadIcon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  Tick01Icon,
+} from "@src/icons";
 
 import { SHORTCUTS } from "../../../hooks/useSourceControlShortcuts";
 import { GIT_LABELS, formatCommitCount } from "../config";

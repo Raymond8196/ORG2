@@ -1,9 +1,7 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
+import { ArrowDown01Icon, ArrowUp01Icon, HugeiconsIcon } from "@src/icons";
 
 import { MemoryStatRow } from "./MemoryStatRow";
 import type { MemoryBreakdownRow } from "./types";

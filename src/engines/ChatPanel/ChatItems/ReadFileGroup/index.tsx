@@ -5,8 +5,6 @@
  * Single file with content: renders standalone ChatCodeBlock.
  * Multiple files: renders StackedBlock with ChatCodeBlocks inside.
  */
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +12,7 @@ import ChatCodeBlock from "@src/engines/ChatPanel/blocks/CodeBlock";
 import { StackedBlock } from "@src/engines/ChatPanel/blocks/primitives";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { stripLineNumberPrefixes } from "@src/engines/SessionCore/rendering/props/propsDataExtractors";
+import { File02Icon, HugeiconsIcon } from "@src/icons";
 import { getFileName } from "@src/util/file/pathUtils";
 
 import { getReadFileName, getReadFilePath } from "../readFileEventData";

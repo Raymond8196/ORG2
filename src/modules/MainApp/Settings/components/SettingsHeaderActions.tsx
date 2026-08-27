@@ -21,8 +21,6 @@
  * 14px other icons). The `+` dropdown panel uses the compact dropdown
  * tokens so the popup matches the rest of the settings panel.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -34,6 +32,7 @@ import {
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
 import Tooltip from "@src/components/Tooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import type {
   RouteToolbarButton,
   ToolbarDropdownItem,

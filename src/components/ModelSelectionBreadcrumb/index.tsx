@@ -4,12 +4,11 @@
  * Spotlight-style account › model breadcrumb used in model palette rows
  * and model-pill hover tooltips.
  */
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import type { ModelType } from "@src/api/tauri/rpc/schemas/validation";
 import ModelIcon from "@src/components/ModelIcon";
+import { BrainIcon, HugeiconsIcon } from "@src/icons";
 
 export interface ModelSelectionBreadcrumbProps {
   /** Key vault account name or hosted listing label */

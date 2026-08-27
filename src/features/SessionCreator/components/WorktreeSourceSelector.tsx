@@ -1,8 +1,3 @@
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
 import React, {
   useCallback,
   useEffect,
@@ -13,6 +8,13 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import { resolvePrWorktreeBase } from "@src/api/tauri/github";
+import {
+  CloudIcon,
+  FolderClosedIcon,
+  GitPullRequestIcon,
+  HashtagIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { useWorktreeMap } from "@src/scaffold/GlobalSpotlight/palettes/BranchPalette/useWorktreeMap";
 import type {
   WorktreeLaunchSelection,

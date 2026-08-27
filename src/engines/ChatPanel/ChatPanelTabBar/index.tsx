@@ -32,8 +32,6 @@ import {
   SortableContext,
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import MessageAdd01Icon from "@hugeicons/core-free-icons/MessageAdd01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { Fragment, useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -41,6 +39,7 @@ import { useTranslation } from "react-i18next";
 
 import { TAB_PILL_DRAG_OVERLAY_CLASS } from "@src/components/TabPill/TabPillSurface";
 import { TAB_PAIR_SEPARATOR_SLOT_CLASS } from "@src/components/TabPill/config";
+import { HugeiconsIcon, MessageAdd01Icon } from "@src/icons";
 import { requestTeamInboxSessionHandoffAtom } from "@src/modules/MainApp/TeamInbox/store";
 import {
   SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS,

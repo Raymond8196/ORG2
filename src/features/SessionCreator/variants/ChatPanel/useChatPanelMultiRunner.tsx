@@ -8,8 +8,6 @@
  * forced-worktree interception, and the launch handler that fans out instead
  * of launching one session.
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo } from "react";
@@ -21,6 +19,7 @@ import type { ComposerInputRef } from "@src/components/ComposerInput";
 import Message from "@src/components/Message";
 import { useMultiRunnerLaunch } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useMultiRunnerLaunch";
 import type { SessionLaunchWorkItemContext } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
+import { ArrowLeft01Icon, HugeiconsIcon } from "@src/icons";
 import type {
   AgentDefinition,
   AvailableCliAgent,

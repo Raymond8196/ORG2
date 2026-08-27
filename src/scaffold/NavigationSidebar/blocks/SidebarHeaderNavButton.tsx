@@ -1,7 +1,7 @@
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import type { IconSvgElement } from "@src/icons";
 
 interface SidebarHeaderNavButtonProps {
   icon: IconSvgElement;

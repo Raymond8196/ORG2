@@ -12,13 +12,12 @@
  * Visibility is driven by a parent with the Tailwind `group` class
  * (opacity-0 → group-hover:opacity-100).
  */
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
+import { ChevronsDownUpIcon, UnfoldMoreIcon } from "@src/icons";
 
 interface FloatingExpandPillProps {
   expanded: boolean;

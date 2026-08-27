@@ -11,8 +11,6 @@
  * update }` shape, and both serialize the disabled arrays at the same
  * top-level path inside the legacy blob.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -31,6 +29,7 @@ import SettingsTable, {
 } from "@src/components/SettingsTable";
 import Switch from "@src/components/Switch";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import {
   McpEnabledSwitchCell,
   McpServerNameCell,

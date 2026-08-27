@@ -7,9 +7,6 @@
  * - Scripts section with CRUD via SettingsTable
  * - Analysis section with clear/refresh actions
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +21,7 @@ import SettingsTable, {
 import StatusDot from "@src/components/StatusDot";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
+import { Copy01Icon, Delete02Icon, HugeiconsIcon } from "@src/icons";
 import {
   useContainers,
   useEnvCrud,

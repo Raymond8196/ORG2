@@ -1,5 +1,3 @@
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   useCallback,
@@ -24,6 +22,7 @@ import {
   workItemDraftToStubWorkItem,
 } from "@src/hooks/project";
 import { useUndoStackWithRestore } from "@src/hooks/ui";
+import { BookOpen01Icon, HugeiconsIcon } from "@src/icons";
 import {
   CreateComposerTitleInput,
   ProjectContentEditor,

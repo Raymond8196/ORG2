@@ -1,13 +1,10 @@
-import Book02Icon from "@hugeicons/core-free-icons/Book02Icon";
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
 } from "@src/components/Dropdown/tokens";
 import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
 import { Option } from "@src/components/PropertyField/PropertyFieldEditable";
+import { Book02Icon, BookOpen01Icon, HugeiconsIcon } from "@src/icons";
 import type { WorkItemProject } from "@src/types/core/workItem";
 
 interface ProjectCellProps {

@@ -1,6 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -15,6 +12,7 @@ import {
 import SplitButton from "@src/components/SplitButton";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useAvailableShells } from "@src/hooks/terminal";
+import { Add01Icon, ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 import type { ShellProfile } from "@src/types/terminal";
 
 const SIDEBAR_ACTION_BUTTON_CLASS =

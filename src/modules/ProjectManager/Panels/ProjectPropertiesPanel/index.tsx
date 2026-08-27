@@ -10,13 +10,12 @@
  * matching how BrowserLayout passes data to WebInspector).
  * Width and resize are handled by WorkStationShell, not this component.
  */
-import PanelRightOpenIcon from "@hugeicons/core-free-icons/PanelRightOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/components/Placeholder";
 import { HEADER_BUTTON } from "@src/config/workstation/tokens";
+import { HugeiconsIcon, PanelRightOpenIcon } from "@src/icons";
 import type {
   LinkedRepoOption,
   ProjectData,

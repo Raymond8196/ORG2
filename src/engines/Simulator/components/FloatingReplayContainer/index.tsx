@@ -4,9 +4,6 @@
  * Floating status bar pill for replay controls (play/pause, prev/next, speed).
  * The progress slider is now handled by MusicPlayerReplayBar on the dock border.
  */
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +17,7 @@ import {
 } from "@src/engines/SessionCore";
 import { getToolDisplayBehavior } from "@src/engines/SessionCore/rendering/registry/initToolRegistry";
 import { useHousekeeperConfig } from "@src/hooks/housekeeper";
+import { BotIcon, HugeiconsIcon, KeyboardIcon } from "@src/icons";
 import { chatVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import {
   type SimulatorPlaybackSpeed,

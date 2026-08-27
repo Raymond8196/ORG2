@@ -1,10 +1,9 @@
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Switch from "@src/components/Switch";
 import type { PolicyInfo } from "@src/hooks/policies";
+import { BookOpen01Icon, HugeiconsIcon } from "@src/icons";
 import {
   CollapsibleSection,
   DETAIL_PANEL_TOKENS,

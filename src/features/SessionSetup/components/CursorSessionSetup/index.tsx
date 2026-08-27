@@ -7,12 +7,6 @@
  * 2. Native OAuth token is captured automatically.
  * 3. Browser collapses back into the wizard.
  */
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   type MouseEvent,
   useCallback,
@@ -26,6 +20,14 @@ import Button from "@src/components/Button";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { useCursorSessionCapture } from "@src/features/SessionSetup/hooks/useCursorSessionCapture";
 import { useWebviewPositionSync } from "@src/features/SessionSetup/hooks/useWebviewPositionSync";
+import {
+  AlertCircleIcon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SectionContainer,

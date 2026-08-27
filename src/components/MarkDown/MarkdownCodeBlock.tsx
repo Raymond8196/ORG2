@@ -10,14 +10,16 @@
  * first and gains colour when `MarkdownCodeHighlighter` arrives. If that chunk
  * never arrives, the fence still shows its code.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useCopyCheck } from "@src/hooks/ui";
+import {
+  Copy01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+  Tick01Icon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
 

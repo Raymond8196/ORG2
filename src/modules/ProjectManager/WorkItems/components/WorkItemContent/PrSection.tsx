@@ -1,7 +1,3 @@
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -13,6 +9,12 @@ import {
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import PrStatusBadge from "@src/components/PrStatusBadge";
+import {
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import type { PrCreationState, PrSectionProps } from "./types";
 

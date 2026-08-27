@@ -3,8 +3,6 @@
  *
  * Displays network request entries with filtering capabilities.
  */
-import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +10,7 @@ import Input from "@src/components/Input";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { Placeholder } from "@src/components/Placeholder";
 import Select from "@src/components/Select";
+import { BrushCleaningIcon, HugeiconsIcon } from "@src/icons";
 import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,

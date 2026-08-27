@@ -6,11 +6,10 @@
  *
  * Used by: ExtensionsListPanel.
  */
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Input from "@src/components/Input";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 
 export interface ListPanelSearchProps {
   value: string;

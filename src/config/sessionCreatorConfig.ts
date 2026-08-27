@@ -5,13 +5,15 @@
  * and ChatPanel (engines/). Moved from features/SessionCreator/config.ts
  * to break the cross-feature dependency.
  */
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
+import {
+  Infinity01Icon,
+  CloudIcon,
+  FolderKanbanIcon,
+  LaptopIcon,
+  ListTodoIcon,
+  Search01Icon,
+  SplitIcon,
+} from "@src/icons";
 
 // ============================================
 // Session Configuration

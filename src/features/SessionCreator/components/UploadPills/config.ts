@@ -1,14 +1,16 @@
 /**
  * UploadPills Configuration
  */
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import File01Icon from "@hugeicons/core-free-icons/File01Icon";
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
-import SheetIcon from "@hugeicons/core-free-icons/SheetIcon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  ArchiveIcon,
+  CodeIcon,
+  File01Icon,
+  File02Icon,
+  FolderClosedIcon,
+  type IconSvgElement,
+  Image01Icon,
+  SheetIcon,
+} from "@src/icons";
 
 // ============================================
 // Icon Configuration

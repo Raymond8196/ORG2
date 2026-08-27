@@ -9,9 +9,6 @@
  *
  * PERFORMANCE: Uses virtualization for lists > 50 items
  */
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
@@ -27,6 +24,7 @@ import TabPill from "@src/components/TabPill";
 import { type GitFileStatus } from "@src/config/gitStatus";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { AGENT_DOT_TOKENS } from "@src/engines/Simulator/config";
+import { CircleIcon, HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import type {
   ListPanelContentProps,

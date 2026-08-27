@@ -1,7 +1,3 @@
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -16,6 +12,12 @@ import type {
   LinearProjectUpdateRequest,
 } from "@src/api/http/integrations";
 import { FieldRow } from "@src/components/PropertyField/PropertyFieldEditable";
+import {
+  Calendar01Icon,
+  CircleIcon,
+  HugeiconsIcon,
+  UserMultipleIcon,
+} from "@src/icons";
 import { WorkItemsOverview } from "@src/modules/ProjectManager/WorkItems/components";
 import { DateQuickAssignDropdown } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties/DateQuickAssignDropdown";
 import {

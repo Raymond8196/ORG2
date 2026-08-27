@@ -1,14 +1,16 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import CircleCheckIcon from "@hugeicons/core-free-icons/CircleCheckIcon";
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import Settings02Icon from "@hugeicons/core-free-icons/Settings02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import Select, { type SelectOption } from "@src/components/Select";
+import {
+  Add01Icon,
+  CircleCheckIcon,
+  HugeiconsIcon,
+  Login01Icon,
+  Settings02Icon,
+} from "@src/icons";
 
 interface SidebarOrgSelectorProps {
   value: string;

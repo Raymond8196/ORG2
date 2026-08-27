@@ -25,15 +25,17 @@
  * the Settings view opens even when no consumer of the deep-link atom
  * is currently mounted.
  */
-import CloudAlertIcon from "@hugeicons/core-free-icons/CloudAlertIcon";
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import CloudLoadingIcon from "@hugeicons/core-free-icons/CloudLoadingIcon";
-import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  CloudAlertIcon,
+  CloudIcon,
+  CloudLoadingIcon,
+  CloudUploadIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { projectSyncStatusAtom, syncDeepLinkAtom } from "@src/store/sync";
 import { activeStatusBarCallbacksAtom } from "@src/store/ui/workStationAtom";
 import { truncate } from "@src/util/string/truncate";

@@ -1,10 +1,3 @@
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -13,6 +6,15 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { getMaterialConfig } from "@src/components/Glass/config";
+import {
+  Infinity01Icon,
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  MonitorIcon,
+  Tick01Icon,
+} from "@src/icons";
 import {
   POPUP_ANIMATION,
   POPUP_SHADOW,

@@ -16,12 +16,10 @@
  *     <SettingsTable ... />
  *   </ExpandableTableRow>
  */
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import Button from "@src/components/Button";
+import { ChevronsDownUpIcon, HugeiconsIcon, UnfoldMoreIcon } from "@src/icons";
 
 import SectionRow from "./Row";
 

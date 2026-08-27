@@ -1,5 +1,3 @@
-import Edit04Icon from "@hugeicons/core-free-icons/Edit04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +9,7 @@ import Button from "@src/components/Button";
 import Markdown from "@src/components/MarkDown";
 import Textarea from "@src/components/Textarea";
 import { createLogger } from "@src/hooks/logger";
+import { Edit04Icon, HugeiconsIcon } from "@src/icons";
 
 import { useAgentOrgPlanApprovalDetail } from "./useAgentOrgPlanApprovalDetail";
 

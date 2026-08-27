@@ -4,10 +4,10 @@
  * Status bar for Project Manager, styled to match EditorStatusBar.
  * Right: work item count, member count, sync status.
  */
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { HugeiconsIcon, UserMultipleIcon } from "@src/icons";
 
 import ProjectOrgGitFolderSyncWidget from "./ProjectOrgGitFolderSyncWidget";
 import ProjectSyncStatusWidget from "./ProjectSyncStatusWidget";

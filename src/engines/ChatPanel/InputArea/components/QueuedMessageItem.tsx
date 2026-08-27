@@ -8,12 +8,6 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +18,14 @@ import {
   COMPOSER_STACK_ROW_HOVER,
   COMPOSER_STACK_ROW_LABEL,
 } from "@src/config/composerStackTokens";
+import {
+  ArrowUp02Icon,
+  Clock01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Pen01Icon,
+} from "@src/icons";
 import type { QueuedMessage } from "@src/store/ui/messageQueueAtom";
 
 const MAX_PREVIEW_LENGTH = 80;

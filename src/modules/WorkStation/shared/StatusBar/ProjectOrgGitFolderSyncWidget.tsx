@@ -1,8 +1,3 @@
-import CloudAlertIcon from "@hugeicons/core-free-icons/CloudAlertIcon";
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import CloudUploadIcon from "@hugeicons/core-free-icons/CloudUploadIcon";
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,6 +7,13 @@ import {
   projectApi,
 } from "@src/api/http/project";
 import { useWorkStationTabs } from "@src/hooks/tabHost/useWorkStationTabs";
+import {
+  CloudAlertIcon,
+  CloudIcon,
+  CloudUploadIcon,
+  GitMergeIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   projectGitFolderSyncResultByOrgAtom,
   projectListRefreshAtom,

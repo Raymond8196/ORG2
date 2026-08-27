@@ -9,9 +9,6 @@
  * The active variant is selected by the `general.modelPickerStyle`
  * setting and dispatched from the caller (e.g. SessionCreator).
  */
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -34,6 +31,7 @@ import {
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
+import { HugeiconsIcon, Search01Icon, Tick01Icon } from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { SpotlightItem } from "../../types";

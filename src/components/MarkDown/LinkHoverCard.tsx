@@ -1,8 +1,3 @@
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import PanelsTopLeftIcon from "@hugeicons/core-free-icons/PanelsTopLeftIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { openUrl } from "@tauri-apps/plugin-opener";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useState } from "react";
@@ -18,6 +13,13 @@ import HoverCardBase, {
   HoverCardPanel,
 } from "@src/components/SessionHoverCard/HoverCardBase";
 import SplitButton from "@src/components/SplitButton";
+import {
+  Copy01Icon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  PanelsTopLeftIcon,
+} from "@src/icons";
 import { openGitHubPrInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { copyText } from "@src/util/data/clipboard";
 import { parseGitHubPullRequestUrl } from "@src/util/git/githubPullRequestUrl";

@@ -4,10 +4,6 @@
  * Absolute-overlay list of all turn pages shown when the round selector
  * dropdown is open. Each row is `#N` + preview text + start/end clock range.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ClockArrowDownIcon from "@hugeicons/core-free-icons/ClockArrowDownIcon";
-import ClockArrowUpIcon from "@hugeicons/core-free-icons/ClockArrowUpIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React, { memo, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,6 +11,12 @@ import { useTranslation } from "react-i18next";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  Cancel01Icon,
+  ClockArrowDownIcon,
+  ClockArrowUpIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import { stripExpandedPillContent } from "../../InputArea/utils/pillContentParser";
 import type { ChatGroupMeta, UseChatGroupsReturn } from "../hooks";

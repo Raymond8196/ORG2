@@ -7,13 +7,12 @@
  * Includes a "Test Connection" probe button that validates credentials
  * against the channel's service API before allowing creation.
  */
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { probeChannel } from "@src/modules/MainApp/Integrations/Connections/Channels/api";
 import type { ChannelProbeResult } from "@src/modules/MainApp/Integrations/Connections/Channels/types";
 import {

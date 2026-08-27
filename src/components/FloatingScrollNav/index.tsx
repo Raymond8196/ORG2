@@ -11,11 +11,6 @@
  *
  * Used by ChatHistory and Inbox feed panels.
  */
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import CrosshairIcon from "@hugeicons/core-free-icons/CrosshairIcon";
-import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -23,6 +18,13 @@ import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/co
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
+import {
+  ArrowDown02Icon,
+  ArrowUp02Icon,
+  CrosshairIcon,
+  HugeiconsIcon,
+  TickDouble01Icon,
+} from "@src/icons";
 
 const ICON_BUTTON_CLASS = `flex ${INPUT_AREA_BUTTONS.iconButtonSizeClass} cursor-pointer items-center justify-center rounded-full border border-solid border-border-2 transition-all ${PILL_CONTROL_IDLE_SURFACE_CLASS}`;
 

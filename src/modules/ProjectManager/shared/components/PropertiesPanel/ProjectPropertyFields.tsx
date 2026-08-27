@@ -6,10 +6,6 @@
  *
  * Meant to be rendered inside a <PropertiesPanel> shell.
  */
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 
 import Button from "@src/components/Button";
@@ -20,6 +16,12 @@ import {
   FieldRow,
   type FieldRowVariant,
 } from "@src/components/PropertyField/PropertyFieldEditable";
+import {
+  Calendar01Icon,
+  CircleIcon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+} from "@src/icons";
 import { getProjectPropertyContextMenuItems } from "@src/modules/ProjectManager/Projects/projectContextMenu";
 import WorkItemContextMenu from "@src/modules/ProjectManager/WorkItems/components/WorkItemContextMenu";
 import { DateQuickAssignDropdown } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties/DateQuickAssignDropdown";

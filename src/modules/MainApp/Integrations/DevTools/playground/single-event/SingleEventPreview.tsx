@@ -1,5 +1,3 @@
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -13,6 +11,7 @@ import Input from "@src/components/Input";
 import { CHAT_RETRY_KIND } from "@src/engines/ChatPanel/components/ChatStatusBanners";
 import type { EventDisplayStatus } from "@src/engines/SessionCore/core/types";
 import { getCliUiCanonical } from "@src/engines/SessionCore/rendering/registry/initToolRegistry";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 import type { ToolActionEntry } from "@src/modules/MainApp/Integrations/BuiltInTools/types";
 import { useUnifiedToolsMetadata } from "@src/modules/MainApp/Integrations/BuiltInTools/useUnifiedToolsMetadata";
 import {

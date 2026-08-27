@@ -4,10 +4,10 @@
  * Displays session info at the top of the chat.
  * Shows: Session started indicator, model name, and truncated session ID.
  */
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { HugeiconsIcon, PlayIcon } from "@src/icons";
 
 export interface SessionInfo {
   sessionId?: string;

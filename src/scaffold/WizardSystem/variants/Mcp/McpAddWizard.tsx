@@ -7,11 +7,6 @@
  * Uses WizardShell, WizardStepLayout, SectionContainer, SectionRow, SelectionGrid.
  * State and handlers live in useMcpAddWizard.ts.
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +16,13 @@ import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import Switch from "@src/components/Switch";
 import Textarea from "@src/components/Textarea";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  ComputerTerminal01Icon,
+  HugeiconsIcon,
+  InternetIcon,
+} from "@src/icons";
 import type {
   McpServerConfig,
   McpTestResult,

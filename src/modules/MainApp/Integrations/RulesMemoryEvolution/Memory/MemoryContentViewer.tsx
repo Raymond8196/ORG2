@@ -5,9 +5,6 @@
  * Shows the markdown content, a copy button, and an edit button
  * that opens a full-screen modal with an inline MarkdownEditor.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +13,7 @@ import type { WorkspaceMemoryDetail } from "@src/api/tauri/rpc/schemas/workspace
 import Button from "@src/components/Button";
 import Markdown from "@src/components/MarkDown";
 import Message from "@src/components/Message";
+import { Copy01Icon, HugeiconsIcon, Pen01Icon } from "@src/icons";
 import MarkdownEditor from "@src/modules/shared/components/MarkdownEditor";
 import Modal from "@src/scaffold/ModalSystem";
 import { copyText } from "@src/util/data/clipboard";

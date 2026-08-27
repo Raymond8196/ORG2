@@ -9,15 +9,13 @@
  * swallows the click so a wrapping markdown link can never navigate the
  * webview or reach the browser app with a filesystem path.
  */
-import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
-import ImageNotFound01Icon from "@hugeicons/core-free-icons/ImageNotFound01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { homeDir, join } from "@tauri-apps/api/path";
 import { readFile, stat } from "@tauri-apps/plugin-fs";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import ImagePreviewOverlay from "@src/components/ImagePreviewOverlay";
+import { HugeiconsIcon, Image01Icon, ImageNotFound01Icon } from "@src/icons";
 import { uint8ArrayToDataUrl } from "@src/util/file/binaryUtils";
 import { getImageMimeType } from "@src/util/file/previewTypes";
 import { openFileInEditor } from "@src/util/ui/openFileInEditor";

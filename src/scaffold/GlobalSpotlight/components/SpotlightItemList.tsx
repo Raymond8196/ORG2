@@ -8,8 +8,6 @@
  *
  * Row rendering is delegated to SpotlightItemRow.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -21,6 +19,7 @@ import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/components/Placeholder";
 import { useKeyboardMouseMode } from "@src/hooks/keyboard";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 
 import type { SpotlightItem } from "../types";
 import { ITEM_HEIGHT, SpotlightItemRow } from "./SpotlightItemRow";

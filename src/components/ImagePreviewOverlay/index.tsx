@@ -5,15 +5,17 @@
  * Toolbar (optional copy, download, close) at the top-right of the image.
  * Click backdrop or press ESC to close.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
+import {
+  Cancel01Icon,
+  Copy01Icon,
+  Download01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { useOverlayLayer } from "@src/store/ui/overlayLayerAtom";
 
 // ============================================

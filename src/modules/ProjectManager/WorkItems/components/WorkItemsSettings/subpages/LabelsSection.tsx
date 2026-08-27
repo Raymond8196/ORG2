@@ -5,9 +5,6 @@
  * Buffered editing: changes are staged locally and only persisted
  * when the user clicks Save. Cancel discards all pending changes.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +15,7 @@ import ColorPicker, {
 import Input from "@src/components/Input";
 import { useKeyboardSave } from "@src/hooks/keyboard";
 import { useUndoStackWithRestore } from "@src/hooks/ui";
+import { Add01Icon, Delete02Icon, HugeiconsIcon } from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SectionContainer,

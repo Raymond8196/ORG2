@@ -2,12 +2,13 @@
  * WorkstationSections — renders the rail's section list in both the wide
  * (trail) and compact (dropdown menu) presentations.
  */
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+import {
+  FolderClosedIcon,
+  FolderKanbanIcon,
+  GitForkIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 import { WorkspaceContextRow } from "./WorkspaceContextRow";
 import { WorkstationItemRow } from "./WorkstationItemRow";

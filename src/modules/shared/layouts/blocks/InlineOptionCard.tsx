@@ -1,9 +1,8 @@
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
 import Button from "@src/components/Button";
 import Tooltip from "@src/components/Tooltip";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 import CollapsibleSection from "./CollapsibleSection";
 import InlineInfoCard from "./InlineInfoCard";

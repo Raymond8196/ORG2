@@ -13,10 +13,6 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
@@ -30,6 +26,12 @@ import SettingsTable, {
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Delete02Icon,
+  FolderOpenIcon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import { flushGitHubListCachePersistence } from "@src/services/git/githubListCache";
 import {
   monitorScanningAtom,

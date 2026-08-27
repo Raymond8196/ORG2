@@ -6,15 +6,17 @@
  * back button and optional add action.
  */
 import Button from "@/src/components/Button";
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Input from "@src/components/Input";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  Add01Icon,
+  ArrowLeft02Icon,
+  HugeiconsIcon,
+  Search01Icon,
+} from "@src/icons";
 import { ListPanelScrollArea } from "@src/modules/shared/layouts/blocks";
 
 export interface DrillDownItem {

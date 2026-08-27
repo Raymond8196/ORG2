@@ -3,14 +3,13 @@
  * active tab is a Projects/work-items surface that registered via
  * `projectManagerWorkItemsTabBarAtom`.
  */
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 import { projectManagerWorkItemsTabBarAtom } from "@src/modules/ProjectManager/store/projectManagerWorkItemsTabBarAtom";
 
 export interface ProjectManagerWorkItemsTabBarTrailingProps {

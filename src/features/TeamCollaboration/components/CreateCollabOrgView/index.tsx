@@ -1,7 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
   useCallback,
@@ -25,6 +21,7 @@ import {
   useCloudOrgMembershipActions,
 } from "@src/features/Org2Cloud/useCloudOrgMembershipActions";
 import { useOrg2CloudSignIn } from "@src/features/Org2Cloud/useOrg2CloudSignIn";
+import { Add01Icon, CloudIcon, LaptopIcon, Login01Icon } from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SectionContainer,

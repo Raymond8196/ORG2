@@ -7,10 +7,6 @@
  *  - `memory`    — embedded {@link WorkspaceMemoryBrowser}
  *  - `evolution` — empty placeholder, agent-evolution surface lands here
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +20,7 @@ import Switch from "@src/components/Switch";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { MODEL_TABLE_SWITCH_SIZE } from "@src/config/modelTable";
 import type { CursorRepo, PolicyInfo } from "@src/hooks/policies";
+import { Add01Icon, Delete02Icon, HugeiconsIcon, Pen01Icon } from "@src/icons";
 import {
   DETAIL_PANEL_TOKENS,
   DetailPanelContainer,

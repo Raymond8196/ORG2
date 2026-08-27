@@ -3,12 +3,10 @@
  *
  * Displays merge conflict files with warning styling
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { Alert01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
 import type { GitFile } from "@src/types/git/types";
 

@@ -1,9 +1,8 @@
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import { HugeiconsIcon, RotateLeft01Icon } from "@src/icons";
 import type { Person } from "@src/types/core/shared";
 import type {
   WorkItemPriority,

@@ -12,11 +12,10 @@
  * Renders via design-system `Button` (not a raw `<button>`). Select SCSS
  * classes provide the compact trigger dimensions and text-state styling.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import Button from "@src/components/Button";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import { RADIUS_CLASS_MAP } from "./config";

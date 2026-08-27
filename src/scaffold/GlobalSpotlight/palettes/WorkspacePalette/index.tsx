@@ -9,14 +9,13 @@
  *
  * Uses useSelectorKernel for unified state management.
  */
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { repoApi } from "@src/api/tauri/repo";
 import Message from "@src/components/Message";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 import { cachedReposAtom } from "@src/store/repo";
 import { addWorkspaceInitialStageAtom } from "@src/store/ui/overlayAtom";
 import {

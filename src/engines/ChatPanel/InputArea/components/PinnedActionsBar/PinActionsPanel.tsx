@@ -6,11 +6,6 @@
  * the user pin or unpin them. Renders via a React portal so it's never
  * clipped by the parent's overflow.
  */
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import PinIcon from "@hugeicons/core-free-icons/PinIcon";
-import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -22,6 +17,13 @@ import {
 } from "@src/components/Dropdown/tokens";
 import FileTreePreview from "@src/components/FileTreePreview";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import {
+  ArrowUp02Icon,
+  HugeiconsIcon,
+  PinIcon,
+  PinOffIcon,
+  Search01Icon,
+} from "@src/icons";
 import type { PinnedAction } from "@src/store/session/pinnedActionsAtom";
 import type { SlashItem } from "@src/types/extensions";
 import { fuzzyMatch, fuzzyScore } from "@src/util/search/fuzzy";

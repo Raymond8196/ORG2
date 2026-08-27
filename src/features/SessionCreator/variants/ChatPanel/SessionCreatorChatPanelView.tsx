@@ -1,9 +1,3 @@
-import CircleArrowUp01Icon from "@hugeicons/core-free-icons/CircleArrowUp01Icon";
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import ScreenRotationIcon from "@hugeicons/core-free-icons/ScreenRotationIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +16,14 @@ import PinnedActionsBar from "@src/engines/ChatPanel/InputArea/components/Pinned
 import { usePinnedActionsVisibilityContextMenu } from "@src/engines/ChatPanel/InputArea/components/PinnedActionsBar/usePinnedActionsVisibilityContextMenu";
 import type { SessionLaunchWorkItemContext } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { LaunchpadActionGrid } from "@src/features/SessionCreator/components/LaunchpadActionGrid";
+import {
+  CircleArrowUp01Icon,
+  HierarchyCircle01Icon,
+  HugeiconsIcon,
+  NotificationOff01Icon,
+  Refresh04Icon,
+  ScreenRotationIcon,
+} from "@src/icons";
 import {
   CREATOR_BOTTOM_DOCK_PADDING_CLASS,
   CREATOR_MIDDLE_POSITION_STYLE,

@@ -1,6 +1,3 @@
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -17,6 +14,12 @@ import Tooltip from "@src/components/Tooltip";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { getDropdownPanelStyle } from "@src/hooks/dropdown/dropdownPanelStyle";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
+import {
+  Infinity01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Layers01Icon,
+} from "@src/icons";
 import {
   simulatorEffectiveDockAppAtom,
   simulatorFollowAppLockAtom,

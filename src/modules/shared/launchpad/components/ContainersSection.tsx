@@ -1,9 +1,3 @@
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +16,14 @@ import SettingsTable, {
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  HugeiconsIcon,
+  PlayIcon,
+  Refresh04Icon,
+  RotateLeft01Icon,
+  SquareIcon,
+  ViewIcon,
+} from "@src/icons";
 import {
   CollapsibleSection,
   DETAIL_PANEL_TOKENS,

@@ -1,11 +1,13 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import PinIcon from "@hugeicons/core-free-icons/PinIcon";
-import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import React, { useCallback } from "react";
 
+import {
+  Cancel01Icon,
+  ChevronsDownUpIcon,
+  MoreHorizontalIcon,
+  PinIcon,
+  PinOffIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 import type {
   NavigationMenuItem,
   NavigationMenuRowAction,

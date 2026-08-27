@@ -5,11 +5,13 @@
  * - This file must NOT import `WorkspaceContext` barrel exports to avoid circular deps.
  * - Keep this module UI-light and side-effect free; it is imported by `ChatContext`.
  */
-import Book01Icon from "@hugeicons/core-free-icons/Book01Icon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  Book01Icon,
+  CodeIcon,
+  File02Icon,
+  HugeiconsIcon,
+  SparklesIcon,
+} from "@src/icons";
 
 export const chat_models = [
   {

@@ -1,7 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -25,6 +21,12 @@ import { LaunchpadActionCard } from "@src/features/SessionCreator/components/Lau
 import { useWorktreeSourceData } from "@src/features/SessionCreator/components/useWorktreeSourceData";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  Link02Icon,
+  ListTodoIcon,
+} from "@src/icons";
 import { insertPillFromTabPayload } from "@src/shared/dnd/dropTargetUtils";
 
 import WorkItemPickerPanel from "./WorkItemPickerPanel";

@@ -5,11 +5,6 @@
  * and allows reading and editing their contents. Calls into the Tauri backend via
  * `rpc.workspaceMemory.*` commands.
  */
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -23,6 +18,13 @@ import SettingsTable, {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import {
+  BookOpen01Icon,
+  Delete02Icon,
+  FolderOpenIcon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   ToolInlineCompactRows,
   ToolInlineInfoCard,

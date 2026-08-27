@@ -7,11 +7,11 @@
  * - : - Go to line
  * - @ - Symbols
  */
-import File01Icon from "@hugeicons/core-free-icons/File01Icon";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
+import { File01Icon } from "@src/icons";
 
 import { PaletteBody, SpotlightShell } from "../../shell";
 import type { PathSegment } from "../../types";

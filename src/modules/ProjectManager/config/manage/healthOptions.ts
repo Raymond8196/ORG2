@@ -3,14 +3,16 @@
  *
  * Health status configurations for projects.
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import {
+  Alert01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  Clock01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import type { ProjectHealth } from "@src/types/core/project";
 
 import { HEALTH_COLORS } from "./colors";

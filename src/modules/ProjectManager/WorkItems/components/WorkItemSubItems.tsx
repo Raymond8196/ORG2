@@ -1,11 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleSlashTwoIcon from "@hugeicons/core-free-icons/CircleSlashTwoIcon";
-import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -20,6 +12,16 @@ import {
 } from "@src/features/Org2Cloud/cloudShortId";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
+import {
+  Add01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  CircleSlashTwoIcon,
+  HierarchyFilesIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { ActivityHeaderActionButton } from "@src/modules/shared/components/ActivityTimeline";
 
 import {

@@ -5,19 +5,21 @@
  * branch + working diff, CI, git sync, session-repo hint, ports and the
  * indexing indicator. Presentational only — every value is passed in.
  */
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { ExtractAtomValue } from "jotai";
 import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import {
+  ArrowLeftRightIcon,
+  CodeIcon,
+  FolderClosedIcon,
+  FolderTreeIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import type { sessionRepoHintAtom } from "@src/store/repo";
 import type { ActiveWorktreeSelection } from "@src/store/workspace";
 import type { IndexingProgress } from "@src/store/workstation/codeEditor/search/indexingProgressAtom";

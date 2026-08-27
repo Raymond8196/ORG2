@@ -1,69 +1,71 @@
 /**
  * Icon Name Mapping
  *
- * Maps icon names (lowercase-hyphen format) to Lucide icon components
- * This file has no dependencies to avoid circular imports
+ * Maps icon names (lowercase-hyphen, lucide-era vocabulary) to hugeicons
+ * glyph data. This file has no dependencies to avoid circular imports
  */
-import Activity from "@hugeicons/core-free-icons/Activity01Icon";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import BadgeCent from "@hugeicons/core-free-icons/BadgeCentIcon";
-import BarChart from "@hugeicons/core-free-icons/BarChartIcon";
-import BarChart3 from "@hugeicons/core-free-icons/BarChartIcon";
-import Blocks from "@hugeicons/core-free-icons/BlocksIcon";
-import BookMarked from "@hugeicons/core-free-icons/BookBookmark01Icon";
-import BookOpen from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Bot from "@hugeicons/core-free-icons/BotIcon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import Lightbulb from "@hugeicons/core-free-icons/BulbIcon";
-import ChartGantt from "@hugeicons/core-free-icons/ChartGanttIcon";
-import ChevronsLeftRightEllipsis from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
-import CircleDollarSign from "@hugeicons/core-free-icons/CircleDollarSignIcon";
-import CirclePile from "@hugeicons/core-free-icons/CirclePileIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Coins from "@hugeicons/core-free-icons/Coins01Icon";
-import Command from "@hugeicons/core-free-icons/CommandIcon";
-import Compass from "@hugeicons/core-free-icons/CompassIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Database from "@hugeicons/core-free-icons/DatabaseIcon";
-import Diff from "@hugeicons/core-free-icons/DiffIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderCode from "@hugeicons/core-free-icons/FolderCodeIcon";
-import FolderKanban from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import Fuel from "@hugeicons/core-free-icons/FuelIcon";
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Home from "@hugeicons/core-free-icons/Home01Icon";
-import IdCard from "@hugeicons/core-free-icons/IdCardIcon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import InfinityIcon from "@hugeicons/core-free-icons/Infinity01Icon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import KeyRound from "@hugeicons/core-free-icons/Key02Icon";
-import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
-import ListTodo from "@hugeicons/core-free-icons/ListTodoIcon";
-import MapPin from "@hugeicons/core-free-icons/Location01Icon";
-import Wand2 from "@hugeicons/core-free-icons/MagicWand02Icon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import PackageCheck from "@hugeicons/core-free-icons/PackageDeliveredIcon";
-import PlayCircle from "@hugeicons/core-free-icons/PlayCircleIcon";
-import Play from "@hugeicons/core-free-icons/PlayIcon";
-import Plug from "@hugeicons/core-free-icons/Plug01Icon";
-import Radar from "@hugeicons/core-free-icons/Radar01Icon";
-import Rocket from "@hugeicons/core-free-icons/RocketIcon";
-import Airplay from "@hugeicons/core-free-icons/ScreenRotationIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import SearchCode from "@hugeicons/core-free-icons/Search02Icon";
-import Server from "@hugeicons/core-free-icons/ServerStack01Icon";
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import Store from "@hugeicons/core-free-icons/Store01Icon";
-import Ticket from "@hugeicons/core-free-icons/Ticket01Icon";
-import Users from "@hugeicons/core-free-icons/UserMultipleIcon";
-import Wallet from "@hugeicons/core-free-icons/Wallet01Icon";
-import History from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import Workflow from "@hugeicons/core-free-icons/WorkflowCircle01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  Infinity01Icon as InfinityIcon,
+  Activity01Icon as Activity,
+  ScreenRotationIcon as Airplay,
+  BadgeCentIcon as BadgeCent,
+  BarChartIcon as BarChart,
+  BarChartIcon as BarChart3,
+  BlocksIcon as Blocks,
+  BookBookmark01Icon as BookMarked,
+  BookOpen01Icon as BookOpen,
+  BotIcon as Bot,
+  BoxIcon as Box,
+  ChartGanttIcon as ChartGantt,
+  ChevronsLeftRightEllipsisIcon as ChevronsLeftRightEllipsis,
+  CircleDollarSignIcon as CircleDollarSign,
+  CirclePileIcon as CirclePile,
+  CodeIcon as Code,
+  Coins01Icon as Coins,
+  CommandIcon as Command,
+  CompassIcon as Compass,
+  DatabaseIcon as Database,
+  DiffIcon as Diff,
+  FolderClosedIcon as Folder,
+  FolderCodeIcon as FolderCode,
+  FolderKanbanIcon as FolderKanban,
+  FuelIcon as Fuel,
+  InternetIcon as Globe,
+  WorkHistoryIcon as History,
+  Home01Icon as Home,
+  type IconSvgElement,
+  IdCardIcon as IdCard,
+  InboxIcon as Inbox,
+  Key02Icon as KeyRound,
+  LayoutListIcon as LayoutList,
+  BulbIcon as Lightbulb,
+  ListTodoIcon as ListTodo,
+  Location01Icon as MapPin,
+  Message01Icon as MessageSquare,
+  HierarchyCircle01Icon as Network,
+  PackageDeliveredIcon as PackageCheck,
+  PlayIcon as Play,
+  PlayCircleIcon as PlayCircle,
+  Plug01Icon as Plug,
+  Add01Icon as Plus,
+  Radar01Icon as Radar,
+  RocketIcon as Rocket,
+  Search01Icon as Search,
+  Search02Icon as SearchCode,
+  ServerStack01Icon as Server,
+  Settings01Icon as Settings,
+  SparklesIcon as Sparkles,
+  Store01Icon as Store,
+  ComputerTerminal01Icon as Terminal,
+  Ticket01Icon as Ticket,
+  UserMultipleIcon as Users,
+  Wallet01Icon as Wallet,
+  MagicWand02Icon as Wand2,
+  WorkflowCircle01Icon as Workflow,
+} from "@src/icons";
 
 /**
- * Maps icon names to their corresponding Lucide components
+ * Maps icon names to their corresponding hugeicons glyphs
  * Useful for dynamic icon rendering
  */
 export const ICON_NAME_MAP: Record<string, IconSvgElement | null> = {
@@ -132,7 +134,7 @@ export const ICON_NAME_MAP: Record<string, IconSvgElement | null> = {
 };
 
 /**
- * Get Lucide icon component by name
+ * Get hugeicons glyph data by name
  */
 export function getIconByName(iconName: string): IconSvgElement | null {
   return ICON_NAME_MAP[iconName] ?? null;

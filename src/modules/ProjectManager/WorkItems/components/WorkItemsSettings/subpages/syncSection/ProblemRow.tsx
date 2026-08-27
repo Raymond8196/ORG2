@@ -7,14 +7,6 @@
  * retry/discard handlers. See the `SyncSection` file for the parent
  * orchestration.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import RoadLocation01Icon from "@hugeicons/core-free-icons/RoadLocation01Icon";
-import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +16,16 @@ import type {
   OutboxProblemRow,
 } from "@src/api/http/project/sync";
 import Button from "@src/components/Button";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  File02Icon,
+  FolderClosedIcon,
+  HugeiconsIcon,
+  RoadLocation01Icon,
+  Tag01Icon,
+  UserIcon,
+} from "@src/icons";
 import { SECTION_ACTION_GAP_CLASSES } from "@src/modules/shared/layouts/SectionLayout";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 

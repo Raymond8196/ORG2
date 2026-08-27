@@ -14,11 +14,10 @@
  * - Consistent styling across all contexts
  * - Optional inline stop button (right-aligned)
  */
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { useSyntaxHighlight } from "@src/hooks/code";
+import { HugeiconsIcon, SquareIcon } from "@src/icons";
 
 export interface TerminalCommandStopAction {
   /** Tooltip for the stop button */

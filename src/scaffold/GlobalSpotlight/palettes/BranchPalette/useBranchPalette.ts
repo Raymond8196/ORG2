@@ -4,12 +4,6 @@
  * Main hook that orchestrates branch palette state and behavior.
  * Uses useSelector for common patterns while adding branch-specific logic.
  */
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import GitBranchIcon from "@hugeicons/core-free-icons/GitBranchIcon";
-import GitBranchMinusIcon from "@hugeicons/core-free-icons/GitBranchMinusIcon";
-import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type Dispatch,
   type KeyboardEvent,
@@ -26,6 +20,14 @@ import { useTranslation } from "react-i18next";
 
 import { createLogger } from "@src/hooks/logger";
 import { useFilteredItems } from "@src/hooks/search";
+import {
+  Delete02Icon,
+  GitBranchIcon,
+  GitBranchMinusIcon,
+  HugeiconsIcon,
+  SplitIcon,
+  Tick01Icon,
+} from "@src/icons";
 
 import { ICONS } from "../../config";
 import type { SpotlightItem } from "../../types";

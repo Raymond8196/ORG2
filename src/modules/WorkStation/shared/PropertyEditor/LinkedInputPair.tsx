@@ -6,12 +6,14 @@
  *
  * Used for Padding and Margin in property panels.
  */
-import AlignHorizontalSpaceAroundIcon from "@hugeicons/core-free-icons/AlignHorizontalSpaceAroundIcon";
-import AlignVerticalSpaceAroundIcon from "@hugeicons/core-free-icons/AlignVerticalSpaceAroundIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 
 import Input from "@src/components/Input";
+import {
+  AlignHorizontalSpaceAroundIcon,
+  AlignVerticalSpaceAroundIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import {
   SpacingBottom,

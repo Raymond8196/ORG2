@@ -1,10 +1,3 @@
-import AiGenerativeIcon from "@hugeicons/core-free-icons/AiGenerativeIcon";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +14,15 @@ import type { PendingSessionProposal } from "@src/engines/SessionCore/hooks/useA
 import type { AdvancedConfig } from "@src/features/SessionCreator/types";
 import { useHousekeeperUiControl } from "@src/hooks/housekeeper";
 import { useValidatedLastPair } from "@src/hooks/models/useValidatedLastPair";
+import {
+  AiGenerativeIcon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  ArrowRightDoubleIcon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  Loading03Icon,
+} from "@src/icons";
 import type { SpotlightItem } from "@src/scaffold/GlobalSpotlight/types";
 import { collectAdeContext } from "@src/services/context/collectors";
 import { adeManagerPaletteAtom } from "@src/store/session/adeManagerPaletteAtom";

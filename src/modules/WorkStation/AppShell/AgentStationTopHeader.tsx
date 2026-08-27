@@ -5,13 +5,6 @@
  * Contains: station mode chip, chat panel toggle, caption toggle,
  * layout settings dropdown, and a separate caption row below the top bar.
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CaptionsIcon from "@hugeicons/core-free-icons/CaptionsIcon";
-import PanelRightIcon from "@hugeicons/core-free-icons/PanelRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, startTransition, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,6 +19,15 @@ import {
   getCollapsedSidebarChromeOffset,
   useShouldOffsetWorkStationTopBar,
 } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
+import {
+  ArrowExpand01Icon,
+  ArrowShrink01Icon,
+  BubbleChatIcon,
+  Cancel01Icon,
+  CaptionsIcon,
+  HugeiconsIcon,
+  PanelRightIcon,
+} from "@src/icons";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { CollapsedSidebarButton } from "@src/scaffold/NavigationSidebar/CollapsedSidebarButton";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";

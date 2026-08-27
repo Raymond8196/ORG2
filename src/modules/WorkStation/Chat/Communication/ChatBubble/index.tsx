@@ -3,8 +3,6 @@
  *
  * Renders user and agent chat message events inside the Communication simulator.
  */
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +17,7 @@ import {
 import { containsMarkdownFence } from "@src/components/MarkDown/markdownUtils";
 import { SESSION_UI_TOKENS } from "@src/engines/ChatPanel/blocks/primitives/config";
 import { useStreamingDeltaForSession } from "@src/engines/SessionCore";
+import { HugeiconsIcon, UserIcon } from "@src/icons";
 import {
   formatSmartDateTime,
   toIntlLocaleTag,

@@ -3,14 +3,16 @@
  *
  * Display type selector (block, flex, grid, inline) as full-width TabPill.
  */
-import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import LayoutTwoRowIcon from "@hugeicons/core-free-icons/LayoutTwoRowIcon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
 import React, { memo, useMemo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import {
+  DashboardSquare01Icon,
+  LayoutTwoRowIcon,
+  MinusSignIcon,
+  SquareIcon,
+} from "@src/icons";
 
 // ============================================
 // Types

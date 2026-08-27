@@ -1,12 +1,14 @@
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  GitMergeIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   type PrStatusIconName,
   getPrStatusIconName,

@@ -8,8 +8,6 @@
  *
  * Extracted to keep WorkspacePalette/index.tsx under the UI component line limit.
  */
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +22,7 @@ import Message from "@src/components/Message";
 import { workspaceMatchesRepoFilter } from "@src/features/TeamCollaboration/orgScopeRepoFilter";
 import { createLogger } from "@src/hooks/logger";
 import { useFilteredItems } from "@src/hooks/search";
+import { CodeIcon, HugeiconsIcon } from "@src/icons";
 import {
   activeWorkspaceIdAtom,
   activeWorkspaceNameAtom,

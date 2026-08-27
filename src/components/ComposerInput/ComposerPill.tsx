@@ -9,20 +9,6 @@
  * Mirrors the inline context-pill visual + hover-preview behavior without
  * relying on a rich text editor framework.
  */
-import AtIcon from "@hugeicons/core-free-icons/AtIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import SquareMousePointerIcon from "@hugeicons/core-free-icons/SquareMousePointerIcon";
-import ToolboxIcon from "@hugeicons/core-free-icons/ToolboxIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   memo,
@@ -40,6 +26,22 @@ import FileTreePreview from "@src/components/FileTreePreview";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import Tooltip from "@src/components/Tooltip";
 import { PILL_SIZE, readPillText } from "@src/config/pillTokens";
+import {
+  AtIcon,
+  Cancel01Icon,
+  CodeIcon,
+  ComputerTerminal01Icon,
+  Cursor02Icon,
+  FolderKanbanIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  Link01Icon,
+  ListChecksIcon,
+  SquareMousePointerIcon,
+  ToolboxIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";

@@ -7,8 +7,6 @@
  * Contains SearchPanelContent component that encapsulates useOpenEditorFiles hook.
  * This hook only runs when the Search tab is first visited (lazy mounting).
  */
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
   useCallback,
@@ -21,6 +19,7 @@ import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
+import { ArrowLeft02Icon, HugeiconsIcon } from "@src/icons";
 import { useOpenEditorFiles } from "@src/modules/WorkStation/CodeEditor/hooks/useOpenEditorFiles";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared";
 

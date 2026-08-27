@@ -21,8 +21,6 @@
  * records explicit user toggles. The currently active (tail) turn is
  * never collapsed while the agent is still streaming.
  */
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,6 +28,7 @@ import { useTranslation } from "react-i18next";
 import AnyIcon from "@src/components/AnyIcon";
 import { getTurnTimingLabels } from "@src/engines/ChatPanel/ChatHistory/utils/turnTimingFormatting";
 import { createLogger } from "@src/hooks/logger";
+import { ChevronsDownUpIcon, UnfoldMoreIcon } from "@src/icons";
 import {
   collapseAllCommandAtom,
   setTurnCollapseOverrideAtom,

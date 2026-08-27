@@ -9,17 +9,19 @@ import {
   SECTION_PATH_TEXT_CLASSES,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
 import Slider from "@src/components/Slider";
+import {
+  Add01Icon,
+  Cancel01Icon,
+  Copy01Icon,
+  FolderOpenIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 import { PRESET_IMAGES } from "../config";

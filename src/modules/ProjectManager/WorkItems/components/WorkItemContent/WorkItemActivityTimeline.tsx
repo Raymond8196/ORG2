@@ -1,12 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -15,6 +6,17 @@ import { WORK_ITEM_HISTORY_ACTION } from "@src/api/http/project/types";
 import Avatar from "@src/components/Avatar";
 import { projectMarkdownSessionReferences } from "@src/components/MarkDown/sessionReferenceProjection";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  Add01Icon,
+  ArrowLeftRightIcon,
+  ArrowRight01Icon,
+  BotIcon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Message01Icon,
+  Pen01Icon,
+  RotateLeft01Icon,
+} from "@src/icons";
 import {
   ActivityTimestamp,
   ConnectedTimelineItem,

@@ -4,13 +4,6 @@
  * Page for repo selection using OnboardingLayout.
  * Users select a repository before proceeding to the main app.
  */
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import SquareArrowRight01Icon from "@hugeicons/core-free-icons/SquareArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,6 +15,15 @@ import { Placeholder } from "@src/components/Placeholder";
 import { ROUTES } from "@src/config/routes";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { createLogger } from "@src/hooks/logger";
+import {
+  CodeIcon,
+  FolderClosedIcon,
+  FolderTreeIcon,
+  HugeiconsIcon,
+  Search01Icon,
+  Settings01Icon,
+  SquareArrowRight01Icon,
+} from "@src/icons";
 import {
   ONBOARDING_LOADING_VIDEO_MAX_WIDTH_CLASS,
   OnboardingLayout,

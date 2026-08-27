@@ -1,8 +1,7 @@
-import Database from "@hugeicons/core-free-icons/DatabaseIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import type { DatabaseType } from "@src/engines/DatabaseCore";
+import { DatabaseIcon as Database, HugeiconsIcon } from "@src/icons";
 
 import MongoIcon from "./mongo.svg";
 import MySQLIcon from "./mysql.svg";

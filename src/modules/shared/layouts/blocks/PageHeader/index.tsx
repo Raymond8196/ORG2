@@ -8,13 +8,16 @@
  * Height: 40px (matches PanelHeader)
  * No bottom border by default
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import type { FC, KeyboardEvent, ReactNode } from "react";
 import { memo, useRef, useState } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Search01Icon,
+} from "@src/icons";
 
 // ============================================
 // Tokens

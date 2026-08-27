@@ -8,15 +8,17 @@
  *
  * Used by AskQuestionCard, AskQuestionPreview, and QuestionBubble.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import IconButton from "@src/components/IconButton";
 import { COMPOSER_CARD_SHELL_CLASSES } from "@src/config/composerStackTokens";
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  HelpCircleIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import ComposerStackHeader from "../components/ComposerStackHeader";
 import {

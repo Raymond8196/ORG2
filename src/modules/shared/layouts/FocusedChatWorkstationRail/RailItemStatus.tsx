@@ -1,11 +1,13 @@
 /**
  * RailItemStatus — CI badge shown at the end of a rail row (e.g. the PR row).
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
-import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleSlashIcon,
+  HugeiconsIcon,
+  LoaderCircleIcon,
+} from "@src/icons";
 
 import type { FocusedChatRailItem } from "./types";
 

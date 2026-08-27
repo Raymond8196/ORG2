@@ -1,8 +1,3 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useEffect, useId, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -16,6 +11,13 @@ import {
 } from "@src/components/Dropdown/exports";
 import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  ListTodoIcon,
+  LockIcon,
+  Tick01Icon,
+} from "@src/icons";
 import { isSessionActiveAtom } from "@src/store/session/cliSessionStatusAtom";
 import {
   type TodoItem,

@@ -31,13 +31,11 @@
  * />
  * ```
  */
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { ControlAppearance } from "@src/components/controlAppearance";
+import { Calendar01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import "./index.scss";
 

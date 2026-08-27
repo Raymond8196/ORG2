@@ -1,5 +1,3 @@
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +7,7 @@ import {
   ChatStatusSegmentedBar,
   ChatStatusTwoLineContent,
 } from "@src/engines/ChatPanel/components/ChatStatusBanners";
+import { HugeiconsIcon, PlayIcon } from "@src/icons";
 
 interface AgentOrgInterventionPinBarProps {
   intervention: AgentOrgMemberIntervention | null;

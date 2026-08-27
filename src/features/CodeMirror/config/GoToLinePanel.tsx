@@ -1,7 +1,4 @@
 import { EditorView, Panel } from "@codemirror/view";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
@@ -11,6 +8,7 @@ import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,
 } from "@src/config/workstation/tokens";
+import { Cancel01Icon, HashtagIcon, HugeiconsIcon } from "@src/icons";
 
 interface GoToLinePanelProps {
   view: EditorView;

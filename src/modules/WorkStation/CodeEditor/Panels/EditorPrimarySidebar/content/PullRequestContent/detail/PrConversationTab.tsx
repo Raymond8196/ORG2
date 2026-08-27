@@ -10,10 +10,6 @@
  * Reuses the shared timeline primitives so it renders identically to the Issue
  * detail view.
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +31,12 @@ import { COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTok
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useSessionReferenceDropTarget } from "@src/features/Org2Cloud/useSessionReferenceDropTarget";
 import { useElementDimensions } from "@src/hooks/ui/layout/useElementDimensions";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  FileDiffIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   ConnectedTimelineItem,
   MarkdownContent,

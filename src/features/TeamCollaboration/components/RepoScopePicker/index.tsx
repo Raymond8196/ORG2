@@ -16,11 +16,10 @@
  * Selection is keyed by scope key (not repo id): two checkouts of the same
  * remote toggle together, and the emitted keys are deduped by construction.
  */
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useSyncExternalStore } from "react";
 import { useTranslation } from "react-i18next";
 
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 import useSharedRepoList from "@src/scaffold/GlobalSpotlight/hooks/data/useSharedRepoList";
 import type { RepoItem } from "@src/scaffold/GlobalSpotlight/types";
 

@@ -2,13 +2,12 @@
  * Preview panel for a channel (Connections category).
  * Shows enable toggle, overview, probe section, and channel config.
  */
-import ChevronsLeftRightEllipsisIcon from "@hugeicons/core-free-icons/ChevronsLeftRightEllipsisIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { PLACEHOLDER_TOKENS, Placeholder } from "@src/components/Placeholder";
 import Switch from "@src/components/Switch";
+import { ChevronsLeftRightEllipsisIcon, HugeiconsIcon } from "@src/icons";
 import type { useChannelState } from "@src/modules/MainApp/Integrations/hooks/useChannelState";
 import {
   DETAIL_PANEL_TOKENS,

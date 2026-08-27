@@ -1,6 +1,3 @@
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import {
@@ -10,6 +7,7 @@ import {
 import Tooltip from "@src/components/Tooltip";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import type { PromptPolishControl } from "@src/engines/ChatPanel/hooks/useInputArea/types";
+import { HugeiconsIcon, Loading03Icon, SparklesIcon } from "@src/icons";
 
 interface PromptPolishButtonProps {
   control: PromptPolishControl;

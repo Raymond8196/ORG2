@@ -1,5 +1,3 @@
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +5,7 @@ import {
   type ModelPricing,
   usageDashboardModelPricing,
 } from "@src/api/tauri/usageDashboard";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 
 import { formatInt, formatUsd } from "./usageFormat";
 

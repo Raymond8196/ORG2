@@ -1,10 +1,9 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import cn from "classnames";
 import React from "react";
 
 import Switch from "@src/components/Switch";
 import Tooltip from "@src/components/Tooltip";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 
 /** Shared 44px header row for left/right split panes (kept in sync with right-pane variant header). */
 export const INLINE_SPLIT_HEADER_ROW_CLASS =

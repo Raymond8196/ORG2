@@ -19,14 +19,13 @@
  * Preview chrome: a meta strip on top (component name / dimensions / DOM
  * depth / url).
  */
-import PenTool01Icon from "@hugeicons/core-free-icons/PenTool01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import React, { Suspense, memo, useCallback, useMemo, useState } from "react";
 
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { Placeholder } from "@src/components/Placeholder";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, PenTool01Icon } from "@src/icons";
 import { FileHeader } from "@src/modules/WorkStation/shared";
 import type { ToggleOption } from "@src/modules/shared/components/FileHeader";
 import { IFRAME_STYLE_NONCE } from "@src/util/iframeCspNonce";

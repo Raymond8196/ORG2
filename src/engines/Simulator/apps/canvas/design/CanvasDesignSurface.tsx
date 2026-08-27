@@ -1,6 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -19,6 +16,7 @@ import {
   buildDomComponentUserMessage,
 } from "@src/features/DomSelection/domComponentPayload";
 import type { DomSelectionRect } from "@src/features/DomSelection/types";
+import { Cancel01Icon, Cursor02Icon, HugeiconsIcon } from "@src/icons";
 
 import type { CanvasDesignSelection } from "./canvasDomCapture";
 import { useCanvasDesignInspector } from "./useCanvasDesignInspector";

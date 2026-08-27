@@ -13,10 +13,10 @@
  * IMPORTANT: Tailwind JIT requires static class strings.
  * Do NOT interpolate breakpoint values dynamically.
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { ArrowExpand01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface NarrowPlaceholderProps {
   /** Override default title */

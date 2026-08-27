@@ -1,7 +1,3 @@
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +12,12 @@ import Button from "@src/components/Button";
 import { Message } from "@src/components/Message";
 import { Placeholder } from "@src/components/Placeholder";
 import { CodeMirrorConflictEditor } from "@src/features/CodeMirror";
+import {
+  Alert01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  Tick01Icon,
+} from "@src/icons";
 import {
   projectGitFolderSyncResultByOrgAtom,
   setProjectGitFolderSyncResultAtom,

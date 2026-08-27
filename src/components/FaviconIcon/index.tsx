@@ -2,24 +2,26 @@
  * FaviconIcon Component
  *
  * Shared favicon renderer used across browser tabs, sidebar rows, URL bars,
- * and session replay entries. URL-derived logos are the priority; the Lucide
- * Globe is used only as a final fallback when no favicon URL is available
+ * and session replay entries. URL-derived logos are the priority; the globe
+ * glyph is used only as a final fallback when no favicon URL is available
  * (or the image failed to load).
  *
  * Priority:
  *   1. URL favicon image (Google S2 service)
  *   2. Loader2 spinner when isLoading and no favicon could be derived
  *   3. HatGlasses for incognito with no resolvable URL
- *   4. Lucide Globe (last-resort fallback)
+ *   4. Globe glyph (last-resort fallback)
  *
  * URL change resets stale error state so a new domain re-attempts the fetch.
  */
-import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useState } from "react";
 
+import {
+  HatGlassesIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  Loading03Icon,
+} from "@src/icons";
 import { getFaviconUrl } from "@src/store/ui/navigationSidebarTabsAtom";
 
 export interface FaviconIconProps {
@@ -94,7 +96,7 @@ export const FaviconIcon: React.FC<FaviconIconProps> = memo(
       );
     }
 
-    // Priority 4: Lucide Globe — final fallback only.
+    // Priority 4: globe glyph — final fallback only.
     const globeColor = isSelected ? "text-primary-6" : fallbackColor;
     return (
       <HugeiconsIcon

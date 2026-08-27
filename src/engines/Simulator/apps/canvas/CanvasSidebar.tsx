@@ -4,12 +4,11 @@
  * Lists every render_inline_canvas event with its title and timestamp, and
  * carries the per-row compare toggle that drives the side-by-side diff view.
  */
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
 import { Placeholder } from "@src/components/Placeholder";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+import { HugeiconsIcon, Layout01Icon } from "@src/icons";
 import { PrimarySidebarLayoutWithSections } from "@src/modules/WorkStation/shared";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared/PrimarySidebarLayout/PrimarySidebarLayoutWithSections";
 

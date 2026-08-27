@@ -1,5 +1,3 @@
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +6,7 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import { HugeiconsIcon, InformationCircleIcon } from "@src/icons";
 
 import { HEADER_ICON_SIZE } from "./tokens";
 

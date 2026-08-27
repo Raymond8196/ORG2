@@ -8,12 +8,12 @@
 // ============================================
 // Menu Item Configuration
 // ============================================
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Glass from "@src/components/Glass";
+import type { IconSvgElement } from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import { AppType } from "../../types/appTypes";

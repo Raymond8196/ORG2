@@ -6,13 +6,12 @@
  * away from the latest turn (used by the external-history overlay and, via
  * `scrollNav`, ChatFloatingComposer).
  */
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
+import { ArrowDown02Icon, HugeiconsIcon } from "@src/icons";
 
 import { type ScrollNavState } from "../ChatHistory";
 

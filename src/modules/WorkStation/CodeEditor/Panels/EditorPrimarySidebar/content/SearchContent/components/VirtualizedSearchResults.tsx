@@ -9,9 +9,6 @@
  *   - Match line (indented)
  *   - Match line
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, {
   forwardRef,
@@ -43,6 +40,7 @@ import {
   stickyRowPadding,
 } from "@src/components/VirtualizedStickyTree";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import {
   COUNT_BADGE,
   PRIMARY_SIDEBAR_HOVER,

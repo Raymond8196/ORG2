@@ -3,13 +3,14 @@
  *
  * Defines task statuses, column settings, and icons for the Kanban board.
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleDashedIcon,
+  CircleIcon,
+  Clock01Icon,
+  Layers01Icon,
+} from "@src/icons";
 import {
   GITHUB_ISSUE_STATUS,
   WORK_ITEM_STATUS,

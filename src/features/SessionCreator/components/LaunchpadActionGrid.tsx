@@ -1,11 +1,13 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Children, forwardRef, useId, useState } from "react";
 
 import Button from "@src/components/Button";
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
+import {
+  ArrowRight01Icon,
+  ArrowUp01Icon,
+  EllipsisIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 export type LaunchpadActionTone = "primary" | "neutral" | "success" | "warning";
 export type LaunchpadActionPresentation = "card" | "pill";

@@ -12,13 +12,6 @@
  * Clicking the expand button (↗) on the banner header restores the full
  * BackgroundTasksApp panel.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -30,6 +23,15 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { EVENT_LOADING_SHIMMER_TEXT_CLASSES } from "@src/engines/ChatPanel/blocks/primitives";
+import {
+  ArrowDown01Icon,
+  ArrowExpand01Icon,
+  ArrowLeft01Icon,
+  ArrowLeft02Icon,
+  ArrowRight01Icon,
+  ArrowShrink01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import BreadcrumbFileHeader from "@src/modules/shared/components/FileHeader/BreadcrumbFileHeader";
 import { HorizontalResizeHandle } from "@src/scaffold/Resize";
 

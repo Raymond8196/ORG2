@@ -1,6 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -23,6 +20,7 @@ import type { AvailableAgent } from "@src/config/cliAgents";
 import { MODEL_TABLE_SWITCH_SIZE } from "@src/config/modelTable";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { Add01Icon, HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   cliAgentVisibilityOverridesAtom,
   isCliAgentEnabled,

@@ -5,10 +5,6 @@
  * the payload in a full-height WorkStation view. Closing the card closes the
  * tab and clears the matching Canvas entry.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +15,12 @@ import {
   buildReactDocument,
 } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/canvasBuilder";
 import { useCanvasForTurn } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/useCanvasForTurn";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  Layout01Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { EditorTabService } from "@src/services/workStation/EditorTabService";
 import { getCanvasPreviewTabId } from "@src/store/workstation/tabs/factories/canvasPreview";
 

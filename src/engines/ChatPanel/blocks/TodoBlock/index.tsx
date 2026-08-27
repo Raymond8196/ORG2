@@ -4,16 +4,18 @@
  * Always renders the standard collapsible todo list using the same
  * EventBlockHeader + vertical-line pattern as other tool blocks.
  */
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { getToolIcon } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
+import {
+  ChevronsDownUpIcon,
+  HugeiconsIcon,
+  LockIcon,
+  Tick01Icon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
 import {

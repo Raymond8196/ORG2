@@ -3,13 +3,12 @@
  *
  * Header component for sidebars with optional title, tabs, and actions.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import TabPill from "@src/components/TabPill";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 
 import type { SidebarHeaderProps } from "../types";
 import { renderSidebarIcon } from "../utils/renderIcon";

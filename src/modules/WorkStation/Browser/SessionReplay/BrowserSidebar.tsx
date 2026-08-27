@@ -5,20 +5,6 @@
  * Uses PrimarySidebarLayoutWithSections with hidden tabs so the top ReplayTabBar
  * owns category switching.
  */
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CompassIcon from "@hugeicons/core-free-icons/CompassIcon";
-import CursorPointer02Icon from "@hugeicons/core-free-icons/CursorPointer02Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import FileSymlinkIcon from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import MoveTopIcon from "@hugeicons/core-free-icons/MoveTopIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Shield01Icon from "@hugeicons/core-free-icons/Shield01Icon";
-import Shield02Icon from "@hugeicons/core-free-icons/Shield02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -27,6 +13,22 @@ import { Placeholder } from "@src/components/Placeholder";
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
 import { getEventIcon } from "@src/config/toolIcons";
 import { AGENT_DOT_TOKENS } from "@src/engines/Simulator/config";
+import {
+  CheckmarkCircle01Icon,
+  CompassIcon,
+  CursorPointer02Icon,
+  Delete02Icon,
+  FileSymlinkIcon,
+  HierarchyFilesIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  KeyboardIcon,
+  ListIcon,
+  MoveTopIcon,
+  Search01Icon,
+  Shield01Icon,
+  Shield02Icon,
+} from "@src/icons";
 import { PANEL_CONSTANTS } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/config";
 import { PrimarySidebarLayoutWithSections } from "@src/modules/WorkStation/shared";
 import type { PrimarySidebarTab } from "@src/modules/WorkStation/shared/PrimarySidebarLayout/PrimarySidebarLayoutWithSections";

@@ -4,8 +4,6 @@
  * Composes useEntries, useFloatingPortalPosition, useKeyboard, FlyoutSubmenu,
  * and the individual MenuRow components into the full slash command experience.
  */
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -25,6 +23,7 @@ import {
 import FileTreePreview from "@src/components/FileTreePreview";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useMouseMoved } from "@src/hooks/ui/useMouseMoved";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { useFloatingPortalPosition } from "../useFloatingPortalPosition";
 import FlyoutSubmenu from "./FlyoutSubmenu";

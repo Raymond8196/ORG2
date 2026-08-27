@@ -9,11 +9,6 @@
  * Work Item properties rail. The host mounts it beside the detail tabs, or
  * stacks it under the flow title when the pane is too narrow for two columns.
  */
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -31,6 +26,13 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+import {
+  BubbleChatIcon,
+  CancelCircleIcon,
+  HugeiconsIcon,
+  Settings01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import {
   WorkstationTrailBody,
   WorkstationTrailEmptyText,

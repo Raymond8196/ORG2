@@ -4,13 +4,11 @@
  * Search bar with action/value pills and a contextual input placeholder.
  * Backspace removes segments.
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
+import { ArrowLeft01Icon, HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { ICONS } from "../config";
 import { SPOTLIGHT_CLASSES, SPOTLIGHT_TOKENS } from "../constants";

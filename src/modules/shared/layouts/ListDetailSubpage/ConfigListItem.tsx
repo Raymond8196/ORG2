@@ -24,9 +24,9 @@ import Tooltip from "@src/components/Tooltip";
 export interface ConfigListItemProps {
   /** Unique identifier for the item */
   id: string;
-  /** Lucide icon component */
+  /** Icon glyph */
   icon?: React.FC<{ size?: number | string; className?: string }>;
-  /** Custom icon element for non-Lucide icons (takes precedence over icon) */
+  /** Custom icon element for non-glyph icons (takes precedence over icon) */
   iconElement?: React.ReactNode;
   /** Display label */
   label: string;

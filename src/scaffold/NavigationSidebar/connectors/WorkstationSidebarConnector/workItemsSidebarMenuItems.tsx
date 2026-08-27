@@ -1,9 +1,10 @@
-import BoxesIcon from "@hugeicons/core-free-icons/BoxesIcon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import PlayCircleIcon from "@hugeicons/core-free-icons/PlayCircleIcon";
-
+import {
+  BoxesIcon,
+  CircleDotIcon,
+  GitPullRequestIcon,
+  ListTodoIcon,
+  PlayCircleIcon,
+} from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import {
   WORK_MANAGEMENT_PROJECTS_VIEW,

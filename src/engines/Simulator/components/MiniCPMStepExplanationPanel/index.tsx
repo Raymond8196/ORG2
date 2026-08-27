@@ -1,8 +1,3 @@
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useEffect, useMemo, useReducer, useRef } from "react";
 
@@ -14,6 +9,13 @@ import {
 } from "@src/engines/SessionCore";
 import type { SessionEvent } from "@src/engines/SessionCore";
 import { useHousekeeperConfig } from "@src/hooks/housekeeper";
+import {
+  AlertCircleIcon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  SparklesIcon,
+} from "@src/icons";
 
 type ExplanationStatus = "idle" | "loading" | "ready" | "fallback";
 

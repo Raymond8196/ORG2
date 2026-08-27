@@ -5,11 +5,10 @@
  * Uses PrimarySidebarLayout (same as Code Editor, Browser, etc.) with a single
  * pill containing Messages / Interactions sections.
  */
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { BubbleChatIcon, HugeiconsIcon } from "@src/icons";
 import {
   type PanelSection,
   PrimarySidebarLayout,

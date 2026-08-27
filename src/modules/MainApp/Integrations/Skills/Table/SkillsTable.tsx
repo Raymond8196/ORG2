@@ -1,7 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +11,12 @@ import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import type { CursorRepo } from "@src/hooks/policies";
 import { getInstalledSkillIdentity } from "@src/hooks/skills/installedSkillsMerge";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  Add01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   DETAIL_PANEL_TOKENS,
   ScrollPreservation,

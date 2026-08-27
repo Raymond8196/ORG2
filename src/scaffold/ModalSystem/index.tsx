@@ -13,12 +13,11 @@
  * - Keyboard navigation support
  * - Support for okButtonProps and cancelButtonProps for button styling
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
 import Button from "@src/components/Button";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 // Deep imports on purpose: the `layouts/blocks` barrel re-exports
 // SessionTable → SettingsTable → @tanstack/react-table, and Modal sits in the
 // startup graph (QuitConfirmationModal is mounted at boot).

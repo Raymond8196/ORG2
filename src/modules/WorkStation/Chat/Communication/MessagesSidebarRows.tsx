@@ -7,13 +7,15 @@
  * previously and was removed alongside the per-event tab fan-out in
  * useReplayTabs).
  */
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import MessageCircleQuestionMarkIcon from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
+import {
+  HugeiconsIcon,
+  ListTodoIcon,
+  MessageCircleQuestionMarkIcon,
+  MessageMultiple01Icon,
+} from "@src/icons";
 
 // ── AggregateMessagesRow ─────────────────────────────────────────────────────
 

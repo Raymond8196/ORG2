@@ -4,9 +4,6 @@
  * Window header bar for the background-tasks dock app.
  * Contains task count and close button.
  */
-import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +11,7 @@ import { useTranslation } from "react-i18next";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { EVENT_LOADING_SHIMMER_TEXT_CLASSES } from "@src/engines/ChatPanel/blocks/primitives";
 import { replayModeAtom } from "@src/engines/SessionCore";
+import { ArrowShrink01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 interface MultiTaskHeaderProps {
   taskCount: number;

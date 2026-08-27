@@ -5,11 +5,11 @@
  * letting the user configure and launch a new session without leaving
  * the palette (no navigation to Agent Station).
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
 import React, { useCallback, useMemo } from "react";
 
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { SessionCreatorChatPanel } from "@src/features/SessionCreator/variants";
+import { Add01Icon } from "@src/icons";
 import type { BasePaletteProps } from "@src/scaffold/GlobalSpotlight/shared";
 
 import { SpotlightPillBar } from "../../components";

@@ -1,9 +1,8 @@
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
+import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
 import { formatPathForPlatformDisplay } from "@src/util/file/repoPathDisplay";
 import { openFileInEditor } from "@src/util/ui/openFileInEditor";
 

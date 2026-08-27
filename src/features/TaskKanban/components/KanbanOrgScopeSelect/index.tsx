@@ -1,6 +1,3 @@
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, {
   memo,
@@ -19,6 +16,7 @@ import { buildOrgSelectorEntries } from "@src/features/Organizations/orgSelector
 import { sidebarSelectedOrgIdAtom } from "@src/features/Organizations/sidebarOrgScopeAtom";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
+import { CloudIcon, HugeiconsIcon, LaptopIcon } from "@src/icons";
 import { DEFAULT_SESSION_ORG_ID } from "@src/store/session";
 
 const logger = createLogger("KanbanOrgScopeSelect");

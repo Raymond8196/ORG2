@@ -1,13 +1,6 @@
 /**
  * Ports status-bar menu: workspace vs external listening ports.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import UnplugIcon from "@hugeicons/core-free-icons/UnplugIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -23,6 +16,15 @@ import {
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Copy01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  InternetIcon,
+  Loading03Icon,
+  Search01Icon,
+  UnplugIcon,
+} from "@src/icons";
 import {
   addressForPort,
   browserUrlForPort,

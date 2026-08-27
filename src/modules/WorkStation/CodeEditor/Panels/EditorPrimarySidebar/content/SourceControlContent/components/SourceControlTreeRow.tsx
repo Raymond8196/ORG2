@@ -5,15 +5,6 @@
  * Handles both section headers and file/directory items.
  * Uses TreeRowBase for file items to maintain consistency.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 
@@ -30,6 +21,17 @@ import {
 } from "@src/components/TreeRow";
 import type { GitStatusInfo, TreeRowNode } from "@src/components/TreeRow";
 import { type NativeDragItem, useNativeDrag } from "@src/hooks/files";
+import {
+  Add01Icon,
+  ArchiveIcon,
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  FileDiffIcon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  Tick01Icon,
+  Undo02Icon,
+} from "@src/icons";
 import {
   COUNT_BADGE,
   HEADER_BUTTON,

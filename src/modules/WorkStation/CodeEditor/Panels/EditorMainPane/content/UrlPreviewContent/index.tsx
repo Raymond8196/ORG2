@@ -7,9 +7,6 @@
  * Uses the same useInlineWebview hook as the Browser module to create
  * native webviews that bypass X-Frame-Options restrictions.
  */
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +15,11 @@ import { Placeholder } from "@src/components/Placeholder";
 import { useInlineWebview } from "@src/hooks/platform/useInlineWebview";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  HugeiconsIcon,
+  Refresh04Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { isTauriDesktop } from "@src/util/platform/tauri";
 
 interface UrlPreviewContentProps {

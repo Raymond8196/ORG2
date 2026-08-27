@@ -15,10 +15,6 @@
  *   5. Terminal + can resume  → Retry (orange, CLI sessions only)
  *   6. Otherwise              → Submit (arrow up, inactive color, noop)
  */
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +24,12 @@ import Message from "@src/components/Message";
 import Tooltip from "@src/components/Tooltip";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import {
+  ArrowUp02Icon,
+  HugeiconsIcon,
+  RotateLeft01Icon,
+  SquareIcon,
+} from "@src/icons";
 import { chatAppearanceAtom } from "@src/store/config/configAtom";
 
 import {

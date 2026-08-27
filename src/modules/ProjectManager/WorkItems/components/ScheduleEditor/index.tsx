@@ -1,9 +1,3 @@
-import Calendar02Icon from "@hugeicons/core-free-icons/Calendar02Icon";
-import CalendarBlock01Icon from "@hugeicons/core-free-icons/CalendarBlock01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import RepeatIcon from "@hugeicons/core-free-icons/RepeatIcon";
-import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 
 import type { WorkItemSchedule } from "@src/api/http/project";
@@ -12,6 +6,15 @@ import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import Select, { type SelectOption } from "@src/components/Select";
 import TimePicker from "@src/components/TimePicker";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+import {
+  Calendar02Icon,
+  CalendarBlock01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  RepeatIcon,
+  TimeScheduleIcon,
+} from "@src/icons";
 
 import { DateQuickAssignDropdown } from "../WorkItemProperties/DateQuickAssignDropdown";
 import {

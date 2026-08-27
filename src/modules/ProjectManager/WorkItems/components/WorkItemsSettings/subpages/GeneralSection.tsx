@@ -5,14 +5,13 @@
  * Includes a danger zone with GitHub-style project deletion:
  * user must type the project name to confirm.
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Switch from "@src/components/Switch";
+import { Alert01Icon, HugeiconsIcon } from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SECTION_CONTROL_STYLE,

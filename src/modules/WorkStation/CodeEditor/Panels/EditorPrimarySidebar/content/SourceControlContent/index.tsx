@@ -9,8 +9,6 @@
  * - Stash management
  * - Multi-select support
  */
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -28,6 +26,7 @@ import type {
   StickyScrollNode,
 } from "@src/components/VirtualizedStickyTree";
 import { VirtualizedStickyTree } from "@src/components/VirtualizedStickyTree";
+import { FilterIcon, HugeiconsIcon } from "@src/icons";
 import { usePrimarySidebarSurface } from "@src/modules/WorkStation/shared/hooks/usePrimarySidebarSurface";
 
 import { useFileSelection } from "../../hooks/useFileSelection";

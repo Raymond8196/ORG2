@@ -10,16 +10,18 @@
  * - Uses forwardRef to allow parent components to manipulate DOM directly
  * - Supports .is-dragging CSS class for drag visual feedback without re-renders
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CornerDownRightIcon from "@hugeicons/core-free-icons/CornerDownRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { forwardRef, useCallback } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  CornerDownRightIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { editorShowTreeIndentGuidesAtom } from "@src/store/ui/editorSettingsAtom";
 
 import {

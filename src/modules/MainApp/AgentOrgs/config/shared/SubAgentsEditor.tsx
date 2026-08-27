@@ -32,9 +32,6 @@
  * have removed legitimate specialist-as-sub-agent configurations
  * from the picker.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
@@ -49,6 +46,7 @@ import {
 import NumberInput from "@src/components/NumberInput";
 import Switch from "@src/components/Switch";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { Add01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import {
   builtInAgentsAtom,
   customAgentsAtom,

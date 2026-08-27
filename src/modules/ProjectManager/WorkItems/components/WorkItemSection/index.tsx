@@ -1,6 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +6,7 @@ import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,
 } from "@src/config/workstation/tokens";
+import { Add01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import type { DropdownOption } from "@src/types/core/shared";
 
 interface WorkItemSectionProps {

@@ -5,8 +5,6 @@
  * Uses the current editor content (planContent prop) so that
  * user edits to the plan file are respected on execute.
  */
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -17,6 +15,7 @@ import Message from "@src/components/Message";
 import { PlanExecutionService } from "@src/engines/SessionCore/services/PlanExecutionService";
 import { createLogger } from "@src/hooks/logger";
 import { useSessionExecModeField } from "@src/hooks/session/useSessionPatch";
+import { HugeiconsIcon, PlayIcon } from "@src/icons";
 import { creatorDefaultModelSelectionAtom } from "@src/store/session/creatorDefaultModelAtom";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { activeSessionIdAtom } from "@src/store/session/viewAtom";

@@ -1,9 +1,6 @@
 /**
  * Combined diff view for multiple edits on the same file in session replay.
  */
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -18,6 +15,7 @@ import Button from "@src/components/Button";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { VirtualizedModernDiff } from "@src/features/CodeViewer/VirtualizedModernDiff";
+import { ChevronsDownUpIcon, HugeiconsIcon, UnfoldMoreIcon } from "@src/icons";
 
 import { shouldTrustDiffStartLines } from "../converters/fileConverter";
 import { resolveFileOperationPayload } from "../resolveFilePayload";

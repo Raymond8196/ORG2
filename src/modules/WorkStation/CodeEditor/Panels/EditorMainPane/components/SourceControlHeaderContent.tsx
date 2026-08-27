@@ -7,13 +7,6 @@
  * in a `useMemo` so `usePublishWorkstationTabHeader` keeps a stable `content`
  * identity and does not re-publish on every render.
  */
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 import type { ReactNode } from "react";
@@ -21,6 +14,15 @@ import type { ReactNode } from "react";
 import type { GitHubIssue } from "@src/api/tauri/github";
 import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
+import {
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  CircleDotIcon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  Refresh04Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { ExternalBrowserButton } from "@src/modules/WorkStation/shared/ExternalBrowserButton";
 import type { SourceControlFilterMode } from "@src/modules/WorkStation/shared/SidebarModules";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";

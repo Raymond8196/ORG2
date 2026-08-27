@@ -1,6 +1,3 @@
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +5,11 @@ import type { GitCommitInfo } from "@src/api/http/git/types";
 import { Placeholder } from "@src/components/Placeholder";
 import PrStatusBadge from "@src/components/PrStatusBadge";
 import type { ExtractedGitArtifactData } from "@src/engines/SessionCore/core/types";
+import {
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import GitCommitRow from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/GitHistoryContent/GitCommitRow";
 import { truncateBranchLabel } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/PullRequestContent/prCardHelpers";
 import {

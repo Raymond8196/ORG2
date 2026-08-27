@@ -1,6 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -13,6 +10,7 @@ import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import LaunchButton from "@src/features/SessionCreator/components/LaunchButton";
 import { useKeyboardSave } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
+import { Cancel01Icon, HugeiconsIcon, InformationCircleIcon } from "@src/icons";
 import {
   CreateComposerHeader,
   CreateComposerPinnedActions,

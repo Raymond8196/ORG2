@@ -4,12 +4,11 @@
  * Table of the agent sessions linked to a Work Item, plus the creation
  * session that produced it. Prop-only; no Work Item state is read here.
  */
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { WorkItemOriginSession } from "@src/api/http/project";
+import { HugeiconsIcon, RotateLeft01Icon } from "@src/icons";
 import {
   formatTokensShort,
   formatUsd,

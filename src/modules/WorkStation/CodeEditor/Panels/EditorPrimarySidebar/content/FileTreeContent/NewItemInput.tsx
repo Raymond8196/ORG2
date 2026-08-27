@@ -8,8 +8,6 @@
  * - Click outside to cancel (unlike rename which confirms)
  * - Dynamic file type icon based on typed extension
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -23,6 +21,7 @@ import {
   TREE_ROW_ROUNDED_CLASS,
 } from "@src/components/TreeRow";
 import { useMountedCleanup } from "@src/hooks/lifecycle/useMounted";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface NewItemInputProps {
   /** Parent directory depth for indentation */

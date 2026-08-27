@@ -1,10 +1,9 @@
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { STORY_SYNC_AUTH_METHOD } from "@src/api/http/integrations";
 import Button from "@src/components/Button";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 import type { ProjectSyncAuthMethod } from "./channelWizardTypes";
 

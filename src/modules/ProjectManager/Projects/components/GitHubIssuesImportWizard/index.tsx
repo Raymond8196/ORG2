@@ -5,8 +5,6 @@
  * issues. The wizard creates the project, attaches the GitHub sync adapter with
  * `{ owner, repo }`, then lets the backend import issues asynchronously.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -26,6 +24,7 @@ import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 import {
   SectionContainer,
   SectionRow,

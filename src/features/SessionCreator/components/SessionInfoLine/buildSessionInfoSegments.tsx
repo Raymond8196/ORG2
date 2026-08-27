@@ -1,9 +1,3 @@
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
-import Home01Icon from "@hugeicons/core-free-icons/Home01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 
@@ -15,6 +9,14 @@ import {
   RUNNING_LOCATIONS,
   type RunningLocation,
 } from "@src/config/sessionCreatorConfig";
+import {
+  CodeIcon,
+  FolderClosedIcon,
+  FolderTreeIcon,
+  Home01Icon,
+  HugeiconsIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { REPO_KIND, type RepoKind } from "@src/store/repo/types";
 
 import { LOCATION_ICONS } from "./locationConfig";

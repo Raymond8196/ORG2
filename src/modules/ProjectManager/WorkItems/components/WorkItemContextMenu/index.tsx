@@ -1,5 +1,3 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -19,6 +17,7 @@ import {
   KEYBOARD_SHORTCUT_VARIANT,
   KeyboardShortcut,
 } from "@src/components/KeyboardShortcut";
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import type { ContextMenuItem } from "@src/types/core/shared";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 

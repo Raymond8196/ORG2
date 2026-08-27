@@ -1,12 +1,14 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { useImmediateCursorReset } from "@src/hooks/ui/useImmediateCursorReset";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  ChevronsDownUpIcon,
+  HugeiconsIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 import { ReferenceDragGhost } from "@src/shared/dnd/ReferenceDragGhost";
 
 import type { NavigationMenuItem } from "../config";

@@ -1,12 +1,14 @@
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import type { IconSvgElement } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  GitMergeIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitPullRequestIcon,
+  type IconSvgElement,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import type { BranchPrSnapshot } from "@src/store/git";
 import {
   type SessionGitLinkSource,

@@ -12,11 +12,6 @@
  * Permissions are checked natively (no external CLI required) — only the
  * parts the user can act on (granting OS permissions) are shown.
  */
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { ask } from "@tauri-apps/plugin-dialog";
 import { relaunch } from "@tauri-apps/plugin-process";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
@@ -50,6 +45,13 @@ import {
 } from "@src/config/settingsSchema/registry/agentBrowser";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  Download01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Refresh04Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { NAV_BUTTON_PROPS } from "@src/modules/MainApp/Settings/config";
 import {
   SECTION_CONTROL_STYLE,

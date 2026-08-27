@@ -1,8 +1,6 @@
 /**
  * Reusable key-value pair table editor for MCP wizard (env vars, headers).
  */
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 
 import Button from "@src/components/Button";
@@ -11,6 +9,7 @@ import SettingsTable, {
   SETTINGS_TABLE_COL,
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
+import { Delete02Icon, HugeiconsIcon } from "@src/icons";
 
 export interface KvRow {
   id: string;

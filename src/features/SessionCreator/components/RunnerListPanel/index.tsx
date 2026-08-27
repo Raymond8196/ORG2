@@ -9,8 +9,6 @@
  * launcher's global model never leaks into a row for the same reason — it was
  * picked for a different harness and may be one this row cannot serve.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +24,7 @@ import {
   hasAgentSelected,
   resolveRunnerConfig,
 } from "@src/features/SessionCreator/multiRunner/contract";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import type {
   AgentDefinition,
   AvailableCliAgent,

@@ -4,13 +4,11 @@
  */
 import Button from "@/src/components/Button";
 import { SectionRow } from "@/src/modules/shared/layouts/SectionLayout";
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { BACKGROUND_COLOR_PRESETS } from "@src/config/appearance/backgroundColors";
+import { Add01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import { MAX_CUSTOM_BACKGROUND_COLORS } from "../config";
 import type { BackgroundConfig } from "../types";

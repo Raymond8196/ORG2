@@ -9,11 +9,6 @@
  *   - Sections come from the final provider request payload only.
  *   - Categories with no live data are hidden, no mock/placeholder values.
  */
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -29,6 +24,13 @@ import {
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
 import { useHousekeeperConfig } from "@src/hooks/housekeeper";
 import { useSetting } from "@src/hooks/settings/useSettings";
+import {
+  ArchiveIcon,
+  Cancel01Icon,
+  ChevronsDownUpIcon,
+  HugeiconsIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 
 import ContextBreakdownBar from "./ContextBreakdownBar";
 import ContextCategoryRow from "./ContextCategoryRow";

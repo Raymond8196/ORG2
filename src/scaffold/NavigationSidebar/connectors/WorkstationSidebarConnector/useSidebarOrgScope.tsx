@@ -1,6 +1,3 @@
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import {
   useCallback,
@@ -39,6 +36,7 @@ import {
 } from "@src/features/TeamCollaboration/sessionOrgTagsAtom";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
+import { CloudIcon, HugeiconsIcon, LaptopIcon } from "@src/icons";
 import { DEFAULT_SESSION_ORG_ID, type Session } from "@src/store/session";
 
 import { sidebarSelectedOrgIdAtom } from "../sidebarOrgScopeAtom";

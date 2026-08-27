@@ -4,11 +4,11 @@
  * Consolidates the add workspace modal flow used by RepoSelector and SessionSourceSelector.
  * Manages modal stages, form hooks, and provides shared add workspace menu items.
  */
-import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
+import { FolderAddIcon } from "@src/icons";
 
 import { ICONS } from "../../config";
 import type { SpotlightItem } from "../../types";

@@ -8,9 +8,6 @@
  * Rendered as a second layer over the roster (the `BuilderTypesPanel`
  * back-button idiom of this folder).
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type ReactNode,
   Suspense,
@@ -36,6 +33,11 @@ import type {
   TeamUsageBucket,
 } from "@src/features/Org2Cloud/memberRuntime/types";
 import { TEAM_USAGE_BUCKETS } from "@src/features/Org2Cloud/memberRuntime/types";
+import {
+  ArrowLeft01Icon,
+  ComputerTerminal01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   SECTION_SUBHEADING_CLASSES,
   SectionContainer,

@@ -4,13 +4,6 @@
  * Sidebar PR list using TreeRowBase rows grouped under a collapsible
  * "OPEN" section header (same pattern as IssuesContent).
  */
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import TriangleAlertIcon from "@hugeicons/core-free-icons/TriangleAlertIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useAtomValue } from "jotai";
 import React, {
@@ -29,6 +22,15 @@ import { Placeholder } from "@src/components/Placeholder";
 import PrHoverCard from "@src/components/PrHoverCard";
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import {
+  GitMergeIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+  TriangleAlertIcon,
+} from "@src/icons";
 import {
   type SectionStatus,
   SectionStatusRow,

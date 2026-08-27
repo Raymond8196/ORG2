@@ -10,15 +10,6 @@
  * stops asking once every check has reported, and opening the menu forces a
  * fresh read.
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
-import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Loading01Icon from "@hugeicons/core-free-icons/Loading01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -32,6 +23,17 @@ import {
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
 import { useBranchPullRequestStatus } from "@src/hooks/git/useBranchPullRequestStatus";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleDashedIcon,
+  CircleSlashIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  Loading01Icon,
+  Refresh04Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 import {
   type CiCheckItem,

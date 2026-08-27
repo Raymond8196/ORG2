@@ -4,7 +4,6 @@
  * Higher-level panel components: recent files, search results,
  * and second layer panels (files, terminals, sessions, browser).
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +15,7 @@ import {
 } from "@src/components/Dropdown/tokens";
 import FileTreePreview from "@src/components/FileTreePreview";
 import FileTypeIcon from "@src/components/FileTypeIcon";
+import { HugeiconsIcon } from "@src/icons";
 
 import {
   ResultItemIcon,

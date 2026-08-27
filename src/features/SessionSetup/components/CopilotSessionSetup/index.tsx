@@ -9,11 +9,6 @@
  * 2. User logs in and creates PAT with Copilot permission
  * 3. User copies token and pastes it in the input field
  */
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import React, { useCallback, useEffect, useRef, useState } from "react";
@@ -26,6 +21,13 @@ import Input from "@src/components/Input";
 import { Placeholder } from "@src/components/Placeholder";
 import SessionSetupStepIndicator from "@src/features/SessionSetup/components/SessionSetupStepIndicator";
 import { useWebviewPositionSync } from "@src/features/SessionSetup/hooks/useWebviewPositionSync";
+import {
+  AlertCircleIcon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   SectionContainer,
   SectionRow,

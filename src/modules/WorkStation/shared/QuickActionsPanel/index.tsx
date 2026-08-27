@@ -18,8 +18,6 @@
  *     actions={EDITOR_QUICK_ACTIONS}
  *   />
  */
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import React, { memo, useCallback, useEffect } from "react";
 import { createPortal } from "react-dom";
@@ -30,6 +28,7 @@ import {
   KeyboardShortcut,
 } from "@src/components/KeyboardShortcut";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import { BoxIcon, HugeiconsIcon } from "@src/icons";
 
 import type { QuickAction, QuickActionsPanelProps } from "./types";
 

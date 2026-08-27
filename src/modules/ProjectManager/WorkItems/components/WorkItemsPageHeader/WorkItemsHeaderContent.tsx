@@ -1,14 +1,16 @@
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 
 import Button from "@src/components/Button";
 import { HeaderSectionSeparator } from "@src/components/HeaderSectionSeparator";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import {
+  HugeiconsIcon,
+  InformationCircleIcon,
+  ListChevronsDownUpIcon,
+  Refresh04Icon,
+  Search01Icon,
+} from "@src/icons";
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 
 import type { StatusFilterType } from "../../types";

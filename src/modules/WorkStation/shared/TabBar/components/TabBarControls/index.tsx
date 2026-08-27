@@ -1,10 +1,8 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
+import { Add01Icon, HugeiconsIcon, MoreHorizontalIcon } from "@src/icons";
 
 import {
   HEADER_ICON_SIZE,

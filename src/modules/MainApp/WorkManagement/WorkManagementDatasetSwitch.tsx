@@ -1,12 +1,14 @@
-import BoxesIcon from "@hugeicons/core-free-icons/BoxesIcon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Select, { type SelectOption } from "@src/components/Select";
+import {
+  BoxesIcon,
+  CircleDotIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  ListTodoIcon,
+} from "@src/icons";
 
 import {
   WORK_MANAGEMENT_DATASET,

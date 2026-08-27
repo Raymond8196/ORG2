@@ -4,12 +4,15 @@
  * These functions generate action button configurations for section headers.
  * Follows explorer pattern: Filter toggle, Collapse All, then other actions.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
+
+import {
+  Add01Icon,
+  FilterIcon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  Refresh04Icon,
+} from "@src/icons";
 
 import { ACTION_ICON_SIZE } from "./config";
 import type {

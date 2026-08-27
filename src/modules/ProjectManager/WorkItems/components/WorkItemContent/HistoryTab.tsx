@@ -1,12 +1,3 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CornerUpLeftIcon from "@hugeicons/core-free-icons/CornerUpLeftIcon";
-import Notification01Icon from "@hugeicons/core-free-icons/Notification01Icon";
-import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +6,17 @@ import Button from "@src/components/Button";
 import ComposerShell from "@src/components/ComposerShell";
 import { COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  ArrowRight01Icon,
+  ArrowUp02Icon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  CornerUpLeftIcon,
+  HugeiconsIcon,
+  Notification01Icon,
+  NotificationOff01Icon,
+  RotateLeft01Icon,
+} from "@src/icons";
 import { MarkdownContent } from "@src/modules/shared/components/ActivityTimeline";
 import MarkdownTextareaEditor, {
   type MarkdownEditorMode,

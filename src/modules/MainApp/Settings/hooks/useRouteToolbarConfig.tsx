@@ -6,9 +6,6 @@
  * - Integrations category atom (for per-tab + button behavior)
  * - Integrations add action atom (callback to dispatch add actions)
  */
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +25,11 @@ import {
 } from "@src/config/mainAppPaths";
 import { ROUTES } from "@src/config/routes";
 import { useRefreshSpin } from "@src/hooks/ui/useRefreshSpin";
+import {
+  HierarchyCircle01Icon,
+  Refresh04Icon,
+  UserAdd01Icon,
+} from "@src/icons";
 import {
   dispatchIntegrationsAddAtom,
   integrationsToolbarAtom,

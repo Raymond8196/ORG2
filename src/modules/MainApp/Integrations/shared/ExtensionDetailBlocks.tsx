@@ -8,17 +8,19 @@
  *
  * Used by Skills and MCP detail panels.
  */
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import StarIcon from "@hugeicons/core-free-icons/StarIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
+import {
+  Calendar01Icon,
+  Download01Icon,
+  GitCommitHorizontalIcon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  StarIcon,
+  UserIcon,
+} from "@src/icons";
 import type { HubSkillDetail } from "@src/types/extensions";
 
 // ---------------------------------------------------------------------------

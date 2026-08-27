@@ -1,10 +1,8 @@
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import SearchInput from "@src/components/SearchInput";
+import { HugeiconsIcon, Loading03Icon, Refresh04Icon } from "@src/icons";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
 
 import {

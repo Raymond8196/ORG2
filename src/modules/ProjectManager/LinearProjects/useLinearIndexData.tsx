@@ -7,10 +7,6 @@
  *   - Load all projects (and all issues when surface === "work-items")
  *   - Expose groupMode state and derived Project groupings for the projects list
  */
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
-import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +17,12 @@ import {
 } from "@src/api/http/integrations";
 import type { LinearProjectSummary } from "@src/api/http/integrations";
 import type { SelectOption } from "@src/components/Select";
+import {
+  CircleIcon,
+  Flag01Icon,
+  HugeiconsIcon,
+  TimeScheduleIcon,
+} from "@src/icons";
 import type { StatusFilterType } from "@src/modules/ProjectManager/WorkItems/types";
 import {
   countWorkItemsByStatus,

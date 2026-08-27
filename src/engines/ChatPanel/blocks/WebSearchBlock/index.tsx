@@ -4,12 +4,11 @@
  * Displays web search results as a structured list with link icons.
  * Same pattern as GlobBlock: EventBlockExpandableStackList + ComposerStackListRow.
  */
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { getToolIcon } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
+import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
 import {

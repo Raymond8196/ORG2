@@ -4,12 +4,6 @@
  * Reusable item-level components for rendering menu items,
  * search result icons, and empty/loading states.
  */
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +15,15 @@ import {
 } from "@src/components/Dropdown/tokens";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  CodeIcon,
+  ComputerTerminal01Icon,
+  FolderKanbanIcon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  InternetIcon,
+  ListChecksIcon,
+} from "@src/icons";
 import { resolveSessionRowIcon } from "@src/util/session/sessionSidebarRow";
 
 import { ICON_CONFIG, type SecondLayerId } from "./config";

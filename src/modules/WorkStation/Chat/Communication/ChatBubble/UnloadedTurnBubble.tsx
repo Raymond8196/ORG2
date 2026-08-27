@@ -39,9 +39,6 @@
  * eviction is confirmed, retries a bounded number of times before falling
  * back to a manual "tap to retry" affordance instead of spinning forever.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import RotateClockwiseIcon from "@hugeicons/core-free-icons/RotateClockwiseIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -62,6 +59,7 @@ import {
   unregisterMountedTurnPlaceholder,
 } from "@src/engines/SessionCore/turns";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, Loading03Icon, RotateClockwiseIcon } from "@src/icons";
 import {
   formatSmartDateTime,
   toIntlLocaleTag,

@@ -7,11 +7,6 @@
  * - Promotions: show action button
  * - Work items: show project/work-item metadata
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -25,6 +20,13 @@ import {
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import {
   type InboxCategory,

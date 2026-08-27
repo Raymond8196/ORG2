@@ -31,9 +31,9 @@
  * </DropdownItem>
  * ```
  */
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, memo } from "react";
+
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 import DropdownSelectedCheck from "./DropdownSelectedCheck";
 import { DROPDOWN_CLASSES, DROPDOWN_ITEM } from "./tokens";

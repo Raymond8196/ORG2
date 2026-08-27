@@ -6,13 +6,6 @@
  * split-button keeps the full merge-method + auto-merge + draft dropdown;
  * reviewer management lives in the sidebar's Reviewers section.
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestClosedIcon from "@hugeicons/core-free-icons/GitPullRequestClosedIcon";
-import GitPullRequestDraftIcon from "@hugeicons/core-free-icons/GitPullRequestDraftIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -31,6 +24,15 @@ import {
 } from "@src/components/Dropdown/tokens";
 import Message from "@src/components/Message";
 import SplitButton from "@src/components/SplitButton";
+import {
+  CancelCircleIcon,
+  CircleDotIcon,
+  GitMergeIcon,
+  GitPullRequestClosedIcon,
+  GitPullRequestDraftIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { presentPullRequestActions } from "@src/shared/pr/prLevelActions";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";

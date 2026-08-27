@@ -5,10 +5,10 @@
  * and selection, and total lines. Presentational only — every value is
  * passed in.
  */
-import GitCommitIcon from "@hugeicons/core-free-icons/GitCommitIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
+
+import { GitCommitIcon, HugeiconsIcon } from "@src/icons";
 
 import { StatusBarSegment, StatusBarText } from "../StatusBarBase";
 import type { CommitInfo, CursorPosition } from "../types";

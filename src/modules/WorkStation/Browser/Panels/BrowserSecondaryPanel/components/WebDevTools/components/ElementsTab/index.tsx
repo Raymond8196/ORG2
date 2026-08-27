@@ -3,16 +3,18 @@
  *
  * Displays selected element details with copy functionality.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  Cancel01Icon,
+  Copy01Icon,
+  HugeiconsIcon,
+  Tick01Icon,
+} from "@src/icons";
 import type { ElementInfo } from "@src/modules/WorkStation/Browser/hooks/useWebviewInspector";
 import { copyText } from "@src/util/data/clipboard";
 

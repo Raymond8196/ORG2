@@ -25,13 +25,15 @@
  * <NumberInput value={500} controlsPosition="sides" />
  * ```
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
+import {
+  Add01Icon,
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+} from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import "./index.scss";

@@ -1,6 +1,3 @@
-import FolderGitTwoIcon from "@hugeicons/core-free-icons/FolderGitTwoIcon";
-import RepeatIcon from "@hugeicons/core-free-icons/RepeatIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
 import React, { useCallback, useMemo } from "react";
@@ -10,6 +7,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import { useSessionTurnOverview } from "@src/components/SessionHoverCard/useSessionTurnOverview";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { sessionToKanbanTask } from "@src/features/TaskKanban/hooks/useKanbanTasks/sessionToKanbanTask";
+import { FolderGitTwoIcon, HugeiconsIcon, RepeatIcon } from "@src/icons";
 import {
   renderBreathingStatusDot,
   renderStatusDot,

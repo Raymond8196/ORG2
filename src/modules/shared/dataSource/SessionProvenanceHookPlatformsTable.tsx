@@ -1,7 +1,3 @@
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   useCallback,
@@ -27,6 +23,12 @@ import SettingsTable, {
 import Switch from "@src/components/Switch";
 import Tag, { type TagProps } from "@src/components/Tag";
 import { INFO_CARD_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  Alert01Icon,
+  ComputerTerminal01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SectionContainer,

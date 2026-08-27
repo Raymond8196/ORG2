@@ -3,12 +3,11 @@
  *
  * Enhanced terminal-style modal header with status indicators
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
+import { Cancel01Icon, HugeiconsIcon, type IconSvgElement } from "@src/icons";
 
 interface SpotlightModalHeaderProps {
   icon: IconSvgElement | string;

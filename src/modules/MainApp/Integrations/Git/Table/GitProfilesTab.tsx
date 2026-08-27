@@ -1,10 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
 import React, {
@@ -22,6 +15,15 @@ import Message from "@src/components/Message";
 import Select from "@src/components/Select";
 import Switch from "@src/components/Switch";
 import Textarea from "@src/components/Textarea";
+import {
+  Add01Icon,
+  Copy01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  Tick01Icon,
+  UserCircleIcon,
+} from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SECTION_CONTROL_STYLE,

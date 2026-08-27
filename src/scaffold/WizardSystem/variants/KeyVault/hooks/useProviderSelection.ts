@@ -7,16 +7,18 @@
  *
  * Extracted from ApiSetup.tsx to keep it under 600 lines.
  */
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { CLI_AGENT } from "@src/api/tauri/rpc/schemas/validation";
 import { LOCAL_MODEL_PROVIDER, type ModelType } from "@src/api/types/keys";
+import {
+  InternetIcon,
+  Key01Icon,
+  KeyboardIcon,
+  Login01Icon,
+  SearchAreaIcon,
+} from "@src/icons";
 import type { SelectionGridOption } from "@src/scaffold/WizardSystem/primitives";
 
 import {

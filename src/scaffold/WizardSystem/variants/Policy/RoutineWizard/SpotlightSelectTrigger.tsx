@@ -13,11 +13,10 @@
  * height, hover, focus ring, chevron) identical to `Select` so settings
  * rows stay consistent.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import "@src/components/Select/index.scss";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 export interface SpotlightSelectTriggerProps {

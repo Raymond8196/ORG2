@@ -6,17 +6,18 @@
  * function rather than a static table. Split out of
  * `spotlightActionDefinitions.ts`.
  */
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import DockIcon from "@hugeicons/core-free-icons/DockIcon";
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import SidebarBottomIcon from "@hugeicons/core-free-icons/SidebarBottomIcon";
-import ZoomInAreaIcon from "@hugeicons/core-free-icons/ZoomInAreaIcon";
-import ZoomOutAreaIcon from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
-
 import { ACTION_ID } from "@src/ActionSystem";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import {
+  BubbleChatIcon,
+  DockIcon,
+  ListIcon,
+  PanelLeftIcon,
+  RotateLeft01Icon,
+  SidebarBottomIcon,
+  ZoomInAreaIcon,
+  ZoomOutAreaIcon,
+} from "@src/icons";
 
 import type { SpotlightStaticActionDefinition } from "./spotlightActionDefinitions.types";
 

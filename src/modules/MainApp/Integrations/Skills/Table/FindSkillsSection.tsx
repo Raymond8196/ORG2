@@ -1,10 +1,8 @@
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { ChevronsDownUpIcon, HugeiconsIcon, UnfoldMoreIcon } from "@src/icons";
 import {
   SectionContainer,
   SectionRow,

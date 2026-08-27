@@ -1,9 +1,3 @@
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import FunnelIcon from "@hugeicons/core-free-icons/FunnelIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 
 import type { GitHubIssueUser } from "@src/api/tauri/github";
@@ -14,6 +8,14 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import type { SelectOption } from "@src/components/Select";
+import {
+  BubbleChatIcon,
+  FunnelIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  Link02Icon,
+  MoreHorizontalIcon,
+} from "@src/icons";
 import {
   WorkManagementAssigneeCell,
   toggleWorkManagementAssigneeIds,

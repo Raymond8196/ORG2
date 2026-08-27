@@ -1,8 +1,3 @@
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import SecurityCheckIcon from "@hugeicons/core-free-icons/SecurityCheckIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +13,13 @@ import Select from "@src/components/Select";
 import StatusDot from "@src/components/StatusDot";
 import TabPill from "@src/components/TabPill";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
+import {
+  Alert01Icon,
+  FloppyDiskIcon,
+  HugeiconsIcon,
+  RotateLeft01Icon,
+  SecurityCheckIcon,
+} from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SECTION_CONTROL_STYLE,

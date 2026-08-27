@@ -2,7 +2,7 @@
  * ActionCard Component
  *
  * Canonical selectable card used across Code Accounts, Wizards, and Model selection.
- * Supports multiple variants, icons (Lucide or custom elements), and selection state.
+ * Supports multiple variants, icons (glyph data or custom elements), and selection state.
  *
  * For selection card tokens (use in custom layouts), import from config:
  *   import { SELECTION_CARD_CLASSES, getSelectionCardClass } from "@src/components/ActionCard/config";
@@ -10,16 +10,15 @@
  * @example
  * ```tsx
  * import ActionCard from "@src/components/ActionCard";
- * import Search from "@hugeicons/core-free-icons/Search01Icon";
- * import Zap from "@hugeicons/core-free-icons/FlashIcon";
+ * import { FlashIcon, Search01Icon } from "@src/icons";
  *
- * // With Lucide icon (clickable card)
+ * // With a glyph (clickable card)
  * <ActionCard
  *   title="Auto-detect"
  *   description="Find API key from local config files"
  *   onClick={handleDetect}
  *   variant="primary"
- *   icon={Search}
+ *   icon={Search01Icon}
  * />
  *
  * // With tooltip (info icon inside card)
@@ -27,22 +26,24 @@
  *   title="Timer"
  *   tooltip="Fire at a fixed interval"
  *   onClick={() => onSelect("timer")}
- *   icon={Timer}
+ *   icon={FlashIcon}
  *   showSelect
  *   selected={selected === "timer"}
  * />
  * ```
  */
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import cn from "classnames";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import Tooltip from "@src/components/Tooltip";
+import {
+  ArrowRight02Icon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+  Tick01Icon,
+} from "@src/icons";
 
 import { VARIANT_STYLES } from "./config";
 import type { ActionCardProps } from "./types";

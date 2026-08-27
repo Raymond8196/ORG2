@@ -10,9 +10,6 @@
  * No second-level sidebar: this table replaces the agent navigation that
  * previously lived under "Agent Teams → Agents" in `SettingsSidebar`.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -25,6 +22,7 @@ import SettingsTable, {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import { resolveAgentIcon } from "@src/config/agentIcons";
+import { Add01Icon, Delete02Icon, HugeiconsIcon } from "@src/icons";
 import type {
   AgentConfigTabData,
   AgentConfigTabVariant,

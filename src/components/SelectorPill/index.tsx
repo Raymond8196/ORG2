@@ -12,9 +12,6 @@
  * Size tokens for sm/md are sourced from CompoundPill/config to stay in sync
  * with the CompoundPill segment dimensions.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, useCallback, useState } from "react";
 
 import {
@@ -27,6 +24,7 @@ import {
 } from "@src/components/CompoundPill/config";
 import Tooltip, { type TooltipPosition } from "@src/components/Tooltip";
 import type { BareControlAppearance } from "@src/components/controlAppearance";
+import { ArrowDown01Icon, ArrowUp01Icon, HugeiconsIcon } from "@src/icons";
 
 // ── Size variants ────────────────────────────────────────────────────────────
 // "sm" — h-[28px] px-3 text-[12px]  14px icon  (toolbar pills: ModePill, RunningLocationPill)

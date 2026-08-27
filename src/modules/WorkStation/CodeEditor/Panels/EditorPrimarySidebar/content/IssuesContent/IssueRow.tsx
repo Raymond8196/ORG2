@@ -1,14 +1,16 @@
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 
 import type { GitHubIssue } from "@src/api/tauri/github";
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  Copy01Icon,
+  HugeiconsIcon,
+  Message01Icon,
+} from "@src/icons";
 import type { TabDragPillPayload } from "@src/modules/WorkStation/shared/TabBar/tabDragTypes";
 import { ReferenceDragGhost } from "@src/shared/dnd/ReferenceDragGhost";
 import { setIssueDragStash } from "@src/shared/dnd/dragSideChannel";

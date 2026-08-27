@@ -8,8 +8,6 @@
  * shared formatting parts as the Integrations Skills table, while this
  * surface keeps per-agent enablement as its own action.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +17,7 @@ import SettingsTable, {
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
 import Switch from "@src/components/Switch";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import {
   SkillNameCell,
   SkillSourceCell,

@@ -1,9 +1,12 @@
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { Cell, Row, flexRender } from "@tanstack/react-table";
 import React, { useState } from "react";
+
+import {
+  ChevronsDownUpIcon,
+  HugeiconsIcon,
+  InboxIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 
 import type { ColumnMeta, TableColumn, TableProps } from "./types";
 

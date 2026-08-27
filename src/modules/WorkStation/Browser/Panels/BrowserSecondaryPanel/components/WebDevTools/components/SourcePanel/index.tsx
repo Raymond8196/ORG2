@@ -7,14 +7,6 @@
  * - Usage locations
  * - "Find Component" button when index lookup fails
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +14,16 @@ import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { createLogger } from "@src/hooks/logger";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  FileScriptIcon,
+  HugeiconsIcon,
+  Layers01Icon,
+  Loading03Icon,
+  Search01Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import type { ComponentSearchResult } from "@src/modules/WorkStation/Browser/hooks/useSourceNavigation";
 import type { SourceLocation } from "@src/modules/WorkStation/Browser/hooks/useWebviewInspector";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";

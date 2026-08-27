@@ -13,11 +13,6 @@
  * `TurnMetadataFooter` "Review"/file click still scrolls the cumulative list to
  * the clicked file, but never filters it down to a single round.
  */
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import MailSend01Icon from "@hugeicons/core-free-icons/MailSend01Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,6 +25,13 @@ import { simulatorEventsAtom } from "@src/engines/SessionCore/derived/simulatorE
 import type { SimulatorAppProps } from "@src/engines/Simulator/apps/core/types";
 import { useFileReviewBatchActions } from "@src/hooks/fileReview/useFileReview";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
+import {
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  MailSend01Icon,
+  RotateLeft01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import {
   NoTabsPlaceholder,
   SimulatorReplayChrome,

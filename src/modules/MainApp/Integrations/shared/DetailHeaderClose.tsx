@@ -1,14 +1,16 @@
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  ArrowDown02Icon,
+  ArrowExpand01Icon,
+  ArrowUp02Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   COLLAPSIBLE_SECTION_TOKENS,
   PANEL_HEADER_TOKENS,
@@ -47,7 +49,7 @@ export const DetailHeaderClose: React.FC<DetailHeaderCloseProps> = ({
     refreshLoading
   );
 
-  /** Same Lucide props as PanelHeader action icons (see PANEL_HEADER_TOKENS). */
+  /** Same glyph props as PanelHeader action icons (see PANEL_HEADER_TOKENS). */
   const headerIconProps = {
     size: PANEL_HEADER_TOKENS.buttonIconSize,
     strokeWidth: PANEL_HEADER_TOKENS.iconStrokeWidth,

@@ -1,7 +1,4 @@
 import Modal from "@/src/scaffold/ModalSystem";
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
 import a11yDark from "react-syntax-highlighter/dist/esm/styles/prism/a11y-dark";
@@ -10,6 +7,7 @@ import oneLight from "react-syntax-highlighter/dist/esm/styles/prism/one-light";
 import Breadcrumb from "@src/components/Breadcrumb";
 import Markdown from "@src/components/MarkDown";
 import { isThemeCssPathDark } from "@src/config/appearance/globalThemes";
+import { ArrowLeft02Icon, ArrowRight02Icon, HugeiconsIcon } from "@src/icons";
 import { themesAtom } from "@src/store";
 import { getLanguageFromFilePath } from "@src/util/editor/extension";
 import { PrismLight as SyntaxHighlighter } from "@src/util/language/prismLight";

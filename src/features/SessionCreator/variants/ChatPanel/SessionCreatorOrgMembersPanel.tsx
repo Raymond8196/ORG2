@@ -1,6 +1,3 @@
-import GripIcon from "@hugeicons/core-free-icons/GripIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +15,7 @@ import Switch from "@src/components/Switch";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useModelPillLabel } from "@src/hooks/models";
+import { GripIcon, HugeiconsIcon, UserMultipleIcon } from "@src/icons";
 import {
   type AgentDefinition,
   type AvailableCliAgent,

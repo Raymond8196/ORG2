@@ -1,5 +1,3 @@
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -11,6 +9,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+import { BotIcon, HugeiconsIcon } from "@src/icons";
 import { type Session, sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { prettifyMemberName } from "@src/util/data/formatters/memberName";
 import {

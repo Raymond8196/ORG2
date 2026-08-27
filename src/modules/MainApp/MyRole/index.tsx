@@ -13,12 +13,6 @@
  * drill-down. This module is a full-width detail panel and has no
  * sub-tabs — the single visible heading is "My Roles".
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import HatGlassesIcon from "@hugeicons/core-free-icons/HatGlassesIcon";
-import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -30,6 +24,15 @@ import NumberInput from "@src/components/NumberInput";
 import Select from "@src/components/Select";
 import Switch from "@src/components/Switch";
 import Textarea from "@src/components/Textarea";
+import {
+  Add01Icon,
+  CircleIcon,
+  Delete02Icon,
+  HatGlassesIcon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  MoonIcon,
+} from "@src/icons";
 import {
   SECTION_CONTROL_STYLE,
   SectionContainer,

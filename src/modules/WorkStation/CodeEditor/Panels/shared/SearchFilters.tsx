@@ -4,8 +4,6 @@
  * VSCode-style search filters for include/exclude patterns.
  * Uses searchControlSingleLineInputStyle so line-height matches row height.
  */
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -13,6 +11,7 @@ import {
   SEARCH_WRAPPER_SIDEBAR,
   searchControlSingleLineInputStyle,
 } from "@src/components/SearchInput/searchControlInputStyles";
+import { BookOpen01Icon, HugeiconsIcon } from "@src/icons";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
 
 // ============================================

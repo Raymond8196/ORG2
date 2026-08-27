@@ -1,7 +1,6 @@
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
+
+import { HugeiconsIcon, LockIcon, Tick01Icon } from "@src/icons";
 
 import {
   type CommunicationTodoItem,

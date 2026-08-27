@@ -11,10 +11,10 @@
  * - Click to navigate to thread's events
  * - Smooth transitions
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 import { formatThreadDisplayName } from "./config";
 import type { ExecutionThread, ThreadSelectorProps } from "./types";

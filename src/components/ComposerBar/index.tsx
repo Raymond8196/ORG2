@@ -7,14 +7,13 @@
  * When an editor slot is present, the editor uses the full-width row above
  * the shared toolbar controls.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import ContextInfoButton from "@src/engines/ChatPanel/InputArea/components/ContextInfoButton";
 import AddActionsDropdown from "@src/features/SessionCreator/components/AddActionsDropdown";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 
 // ============================================
 // Types

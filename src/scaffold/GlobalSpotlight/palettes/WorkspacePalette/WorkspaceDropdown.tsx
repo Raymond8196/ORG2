@@ -9,9 +9,6 @@
  * Chosen by `general.modelPickerStyle === "dropdown"`. Falls through to
  * `WorkspacePalette` (Spotlight) otherwise.
  */
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
   useCallback,
@@ -40,6 +37,7 @@ import {
   useDropdownEngine,
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { HugeiconsIcon, Search01Icon, Tick01Icon } from "@src/icons";
 import { REPO_KIND, cachedReposAtom } from "@src/store/repo";
 import {
   isMultiRootWorkspaceAtom,

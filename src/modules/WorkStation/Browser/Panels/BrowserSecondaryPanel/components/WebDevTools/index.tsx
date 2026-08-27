@@ -15,13 +15,6 @@ import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,
 } from "@/src/modules/WorkStation/shared/tokens";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CopyPlusIcon from "@hugeicons/core-free-icons/CopyPlusIcon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import MinusSignCircleIcon from "@hugeicons/core-free-icons/MinusSignCircleIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -30,6 +23,15 @@ import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip"
 import TabPill from "@src/components/TabPill";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { useRatioResize } from "@src/hooks/ui";
+import {
+  Cancel01Icon,
+  CopyPlusIcon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  Loading03Icon,
+  MinusSignCircleIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   PanelPositionToggle,
   PanelTabBar,

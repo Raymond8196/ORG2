@@ -8,8 +8,6 @@
  *
  * Rendered as a compact quick-action list: icon, label, and keyboard hint.
  */
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +22,7 @@ import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
 import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
+import { Infinity01Icon, type IconSvgElement } from "@src/icons";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/modules/WorkStation/shared/tokens";
 import { hasActiveSessionAtom } from "@src/store/session/viewAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";

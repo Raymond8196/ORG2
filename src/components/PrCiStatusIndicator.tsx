@@ -1,16 +1,18 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDashedIcon from "@hugeicons/core-free-icons/CircleDashedIcon";
-import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
-import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
-import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { PullRequestCiStatus } from "@src/api/tauri/github";
+import {
+  Cancel01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleDashedIcon,
+  CircleSlashIcon,
+  EllipsisIcon,
+  HugeiconsIcon,
+  LoaderCircleIcon,
+  MinusSignIcon,
+  Tick01Icon,
+} from "@src/icons";
 
 export interface PrCiStatusIndicatorProps {
   appearance?: "circled" | "simple";

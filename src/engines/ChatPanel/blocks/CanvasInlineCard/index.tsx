@@ -17,10 +17,10 @@
  *   - url: not embedded to avoid iframe memory overhead
  *   - a2ui: DOMPurify sanitizes type="html" elements in A2UIRenderer
  */
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
+
+import { HugeiconsIcon, Layout01Icon } from "@src/icons";
 
 import {
   EventBlockHeader,

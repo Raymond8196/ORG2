@@ -1,6 +1,3 @@
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +19,7 @@ import SettingsTable, {
 } from "@src/components/SettingsTable";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { ArrowRight02Icon, HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SECTION_SUBHEADING_CLASSES,

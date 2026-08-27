@@ -7,8 +7,6 @@
  * Chat variant: collapsed by default — a subtle footer row.
  * Simulator variant: header + full summary body, expanded by default.
  */
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -28,6 +26,7 @@ import {
   useNormalizedEventProps,
 } from "@src/engines/SessionCore/rendering/props";
 import type { EventVariant } from "@src/engines/SessionCore/rendering/types/universalProps";
+import { HugeiconsIcon, Layers01Icon } from "@src/icons";
 
 // ============================================
 // Types

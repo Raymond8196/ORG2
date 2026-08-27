@@ -3,13 +3,12 @@
  *
  * Shared between RepoMembersSection and MyProfileSection.
  */
-import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 
 import type { MemberEntry } from "@src/api/http/project";
 import InlineAlert from "@src/components/InlineAlert";
+import { HugeiconsIcon, Mail01Icon } from "@src/icons";
 import Modal from "@src/scaffold/ModalSystem";
 
 export interface ClaimIdentityModalProps {

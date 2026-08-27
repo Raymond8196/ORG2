@@ -1,13 +1,16 @@
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import ArrowUpBigIcon from "@hugeicons/core-free-icons/ArrowUpBigIcon";
-import CommandIcon from "@hugeicons/core-free-icons/CommandIcon";
-import CornerDownLeftIcon from "@hugeicons/core-free-icons/CornerDownLeftIcon";
-import Delete01Icon from "@hugeicons/core-free-icons/Delete01Icon";
-import OptionIcon from "@hugeicons/core-free-icons/OptionIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, memo } from "react";
+
+import {
+  ArrowDown02Icon,
+  ArrowUp01Icon,
+  ArrowUp02Icon,
+  ArrowUpBigIcon,
+  CommandIcon,
+  CornerDownLeftIcon,
+  Delete01Icon,
+  HugeiconsIcon,
+  OptionIcon,
+} from "@src/icons";
 
 export const KEYBOARD_SHORTCUT_VARIANT = {
   default: "default",
@@ -257,7 +260,7 @@ function SpecialKey({
 // limited to background shade and text color.
 //
 // Letter chips bump to 13px / semibold so a glyph like "N" matches the
-// optical weight of the adjacent 13px Lucide icons (otherwise "⌘N" reads
+// optical weight of the adjacent 13px icon glyphs (otherwise "⌘N" reads
 // as a big symbol next to a tiny letter). `leading-none` + flex centering
 // keeps the cap-height glyph perfectly centered in the 18×18 box.
 const KEY_CAP_BASE =

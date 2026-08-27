@@ -1,7 +1,3 @@
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { VirtuosoHandle } from "react-virtuoso";
@@ -15,6 +11,12 @@ import {
   type FlattenedTreeNode,
   VirtualizedStickyTree,
 } from "@src/components/VirtualizedStickyTree";
+import {
+  BookOpen01Icon,
+  BoxIcon,
+  HugeiconsIcon,
+  ListChecksIcon,
+} from "@src/icons";
 
 export interface LinearProjectSelection {
   connectionId: string;

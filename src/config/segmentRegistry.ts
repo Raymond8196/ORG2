@@ -5,43 +5,45 @@
  * All consumers should import from mainAppPaths.ts (which re-exports everything
  * here) so import paths are stable.
  */
-import Activity from "@hugeicons/core-free-icons/Activity01Icon";
-import BadgeCent from "@hugeicons/core-free-icons/BadgeCentIcon";
-import CalendarArrowUp from "@hugeicons/core-free-icons/CalendarArrowUpIcon";
-import ClipboardList from "@hugeicons/core-free-icons/ClipboardListIcon";
-import Cloud from "@hugeicons/core-free-icons/CloudIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
-import CreditCard from "@hugeicons/core-free-icons/CreditCardIcon";
-import ComputerUse from "@hugeicons/core-free-icons/CursorMagicSelection04Icon";
-import Database from "@hugeicons/core-free-icons/DatabaseIcon";
-import FileText from "@hugeicons/core-free-icons/File02Icon";
-import Braces from "@hugeicons/core-free-icons/FirstBracketIcon";
-import FolderGit2 from "@hugeicons/core-free-icons/FolderGitTwoIcon";
-import FolderOpen from "@hugeicons/core-free-icons/FolderOpenIcon";
-import Network from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import AgentTeams from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import Inbox from "@hugeicons/core-free-icons/InboxIcon";
-import Chromium from "@hugeicons/core-free-icons/InternetIcon";
-import Key from "@hugeicons/core-free-icons/Key01Icon";
-import Hammer from "@hugeicons/core-free-icons/LegalHammerIcon";
-import PackageCheck from "@hugeicons/core-free-icons/PackageDeliveredIcon";
-import Package from "@hugeicons/core-free-icons/PackageIcon";
-import Paintbrush from "@hugeicons/core-free-icons/PaintBrush01Icon";
-import Rocket from "@hugeicons/core-free-icons/RocketIcon";
-import RulerDimensionLine from "@hugeicons/core-free-icons/RulerDimensionLineIcon";
-import ShieldCheck from "@hugeicons/core-free-icons/SecurityCheckIcon";
-import SettingsIcon from "@hugeicons/core-free-icons/Settings01Icon";
-import Settings2 from "@hugeicons/core-free-icons/Settings02Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
-import Unplug from "@hugeicons/core-free-icons/UnplugIcon";
-import UserRoundCog from "@hugeicons/core-free-icons/UserRoundCogIcon";
-import Wallet from "@hugeicons/core-free-icons/Wallet01Icon";
 import { type ComponentType } from "react";
 
 import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
 import { type RenderableIcon } from "@src/components/AnyIcon";
+import {
+  Activity01Icon as Activity,
+  HierarchyCircle01Icon as AgentTeams,
+  BadgeCentIcon as BadgeCent,
+  FirstBracketIcon as Braces,
+  CalendarArrowUpIcon as CalendarArrowUp,
+  InternetIcon as Chromium,
+  ClipboardListIcon as ClipboardList,
+  CloudIcon as Cloud,
+  CodeIcon as Code,
+  CursorMagicSelection04Icon as ComputerUse,
+  CreditCardIcon as CreditCard,
+  DatabaseIcon as Database,
+  File02Icon as FileText,
+  FolderGitTwoIcon as FolderGit2,
+  FolderOpenIcon as FolderOpen,
+  LegalHammerIcon as Hammer,
+  InboxIcon as Inbox,
+  Key01Icon as Key,
+  HierarchyCircle01Icon as Network,
+  PackageIcon as Package,
+  PackageDeliveredIcon as PackageCheck,
+  PaintBrush01Icon as Paintbrush,
+  ColorPickerIcon as Palette,
+  RocketIcon as Rocket,
+  RulerDimensionLineIcon as RulerDimensionLine,
+  Settings02Icon as Settings2,
+  Settings01Icon as SettingsIcon,
+  SecurityCheckIcon as ShieldCheck,
+  SparklesIcon as Sparkles,
+  ToolboxIcon as Toolbox,
+  UnplugIcon as Unplug,
+  UserRoundCogIcon as UserRoundCog,
+  Wallet01Icon as Wallet,
+} from "@src/icons";
 
 // ============================================================================
 // Registry Entry Type

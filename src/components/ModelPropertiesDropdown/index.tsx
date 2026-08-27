@@ -19,9 +19,6 @@
  * selection from `value` when it opens, and only calls `onApply` when
  * the user confirms.
  */
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -35,6 +32,7 @@ import {
 import { EffortSlider } from "@src/components/ModelPropertiesDropdown/EffortSlider";
 import Switch from "@src/components/Switch";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { BrainIcon, FlashIcon, HugeiconsIcon } from "@src/icons";
 import { type ModelReasoningLevel } from "@src/util/modelVariants";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 import {

@@ -1,5 +1,3 @@
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -15,6 +13,7 @@ import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import { usePropertyDropdownDirection } from "@src/components/PropertyField/PropertyDropdownDirection";
 import type { FieldRowVariant } from "@src/components/PropertyField/PropertyFieldEditable";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+import { HugeiconsIcon, ListChevronsDownUpIcon } from "@src/icons";
 import { DEFAULT_LABELS } from "@src/modules/ProjectManager/config/manage";
 import { WorkstationTrailSection } from "@src/modules/shared/layouts/blocks";
 import type { ContextMenuItem } from "@src/types/core/shared";

@@ -30,10 +30,6 @@
  * />
  * ```
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso } from "react-virtuoso";
@@ -44,6 +40,12 @@ import Input from "@src/components/Input";
 import { Placeholder } from "@src/components/Placeholder";
 import TabPill from "@src/components/TabPill";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Search01Icon,
+} from "@src/icons";
 import { ListPanelTabPillRow } from "@src/modules/shared/layouts/blocks";
 
 import {

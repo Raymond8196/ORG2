@@ -1,6 +1,3 @@
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   Suspense,
   forwardRef,
@@ -15,6 +12,11 @@ import React, {
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import {
+  HugeiconsIcon,
+  Layout01Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import type { A2UIActionHandler } from "./A2UIActionContext";
 import type { A2UIRendererHandle } from "./A2UIRenderer";

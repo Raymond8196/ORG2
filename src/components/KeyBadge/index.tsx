@@ -1,28 +1,31 @@
 /**
- * KeyBadge - Renders keyboard shortcuts with Lucide icons for modifier keys
+ * KeyBadge - Renders keyboard shortcuts with icon glyphs for modifier keys
  *
  * Used in: Toolbar search bar, Settings Shortcuts page
- * Replaces text symbols (⌘, ⌥, etc.) with Lucide icons for consistency.
+ * Replaces text symbols (⌘, ⌥, etc.) with icon glyphs for consistency.
  */
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import ArrowUpBigIcon from "@hugeicons/core-free-icons/ArrowUpBigIcon";
-import CommandIcon from "@hugeicons/core-free-icons/CommandIcon";
-import CornerDownLeftIcon from "@hugeicons/core-free-icons/CornerDownLeftIcon";
-import Delete01Icon from "@hugeicons/core-free-icons/Delete01Icon";
-import OptionIcon from "@hugeicons/core-free-icons/OptionIcon";
-import SaturnIcon from "@hugeicons/core-free-icons/SaturnIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import {
+  ArrowDown02Icon,
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  ArrowUp01Icon,
+  ArrowUp02Icon,
+  ArrowUpBigIcon,
+  CommandIcon,
+  CornerDownLeftIcon,
+  Delete01Icon,
+  HugeiconsIcon,
+  OptionIcon,
+  SaturnIcon,
+} from "@src/icons";
 
 const MAC_MODIFIERS = new Set(["⌘", "⌥", "⇧", "⌃"]);
 const DEFAULT_ICON_SIZE = 14;
 
 /**
- * Tokens (case-insensitive) that `renderKeyContent` renders as a Lucide icon.
+ * Tokens (case-insensitive) that `renderKeyContent` renders as an icon glyph.
  * These always get the square 24×24 pill regardless of token length, so
  * `"Enter"` and `"↵"` render identically.
  */
@@ -59,7 +62,7 @@ const ICON_RENDERED_TOKENS = new Set([
 ]);
 
 /**
- * Render special keys with Lucide icons
+ * Render special keys with icon glyphs
  */
 export function renderKeyContent(
   key: string,
@@ -309,7 +312,7 @@ const KeyBadge: React.FC<KeyBadgeProps> = ({
     );
   }
 
-  // Per-pill sizing: tokens that render as a Lucide icon, plus any
+  // Per-pill sizing: tokens that render as an icon glyph, plus any
   // single-character key, get a fixed 24×24 square. Multi-character text
   // labels (`Esc`, `Tab`) get horizontal padding instead. Keeping these
   // two rules in sync with `ICON_RENDERED_TOKENS` ensures `"Enter"` and

@@ -1,10 +1,7 @@
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { RunningLocation } from "@src/config/sessionCreatorConfig";
+import { CloudIcon, HugeiconsIcon, LaptopIcon, SplitIcon } from "@src/icons";
 
 export const LOCATION_ICONS: Record<RunningLocation, React.ReactNode> = {
   local: (

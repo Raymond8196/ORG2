@@ -6,20 +6,22 @@
  *
  * Extracted from SessionReplay/index.tsx to keep it under 600 lines.
  */
-import AlertCircle from "@hugeicons/core-free-icons/AlertCircleIcon";
-import CheckCircle2 from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import MonitorSmartphone from "@hugeicons/core-free-icons/ComputerPhoneSyncIcon";
-import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Monitor from "@hugeicons/core-free-icons/MonitorIcon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { getEventIcon } from "@src/config/toolIcons";
+import {
+  AlertCircleIcon as AlertCircle,
+  CheckmarkCircle01Icon as CheckCircle2,
+  InternetIcon as Chrome,
+  FileSymlinkIcon as FileSymlink,
+  InternetIcon as Globe,
+  HugeiconsIcon,
+  MonitorIcon as Monitor,
+  ComputerPhoneSyncIcon as MonitorSmartphone,
+  Search01Icon as Search,
+} from "@src/icons";
 import { deriveToolAction } from "@src/util/ui/rendering/toolAction";
 
 import { getInternalBrowserActionTitle } from "./config";

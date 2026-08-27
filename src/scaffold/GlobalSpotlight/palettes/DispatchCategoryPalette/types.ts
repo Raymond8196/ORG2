@@ -1,7 +1,6 @@
-import type { IconSvgElement } from "@hugeicons/react";
-
 import type { CliAgentType } from "@src/api/tauri/rpc/schemas/validation";
 import type { DispatchCategory } from "@src/api/tauri/session";
+import type { IconSvgElement } from "@src/icons";
 import type { CliLaunchMode } from "@src/store/session";
 import type { SessionTargetKind } from "@src/store/session/creatorStateAtom";
 

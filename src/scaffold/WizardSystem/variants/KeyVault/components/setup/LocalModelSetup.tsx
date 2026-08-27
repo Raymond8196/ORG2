@@ -1,5 +1,3 @@
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useSearchParams } from "react-router-dom";
@@ -9,6 +7,7 @@ import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SectionContainer,

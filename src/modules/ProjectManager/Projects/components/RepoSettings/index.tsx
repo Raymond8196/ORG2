@@ -8,10 +8,6 @@
  * - Members: manage repo-wide active/inactive team members
  * - Labels: add/edit/remove repo-wide labels
  */
-import TagsIcon from "@hugeicons/core-free-icons/TagsIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +17,12 @@ import {
   getListIconClasses,
   getListItemClasses,
 } from "@src/components/ListPanel/tokens";
+import {
+  type IconSvgElement,
+  TagsIcon,
+  UserIcon,
+  UserMultipleIcon,
+} from "@src/icons";
 import SplitViewLayout from "@src/modules/shared/layouts/SplitViewLayout";
 import { SUBPAGE_CONTENT_WRAPPER_CLASSES } from "@src/modules/shared/layouts/SubpageLayout/tokens";
 import type { Label } from "@src/types/core/shared";

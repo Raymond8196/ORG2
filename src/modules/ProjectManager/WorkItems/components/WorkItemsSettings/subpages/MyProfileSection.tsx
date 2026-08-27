@@ -9,12 +9,6 @@
  * Shared between RepoSettings and WorkItemsSettings (project-level).
  * Layout matches MembersSection / RepoMembersSection for consistency.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +18,14 @@ import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import { createLogger } from "@src/hooks/logger";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
+import {
+  Cancel01Icon,
+  Copy01Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  Pen01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { ClaimIdentityModal } from "@src/modules/ProjectManager/shared/components";
 import {
   SECTION_DESCRIPTION_CLASSES,

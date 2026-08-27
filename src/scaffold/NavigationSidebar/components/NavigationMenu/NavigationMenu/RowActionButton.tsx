@@ -1,7 +1,7 @@
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import { MoreHorizontalIcon } from "@src/icons";
 
 import type { NavigationMenuItem } from "../config";
 

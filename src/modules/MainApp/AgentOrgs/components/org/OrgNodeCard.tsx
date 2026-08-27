@@ -7,14 +7,16 @@
  * detail-view preview tabs, where editing happens via the Edit tab's
  * table, not the chart).
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  Add01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Pen01Icon,
+  UserMultipleIcon,
+} from "@src/icons";
 import type {
   AgentDefinition,
   OrgMember,

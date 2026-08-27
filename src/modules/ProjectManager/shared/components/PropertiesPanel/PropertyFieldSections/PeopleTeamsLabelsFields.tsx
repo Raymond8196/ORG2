@@ -2,12 +2,6 @@
  * Lead, Members, Teams, Labels, and Linked Repos field rows.
  * Extracted to keep ProjectPropertyFields under the UI line limit.
  */
-import Airplane01Icon from "@hugeicons/core-free-icons/Airplane01Icon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Avatar from "@src/components/Avatar";
@@ -21,6 +15,14 @@ import {
   Option,
   SearchableDropdown,
 } from "@src/components/PropertyField/PropertyFieldEditable";
+import {
+  Airplane01Icon,
+  CodeIcon,
+  HugeiconsIcon,
+  Tag01Icon,
+  UserIcon,
+  UserMultipleIcon,
+} from "@src/icons";
 
 import type {
   Label,

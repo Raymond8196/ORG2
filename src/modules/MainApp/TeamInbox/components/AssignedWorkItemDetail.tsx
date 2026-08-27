@@ -1,7 +1,3 @@
-import ClipboardListIcon from "@hugeicons/core-free-icons/ClipboardListIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +5,12 @@ import { getGitRemotes } from "@src/api/http/git/remotes";
 import type { WorkItemHandoffTransition } from "@src/api/http/project";
 import type { GitHubIssue } from "@src/api/tauri/github";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  ClipboardListIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import GitHubIssueHeaderContent from "@src/modules/shared/components/GitHubIssueHeaderContent";

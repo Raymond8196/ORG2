@@ -11,16 +11,19 @@
  *
  * Shared between ChatView and PlaygroundChatPanel.
  */
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ClipboardListIcon from "@hugeicons/core-free-icons/ClipboardListIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
-import MessageCircleMoreIcon from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
-import NotificationBubbleIcon from "@hugeicons/core-free-icons/NotificationBubbleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
+
+import {
+  ArrowLeftRightIcon,
+  ClipboardListIcon,
+  ComputerTerminal01Icon,
+  DiffIcon,
+  GitCommitHorizontalIcon,
+  HelpCircleIcon,
+  HugeiconsIcon,
+  MessageCircleMoreIcon,
+  NotificationBubbleIcon,
+} from "@src/icons";
 
 import type { InlineSection } from "../components/CollapsedInlineRow";
 import {

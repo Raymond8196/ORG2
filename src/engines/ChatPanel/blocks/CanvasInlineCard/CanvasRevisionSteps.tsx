@@ -1,12 +1,14 @@
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import CircleXIcon from "@hugeicons/core-free-icons/CircleXIcon";
-import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { SESSION_UI_TOKENS } from "@src/engines/ChatPanel/blocks/primitives";
+import {
+  CheckmarkCircle01Icon,
+  CircleIcon,
+  CircleXIcon,
+  HugeiconsIcon,
+  LoaderCircleIcon,
+} from "@src/icons";
 
 import {
   type CanvasRevisionActivityPhase,

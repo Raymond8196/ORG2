@@ -3,12 +3,6 @@
  *
  * Uses the same SettingsTable + expandable pattern as LanguageServersTable.
  */
-import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
-import PuzzleIcon from "@hugeicons/core-free-icons/PuzzleIcon";
-import ServerStack01Icon from "@hugeicons/core-free-icons/ServerStack01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +15,14 @@ import SettingsTable, {
 } from "@src/components/SettingsTable";
 import { createLogger } from "@src/hooks/logger";
 import { useCopyCheck } from "@src/hooks/ui";
+import {
+  ClipboardIcon,
+  FlashIcon,
+  HugeiconsIcon,
+  PuzzleIcon,
+  ServerStack01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import {
   DETAIL_PANEL_TOKENS,
   DetailPanelContainer,

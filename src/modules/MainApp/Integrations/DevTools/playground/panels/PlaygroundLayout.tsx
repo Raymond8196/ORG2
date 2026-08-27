@@ -1,7 +1,3 @@
-import ColorPickerIcon from "@hugeicons/core-free-icons/ColorPickerIcon";
-import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +7,12 @@ import Radio from "@src/components/Radio";
 import type { RadioValue } from "@src/components/Radio";
 import TabPill from "@src/components/TabPill";
 import type { ChatRetryKind } from "@src/engines/ChatPanel/components/ChatStatusBanners";
+import {
+  ColorPickerIcon,
+  FirstBracketIcon,
+  HugeiconsIcon,
+  RotateLeft01Icon,
+} from "@src/icons";
 
 import type {
   PlaygroundListSelectionMode,

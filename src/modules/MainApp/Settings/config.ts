@@ -3,13 +3,15 @@
  *
  * App settings sections. Labels use i18n keys under settings.sections.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 
 import { type RenderableIcon } from "@src/components/AnyIcon";
 import { getSettingsSectionsByTab } from "@src/config/settingsUiManifest";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 export interface SettingsSectionConfig {
   id: string;

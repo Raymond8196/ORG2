@@ -2,14 +2,13 @@ import type {
   BrowserHistoryEntry,
   BrowserSession,
 } from "@/src/engines/BrowserCore/types";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { FaviconIcon } from "@src/components/FaviconIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
+import { Clock01Icon, HugeiconsIcon } from "@src/icons";
 import { getSiteNameFromUrl } from "@src/store/ui/navigationSidebarTabsAtom";
 import { isPlaceholderBrowserSessionTitle } from "@src/store/workstation/browser/tabs";
 

@@ -3,9 +3,6 @@
  *
  * Renders the My Station / Agent's Station icon segmented toggle.
  */
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +11,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { Infinity01Icon, type IconSvgElement, LaptopIcon } from "@src/icons";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 import { type StationMode, stationModeAtom } from "@src/store/ui/simulatorAtom";
 

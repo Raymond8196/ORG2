@@ -3,23 +3,25 @@
  *
  * Re-exports from centralized config and additional WorkItem-specific configs.
  */
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import DiamondIcon from "@hugeicons/core-free-icons/DiamondIcon";
-import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import SignalFull01Icon from "@hugeicons/core-free-icons/SignalFull01Icon";
-import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import {
+  BookOpen01Icon,
+  Calendar01Icon,
+  CircleDotIcon,
+  CircleIcon,
+  Delete02Icon,
+  DiamondIcon,
+  Flag01Icon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  Pen01Icon,
+  SignalFull01Icon,
+  Tag01Icon,
+  UserIcon,
+  UserMultipleIcon,
+} from "@src/icons";
 import {
   ENTITY_COLORS,
   MILESTONE_COLORS,

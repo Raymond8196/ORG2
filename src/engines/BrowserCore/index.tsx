@@ -12,11 +12,6 @@
  * - Error handling
  * - Native webview rendering
  */
-import CloudLoadingIcon from "@hugeicons/core-free-icons/CloudLoadingIcon";
-import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +19,13 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
 import { createLogger } from "@src/hooks/logger";
+import {
+  CloudLoadingIcon,
+  HugeiconsIcon,
+  MonitorIcon,
+  Refresh04Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import {
   webviewBlockedAtom,
   webviewOverlayBlockedAtom,

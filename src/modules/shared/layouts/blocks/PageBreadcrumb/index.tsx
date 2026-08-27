@@ -5,10 +5,6 @@
  * When sidebar is collapsed, clicking triggers the floating sidebar.
  * Used in split panel headers.
  */
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
@@ -27,6 +23,13 @@ import { getIconComponentForPath } from "@src/config/routes";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useRouteLabel } from "@src/hooks/i18n";
 import { useSafeHover } from "@src/hooks/ui/useSafeHover";
+import {
+  ArrowLeftRightIcon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Tick01Icon,
+} from "@src/icons";
 import {
   ECONOMY_ROOT_PATH,
   ECONOMY_ROUTES,

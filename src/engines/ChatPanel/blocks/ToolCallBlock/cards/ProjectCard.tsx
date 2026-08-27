@@ -1,12 +1,15 @@
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import FavouriteIcon from "@hugeicons/core-free-icons/FavouriteIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import {
+  BookOpen01Icon,
+  Calendar01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleIcon,
+  Clock01Icon,
+  FavouriteIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import type { ProjectCardData, WorkItemStatus } from "../types";
 import { ToolResultCardFrame } from "./ToolResultCardFrame";

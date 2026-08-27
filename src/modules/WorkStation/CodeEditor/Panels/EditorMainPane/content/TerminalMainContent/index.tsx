@@ -5,8 +5,6 @@ import {
   type UseTerminalStateReturn,
   getTerminalDisplayTitle,
 } from "@/src/engines/TerminalCore/types";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { Suspense, memo, useCallback, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +12,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
+import { Delete02Icon, HugeiconsIcon } from "@src/icons";
 import {
   FileHeader,
   TerminalInfoButton,

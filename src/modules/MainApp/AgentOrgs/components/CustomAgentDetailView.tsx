@@ -13,9 +13,6 @@
  * `useCustomAgentConfig`, which projects the typed `AgentDefinition`
  * onto the section-shape the OS / SDE editors expect.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +22,7 @@ import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import { Placeholder } from "@src/components/Placeholder";
 import type { TabPillItem } from "@src/components/TabPill";
+import { Cancel01Icon, Delete02Icon, HugeiconsIcon } from "@src/icons";
 import {
   SECTION_CONTROL_STYLE,
   SectionContainer,

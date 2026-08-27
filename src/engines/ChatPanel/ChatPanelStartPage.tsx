@@ -1,8 +1,3 @@
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
-import ImportIcon from "@hugeicons/core-free-icons/ImportIcon";
-import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useState } from "react";
 
@@ -16,6 +11,13 @@ import {
   LaunchpadActionCard,
   LaunchpadActionGrid,
 } from "@src/features/SessionCreator/components/LaunchpadActionGrid";
+import {
+  Download01Icon,
+  GaugeIcon,
+  HugeiconsIcon,
+  ImportIcon,
+  Key02Icon,
+} from "@src/icons";
 import { CreatorContentLayout } from "@src/modules/shared/layouts/blocks";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {

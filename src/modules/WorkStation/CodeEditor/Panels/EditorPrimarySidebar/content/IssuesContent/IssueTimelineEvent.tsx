@@ -1,36 +1,3 @@
-import Activity01Icon from "@hugeicons/core-free-icons/Activity01Icon";
-import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import ArrowLeftRightIcon from "@hugeicons/core-free-icons/ArrowLeftRightIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import Copy02Icon from "@hugeicons/core-free-icons/Copy02Icon";
-import CopyXIcon from "@hugeicons/core-free-icons/CopyXIcon";
-import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import GitCompareIcon from "@hugeicons/core-free-icons/GitCompareIcon";
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import KanbanIcon from "@hugeicons/core-free-icons/KanbanIcon";
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import Notification01Icon from "@hugeicons/core-free-icons/Notification01Icon";
-import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import PinIcon from "@hugeicons/core-free-icons/PinIcon";
-import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
-import RocketIcon from "@hugeicons/core-free-icons/RocketIcon";
-import SecurityBlockIcon from "@hugeicons/core-free-icons/SecurityBlockIcon";
-import SquareUnlock01Icon from "@hugeicons/core-free-icons/SquareUnlock01Icon";
-import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
-import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
-import UserAdd01Icon from "@hugeicons/core-free-icons/UserAdd01Icon";
-import UserMinus01Icon from "@hugeicons/core-free-icons/UserMinus01Icon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -40,6 +7,41 @@ import type {
 } from "@src/api/tauri/github";
 import Tag from "@src/components/Tag";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
+import {
+  Activity01Icon,
+  ArchiveArrowUpIcon,
+  ArchiveIcon,
+  ArrowLeftRightIcon,
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  Copy02Icon,
+  CopyXIcon,
+  Flag01Icon,
+  GitCommitHorizontalIcon,
+  GitCompareIcon,
+  GitMergeIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  KanbanIcon,
+  Link02Icon,
+  LockIcon,
+  Message01Icon,
+  MessageMultiple01Icon,
+  Notification01Icon,
+  NotificationOff01Icon,
+  Pen01Icon,
+  PinIcon,
+  PinOffIcon,
+  RocketIcon,
+  SecurityBlockIcon,
+  SquareUnlock01Icon,
+  Tag01Icon,
+  Unlink02Icon,
+  UserAdd01Icon,
+  UserMinus01Icon,
+  ViewIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { getLabelColorStyle } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/workstationIssueHelpers";
 import {
   ActivityTimestamp,

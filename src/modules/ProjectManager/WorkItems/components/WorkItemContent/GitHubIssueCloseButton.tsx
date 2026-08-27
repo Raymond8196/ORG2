@@ -1,11 +1,3 @@
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +10,16 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import SplitButton from "@src/components/SplitButton";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  CircleSlashIcon,
+  Copy01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+} from "@src/icons";
 
 import type {
   GitHubIssueInteractionConfig,

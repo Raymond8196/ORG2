@@ -1,6 +1,6 @@
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
+
+import { HugeiconsIcon, WorkflowCircle05Icon } from "@src/icons";
 
 interface OrgTaskDependencyBadgeProps {
   count: number;

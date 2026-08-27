@@ -23,10 +23,6 @@
  *     Rust broker is slow to acknowledge, the plaintext leaves React state
  *     the moment the IPC promise rejects/resolves.
  */
-import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import SecurityCheckIcon from "@hugeicons/core-free-icons/SecurityCheckIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type FC,
   useCallback,
@@ -46,6 +42,12 @@ import {
   type AgentSecretRequestDetail,
 } from "@src/engines/SessionCore/sync/adapters/rustAgent/eventHandlers/fileChangeHandlers";
 import { createLogger } from "@src/hooks/logger";
+import {
+  HugeiconsIcon,
+  Key02Icon,
+  LockIcon,
+  SecurityCheckIcon,
+} from "@src/icons";
 import Modal from "@src/scaffold/ModalSystem";
 
 const logger = createLogger("SecretCaptureModal");

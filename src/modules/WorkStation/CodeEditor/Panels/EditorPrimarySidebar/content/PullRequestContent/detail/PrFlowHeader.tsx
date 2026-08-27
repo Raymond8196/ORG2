@@ -6,8 +6,6 @@
  * ("{author} wants to merge {n} commits into {base} from {head}") with the
  * branch names as code pills, a copy-branch action, and the +/− diff stat.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +13,7 @@ import type { PrFile } from "@src/api/tauri/github";
 import { IconButton } from "@src/components/IconButton";
 import Message from "@src/components/Message";
 import PrStatusBadge from "@src/components/PrStatusBadge";
+import { Copy01Icon, HugeiconsIcon } from "@src/icons";
 import GitHubFlowHeader from "@src/modules/shared/components/GitHubFlowHeader";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import { copyText } from "@src/util/data/clipboard";

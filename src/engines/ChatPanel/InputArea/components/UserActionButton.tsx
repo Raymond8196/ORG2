@@ -1,8 +1,7 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { PILL_CONTROL_IDLE_SURFACE_CLASS } from "@src/components/CompoundPill/config";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 interface UserActionButtonProps {
   title: string;

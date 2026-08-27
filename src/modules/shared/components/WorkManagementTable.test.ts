@@ -1,8 +1,8 @@
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
+
+import { CircleDotIcon, HugeiconsIcon } from "@src/icons";
 
 import {
   WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS,

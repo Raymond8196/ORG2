@@ -4,11 +4,10 @@
  * Derives grouped project lists from a flat filtered list and a group mode.
  * Extracted to keep Projects/index.tsx under the 600-line limit.
  */
-import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { HugeiconsIcon, TimeScheduleIcon } from "@src/icons";
 import {
   STORY_STATUS_OPTIONS,
   getProjectPriorityConfig,

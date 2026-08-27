@@ -4,12 +4,6 @@
  * Header for the Projects page with breadcrumb and action buttons.
  * Uses shared WorkStation header tokens for consistent styling.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import BoxesIcon from "@hugeicons/core-free-icons/BoxesIcon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +18,14 @@ import {
   usePublishWorkstationTabHeader,
 } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  Add01Icon,
+  BoxesIcon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  Refresh04Icon,
+  Search01Icon,
+} from "@src/icons";
 import ProjectManagerBreadcrumb from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 

@@ -4,9 +4,6 @@
  * Main navigation sidebar with tabs and menu items.
  * Used by Settings and Workstation navigation surfaces.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, {
   type ReactNode,
   useCallback,
@@ -18,6 +15,12 @@ import React, {
 
 import { Placeholder } from "@src/components/Placeholder";
 import TabPill from "@src/components/TabPill";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+} from "@src/icons";
 
 import SidebarBase from "../SidebarBase";
 import { SidebarList, SidebarMenuSearchInput } from "../blocks";

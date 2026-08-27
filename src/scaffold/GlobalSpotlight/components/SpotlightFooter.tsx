@@ -5,9 +5,6 @@
  * - `spotlight` (default): below the main panel — simple bg-bg-2 pill.
  * - `dropdown`: same hints with `DROPDOWN_CLASSES.panel` (e.g. @-mention menu).
  */
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +13,7 @@ import {
   KEYBOARD_SHORTCUT_VARIANT,
   KeyboardShortcut,
 } from "@src/components/KeyboardShortcut";
+import { ArrowDown02Icon, ArrowUp02Icon, HugeiconsIcon } from "@src/icons";
 
 // ============ TYPES ============
 

@@ -23,12 +23,6 @@
  * stepping the cursor through `kanbanReplayEventsAtom` until the last
  * event is reached.
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cursor02Icon from "@hugeicons/core-free-icons/Cursor02Icon";
-import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -44,6 +38,14 @@ import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { REPLAY_SPEED_OPTIONS } from "@src/config/workspace/replayConfig";
 import { getDropdownPanelStyle } from "@src/hooks/dropdown/dropdownPanelStyle";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  Cursor02Icon,
+  HugeiconsIcon,
+  PauseIcon,
+  PlayIcon,
+} from "@src/icons";
 import {
   currentKanbanReplayEventIndexAtom,
   kanbanReplayBoundsAtom,

@@ -3,12 +3,13 @@
  *
  * Configuration for inbox channels (message grouping) and date formatting.
  */
-import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import Store01Icon from "@hugeicons/core-free-icons/Store01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
-
 import type { InboxCategory } from "@src/api/types/inbox";
+import {
+  DiffIcon,
+  type IconSvgElement,
+  ListTodoIcon,
+  Store01Icon,
+} from "@src/icons";
 import {
   formatLocalClock,
   formatLocalMonthDay,

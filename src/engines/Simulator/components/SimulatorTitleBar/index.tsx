@@ -8,12 +8,12 @@
  *
  * Used by: SimulatorContentArea, SimulatorFrame, ResizableSplitView
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import TabPill from "@src/components/TabPill";
+import type { IconSvgElement } from "@src/icons";
 import type { StationMode } from "@src/store/ui/simulatorAtom";
 
 interface SimulatorTitleBarProps {

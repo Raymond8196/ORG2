@@ -3,10 +3,12 @@
  *
  * Constants and configuration for the search editor tab
  */
-import BlendIcon from "@hugeicons/core-free-icons/BlendIcon";
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  BlendIcon,
+  BrainIcon,
+  type IconSvgElement,
+  Search01Icon,
+} from "@src/icons";
 
 import type { SearchMode } from "./types";
 

@@ -1,14 +1,3 @@
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Heading02Icon from "@hugeicons/core-free-icons/Heading02Icon";
-import LeftToRightListNumberIcon from "@hugeicons/core-free-icons/LeftToRightListNumberIcon";
-import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import QuoteIcon from "@hugeicons/core-free-icons/QuoteIcon";
-import TextBoldIcon from "@hugeicons/core-free-icons/TextBoldIcon";
-import TextItalicIcon from "@hugeicons/core-free-icons/TextItalicIcon";
-import TextStrikethroughIcon from "@hugeicons/core-free-icons/TextStrikethroughIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
   useCallback,
@@ -23,6 +12,19 @@ import type { PillIconType } from "@src/components/ComposerInput/types";
 import { serializePillNode } from "@src/components/ComposerInput/utils";
 import "@src/components/MarkdownFormattingToolbar/index.scss";
 import Textarea from "@src/components/Textarea";
+import {
+  CodeIcon,
+  Heading02Icon,
+  HugeiconsIcon,
+  LeftToRightListNumberIcon,
+  Link01Icon,
+  ListChecksIcon,
+  ListIcon,
+  QuoteIcon,
+  TextBoldIcon,
+  TextItalicIcon,
+  TextStrikethroughIcon,
+} from "@src/icons";
 import { MarkdownContent } from "@src/modules/shared/components/MarkdownContent";
 
 import MarkdownEditorModeSwitch, {

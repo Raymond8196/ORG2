@@ -10,11 +10,6 @@
  * Returns a `PrimarySidebarTab` ready to be passed to
  * `PrimarySidebarLayoutWithSections`.
  */
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   useCallback,
@@ -33,6 +28,13 @@ import { useGitStatus } from "@src/contexts/git";
 import { sessionIdAtom } from "@src/engines/SessionCore";
 import { useFileReviewBatchActions } from "@src/hooks/fileReview";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  ArrowLeft02Icon,
+  CircleDotIcon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  RotateLeft01Icon,
+} from "@src/icons";
 import {
   SectionFilterInput,
   makeSectionFilterAction,

@@ -1,12 +1,14 @@
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import FolderCogIcon from "@hugeicons/core-free-icons/FolderCogIcon";
-import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { getToolIcon } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
+import {
+  ComputerTerminal01Icon,
+  FolderCogIcon,
+  HugeiconsIcon,
+  Key02Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
 import {

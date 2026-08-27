@@ -1,7 +1,3 @@
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import CornerDownRightIcon from "@hugeicons/core-free-icons/CornerDownRightIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -11,6 +7,12 @@ import Select from "@src/components/Select";
 import { SETTINGS_TABLE_CELL } from "@src/components/SettingsTable";
 import Switch from "@src/components/Switch";
 import { MODEL_TABLE_CONTROL_SIZE } from "@src/config/modelTable";
+import {
+  BoxIcon,
+  CornerDownRightIcon,
+  Delete02Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import type { ModelTableModelAlias } from "@src/types/modelTable";
 import { formatModelNameFull } from "@src/util/formatModelName";
 

@@ -11,9 +11,9 @@
  * - Static content (Kanban, Changes) - direct use
  * - Dynamic content (Follow) - building block for SimulatorContentArea
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import type { IconSvgElement } from "@src/icons";
 import type { StationMode } from "@src/store/ui/simulatorAtom";
 
 import SimulatorTitleBar from "../SimulatorTitleBar";
@@ -30,7 +30,7 @@ import {
 export interface SimulatorFrameProps {
   /** Title to display in the header */
   title: string;
-  /** Lucide icon before title (e.g. same as dock for the active tool). */
+  /** Icon glyph before title (e.g. same as dock for the active tool). */
   titleCenterIcon?: IconSvgElement;
   /** Border radius option: 12 (default simulator) or 20 (WorkStation) */
   radius?: FrameRadius;

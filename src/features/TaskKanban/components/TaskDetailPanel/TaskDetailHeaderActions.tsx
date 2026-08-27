@@ -1,12 +1,14 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import GitMergeIcon from "@hugeicons/core-free-icons/GitMergeIcon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 
 import Button from "@src/components/Button";
+import {
+  ArrowDown01Icon,
+  Delete02Icon,
+  GitMergeIcon,
+  HugeiconsIcon,
+  PlayIcon,
+} from "@src/icons";
 
 import {
   MERGE_STRATEGY_OPTIONS,

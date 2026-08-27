@@ -12,16 +12,6 @@
  * Menu entries are always rendered for stable discoverability. Entries whose
  * backing action is not available in the current context are disabled.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
-import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -41,6 +31,18 @@ import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailing
 import Tooltip from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import {
+  Copy01Icon,
+  EllipsisIcon,
+  FloppyDiskIcon,
+  FolderOpenIcon,
+  HashtagIcon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  Search01Icon,
+  Settings01Icon,
+  Undo02Icon,
+} from "@src/icons";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
 
 export interface FileHeaderMoreMenuProps {

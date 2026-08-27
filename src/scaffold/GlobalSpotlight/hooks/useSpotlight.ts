@@ -4,7 +4,6 @@
  * Orchestrates all spotlight functionality with the new reducer architecture.
  * This is the single hook that components use to access all spotlight features.
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   type ComponentType,
@@ -26,6 +25,7 @@ import { showScaleMessage } from "@src/hooks/navigation/useGlobalShortcuts/types
 import { useFilteredItems } from "@src/hooks/search";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
 import type { LanguagePreference } from "@src/i18n";
+import type { IconSvgElement } from "@src/icons";
 import { checkForUpdatesManually } from "@src/scaffold/AppUpdater";
 import {
   openAgentControlSpotlight,

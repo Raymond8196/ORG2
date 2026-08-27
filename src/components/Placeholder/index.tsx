@@ -14,14 +14,13 @@
  * Use `fillParentHeight` when the placeholder should occupy the full height of a
  * flex or sized parent and keep the message vertically centered.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 
 import { normalizePlaceholderSubtitle } from "./normalizePlaceholderSubtitle";
 

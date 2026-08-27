@@ -9,14 +9,6 @@
  * Only renders when there are stashes.
  * Follows the same layout pattern as SourceControlChanges.
  */
-import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowDownToLineIcon from "@hugeicons/core-free-icons/ArrowDownToLineIcon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import PackageIcon from "@hugeicons/core-free-icons/PackageIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +21,16 @@ import {
 } from "@src/components/TreeRow";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { useWorkStationTabs } from "@src/hooks/tabHost/useWorkStationTabs";
+import {
+  ArchiveArrowUpIcon,
+  ArrowDown01Icon,
+  ArrowDownToLineIcon,
+  ArrowRight01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  PackageIcon,
+} from "@src/icons";
 import {
   COUNT_BADGE,
   HEADER_BUTTON,

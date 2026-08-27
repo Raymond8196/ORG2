@@ -1,5 +1,3 @@
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useMemo } from "react";
 
@@ -18,6 +16,7 @@ import {
   type SettingsTableSelectFilter,
 } from "@src/components/SettingsTable";
 import type { LearningsBrowserFilters } from "@src/hooks/settings/useLearningsBrowser";
+import { Delete02Icon, HugeiconsIcon } from "@src/icons";
 
 import {
   CATEGORY_SELECT_ORDER,

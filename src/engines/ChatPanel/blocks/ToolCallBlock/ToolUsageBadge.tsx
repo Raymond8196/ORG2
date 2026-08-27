@@ -1,11 +1,13 @@
-import ArrowDownToDotIcon from "@hugeicons/core-free-icons/ArrowDownToDotIcon";
-import ArrowUpFromDotIcon from "@hugeicons/core-free-icons/ArrowUpFromDotIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
+import {
+  ArrowDownToDotIcon,
+  ArrowUpFromDotIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { chatTokenUsageVisibleAtom } from "@src/store/ui/chatPanelAtom";
 
 interface UsagePairBadgeProps {

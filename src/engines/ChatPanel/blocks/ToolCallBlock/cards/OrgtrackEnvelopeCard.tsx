@@ -1,13 +1,15 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { parseCloudOrgSelectorValue } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { useWorkStationTabs } from "@src/hooks/tabHost/useWorkStationTabs";
+import {
+  ArrowRight01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { activeStationChatVisibleAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import { createWorkItemDetailTab } from "@src/store/workstation";

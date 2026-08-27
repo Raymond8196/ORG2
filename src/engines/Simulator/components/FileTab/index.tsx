@@ -5,12 +5,11 @@
  * Shows file icon + path (directory grayed, filename bold).
  * Used in file/code viewers.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 // ============================================
 // Types

@@ -4,10 +4,6 @@
  * These functions take already-loaded data from useProviderRegistry hook.
  * They do NOT fetch data themselves — the caller must provide the data.
  */
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import CogIcon from "@hugeicons/core-free-icons/CogIcon";
-import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 
@@ -15,6 +11,7 @@ import ModelIcon from "@src/components/ModelIcon";
 import { type IconProvider } from "@src/components/ModelIcon/config";
 import type { SelectOption } from "@src/components/Select";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
+import { Calendar01Icon, CogIcon, HugeiconsIcon, Key02Icon } from "@src/icons";
 import type { SelectionGridOption } from "@src/scaffold/WizardSystem/primitives";
 
 import type {

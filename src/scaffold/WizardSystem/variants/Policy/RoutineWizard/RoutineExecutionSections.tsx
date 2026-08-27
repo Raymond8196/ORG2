@@ -1,12 +1,10 @@
-import FolderGitTwoIcon from "@hugeicons/core-free-icons/FolderGitTwoIcon";
-import GripIcon from "@hugeicons/core-free-icons/GripIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Input from "@src/components/Input";
 import ModelIcon from "@src/components/ModelIcon";
 import Select from "@src/components/Select";
+import { FolderGitTwoIcon, GripIcon, HugeiconsIcon } from "@src/icons";
 import {
   SECTION_CONTROL_STYLE,
   SectionContainer,

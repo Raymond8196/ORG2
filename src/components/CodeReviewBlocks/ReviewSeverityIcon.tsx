@@ -1,12 +1,14 @@
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import BulbIcon from "@hugeicons/core-free-icons/BulbIcon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import ThumbsUpIcon from "@hugeicons/core-free-icons/ThumbsUpIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import type { ReviewCommentSeverity } from "@src/api/http/project";
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  Alert01Icon,
+  BulbIcon,
+  CancelCircleIcon,
+  type IconSvgElement,
+  ThumbsUpIcon,
+} from "@src/icons";
 
 const REVIEW_SEVERITY_CONFIG: Record<
   ReviewCommentSeverity,

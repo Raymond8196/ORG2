@@ -3,12 +3,10 @@
  *
  * Priority configurations for work items and projects.
  */
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import { AlertCircleIcon, HugeiconsIcon, MinusSignIcon } from "@src/icons";
 import type { ProjectPriority } from "@src/types/core/project";
 import type { DropdownOption } from "@src/types/core/shared";
 import type { WorkItemPriority } from "@src/types/core/workItem";

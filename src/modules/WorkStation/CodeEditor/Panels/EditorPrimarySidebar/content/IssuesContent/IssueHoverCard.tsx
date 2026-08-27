@@ -1,11 +1,4 @@
 /** Hover-card presentation owned by the WorkStation issues panel. */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import TagsIcon from "@hugeicons/core-free-icons/TagsIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +12,15 @@ import { HoverCardUrlRow } from "@src/components/SessionHoverCard/HoverCardUrlRo
 import { formatHoverCardTimeAgo } from "@src/components/SessionHoverCard/hoverCardTime";
 import Tag from "@src/components/Tag";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
+import {
+  CancelCircleIcon,
+  CircleDotIcon,
+  Clock01Icon,
+  HugeiconsIcon,
+  Message01Icon,
+  TagsIcon,
+  UserIcon,
+} from "@src/icons";
 import { getLabelColorStyle } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/workstationIssueHelpers";
 
 interface IssueHoverCardProps {

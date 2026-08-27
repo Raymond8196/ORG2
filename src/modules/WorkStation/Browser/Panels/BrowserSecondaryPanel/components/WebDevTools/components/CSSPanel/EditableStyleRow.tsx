@@ -4,15 +4,13 @@
  * A single CSS property row with editable value.
  * Shows property name on left, value on right.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
+import { Copy01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 // ============================================

@@ -1,4 +1,3 @@
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { atom, useAtomValue } from "jotai";
 import { selectAtom } from "jotai/utils";
 import React, { useCallback, useMemo } from "react";
@@ -12,6 +11,7 @@ import {
   ReferenceCardTitle,
 } from "@src/components/SessionReferenceCard";
 import { resolveAgentIcon } from "@src/config/agentIcons";
+import { UserMultipleIcon } from "@src/icons";
 import { formatModelNameFull } from "@src/util/formatModelName";
 import { resolveSessionDisplayMetadata } from "@src/util/session/sessionDisplayMetadata";
 

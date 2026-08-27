@@ -9,13 +9,12 @@
  * - Smooth scrolling for any file size
  * - All features from ModernDiff (cherry-picking, syntax highlighting, etc.)
  */
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef } from "react";
 import { Components, Virtuoso, VirtuosoHandle } from "react-virtuoso";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { Placeholder } from "@src/components/Placeholder";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 import { DiffLineComponent } from "./DiffLineComponent";
 import "./index.scss";

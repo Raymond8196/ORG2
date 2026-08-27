@@ -1,16 +1,6 @@
 /**
  * ProjectsTab Configuration
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import GithubIcon from "@hugeicons/core-free-icons/GithubIcon";
-import ImportIcon from "@hugeicons/core-free-icons/ImportIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -25,6 +15,18 @@ import {
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  Add01Icon,
+  BoxIcon,
+  FolderKanbanIcon,
+  GithubIcon,
+  HugeiconsIcon,
+  ImportIcon,
+  ListChecksIcon,
+  PencilEdit02Icon,
+  Refresh04Icon,
+  Settings01Icon,
+} from "@src/icons";
 import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,

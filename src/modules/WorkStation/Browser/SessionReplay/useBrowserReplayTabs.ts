@@ -5,9 +5,6 @@
  * their counts, labels, active state, and session handlers.
  * Extracted from SessionReplayBrowser to keep index.tsx under 600 lines.
  */
-import CompassIcon from "@hugeicons/core-free-icons/CompassIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import {
   createElement,
@@ -18,6 +15,7 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
+import { CompassIcon, HugeiconsIcon, Search01Icon } from "@src/icons";
 import type { TimestampedReplayTab } from "@src/modules/WorkStation/shared";
 import {
   closeBrowserTabAtom,

@@ -4,15 +4,13 @@
  * Reusable collapsible section header for source control sections
  * (Merge Changes, Staged Changes, Changes)
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import {
   TREE_ROW_INSET_CLASS,
   TREE_ROW_ROUNDED_CLASS,
 } from "@src/components/TreeRow";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import {
   COUNT_BADGE,
   getCountBadgeSizeClass,

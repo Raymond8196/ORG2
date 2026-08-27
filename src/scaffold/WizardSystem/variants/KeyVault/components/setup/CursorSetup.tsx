@@ -6,9 +6,6 @@
  *
  * Uses SectionContainer + SectionRow + SECTION_GAP_CLASSES.
  */
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +13,7 @@ import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import { CursorSessionSetup } from "@src/features/SessionSetup";
+import { InternetIcon, KeyboardIcon, SearchAreaIcon } from "@src/icons";
 import {
   SECTION_CONTROL_STYLE,
   SECTION_GAP_CLASSES,

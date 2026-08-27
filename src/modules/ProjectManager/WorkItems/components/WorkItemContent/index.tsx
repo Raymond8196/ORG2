@@ -1,6 +1,3 @@
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import RepeatIcon from "@hugeicons/core-free-icons/RepeatIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +5,7 @@ import { useTranslation } from "react-i18next";
 import Avatar from "@src/components/Avatar";
 import TabPill from "@src/components/TabPill";
 import { useWorkItemImageInsert } from "@src/hooks/project";
+import { HugeiconsIcon, Pen01Icon, RepeatIcon } from "@src/icons";
 import { builtInAgentsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAgentsAtom";
 import {
   ProjectContentEditor,

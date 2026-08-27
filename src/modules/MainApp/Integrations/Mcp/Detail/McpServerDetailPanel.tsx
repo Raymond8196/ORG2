@@ -3,12 +3,6 @@
  *
  * Uses CollapsibleSections for Status / Info / Tools / Resources sections.
  */
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import Edit01Icon from "@hugeicons/core-free-icons/Edit01Icon";
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import ServerStack01Icon from "@hugeicons/core-free-icons/ServerStack01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +11,14 @@ import InlineAlert from "@src/components/InlineAlert";
 import { Placeholder } from "@src/components/Placeholder";
 import StatusDot from "@src/components/StatusDot";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import {
+  ComputerTerminal01Icon,
+  Edit01Icon,
+  File02Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  ServerStack01Icon,
+} from "@src/icons";
 import type {
   McpResource,
   McpServerStatus,

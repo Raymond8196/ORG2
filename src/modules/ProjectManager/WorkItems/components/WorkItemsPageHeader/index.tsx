@@ -1,5 +1,3 @@
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +7,7 @@ import {
 } from "@src/config/workstation/tokens";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { BoxIcon, HugeiconsIcon } from "@src/icons";
 
 import { WorkItemsHeaderContent } from "./WorkItemsHeaderContent";
 import type { WorkItemsPageHeaderProps } from "./types";

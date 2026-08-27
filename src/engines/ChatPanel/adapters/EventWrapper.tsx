@@ -9,14 +9,16 @@
  * - Memoized component with chunk_id-based comparison
  * - Separate rendering paths for different modes
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
 import Collapse from "@src/components/Collapse";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
+import {
+  ArrowExpand01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Wrench01Icon,
+} from "@src/icons";
 import type { BackendEvent } from "@src/types/session/steps";
 
 const FONT_SANS = "var(--app-font-family)";

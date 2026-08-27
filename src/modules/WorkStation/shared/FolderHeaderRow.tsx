@@ -6,11 +6,14 @@
  * Uses FOLDER_HEADER tokens for consistent styling across explorer and
  * source control panels.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
+
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 import { FOLDER_HEADER } from "./tokens";
 

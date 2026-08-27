@@ -16,9 +16,6 @@
  * modal closes — the Rust `webhookStatus` command is intentionally
  * write-only for secret material.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -31,6 +28,7 @@ import {
 import Button from "@src/components/Button";
 import { Message } from "@src/components/Message";
 import StatusDot from "@src/components/StatusDot";
+import { Copy01Icon, HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import { SectionRow } from "@src/modules/shared/layouts/SectionLayout";
 import { copyText } from "@src/util/data/clipboard";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";

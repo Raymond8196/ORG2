@@ -4,12 +4,11 @@
  * Shared-styled search controls for the search editor tab.
  * Uses the same reusable input/select components as other tabs.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 import { SEARCH_TAB_ROW_CLASSES } from "@src/modules/WorkStation/shared/tokens";
 
 import { SearchInput, SearchModeSelect } from "../../../shared";

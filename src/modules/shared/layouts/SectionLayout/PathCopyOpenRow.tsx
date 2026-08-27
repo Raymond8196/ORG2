@@ -14,12 +14,10 @@
  *     disabled={!diskUsage?.root_path}
  *   />
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import Button from "@src/components/Button";
+import { Copy01Icon, FolderOpenIcon, HugeiconsIcon } from "@src/icons";
 
 import SectionRow from "./Row";
 import {

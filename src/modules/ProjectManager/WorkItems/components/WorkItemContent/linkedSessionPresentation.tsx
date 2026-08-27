@@ -2,12 +2,11 @@
  * Presentation helpers for the Work Item linked-session table: status colors,
  * agent labels and the per-session agent icon.
  */
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
 import React from "react";
 
 import Org2SessionIcon from "@src/assets/modelIcons/org2-session.svg";
 import AnyIcon from "@src/components/AnyIcon";
+import { BotIcon, ComputerTerminal01Icon } from "@src/icons";
 import type { LinkedSession } from "@src/types/core/workItem";
 
 export const LINKED_SESSION_STATUS_COLOR: Record<

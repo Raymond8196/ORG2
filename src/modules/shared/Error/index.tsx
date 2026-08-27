@@ -1,8 +1,4 @@
 import Button from "@/src/components/Button";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { isRouteErrorResponse, useRouteError } from "react-router-dom";
@@ -10,6 +6,12 @@ import { isRouteErrorResponse, useRouteError } from "react-router-dom";
 import { stripAnsiCodes } from "@src/engines/TerminalCore/components/TerminalDisplay/utils/ansiProcessor";
 import { createLogger } from "@src/hooks/logger";
 import i18n from "@src/i18n";
+import {
+  Copy01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 const logger = createLogger("ErrorPage");

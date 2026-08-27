@@ -5,10 +5,6 @@
  * User selects 2+ repos from a checklist; on submit, the selected
  * repos become workspace folders via setWorkspaceFoldersAtom.
  */
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +12,12 @@ import type { WorkspaceRecord } from "@src/api/tauri/workspace";
 import Checkbox from "@src/components/Checkbox";
 import Input from "@src/components/Input";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  FolderClosedIcon,
+  HugeiconsIcon,
+  Search01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import { REPO_KIND } from "@src/store/repo";
 

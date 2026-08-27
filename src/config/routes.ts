@@ -12,7 +12,7 @@
  * - /orgii/app/settings/*  - Settings inside the Workbench shell
  * - /orgii/app/*           - Standalone application pages
  */
-import type { IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@src/icons";
 
 import { ICON_NAME_MAP } from "./iconMapping";
 // Route group constants — imported for use below and re-exported for consumers

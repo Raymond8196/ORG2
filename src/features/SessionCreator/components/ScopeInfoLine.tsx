@@ -7,16 +7,18 @@
  * Categories: Repo | Session | Projects | Work items
  * Scope varies based on category (multi-select supported)
  */
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Select, { type SelectOption } from "@src/components/Select";
+import {
+  BoxIcon,
+  FolderClosedIcon,
+  HugeiconsIcon,
+  Layers01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 // ============================================
 // Type Definitions

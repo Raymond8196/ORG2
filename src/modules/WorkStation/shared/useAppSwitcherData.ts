@@ -8,8 +8,6 @@
  * chip can render identically without any conditional branching at the view
  * layer.
  */
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -22,6 +20,7 @@ import {
   getSimulatorDockTitleCenter,
 } from "@src/engines/Simulator/components/Dock";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
+import { CodeIcon, type IconSvgElement } from "@src/icons";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   simulatorEffectiveDockAppAtom,

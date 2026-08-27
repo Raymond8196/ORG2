@@ -9,11 +9,6 @@
  * Chosen by `general.modelPickerStyle === "dropdown"`. Falls through to
  * `BranchPalette` (Spotlight) otherwise.
  */
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -35,6 +30,13 @@ import {
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
+import {
+  FolderClosedIcon,
+  HugeiconsIcon,
+  Search01Icon,
+  Tick01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { BranchItem } from "../../types";

@@ -1,7 +1,3 @@
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +20,12 @@ import {
   useAgentCompatibility,
 } from "@src/hooks/models/useAgentCompatibility";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
+import {
+  BookOpen01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { CliLaunchProfileSection } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/Preview/CliLaunchProfileSection";
 import {
   SectionContainer,

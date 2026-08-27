@@ -4,19 +4,21 @@
  * Hover tooltip for task bars showing detailed information and quick actions.
  * Uses useDropdownEngine + portal with DROPDOWN_CLASSES tokens.
  */
-import AnalyticsDownIcon from "@hugeicons/core-free-icons/AnalyticsDownIcon";
-import AnalyticsUpIcon from "@hugeicons/core-free-icons/AnalyticsUpIcon";
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Edit02Icon from "@hugeicons/core-free-icons/Edit02Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef } from "react";
 import { createPortal } from "react-dom";
 
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import {
+  AnalyticsDownIcon,
+  AnalyticsUpIcon,
+  Calendar01Icon,
+  Delete02Icon,
+  Edit02Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  UserIcon,
+} from "@src/icons";
 
 import type { GanttTask } from "../../types";
 import {

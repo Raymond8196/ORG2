@@ -8,11 +8,6 @@
  * cached copy — a run whose items moved since the row was written shows
  * its recomputed status once expanded.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import PlayCircleIcon from "@hugeicons/core-free-icons/PlayCircleIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +21,13 @@ import Message from "@src/components/Message";
 import { Placeholder } from "@src/components/Placeholder";
 import TabPill from "@src/components/TabPill";
 import { useRoutineResultNavigation } from "@src/hooks/navigation";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  PlayCircleIcon,
+  Refresh04Icon,
+} from "@src/icons";
 
 const RoutineWebhooksPanel = React.lazy(() => import("./RoutineWebhooksPanel"));
 

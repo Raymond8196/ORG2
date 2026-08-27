@@ -1,5 +1,3 @@
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 
 import Input from "@src/components/Input";
@@ -14,6 +12,7 @@ import {
   type FlattenedTreeNode,
   VirtualizedStickyTree,
 } from "@src/components/VirtualizedStickyTree";
+import { FilterIcon, HugeiconsIcon } from "@src/icons";
 
 interface FlattenedDesignNode {
   node: TreePanelNode;

@@ -1,8 +1,7 @@
-import FileSymlinkIcon from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import { FileSymlinkIcon, HugeiconsIcon } from "@src/icons";
 import { openFileInEditor } from "@src/util/ui/openFileInEditor";
 
 import type { ToolSourceTarget } from "./helpers/toolSource";

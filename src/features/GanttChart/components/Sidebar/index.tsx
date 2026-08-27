@@ -4,8 +4,6 @@
  * Left sidebar showing task list with titles and assignees.
  * Uses Tailwind for all styling.
  */
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { VirtualItem } from "@tanstack/react-virtual";
 import React, { RefObject } from "react";
 
@@ -13,6 +11,7 @@ import { CLI_AGENT } from "@src/api/types/keys";
 import AnyIcon from "@src/components/AnyIcon";
 import ModelIcon from "@src/components/ModelIcon";
 import { resolveAgentIcon } from "@src/config/agentIcons";
+import { GitCommitHorizontalIcon, HugeiconsIcon } from "@src/icons";
 import {
   getDispatchCategory,
   resolveSessionIconId,

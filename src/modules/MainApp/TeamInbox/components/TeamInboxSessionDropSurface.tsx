@@ -1,15 +1,17 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  InboxIcon,
+  Link02Icon,
+  RotateLeft01Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import type { SessionReferenceOpen } from "@src/shared/dnd/sessionTabDrag";
 import { useSessionDropTarget } from "@src/shared/dnd/useSessionDropTarget";
 

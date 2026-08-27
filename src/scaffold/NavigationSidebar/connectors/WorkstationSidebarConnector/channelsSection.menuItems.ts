@@ -11,19 +11,21 @@
  * row's discussion-channel tab, and the row takes the ordinary selected state
  * while that tab is active.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import type { MouseEvent } from "react";
 
 import type { CloudChannel } from "@src/features/Org2Cloud/channels/types";
 import type { OrgChannelsPhase } from "@src/features/Org2Cloud/channels/useOrgChannels";
+import {
+  Add01Icon,
+  ArchiveArrowUpIcon,
+  ArchiveIcon,
+  Delete02Icon,
+  HashtagIcon,
+  type IconSvgElement,
+  LockIcon,
+  MoreHorizontalIcon,
+} from "@src/icons";
 import type {
   NavigationMenuItem,
   NavigationMenuRowAction,

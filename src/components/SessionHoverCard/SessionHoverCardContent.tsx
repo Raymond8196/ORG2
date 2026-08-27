@@ -1,14 +1,3 @@
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
-import FingerPrintIcon from "@hugeicons/core-free-icons/FingerPrintIcon";
-import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import GitCommitVerticalIcon from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
-import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
-import GripIcon from "@hugeicons/core-free-icons/GripIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import Timer01Icon from "@hugeicons/core-free-icons/Timer01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import { useAtomValue } from "jotai";
@@ -31,6 +20,19 @@ import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { createLogger } from "@src/hooks/logger";
 import { useResolvedModelLabel } from "@src/hooks/models";
 import { useValidatedLastPair } from "@src/hooks/models/useValidatedLastPair";
+import {
+  Clock01Icon,
+  DiffIcon,
+  FingerPrintIcon,
+  FloppyDiskIcon,
+  GitCommitVerticalIcon,
+  GitForkIcon,
+  GripIcon,
+  HugeiconsIcon,
+  Tick01Icon,
+  Timer01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { workspaceGitStatusMapAtom } from "@src/store/git/gitStatusAtom";
 import type { LastModelSelection } from "@src/store/session/creatorDefaultModelAtom";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom/atoms";

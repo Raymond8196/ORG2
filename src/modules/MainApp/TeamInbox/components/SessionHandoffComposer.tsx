@@ -1,7 +1,3 @@
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import CheckmarkSquare01Icon from "@hugeicons/core-free-icons/CheckmarkSquare01Icon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +5,12 @@ import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
 import Textarea from "@src/components/Textarea";
+import {
+  ArrowRight02Icon,
+  CheckmarkSquare01Icon,
+  FolderKanbanIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import WorkItemProperties from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties";
 import type { WorkItemPropertyFieldKey } from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties/types";
 import Modal from "@src/scaffold/ModalSystem";

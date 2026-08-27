@@ -6,10 +6,6 @@
  * connected (green), reconnecting (yellow), error (red), disabled (gray).
  * On error, shows a "Reconnect" button to re-toggle the channel.
  */
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Wifi01Icon from "@hugeicons/core-free-icons/Wifi01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +14,12 @@ import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Switch from "@src/components/Switch";
+import {
+  Delete02Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  Wifi01Icon,
+} from "@src/icons";
 import {
   STATUS_BAR_TOKENS,
   STATUS_ICON,

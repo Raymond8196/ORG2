@@ -9,13 +9,6 @@
  * - Debounces rendering during streaming (300ms stability wait)
  * - Click-to-zoom: click diagram to toggle fullscreen overlay
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import WorkflowCircle01Icon from "@hugeicons/core-free-icons/WorkflowCircle01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -25,6 +18,15 @@ import {
   EventBlockHeaderTitle,
   getEventBlockContainerClasses,
 } from "@src/engines/ChatPanel/blocks/primitives";
+import {
+  Add01Icon,
+  ArrowExpand01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  RotateLeft01Icon,
+  WorkflowCircle01Icon,
+} from "@src/icons";
 
 // ============================================
 // Module-level SVG cache (FIFO, max 50)

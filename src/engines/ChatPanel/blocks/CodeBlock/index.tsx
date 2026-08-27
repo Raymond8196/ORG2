@@ -11,12 +11,6 @@
  * - Intersection observer for lazy syntax highlighting
  * - Virtual scrolling for large code blocks (>100 lines)
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import ViewOffIcon from "@hugeicons/core-free-icons/ViewOffIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Suspense, lazy, memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -25,6 +19,14 @@ import ExpandOverlay from "@src/components/ExpandOverlay";
 import { FileTreeHoverPreview } from "@src/components/FileTreePreview/exports";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { useCopyCheck } from "@src/hooks/ui";
+import {
+  Copy01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+  Tick01Icon,
+  ViewIcon,
+  ViewOffIcon,
+} from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 import { openFileInEditor } from "@src/util/ui/openFileInEditor";
 

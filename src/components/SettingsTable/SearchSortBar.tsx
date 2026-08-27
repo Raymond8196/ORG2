@@ -1,7 +1,4 @@
 /** SettingsTable-owned search, sort, and filter toolbar. */
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +6,7 @@ import Button from "@src/components/Button";
 import Input, { type InputProps } from "@src/components/Input";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
+import { FilterIcon, HugeiconsIcon, Search01Icon } from "@src/icons";
 
 export interface SearchSortBarFilterConfig {
   pills: React.ReactNode;

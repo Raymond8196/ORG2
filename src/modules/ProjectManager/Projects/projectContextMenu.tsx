@@ -1,21 +1,23 @@
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import Cardiogram01Icon from "@hugeicons/core-free-icons/Cardiogram01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Tag01Icon from "@hugeicons/core-free-icons/Tag01Icon";
-import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { createElement } from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import {
+  Calendar01Icon,
+  Cardiogram01Icon,
+  CircleDotIcon,
+  CircleIcon,
+  CodeIcon,
+  Copy01Icon,
+  Delete02Icon,
+  Flag01Icon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  SquareArrowUpRightIcon,
+  Tag01Icon,
+  Unlink02Icon,
+  UserIcon,
+  UserMultipleIcon,
+} from "@src/icons";
 import {
   getHealthConfig,
   getProjectPriorityConfig,

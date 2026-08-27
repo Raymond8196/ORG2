@@ -1,6 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import ReactDOM from "react-dom";
@@ -8,6 +5,7 @@ import ReactDOM from "react-dom";
 import Input from "@src/components/Input";
 import Message from "@src/components/Message";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { Cancel01Icon, Copy01Icon, HugeiconsIcon } from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import { componentIssueModalOpenAtom } from "@src/store/ui/overlayAtom";
 import {

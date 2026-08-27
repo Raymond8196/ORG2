@@ -7,15 +7,13 @@
  * Access ladder + visibility live in CloudSyncLevelDialog, not here.
  */
 import Modal from "@/src/scaffold/ModalSystem";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
+import { Copy01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import type { Session } from "@src/store/session/sessionAtom/types";
 import { formatSmartDateTime } from "@src/util/data/formatters/date";
 

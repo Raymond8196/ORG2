@@ -1,7 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Shield01Icon from "@hugeicons/core-free-icons/Shield01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -14,6 +10,12 @@ import { useBrowserAutomation } from "@src/engines/BrowserCore/hooks/useBrowserA
 import EventWrapper from "@src/engines/ChatPanel/adapters/EventWrapper";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
+import {
+  Add01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Shield01Icon,
+} from "@src/icons";
 import { buildSelectedElementLabel } from "@src/modules/WorkStation/Browser/BrowserLayout/browserLayoutUtils";
 import { buildDomComponentJsonFromElementInfo } from "@src/modules/WorkStation/Browser/BrowserLayout/buildDomComponentJson";
 import { useBrowserSessions } from "@src/modules/WorkStation/Browser/hooks/useBrowserSessions";

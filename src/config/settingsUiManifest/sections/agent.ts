@@ -1,8 +1,6 @@
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import RecordIcon from "@hugeicons/core-free-icons/RecordIcon";
-
 import { SETTINGS_SECTION_SLOT_IDS } from "@src/config/settingsUiManifest/slotIds";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";
+import { CodeIcon, RecordIcon } from "@src/icons";
 
 /**
  * Agent settings sections.

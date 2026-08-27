@@ -10,11 +10,10 @@
  * - Syntax highlighting
  */
 // Syntax highlighting is handled by react-syntax-highlighter in SplitRow
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useRef } from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 import "./ModernSplitDiff.scss";
 import { CollapseRow } from "./components/CollapseRow";

@@ -5,38 +5,6 @@
  * and close button with unsaved indicator.
  */
 import { useSortable } from "@dnd-kit/sortable";
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import Box from "@hugeicons/core-free-icons/BoxIcon";
-import MessageCircle from "@hugeicons/core-free-icons/BubbleChatIcon";
-import Building2 from "@hugeicons/core-free-icons/Building02Icon";
-import CircleDot from "@hugeicons/core-free-icons/CircleDotIcon";
-import Code from "@hugeicons/core-free-icons/CodeIcon";
-import Code2 from "@hugeicons/core-free-icons/CodeIcon";
-import Palette from "@hugeicons/core-free-icons/ColorPickerIcon";
-import Terminal from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import LayoutGrid from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import FileDiff from "@hugeicons/core-free-icons/FileDiffIcon";
-import Folder from "@hugeicons/core-free-icons/FolderClosedIcon";
-import GitCommitHorizontal from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import GitMerge from "@hugeicons/core-free-icons/GitMergeIcon";
-import GitPullRequest from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import Infinity from "@hugeicons/core-free-icons/Infinity01Icon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import Layout from "@hugeicons/core-free-icons/Layout01Icon";
-import LayoutList from "@hugeicons/core-free-icons/LayoutListIcon";
-import ListChecks from "@hugeicons/core-free-icons/ListChecksIcon";
-import Lock from "@hugeicons/core-free-icons/LockIcon";
-import MessageSquare from "@hugeicons/core-free-icons/Message01Icon";
-import MoveHorizontal from "@hugeicons/core-free-icons/MoveLeftIcon";
-import Package from "@hugeicons/core-free-icons/PackageIcon";
-import Radar from "@hugeicons/core-free-icons/Radar01Icon";
-import Search from "@hugeicons/core-free-icons/Search01Icon";
-import ScanSearch from "@hugeicons/core-free-icons/SearchAreaIcon";
-import Settings from "@hugeicons/core-free-icons/Settings01Icon";
-import Sparkles from "@hugeicons/core-free-icons/SparklesIcon";
-import SquareTerminal from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import GitBranch from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -61,6 +29,41 @@ import {
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import SessionIdentityIcon from "@src/engines/ChatPanel/components/SessionIdentityIcon";
+import {
+  Infinity01Icon as Infinity,
+  BoxIcon as Box,
+  Building02Icon as Building2,
+  CircleDotIcon as CircleDot,
+  CodeIcon as Code,
+  CodeIcon as Code2,
+  FileDiffIcon as FileDiff,
+  FolderClosedIcon as Folder,
+  WorkflowCircle05Icon as GitBranch,
+  GitCommitHorizontalIcon as GitCommitHorizontal,
+  GitMergeIcon as GitMerge,
+  GitPullRequestIcon as GitPullRequest,
+  InternetIcon as Globe,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Layout01Icon as Layout,
+  DashboardSquare01Icon as LayoutGrid,
+  LayoutListIcon as LayoutList,
+  ListChecksIcon as ListChecks,
+  LockIcon as Lock,
+  BubbleChatIcon as MessageCircle,
+  Message01Icon as MessageSquare,
+  MoveLeftIcon as MoveHorizontal,
+  PackageIcon as Package,
+  ColorPickerIcon as Palette,
+  Add01Icon as Plus,
+  Radar01Icon as Radar,
+  SearchAreaIcon as ScanSearch,
+  Search01Icon as Search,
+  Settings01Icon as Settings,
+  SparklesIcon as Sparkles,
+  SquareTerminalIcon as SquareTerminal,
+  ComputerTerminal01Icon as Terminal,
+} from "@src/icons";
 import { isGitHubIssueStatus } from "@src/modules/ProjectManager/WorkItems/workItemIdentity";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
 import type { GitFileInfo } from "@src/store/git";
@@ -242,7 +245,7 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
         );
       }
 
-      // Custom Lucide override — tint active tab only (FileTypeIcon / favicons keep their own colors).
+      // Custom glyph override — tint active tab only (FileTypeIcon / favicons keep their own colors).
       if (tab.icon) {
         const icon = resolveWorkstationTabIcon(tab.icon);
         if (icon) {

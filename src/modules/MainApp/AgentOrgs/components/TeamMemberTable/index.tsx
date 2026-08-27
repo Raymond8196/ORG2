@@ -4,9 +4,6 @@
  * Built on the shared DragTable component for drag-to-reorder.
  * Supports hierarchy via optional parentId field + "Reports to" column.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +17,7 @@ import {
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
+import { Add01Icon, Delete02Icon, HugeiconsIcon } from "@src/icons";
 import type { OrgMemberRuntimeConfig } from "@src/modules/MainApp/AgentOrgs/types";
 
 // ── Types ──

@@ -3,14 +3,12 @@
  *
  * Reusable search input for spotlight interfaces
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon, { type AnyIconSource } from "@src/components/AnyIcon";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { Cancel01Icon, HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { SPOTLIGHT_TOKENS } from "../constants";
 

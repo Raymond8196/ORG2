@@ -1,6 +1,3 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   Suspense,
   memo,
@@ -21,6 +18,7 @@ import {
   getStatusLetterForFile,
 } from "@src/config/gitStatus";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import { FileHeader } from "@src/modules/shared/components/FileHeader";
 import type { DiffViewMode } from "@src/types/git/types";
 import { isBinaryByExtension } from "@src/util/file/binaryDetection";

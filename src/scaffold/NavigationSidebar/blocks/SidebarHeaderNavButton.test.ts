@@ -1,7 +1,8 @@
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
+
+import { ArrowLeft01Icon } from "@src/icons";
 
 import SidebarHeaderNavButton from "./SidebarHeaderNavButton";
 

@@ -1,10 +1,12 @@
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 
 import type { FieldRowVariant } from "@src/components/PropertyField/PropertyFieldEditable";
+import {
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  CircleIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   GITHUB_ISSUE_STATUS_OPTIONS,
   WORK_ITEM_PRIORITY_OPTIONS,

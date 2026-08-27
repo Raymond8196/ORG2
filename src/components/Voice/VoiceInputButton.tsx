@@ -7,8 +7,6 @@
  * recording UI is owned by `VoiceRecordingBar` which replaces the entire
  * toolbar row while capture is active.
  */
-import Mic01Icon from "@hugeicons/core-free-icons/Mic01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +15,7 @@ import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut
 import Tooltip from "@src/components/Tooltip";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { HugeiconsIcon, Mic01Icon } from "@src/icons";
 
 interface VoiceInputButtonProps {
   onPressStart: () => void;

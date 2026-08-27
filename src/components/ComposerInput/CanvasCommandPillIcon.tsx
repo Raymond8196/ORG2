@@ -1,8 +1,7 @@
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import { EDITOR_FILE_PILL_TEXT_COLOR, PILL_SIZE } from "@src/config/pillTokens";
+import { HugeiconsIcon, Layout01Icon } from "@src/icons";
 
 export function isCanvasCommandPillPath(path: string): boolean {
   return path.trim().toLowerCase() === "/canvas";

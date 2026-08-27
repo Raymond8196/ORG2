@@ -1,10 +1,9 @@
-import AtIcon from "@hugeicons/core-free-icons/AtIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
+import { AtIcon, HugeiconsIcon } from "@src/icons";
 import type { Person } from "@src/types/core/shared";
 
 import { ALL_MENTION_REF, type MentionCandidate } from "./workItemMentions";

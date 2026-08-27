@@ -3,11 +3,10 @@
  * {@link MOCK_EVENT_DATA}; use {@link getToolIcon} with the underlying tool name when the id
  * is not a registered tool (avoids falling through to Wrench).
  */
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { getToolIcon } from "@src/config/toolIcons";
+import { HugeiconsIcon, Message01Icon } from "@src/icons";
 
 import { isChatPreviewType } from "../single-event/chatPreviewTypes";
 

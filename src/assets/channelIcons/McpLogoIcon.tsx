@@ -9,7 +9,7 @@ interface McpLogoIconProps extends SVGProps<SVGSVGElement> {
 }
 
 /**
- * Model Context Protocol logo (Wikimedia) — matches Lucide icon usage in toolbars.
+ * Model Context Protocol logo (Wikimedia) — matches glyph icon sizing in toolbars.
  */
 export const McpLogoIcon = forwardRef<SVGSVGElement, McpLogoIconProps>(
   ({ size = 24, className, ...rest }, ref) => (

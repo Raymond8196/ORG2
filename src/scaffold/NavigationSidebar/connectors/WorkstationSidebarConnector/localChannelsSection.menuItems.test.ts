@@ -1,7 +1,7 @@
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
+import { HashtagIcon } from "@src/icons";
 import type { LocalChannel } from "@src/store/ui/localChannelsAtom";
 
 import {

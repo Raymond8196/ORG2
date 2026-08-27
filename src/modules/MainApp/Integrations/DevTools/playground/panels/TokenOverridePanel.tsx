@@ -7,15 +7,17 @@
  * - Collapsible
  * - Positioned in bottom-right corner by default
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ColorPickerIcon from "@hugeicons/core-free-icons/ColorPickerIcon";
-import GripVerticalIcon from "@hugeicons/core-free-icons/GripVerticalIcon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useRef, useState } from "react";
 
 import Select from "@src/components/Select";
+import {
+  Add01Icon,
+  Cancel01Icon,
+  ColorPickerIcon,
+  GripVerticalIcon,
+  HugeiconsIcon,
+  MinusSignIcon,
+} from "@src/icons";
 
 // ============================================
 // Token Presets (moved from SingleEventPreview)

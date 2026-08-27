@@ -25,7 +25,7 @@ type SessionRowIconInput =
  * Resolve the icon to render in a session list row.
  *
  * Identity precedence lives in `resolveSessionDisplayMetadata`; this helper
- * only adapts its resolved icon id to the Lucide-compatible row contract.
+ * only adapts its resolved icon id to the row's RenderableIcon contract.
  */
 export function resolveSessionRowIcon(
   input: SessionRowIconInput

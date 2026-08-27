@@ -6,12 +6,11 @@
  *
  * Used internally by Dropdown (options mode) and Select.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Checkbox from "@src/components/Checkbox";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 
 import DropdownSelectedCheck from "./DropdownSelectedCheck";
 import { DROPDOWN_CLASSES, DROPDOWN_ITEM } from "./tokens";

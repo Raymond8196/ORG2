@@ -1,7 +1,3 @@
-import FileCodeIcon from "@hugeicons/core-free-icons/FileCodeIcon";
-import FolderInputIcon from "@hugeicons/core-free-icons/FolderInputIcon";
-import FolderOutputIcon from "@hugeicons/core-free-icons/FolderOutputIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   open as openDialog,
   save as saveDialog,
@@ -12,6 +8,12 @@ import { useTranslation } from "react-i18next";
 
 import Message from "@src/components/Message";
 import { createLogger } from "@src/hooks/logger";
+import {
+  FileCodeIcon,
+  FolderInputIcon,
+  FolderOutputIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import Modal from "@src/scaffold/ModalSystem";
 import type { Session } from "@src/store/session";
 

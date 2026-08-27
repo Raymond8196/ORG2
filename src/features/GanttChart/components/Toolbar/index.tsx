@@ -4,16 +4,18 @@
  * Toolbar with view scope toggle and navigation controls.
  * Layout: [Scale Toggle] ... [Zoom] < [Date Range] > [Today]
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ZoomInAreaIcon from "@hugeicons/core-free-icons/ZoomInAreaIcon";
-import ZoomOutAreaIcon from "@hugeicons/core-free-icons/ZoomOutAreaIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import TabPill from "@src/components/TabPill";
+import {
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  ZoomInAreaIcon,
+  ZoomOutAreaIcon,
+} from "@src/icons";
 import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 import { VIEW_SCOPE_OPTIONS } from "../../config";

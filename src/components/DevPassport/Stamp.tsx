@@ -1,34 +1,36 @@
 /**
  * DevPassport Stamp Component
  */
-import AnchorIcon from "@hugeicons/core-free-icons/AnchorIcon";
-import Award01Icon from "@hugeicons/core-free-icons/Award01Icon";
-import BrainIcon from "@hugeicons/core-free-icons/BrainIcon";
-import Bug01Icon from "@hugeicons/core-free-icons/Bug01Icon";
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Coffee01Icon from "@hugeicons/core-free-icons/Coffee01Icon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import CpuIcon from "@hugeicons/core-free-icons/CpuIcon";
-import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
-import HexagonIcon from "@hugeicons/core-free-icons/HexagonIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import RadioIcon from "@hugeicons/core-free-icons/RadioIcon";
-import RocketIcon from "@hugeicons/core-free-icons/RocketIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import ServerStack01Icon from "@hugeicons/core-free-icons/ServerStack01Icon";
-import Shield01Icon from "@hugeicons/core-free-icons/Shield01Icon";
-import Wifi01Icon from "@hugeicons/core-free-icons/Wifi01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  AnchorIcon,
+  Award01Icon,
+  BrainIcon,
+  Bug01Icon,
+  CloudIcon,
+  CodeIcon,
+  Coffee01Icon,
+  ComputerTerminal01Icon,
+  CpuIcon,
+  DatabaseIcon,
+  FlashIcon,
+  HexagonIcon,
+  type IconSvgElement,
+  InternetIcon,
+  Key01Icon,
+  LaptopIcon,
+  Layers01Icon,
+  LockIcon,
+  RadioIcon,
+  RocketIcon,
+  Search01Icon,
+  ServerStack01Icon,
+  Shield01Icon,
+  Wifi01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 import type { StampData, StampShape } from "./types";
 

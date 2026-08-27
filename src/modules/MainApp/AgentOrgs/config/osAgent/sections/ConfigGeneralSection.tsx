@@ -21,8 +21,6 @@
  * memory toggle, extract memories, auto-dream) live on each agent's
  * Memory & Evolution tab.
  */
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { invoke } from "@tauri-apps/api/core";
 import { homeDir } from "@tauri-apps/api/path";
 import React, { useCallback, useEffect, useState } from "react";
@@ -30,6 +28,7 @@ import { useTranslation } from "react-i18next";
 
 import { rpc } from "@src/api/tauri/rpc";
 import Button from "@src/components/Button";
+import { FolderOpenIcon, HugeiconsIcon } from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SECTION_PATH_TEXT_CLASSES,

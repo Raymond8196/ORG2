@@ -5,8 +5,6 @@
  * output content lives in the shared filled body shell, separated by a subtle
  * divider without additional section labels.
  */
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -26,6 +24,7 @@ import type {
 } from "@src/engines/SessionCore/core/types";
 import { ShellReplayOutput } from "@src/engines/SessionCore/replay/components/ShellReplayOutput";
 import "@src/engines/TerminalCore/components/TerminalDisplay/index.scss";
+import { HugeiconsIcon, SquareIcon } from "@src/icons";
 import {
   formatCommandForDisplay,
   getCommandSymbolList,

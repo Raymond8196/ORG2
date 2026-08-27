@@ -1,10 +1,6 @@
 /**
  * Search / list_dir / cat / grep result bodies for session replay CodePanel.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +8,12 @@ import Button from "@src/components/Button";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import { getToolIcon } from "@src/config/toolIcons";
+import {
+  Cancel01Icon,
+  CodeIcon,
+  HugeiconsIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 import { getToolDisplayLabelFromRegistry } from "@src/util/ui/rendering/registryToolLabel";
 
 import { SIMULATOR_LIST_DIR_DISPLAY_CAP } from "../listDirLimits";

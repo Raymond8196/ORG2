@@ -10,12 +10,11 @@
  * Mirrors the `EventBlockHeaderTitle isLoading` shimmer treatment used by
  * the history-side `AskQuestionEvent` placeholder.
  */
-import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import { COMPOSER_CARD_SHELL_CLASSES } from "@src/config/composerStackTokens";
 import { EVENT_LOADING_SHIMMER_TEXT_CLASSES } from "@src/engines/ChatPanel/blocks/primitives";
+import { HelpCircleIcon, HugeiconsIcon } from "@src/icons";
 
 export function QuestionCardLoadingShell() {
   const { t } = useTranslation("sessions");

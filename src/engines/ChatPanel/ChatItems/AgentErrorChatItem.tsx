@@ -10,9 +10,6 @@
  * Subscribing here creates a nested Jotai listener chain that overflows the
  * call stack when the session snapshot changes (e.g. on tab switch).
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +21,7 @@ import {
   buildCodexReauthPath,
 } from "@src/config/mainAppPaths";
 import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import { sessionByIdAtom } from "@src/store/session";
 
 import {

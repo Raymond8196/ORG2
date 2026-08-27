@@ -6,9 +6,6 @@
  *
  * Supports inline rename mode when isRenaming prop is true.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -35,6 +32,7 @@ import {
   TREE_ROW_ROUNDED_CLASS,
 } from "@src/components/TreeRow";
 import { type NativeDragItem, useNativeDrag } from "@src/hooks/files";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import { useIsFileSelected } from "@src/store/ui/fileTreeSelectionAtom";
 
 import { InlineRenameInput } from "./InlineRenameInput";

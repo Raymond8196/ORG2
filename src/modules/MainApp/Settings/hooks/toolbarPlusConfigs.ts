@@ -4,20 +4,21 @@
  * Pure helper functions that build per-category plus-button dropdown items
  * and route-specific toolbar configurations for useRouteToolbarConfig.
  */
-import BlocksIcon from "@hugeicons/core-free-icons/BlocksIcon";
-import CalendarArrowUpIcon from "@hugeicons/core-free-icons/CalendarArrowUpIcon";
-import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
-import UnplugIcon from "@hugeicons/core-free-icons/UnplugIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-
 import type {
   AddAction,
   IntegrationCategory,
 } from "@src/api/types/integrations";
 import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
+import {
+  BlocksIcon,
+  CalendarArrowUpIcon,
+  DatabaseIcon,
+  Download01Icon,
+  File02Icon,
+  Key01Icon,
+  UnplugIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import type {
   RouteToolbarConfig,
   ToolbarDropdownItem,

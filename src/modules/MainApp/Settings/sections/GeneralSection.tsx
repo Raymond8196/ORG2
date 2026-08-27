@@ -17,8 +17,6 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { getVersion } from "@tauri-apps/api/app";
 import { invoke } from "@tauri-apps/api/core";
 import { useAtom } from "jotai";
@@ -54,6 +52,7 @@ import {
   getFollowSystemLanguageLabel,
   resolveLanguagePreference,
 } from "@src/i18n";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import { NAV_BUTTON_PROPS } from "@src/modules/MainApp/Settings/config";
 import {
   checkForAppUpdates,

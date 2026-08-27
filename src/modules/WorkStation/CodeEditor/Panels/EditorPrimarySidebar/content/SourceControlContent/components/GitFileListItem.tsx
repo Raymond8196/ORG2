@@ -5,10 +5,6 @@
  * Shows stage/unstage action on hover.
  * Used in source control file lists for staging and viewing changes.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +12,7 @@ import FileTypeIcon from "@src/components/FileTypeIcon";
 import { GitStatusBadge, TreeRowAction } from "@src/components/TreeRow";
 import { TREE_PADDING_X } from "@src/components/TreeRow/config";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import { Add01Icon, MinusSignIcon, Tick01Icon, Undo02Icon } from "@src/icons";
 import { PRIMARY_SIDEBAR_HOVER } from "@src/modules/WorkStation/shared/tokens";
 import type { GitFile } from "@src/types/git/types";
 

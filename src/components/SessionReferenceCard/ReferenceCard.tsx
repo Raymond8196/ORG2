@@ -1,6 +1,6 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 const CARD_BASE = "mt-1.5 flex w-full max-w-[600px] rounded-lg p-3";
 

@@ -19,8 +19,6 @@
  * <ModelIcon modelName="claude-3-sonnet" />
  * ```
  */
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 
 import type { ModelType } from "@src/api/types/keys";
@@ -28,6 +26,7 @@ import {
   getModelAliasIcon,
   useModelAliasRegistryVersion,
 } from "@src/hooks/models/modelAliasRegistry";
+import { BoxIcon, HugeiconsIcon } from "@src/icons";
 
 import {
   ICON_MAP,

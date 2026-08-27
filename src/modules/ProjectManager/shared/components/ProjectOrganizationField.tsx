@@ -1,5 +1,3 @@
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { type FC, useEffect, useMemo, useState } from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
@@ -9,6 +7,7 @@ import {
   SearchableDropdown,
 } from "@src/components/PropertyField/PropertyFieldEditable";
 import type { SelectOption } from "@src/components/Select";
+import { HierarchyCircle01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface ProjectOrganizationFieldProps {
   label?: string;

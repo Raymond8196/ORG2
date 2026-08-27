@@ -1,5 +1,3 @@
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +19,7 @@ import {
   parsePillTextToSnapshot,
 } from "@src/engines/ChatPanel/InputArea/utils/pillContentParser";
 import type { SubmitOverrideInput } from "@src/engines/ChatPanel/hooks/useInputArea/types";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 import {
   ConnectedTimelineItem,
   TimelineCard,

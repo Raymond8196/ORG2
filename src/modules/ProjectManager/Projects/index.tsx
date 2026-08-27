@@ -5,10 +5,6 @@
  * "Add Project" opens in a separate tab (handled by ProjectManagerLayout).
  * Repo settings are a separate tab — this page is list-only.
  */
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Flag01Icon from "@hugeicons/core-free-icons/Flag01Icon";
-import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { emit } from "@tauri-apps/api/event";
 import { useAtomValue } from "jotai";
 import React, {
@@ -40,6 +36,12 @@ import { ROUTES } from "@src/config/routes";
 import { useProjectOrgCloudPermissions } from "@src/features/Org2Cloud/useProjectOrgCloudPermissions";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
+import {
+  CircleIcon,
+  Flag01Icon,
+  HugeiconsIcon,
+  TimeScheduleIcon,
+} from "@src/icons";
 import type { LinearProjectSelection } from "@src/modules/ProjectManager/Panels/ProjectManagerSidebar/content/WorkspaceTreeContent";
 import WorkItemSection from "@src/modules/ProjectManager/WorkItems/components/WorkItemSection";
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";

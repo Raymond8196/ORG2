@@ -1,8 +1,7 @@
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
+import { ComputerTerminal01Icon, HugeiconsIcon } from "@src/icons";
 
 interface SessionProvenanceSourceIconProps {
   iconId: IconProvider;

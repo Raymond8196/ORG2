@@ -1,6 +1,3 @@
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useState } from "react";
 import { Trans, useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -14,6 +11,7 @@ import {
   useServiceAuth,
 } from "@src/hooks/auth/useServiceAuth";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, Login01Icon, Refresh04Icon } from "@src/icons";
 import {
   ONBOARDING_LOADING_VIDEO_WIDTH_CLASS,
   OnboardingLayout,

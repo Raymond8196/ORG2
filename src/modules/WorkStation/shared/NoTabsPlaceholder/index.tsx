@@ -7,17 +7,6 @@
  * Usage:
  *   <NoTabsPlaceholder icon="editor" actions={quickActions} />
  */
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import ChartNoAxesGanttIcon from "@hugeicons/core-free-icons/ChartNoAxesGanttIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import PowerServiceIcon from "@hugeicons/core-free-icons/PowerServiceIcon";
-import SmartPhone01Icon from "@hugeicons/core-free-icons/SmartPhone01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -26,6 +15,19 @@ import {
   KeyboardShortcut,
 } from "@src/components/KeyboardShortcut";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
+import {
+  BubbleChatIcon,
+  ChartNoAxesGanttIcon,
+  CodeIcon,
+  DatabaseIcon,
+  type IconSvgElement,
+  InternetIcon,
+  Layout01Icon,
+  MessageMultiple01Icon,
+  PowerServiceIcon,
+  SmartPhone01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 import type { QuickAction } from "../QuickActionsPanel/types";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "../tokens";

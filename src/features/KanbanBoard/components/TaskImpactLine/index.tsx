@@ -1,10 +1,12 @@
-import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
-import DiffIcon from "@hugeicons/core-free-icons/DiffIcon";
-import GitCommitIcon from "@hugeicons/core-free-icons/GitCommitIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
+import {
+  CircleSlashIcon,
+  DiffIcon,
+  GitCommitIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import type { KanbanTask } from "../../types";
 import "./index.scss";

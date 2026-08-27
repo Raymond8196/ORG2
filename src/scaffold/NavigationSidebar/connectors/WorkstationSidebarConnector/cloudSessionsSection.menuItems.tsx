@@ -5,14 +5,13 @@
  * the "Load more" pagination row, and the empty/loading/error placeholder
  * row.
  */
-import FilterMailIcon from "@hugeicons/core-free-icons/FilterMailIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
 import type { TFunction } from "i18next";
 import React, { useMemo } from "react";
 
 import type { CloudSessionFilter } from "@src/features/Org2Cloud/cloudSessionFilter";
 import type { CloudSessionThread } from "@src/features/Org2Cloud/cloudSessionThreads";
 import type { CloudRemoteSessionsFetchState } from "@src/features/Org2Cloud/org2CloudRemoteSessionsAtom";
+import { FilterMailIcon, Refresh04Icon } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 
 import { separator } from "../useSessionMenuItems/menuItemBuilders";

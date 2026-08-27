@@ -4,18 +4,20 @@
  * Modal for choosing between multiple detected keys (e.g., OAuth + API key).
  * Uses design system tokens for consistent theming.
  */
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Key01Icon from "@hugeicons/core-free-icons/Key01Icon";
-import Key02Icon from "@hugeicons/core-free-icons/Key02Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import type { DetectedKey, ModelType } from "@src/api/types/keys";
 import InlineAlert from "@src/components/InlineAlert";
+import {
+  AlertCircleIcon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  HugeiconsIcon,
+  Key01Icon,
+  Key02Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 
 import { findEndpointByBaseUrl, useProviderConfig } from "../config";

@@ -1,5 +1,3 @@
-import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +12,7 @@ import {
   useLifecycleLabels,
 } from "@src/engines/SessionCore/rendering/registry";
 import { useTerminalSurfaceStyle } from "@src/hooks/terminal/useTerminalSurfaceStyle";
+import { HugeiconsIcon, Wrench01Icon } from "@src/icons";
 import { FileHeader } from "@src/modules/shared/components/FileHeader";
 import { getToolDisplayLabelFromRegistry } from "@src/util/ui/rendering/registryToolLabel";
 

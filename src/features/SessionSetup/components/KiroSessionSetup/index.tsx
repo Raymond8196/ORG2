@@ -16,13 +16,6 @@
  *   }}
  * />
  */
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -35,6 +28,15 @@ import Select from "@src/components/Select";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { useKiroSessionCapture } from "@src/features/SessionSetup/hooks/useKiroSessionCapture";
 import { useWebviewPositionSync } from "@src/features/SessionSetup/hooks/useWebviewPositionSync";
+import {
+  AlertCircleIcon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  Copy01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   SECTION_CONTROL_STYLE,
   SECTION_GAP_CLASSES,

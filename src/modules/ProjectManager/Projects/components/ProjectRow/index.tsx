@@ -3,11 +3,6 @@
  *
  * Individual row for displaying a project in the list view.
  */
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
-import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +10,13 @@ import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 import IntegrationIcon from "@src/components/IntegrationIcon";
+import {
+  FolderKanbanIcon,
+  HugeiconsIcon,
+  ListChecksIcon,
+  TimeScheduleIcon,
+  Unlink02Icon,
+} from "@src/icons";
 import WorkItemContextMenu from "@src/modules/ProjectManager/WorkItems/components/WorkItemContextMenu";
 import type { Project } from "@src/types/core/project";
 import { copyText } from "@src/util/data/clipboard";

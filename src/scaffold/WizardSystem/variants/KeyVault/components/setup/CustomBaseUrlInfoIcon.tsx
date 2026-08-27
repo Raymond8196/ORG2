@@ -1,8 +1,7 @@
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useTranslation } from "react-i18next";
 
 import Tooltip from "@src/components/Tooltip";
+import { HugeiconsIcon, InformationCircleIcon } from "@src/icons";
 
 export function CustomBaseUrlInfoIcon() {
   const { t } = useTranslation("integrations");

@@ -5,10 +5,6 @@
  * Single-line display with favicon and page title.
  */
 import type { BrowserSession } from "@/src/engines/BrowserCore/types";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +13,12 @@ import Input from "@src/components/Input";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { Placeholder } from "@src/components/Placeholder";
 import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
+import {
+  Cancel01Icon,
+  FilterIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+} from "@src/icons";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
 import { getSiteNameFromUrl } from "@src/store/ui/navigationSidebarTabsAtom";
 import {

@@ -1,5 +1,4 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 const SELECTED_ROW_CLASS = "settings-table-row-selected";
 

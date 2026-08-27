@@ -1,10 +1,3 @@
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useRef, useState } from "react";
 
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
@@ -13,6 +6,15 @@ import Input from "@src/components/Input";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import {
+  ArrowDown02Icon,
+  ArrowUp02Icon,
+  BoxIcon,
+  Delete02Icon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+  ListChecksIcon,
+} from "@src/icons";
 import {
   formatWorkItemShortId,
   isGitHubIssueStatus,

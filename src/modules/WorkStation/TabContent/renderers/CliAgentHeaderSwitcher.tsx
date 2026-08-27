@@ -1,5 +1,3 @@
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +15,7 @@ import {
   getIconProviderFromType,
 } from "@src/components/ModelIcon/config";
 import SelectGhostTrigger from "@src/components/Select/SelectGhostTrigger";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 import type { AvailableCliAgent } from "@src/modules/MainApp/AgentOrgs/types";
 import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
 

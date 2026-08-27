@@ -14,13 +14,6 @@
  * The cell follows the main replay cursor (video-editor clip model) by
  * default, unless the user manually interacts with its controls.
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +21,15 @@ import { useTranslation } from "react-i18next";
 import ReplayProgressBar from "@src/components/ReplayProgressBar";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { REPLAY_CONFIG } from "@src/config/workspace/replayConfig";
+import {
+  ArrowExpand01Icon,
+  ArrowLeft01Icon,
+  ArrowRight01Icon,
+  ArrowShrink01Icon,
+  HugeiconsIcon,
+  PauseIcon,
+  PlayIcon,
+} from "@src/icons";
 import { focusedSubagentCellAtom } from "@src/store/ui/simulatorAtom";
 
 import { useCellReplayState } from "../../hooks/useCellReplayState";

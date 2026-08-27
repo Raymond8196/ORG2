@@ -4,9 +4,9 @@
  * VS Code-like breadcrumb navigation with dropdowns.
  * Each path segment is clickable and shows files/folders in that directory.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
+
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 import FileDropdown from "./FileDropdown";
 

@@ -11,15 +11,17 @@
  * The pane never renders when the subagent has no todos; this keeps cells
  * without a plan from leaving a hover hot-zone that points at nothing.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  ListTodoIcon,
+  LockIcon,
+  Tick01Icon,
+} from "@src/icons";
 import {
   type TodoItem,
   getTodoBatchTitle,

@@ -3,18 +3,20 @@
  * (and its icons) load lazily on the first toast instead of sitting in
  * the startup graph of every module that imports the `Message` API.
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import type { FC } from "react";
 import { useCallback, useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  Alert01Icon,
+  AlertCircleIcon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+} from "@src/icons";
 
 import {
   DEFAULT_DURATION,

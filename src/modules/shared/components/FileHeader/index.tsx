@@ -15,9 +15,6 @@
  *   - `FileHeaderMoreMenu`    → the trailing ellipsis dropdown menu.
  *   - `FileHeaderShell`       → inline vs teleport-to-workstation wrapper.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import FileSymlinkIcon from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -29,6 +26,7 @@ import TabPill from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import type { WorkstationTabHeaderHost } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { Cancel01Icon, FileSymlinkIcon, HugeiconsIcon } from "@src/icons";
 import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks/PanelHeader";
 import type { DiffViewMode } from "@src/types/git/types";
 import { copyText } from "@src/util/data/clipboard";

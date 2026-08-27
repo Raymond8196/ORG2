@@ -4,19 +4,21 @@
  * Centralized configuration for left panel components.
  * Includes icon definitions and constants.
  */
-import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
-import FileAddIcon from "@hugeicons/core-free-icons/FileAddIcon";
-import FilePlusIcon from "@hugeicons/core-free-icons/FilePlusIcon";
-import Files01Icon from "@hugeicons/core-free-icons/Files01Icon";
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
-import HierarchyFilesIcon from "@hugeicons/core-free-icons/HierarchyFilesIcon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
+import {
+  EllipsisIcon,
+  FileAddIcon,
+  FilePlusIcon,
+  Files01Icon,
+  FilterIcon,
+  FolderAddIcon,
+  HierarchyFilesIcon,
+  Layers01Icon,
+  ListChevronsDownUpIcon,
+  ListIcon,
+  Refresh04Icon,
+  Search01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 // ============================================
 // Icon Configuration

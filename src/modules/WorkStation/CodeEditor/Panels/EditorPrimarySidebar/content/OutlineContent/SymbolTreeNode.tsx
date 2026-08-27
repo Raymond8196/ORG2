@@ -1,6 +1,3 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo } from "react";
 
 import {
@@ -8,6 +5,7 @@ import {
   TreeRowBase,
   type TreeRowNode,
 } from "@src/components/TreeRow";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 import { SYMBOL_COLORS, SYMBOL_ICONS } from "./config";
 import type { OutlineSymbol } from "./types";

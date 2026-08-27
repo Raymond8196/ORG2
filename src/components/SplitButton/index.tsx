@@ -1,9 +1,8 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef } from "react";
 
 import type { ButtonProps } from "@src/components/Button";
 import { useButtonPresentation } from "@src/components/Button/presentation";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface SplitButtonProps extends Omit<
   ButtonProps,

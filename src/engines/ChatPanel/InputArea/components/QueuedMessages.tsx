@@ -24,8 +24,6 @@ import {
   SortableContext,
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
-import MessageCircleMoreIcon from "@hugeicons/core-free-icons/MessageCircleMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -34,6 +32,7 @@ import {
   CHAT_COMPOSER_STACK_BAR_INNER_PADDING_X_CLASS,
   CHAT_COMPOSER_STACK_BAR_SURFACE_BG_CLASS,
 } from "@src/config/composerStackTokens";
+import { HugeiconsIcon, MessageCircleMoreIcon } from "@src/icons";
 import { useWebViewSensors } from "@src/lib/dndKit";
 import {
   type QueuedMessage,

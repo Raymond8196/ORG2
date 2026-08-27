@@ -5,8 +5,6 @@
  * Extracted from WorkItem/Project PropertiesPanel pattern
  * Uses DROPDOWN_CLASSES and DropdownSearch for consistency with settings.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
 import React, { useCallback, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -25,6 +23,7 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+import { ArrowDown01Icon, Pen01Icon } from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import { usePropertyDropdownDirection } from "./PropertyDropdownDirection";

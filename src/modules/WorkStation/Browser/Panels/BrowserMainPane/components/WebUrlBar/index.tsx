@@ -8,16 +8,6 @@
  * - Reload button
  * - Loading indicator
  */
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import Camera01Icon from "@hugeicons/core-free-icons/Camera01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import PenTool01Icon from "@hugeicons/core-free-icons/PenTool01Icon";
-import PencilRulerIcon from "@hugeicons/core-free-icons/PencilRulerIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -28,6 +18,18 @@ import {
   type WorkstationTabHeaderHost,
   usePublishWorkstationTabHeader,
 } from "@src/hooks/tabHost/useWorkstationTabHeader";
+import {
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  Camera01Icon,
+  Cancel01Icon,
+  CodeIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+  PenTool01Icon,
+  PencilRulerIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   FILE_BAR_ROW_CLASSES,
   HEADER_ICON_SIZE,

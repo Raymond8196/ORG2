@@ -1,7 +1,3 @@
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import ImportIcon from "@hugeicons/core-free-icons/ImportIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, {
   memo,
@@ -25,6 +21,12 @@ import {
   type FlattenedTreeNode,
   VirtualizedStickyTree,
 } from "@src/components/VirtualizedStickyTree";
+import {
+  HierarchyCircle01Icon,
+  HugeiconsIcon,
+  ImportIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import { cachedLinearProjectsApi } from "@src/modules/ProjectManager/LinearProjects/linearProjectsCache";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import {

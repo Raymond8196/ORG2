@@ -4,16 +4,18 @@
  * Simple spotlight for adding database connections.
  * Uses useSelectorKernel + SpotlightShell/PaletteBody for unified UI composition.
  */
-import DatabaseIcon from "@hugeicons/core-free-icons/DatabaseIcon";
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import FolderSearchIcon from "@hugeicons/core-free-icons/FolderSearchIcon";
-import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
 import { homeDir } from "@tauri-apps/api/path";
 import { open } from "@tauri-apps/plugin-dialog";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { createLogger } from "@src/hooks/logger";
+import {
+  DatabaseIcon,
+  File02Icon,
+  FolderSearchIcon,
+  Link01Icon,
+} from "@src/icons";
 
 import type { BasePaletteProps } from "../../shared";
 import { PaletteBody, SpotlightShell } from "../../shell";

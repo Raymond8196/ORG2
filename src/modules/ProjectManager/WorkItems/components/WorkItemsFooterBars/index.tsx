@@ -1,9 +1,8 @@
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { Delete02Icon, HugeiconsIcon } from "@src/icons";
 import {
   PANEL_FOOTER_TOKENS,
   PanelFooter,

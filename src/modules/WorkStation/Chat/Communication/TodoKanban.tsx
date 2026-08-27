@@ -13,12 +13,6 @@
  * per-task lifecycle is conveyed on the card's second line (the `description`
  * slot) so the column count reflects "remaining work", not lifecycle phase.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,6 +27,14 @@ import KanbanBoard, {
   type TaskStatus,
 } from "@src/features/KanbanBoard";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Add01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleIcon,
+  Clock01Icon,
+  type IconSvgElement,
+} from "@src/icons";
 import { normalizeActivity } from "@src/lib/activityData";
 import { preserveTodoContent } from "@src/store/ui/todoMerge";
 import { formatSmartDateTime } from "@src/util/data/formatters/date";

@@ -2,10 +2,6 @@
  * WorkstationItemRow — one actionable rail row (open tab, terminal session,
  * Review, PR link, …) with its optional diff stats, CI status and close button.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
@@ -14,6 +10,11 @@ import { IconButton } from "@src/components/IconButton";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import { RailItemStatus } from "./RailItemStatus";
 import type { FocusedChatRailItem } from "./types";

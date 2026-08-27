@@ -1,4 +1,3 @@
-import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
 import React, { useCallback, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -14,6 +13,7 @@ import {
   getAppMemoryRoleLabelKey,
   getAppMemoryTotals,
 } from "@src/hooks/perf";
+import { GaugeIcon } from "@src/icons";
 
 import HoverAnimatedIcon, {
   triggerIconAnimation,

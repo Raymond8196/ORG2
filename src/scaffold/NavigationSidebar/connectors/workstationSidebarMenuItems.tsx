@@ -1,12 +1,14 @@
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
-import GithubIcon from "@hugeicons/core-free-icons/GithubIcon";
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import MessageAdd02Icon from "@hugeicons/core-free-icons/MessageAdd02Icon";
-import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
 import React from "react";
 
+import {
+  BoxIcon,
+  GaugeIcon,
+  GithubIcon,
+  InboxIcon,
+  LayoutThreeColumnIcon,
+  MessageAdd02Icon,
+  PencilEdit02Icon,
+} from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 import type { SessionCreatorDraft } from "@src/store/session";

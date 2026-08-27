@@ -1,7 +1,6 @@
 // ============================================
 // PanelHeader Component
 // ============================================
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Button from "@src/components/Button";
@@ -9,6 +8,7 @@ import {
   getShortcutKeys,
   labelWithShortcut,
 } from "@src/config/keyboard/shortcutDisplay";
+import { HugeiconsIcon } from "@src/icons";
 import {
   PANEL_HEADER_TOKENS,
   PanelHeader as SharedPanelHeader,

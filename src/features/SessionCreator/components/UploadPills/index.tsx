@@ -12,12 +12,10 @@
  *   onRemove={(fileId) => handleRemoveFile(fileId)}
  * />
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { createElement, useCallback, useEffect, useMemo } from "react";
 
 import { createLogger } from "@src/hooks/logger";
+import { Cancel01Icon, HugeiconsIcon, Image01Icon } from "@src/icons";
 import { getPreviewType } from "@src/util/file/previewTypes";
 
 import { STYLE_CONFIG, getFileTypeIcon } from "./config";

@@ -1,9 +1,11 @@
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import type { GitHubIssue } from "@src/api/tauri/github";
+import {
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import GitHubDetailHeaderContent from "./GitHubDetailHeaderContent";
 

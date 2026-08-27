@@ -7,10 +7,9 @@
  *
  * Extracted from LaunchpadDashboard.tsx to keep it under 600 lines.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useLayoutEffect, useRef, useState } from "react";
 
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import { CollapsibleSection } from "@src/modules/shared/layouts/blocks";
 import type { Repo } from "@src/store/repo/types";
 

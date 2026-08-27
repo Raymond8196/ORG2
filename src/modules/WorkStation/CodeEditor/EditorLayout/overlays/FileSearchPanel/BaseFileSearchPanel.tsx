@@ -9,9 +9,6 @@
  * - FileSearchPanel (sidebar variant)
  * - SingleFileSearchPanel (with spinner and close button)
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Virtuoso, type VirtuosoHandle } from "react-virtuoso";
@@ -21,6 +18,7 @@ import FileTypeIcon from "@src/components/FileTypeIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { useListNavigation } from "@src/hooks/keyboard/useListNavigation";
+import { Cancel01Icon, HugeiconsIcon, Loading03Icon } from "@src/icons";
 import type { FileSearchResult } from "@src/modules/WorkStation/CodeEditor/hooks/useCodeEditor";
 
 import { SearchInput } from "../../../Panels/shared";

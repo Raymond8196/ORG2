@@ -5,14 +5,12 @@
  * - IdleState: Shows when no event is active (Gemini style)
  * - BootingState: Shows during initial system loading (Gemini style)
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import PowerServiceIcon from "@hugeicons/core-free-icons/PowerServiceIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
+import { HugeiconsIcon, Loading03Icon, PowerServiceIcon } from "@src/icons";
 
 /** Idle state display - shown when no event is active (Gemini style) */
 export const IdleState = memo(() => {

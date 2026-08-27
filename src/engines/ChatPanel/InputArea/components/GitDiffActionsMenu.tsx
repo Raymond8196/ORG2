@@ -11,9 +11,6 @@
  * - Git Actions: commit / commit & push (agent-driven) and push (direct git)
  * - Review: open the diff in My Station or Agent Station
  */
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -27,6 +24,7 @@ import {
   DROPDOWN_ITEM,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import { Infinity01Icon, HugeiconsIcon, LaptopIcon } from "@src/icons";
 
 export interface GitDiffActionsMenuProps {
   onCommit: () => void;

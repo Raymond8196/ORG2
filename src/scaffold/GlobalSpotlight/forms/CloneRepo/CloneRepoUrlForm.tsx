@@ -3,15 +3,17 @@
  *
  * Form for cloning a repo from a GitHub URL
  */
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
+import {
+  CodeIcon,
+  FolderClosedIcon,
+  FolderOpenIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import { joinPathForDisplay } from "@src/util/file/pathUtils";
 

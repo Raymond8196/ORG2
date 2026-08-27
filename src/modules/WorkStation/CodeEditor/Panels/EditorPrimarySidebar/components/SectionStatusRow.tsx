@@ -6,9 +6,9 @@
  * state INSIDE the collapsible OPEN/CLOSED structure — not as a centered
  * full-pane Placeholder. See `workspace_sidebar_section_loading_inside_structure`.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 
 export type SectionStatus =
   | { kind: "loading"; message: string }

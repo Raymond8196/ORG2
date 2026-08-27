@@ -1,17 +1,3 @@
-import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
-import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
-import FolderKanbanIcon from "@hugeicons/core-free-icons/FolderKanbanIcon";
-import FolderOutputIcon from "@hugeicons/core-free-icons/FolderOutputIcon";
-import Link01Icon from "@hugeicons/core-free-icons/Link01Icon";
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import NotificationOff01Icon from "@hugeicons/core-free-icons/NotificationOff01Icon";
-import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
-import PanelRightIcon from "@hugeicons/core-free-icons/PanelRightIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Share02Icon from "@hugeicons/core-free-icons/Share02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
 import { createPortal } from "react-dom";
@@ -29,6 +15,22 @@ import Switch from "@src/components/Switch";
 import { useCopySessionReference } from "@src/features/Org2Cloud/useCopySessionReference";
 import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { useSessionNotificationMute } from "@src/hooks/notifications/useSessionNotificationMute";
+import {
+  ClipboardIcon,
+  FirstBracketIcon,
+  FolderKanbanIcon,
+  FolderOutputIcon,
+  HugeiconsIcon,
+  Link01Icon,
+  Link02Icon,
+  MoreHorizontalIcon,
+  NotificationOff01Icon,
+  PanelLeftIcon,
+  PanelRightIcon,
+  Refresh04Icon,
+  Search01Icon,
+  Share02Icon,
+} from "@src/icons";
 import { sessionByIdAtom, upsertSession } from "@src/store/session";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 import { isAgentSession } from "@src/util/session/sessionDispatch";

@@ -1,5 +1,3 @@
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +19,7 @@ import Tag, { type TagProps } from "@src/components/Tag";
 import { parseUnifiedDiffToOldNew } from "@src/engines/SessionCore/rendering/props/extractorShared";
 import { CodeMirrorDiff } from "@src/features/CodeMirror/Diff";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SECTION_SUBHEADING_CLASSES,

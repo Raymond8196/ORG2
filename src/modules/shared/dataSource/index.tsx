@@ -1,6 +1,3 @@
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { useAtomCallback } from "jotai/utils";
 import React, {
@@ -28,6 +25,7 @@ import {
   sidebarActiveCloudOrgIdAtom,
 } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import { buildOrgSelectorEntries } from "@src/features/Organizations/orgSelectorEntries";
+import { CloudIcon, HugeiconsIcon, LaptopIcon } from "@src/icons";
 import { SECTION_GAP_CLASSES } from "@src/modules/shared/layouts/SectionLayout";
 import {
   DETAIL_PANEL_TOKENS,

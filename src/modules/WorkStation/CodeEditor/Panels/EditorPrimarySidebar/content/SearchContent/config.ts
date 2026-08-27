@@ -1,14 +1,16 @@
 /**
  * RepoSearchPanel Configuration
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CaseSensitiveIcon from "@hugeicons/core-free-icons/CaseSensitiveIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import RegexIcon from "@hugeicons/core-free-icons/RegexIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import WholeWordIcon from "@hugeicons/core-free-icons/WholeWordIcon";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  CaseSensitiveIcon,
+  Refresh04Icon,
+  RegexIcon,
+  Search01Icon,
+  WholeWordIcon,
+} from "@src/icons";
 
 export const ICON_CONFIG = {
   search: Search01Icon,

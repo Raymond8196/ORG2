@@ -1,5 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +7,7 @@ import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Tag from "@src/components/Tag";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import { getLabelColorStyle } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/workstationIssueHelpers";
 import MarkdownTextareaEditor, {
   type MarkdownEditorMode,

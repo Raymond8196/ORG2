@@ -18,8 +18,6 @@
  * <Textarea autoSize maxLength={500} showWordLimit />
  * ```
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
   useCallback,
@@ -30,6 +28,7 @@ import React, {
 
 import type { FieldAppearance } from "@src/components/controlAppearance";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import { CancelCircleIcon, HugeiconsIcon } from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import "./index.scss";

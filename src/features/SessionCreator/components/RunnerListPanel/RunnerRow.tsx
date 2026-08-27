@@ -15,9 +15,6 @@
  * line. The line duplicated the pill it sat under ("Pick a harness" twice),
  * and on a narrow panel it had no width left and rendered as a bare triangle.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
@@ -31,6 +28,7 @@ import {
   RUNNER_BLOCKER,
   type RunnerBlocker,
 } from "@src/features/SessionCreator/multiRunner/contract";
+import { Infinity01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import type { AdvancedConfig } from "../../types";
 import type { RunnerAgentDisplay } from "./resolveRunnerAgent";

@@ -11,14 +11,11 @@
  * heights with a staggered CSS animation, which is exactly what the reference
  * UI does and avoids the cost of an AudioContext just for cosmetics.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
+import { Add01Icon, Cancel01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 import "./VoiceRecordingBar.scss";
 

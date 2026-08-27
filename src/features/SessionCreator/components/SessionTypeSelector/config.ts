@@ -1,4 +1,4 @@
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
+import { FlashIcon } from "@src/icons";
 
 import {
   AGENT_EXEC_MODES,

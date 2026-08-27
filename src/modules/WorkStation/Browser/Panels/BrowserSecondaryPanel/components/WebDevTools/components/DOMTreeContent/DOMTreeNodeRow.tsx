@@ -4,12 +4,10 @@
  * Renders a single row in the DOM tree with syntax highlighting.
  * Shows: tag name (primary), #id (warning), .classes (text-2)
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
 import { TREE_INDENT_PX, TREE_PADDING_X } from "@src/components/TreeRow/config";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import type { DOMTreeNode } from "@src/modules/WorkStation/Browser/hooks/useWebviewDOMTree";
 
 // ============================================

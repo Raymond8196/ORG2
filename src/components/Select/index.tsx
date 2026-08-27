@@ -17,11 +17,6 @@
  * <Select mode="multiple" showSearch options={options} onChange={handleChange} />
  * ```
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   forwardRef,
   useCallback,
@@ -45,6 +40,13 @@ import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { getDropdownPanelStyle } from "@src/hooks/dropdown/dropdownPanelStyle";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import {
+  ArrowDown01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Search01Icon,
+} from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
 import { RADIUS_CLASS_MAP, SELECT_DEFAULTS } from "./config";

@@ -11,13 +11,15 @@
  * row's message surface in a chat-panel tab, and the row takes the ordinary
  * selected state while that tab is active.
  */
-import ArchiveArrowUpIcon from "@hugeicons/core-free-icons/ArchiveArrowUpIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
 import type { TFunction } from "i18next";
 import type { MouseEvent } from "react";
 
+import {
+  ArchiveArrowUpIcon,
+  Delete02Icon,
+  HashtagIcon,
+  MoreHorizontalIcon,
+} from "@src/icons";
 import type {
   NavigationMenuItem,
   NavigationMenuRowAction,

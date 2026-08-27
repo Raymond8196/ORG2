@@ -1,9 +1,8 @@
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
 import type { TFunction } from "i18next";
 import { describe, expect, it, vi } from "vitest";
 
 import type { CloudChannel } from "@src/features/Org2Cloud/channels/types";
+import { HashtagIcon, LockIcon } from "@src/icons";
 
 import {
   type BuildCloudChannelsMenuItemsParams,

@@ -1,13 +1,11 @@
 import Button from "@/src/components/Button";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Collapse from "@src/components/Collapse";
 import Input from "@src/components/Input";
 import Textarea from "@src/components/Textarea";
+import { ChevronsDownUpIcon, HugeiconsIcon, UnfoldMoreIcon } from "@src/icons";
 
 import "./index.scss";
 

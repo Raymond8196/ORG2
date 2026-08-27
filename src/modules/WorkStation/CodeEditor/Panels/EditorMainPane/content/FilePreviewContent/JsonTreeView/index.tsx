@@ -9,15 +9,13 @@
  * - Copy path or value on click
  * - Large file handling with collapse by default
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Message } from "@src/components/Message";
 import { Placeholder } from "@src/components/Placeholder";
 import i18n from "@src/i18n";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
 
 import "./index.scss";

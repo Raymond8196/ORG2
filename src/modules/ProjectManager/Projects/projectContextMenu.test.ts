@@ -1,6 +1,7 @@
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 import { isValidElement } from "react";
 import { describe, expect, it, vi } from "vitest";
+
+import { ListChevronsDownUpIcon } from "@src/icons";
 
 import type { ProjectData } from "../shared/components/PropertiesPanel/types";
 import { getProjectContextMenuItems } from "./projectContextMenu";

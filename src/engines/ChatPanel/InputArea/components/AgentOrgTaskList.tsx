@@ -1,8 +1,3 @@
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +6,13 @@ import {
   type AgentOrgTask,
   type AgentOrgTaskStatus,
 } from "@src/api/tauri/agent";
+import {
+  BubbleChatIcon,
+  ChevronsDownUpIcon,
+  HugeiconsIcon,
+  LockIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 
 const TASK_STATUS_CHIP_BASE =
   "inline-flex shrink-0 items-center whitespace-nowrap rounded-full px-2 py-0.5 text-[10px] font-medium leading-4";

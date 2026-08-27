@@ -1,7 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback } from "react";
 import { createPortal } from "react-dom";
 
@@ -15,6 +11,7 @@ import {
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { Add01Icon, BoxIcon, HugeiconsIcon, ListChecksIcon } from "@src/icons";
 
 interface AddActionsButtonProps {
   onAddProject?: () => void;

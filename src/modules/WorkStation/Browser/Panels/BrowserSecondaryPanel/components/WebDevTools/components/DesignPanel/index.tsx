@@ -4,14 +4,16 @@
  * Visual design editor for the selected element.
  * Shows position, layout (flow, size, padding, margin), box model, and effects.
  */
-import EclipseIcon from "@hugeicons/core-free-icons/EclipseIcon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import SquareRoundCornerIcon from "@hugeicons/core-free-icons/SquareRoundCornerIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  EclipseIcon,
+  HugeiconsIcon,
+  MoreHorizontalIcon,
+  SquareRoundCornerIcon,
+} from "@src/icons";
 import type { FullComputedStyles } from "@src/modules/WorkStation/Browser/hooks/useWebviewStyleEditor";
 import {
   EditableField,

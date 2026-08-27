@@ -24,10 +24,6 @@ import {
 } from "@codemirror/search";
 import { Extension, StateEffect, StateField } from "@codemirror/state";
 import { EditorView, Panel } from "@codemirror/view";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { createRoot } from "react-dom/client";
 import { useTranslation } from "react-i18next";
@@ -37,6 +33,12 @@ import {
   DEBOUNCE_DELAYS,
   useDebouncedCallback,
 } from "@src/hooks/perf/useDebouncedCallback";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,

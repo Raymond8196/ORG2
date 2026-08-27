@@ -1,5 +1,3 @@
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +6,7 @@ import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut
 import Tooltip from "@src/components/Tooltip";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { ArrowUp02Icon, HugeiconsIcon } from "@src/icons";
 import { chatAppearanceAtom } from "@src/store/config/configAtom";
 
 export interface AgentControlSubmitButtonProps {

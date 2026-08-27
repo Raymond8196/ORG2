@@ -1,11 +1,10 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import ModelIcon from "@src/components/ModelIcon";
 import ModelPropertiesDropdown from "@src/components/ModelPropertiesDropdown";
 import Tooltip from "@src/components/Tooltip";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 import { INLINE_SPLIT_HEADER_ROW_CLASS } from "@src/modules/MainApp/Integrations/KeyVault/shared/InlineSplitRows";
 import { InlineOptionCard } from "@src/modules/shared/layouts/blocks";
 import type { ModelTableVariantInfo } from "@src/types/modelTable";

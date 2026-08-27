@@ -3,13 +3,6 @@
  *
  * Form for cloning a repo from connected GitHub accounts
  */
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -21,6 +14,15 @@ import Input from "@src/components/Input";
 import { Placeholder } from "@src/components/Placeholder";
 import Radio from "@src/components/Radio";
 import { buildIntegrationsPath } from "@src/config/mainAppPaths";
+import {
+  FilterIcon,
+  FolderClosedIcon,
+  FolderOpenIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  LockIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import { joinPathForDisplay } from "@src/util/file/pathUtils";
 

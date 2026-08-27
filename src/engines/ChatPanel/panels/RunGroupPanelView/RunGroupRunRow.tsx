@@ -2,8 +2,6 @@
  * One run inside a run group: which harness ran, how it is doing, what you can
  * do about it.
  */
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +14,7 @@ import type { RunnerAgentDisplay } from "@src/features/SessionCreator/components
 import { RUNNER_BLOCKER } from "@src/features/SessionCreator/multiRunner/contract";
 import type { RunGroupEntry } from "@src/features/SessionCreator/multiRunner/runGroupContract";
 import { useModelPillLabel } from "@src/hooks/models";
+import { HugeiconsIcon, WorkflowCircle05Icon } from "@src/icons";
 import type { Session } from "@src/store/session";
 
 import {

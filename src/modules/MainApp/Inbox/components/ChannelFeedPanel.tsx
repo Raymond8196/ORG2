@@ -5,10 +5,6 @@
  * Messages are grouped by date and displayed in a chronological stream.
  * Bottom composer matches session/chat input styling; floating scroll-to-bottom when not at end.
  */
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -28,6 +24,12 @@ import {
   INPUT_AREA,
   INPUT_AREA_CLASSES,
 } from "@src/config/inputAreaTokens";
+import {
+  Delete02Icon,
+  HugeiconsIcon,
+  Search01Icon,
+  TickDouble01Icon,
+} from "@src/icons";
 import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 import type { InboxCategory, InboxChannelConfig } from "../config";

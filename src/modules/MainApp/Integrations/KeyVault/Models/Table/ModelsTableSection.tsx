@@ -1,8 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowUp01Icon from "@hugeicons/core-free-icons/ArrowUp01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 
 import { ORGII_ORCHESTRATOR } from "@src/assets/providers/types";
@@ -16,6 +11,13 @@ import Switch from "@src/components/Switch";
 import { MODEL_TABLE_SWITCH_SIZE } from "@src/config/modelTable";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  Add01Icon,
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  HugeiconsIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import GroupRowEraTag from "@src/modules/MainApp/Integrations/KeyVault/shared/ModelTable/GroupRowEraTag";
 
 import { EnabledFractionText } from "../../../shared/EnabledFractionText";

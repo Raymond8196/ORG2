@@ -4,7 +4,7 @@
  * Displays the appropriate SVG icon for integration types.
  * Brand integrations (Telegram, Discord, WhatsApp, Feishu, DingTalk,
  * GitHub, GitLab) use dedicated SVG brand icons.
- * Generic types (email, nodes) use Lucide.
+ * Generic types (email, nodes) use hugeicons glyphs.
  *
  * @example
  * ```tsx
@@ -13,10 +13,9 @@
  * <IntegrationIcon type="email" size={16} className="text-text-2" />
  * ```
  */
-import AiNetworkIcon from "@hugeicons/core-free-icons/AiNetworkIcon";
-import Mail01Icon from "@hugeicons/core-free-icons/Mail01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
+
+import { AiNetworkIcon, HugeiconsIcon, Mail01Icon } from "@src/icons";
 
 import { type BrandIntegrationType, INTEGRATION_ICON_MAP } from "./config";
 
@@ -42,7 +41,7 @@ export interface IntegrationIconProps {
 
 const IntegrationIcon: React.FC<IntegrationIconProps> = memo(
   ({ type, size = 16, className = "" }) => {
-    // Lucide fallbacks for non-brand types
+    // Glyph fallbacks for non-brand types
     if (type === "email") {
       return (
         <HugeiconsIcon

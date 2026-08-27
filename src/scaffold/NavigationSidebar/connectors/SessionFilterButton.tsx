@@ -1,12 +1,3 @@
-import FilterMailIcon from "@hugeicons/core-free-icons/FilterMailIcon";
-import FolderInputIcon from "@hugeicons/core-free-icons/FolderInputIcon";
-import FolderOutputIcon from "@hugeicons/core-free-icons/FolderOutputIcon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import SlidersHorizontalIcon from "@hugeicons/core-free-icons/SlidersHorizontalIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import TickDouble01Icon from "@hugeicons/core-free-icons/TickDouble01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type FC, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -21,6 +12,17 @@ import {
 import IconButton from "@src/components/IconButton";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import {
+  FilterMailIcon,
+  FolderInputIcon,
+  FolderOutputIcon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+  Refresh04Icon,
+  SlidersHorizontalIcon,
+  SquareArrowUpRightIcon,
+  TickDouble01Icon,
+} from "@src/icons";
 
 import HoverAnimatedIcon, {
   triggerIconAnimation,

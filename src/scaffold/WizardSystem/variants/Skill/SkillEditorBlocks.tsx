@@ -8,10 +8,6 @@
  * - BundledFileEntry: path input + CodeMirror editor for a bundled file
  * - DescriptionQualityIndicator: quality badge based on description length
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +16,12 @@ import Input from "@src/components/Input";
 import Switch from "@src/components/Switch";
 import { CodeMirrorEditor } from "@src/features/CodeMirror/Editor";
 import type { UseSkillEditorReturn } from "@src/hooks/skills/useSkillEditor";
+import {
+  Alert01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Tick01Icon,
+} from "@src/icons";
 import type {
   BundledFileDraft,
   SkillEditorDraft,

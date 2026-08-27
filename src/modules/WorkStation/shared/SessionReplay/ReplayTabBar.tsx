@@ -20,12 +20,6 @@
  *     MAX_REPLAY_TABS
  *   );
  */
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import File02Icon from "@hugeicons/core-free-icons/File02Icon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { Fragment, memo, useEffect, useRef } from "react";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -34,6 +28,14 @@ import { TAB_PAIR_SEPARATOR_SLOT_CLASS } from "@src/components/TabPill/config";
 import { NoDragRegion } from "@src/components/WindowChrome";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { EVENT_LOADING_SHIMMER_TEXT_CLASSES } from "@src/engines/ChatPanel/blocks/primitives";
+import {
+  ComputerTerminal01Icon,
+  File02Icon,
+  HugeiconsIcon,
+  InternetIcon,
+  Search01Icon,
+  Wrench01Icon,
+} from "@src/icons";
 
 import { TAB_BAR_HEIGHT } from "../TabBar/config";
 import { TAB_BAR_TRAILING_EDGE_CLASS } from "../tokens";
@@ -194,7 +196,7 @@ const TabItem: React.FC<TabItemProps> = ({
 }) => {
   const icon = tab.icon ?? defaultIconForKind(tab.kind, tab.label, isActive);
   // File-type icons are full-colour SVG assets — don't override their fill/stroke.
-  // Lucide icons and custom ReactNode icons should still be tinted by the active state.
+  // Glyph icons and custom ReactNode icons should still be tinted by the active state.
   const isFileKind = tab.kind === "file";
   const iconClass = isFileKind
     ? ""

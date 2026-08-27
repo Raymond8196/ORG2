@@ -62,8 +62,6 @@
  * The pane never renders an `InputArea` — composing replies to subagents
  * is a separate, deferred concern. The cell stays read-only.
  */
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -75,6 +73,7 @@ import { ChatHistoryOverrideContext } from "@src/engines/ChatPanel/ChatHistoryOv
 import { ChatSessionContext } from "@src/engines/ChatPanel/ChatSessionContext";
 import { chatEventsForSessionAtomFamily } from "@src/engines/SessionCore/derived/sessionScopedChatEvents";
 import { findIndexAtTime } from "@src/engines/Simulator/utils/findIndexAtTime";
+import { HugeiconsIcon, ListChevronsDownUpIcon } from "@src/icons";
 import { setAllBlocksCollapsedAtom } from "@src/store/ui/collapseStateAtom";
 
 import { SubagentPromptToggle } from "./SubagentPromptToggle";

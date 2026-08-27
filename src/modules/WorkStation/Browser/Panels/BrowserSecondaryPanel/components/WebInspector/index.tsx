@@ -10,12 +10,11 @@
  * - Contains DevTools tabs (Elements, Console, Network)
  * - Collapsed state shows toggle button with error/warning indicators
  */
-import PanelRightOpenIcon from "@hugeicons/core-free-icons/PanelRightOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
+import { HugeiconsIcon, PanelRightOpenIcon } from "@src/icons";
 import type { ElementInfo } from "@src/modules/WorkStation/Browser/hooks/useWebviewInspector";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
 import type { SecondaryPanelPosition } from "@src/store/ui/workStationAtom";

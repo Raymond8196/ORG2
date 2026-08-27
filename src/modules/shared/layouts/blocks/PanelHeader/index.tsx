@@ -31,17 +31,20 @@
  * />
  * ```
  */
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React, { createContext, memo, useContext } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  ArrowLeft02Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+  Refresh04Icon,
+  Search01Icon,
+} from "@src/icons";
 
 /**
  * Surface background context for nested PanelHeader instances.
@@ -85,7 +88,7 @@ export const PANEL_HEADER_TOKENS = {
   iconSize: 14,
   /** Icon size inside action buttons (slightly larger for tap target) */
   buttonIconSize: 16,
-  /** Stroke width for Lucide icons in panel header buttons */
+  /** Stroke width for glyph icons in panel header buttons */
   iconStrokeWidth: 1.75,
   /** Font size for title text */
   fontSize: 13,
@@ -194,10 +197,10 @@ export interface PanelHeaderProps {
   /** Simple title text */
   title?: string;
 
-  /** Lucide icon component (size=14 applied automatically) */
+  /** Icon glyph (size=14 applied automatically) */
   icon?: IconSvgElement;
 
-  /** Custom icon element for non-Lucide icons (use when icon prop doesn't work) */
+  /** Custom icon element for non-glyph icons (use when icon prop doesn't work) */
   iconElement?: React.ReactNode;
 
   /** Subtitle or secondary text after title */

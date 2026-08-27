@@ -1,13 +1,12 @@
 /**
  * StyleEditsFooter — Pending style edits summary and actions (Design / CSS panels).
  */
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
+import { HugeiconsIcon, Undo02Icon } from "@src/icons";
 
 export interface StyleEditsFooterProps {
   /** Number of successful style edits in the current session */

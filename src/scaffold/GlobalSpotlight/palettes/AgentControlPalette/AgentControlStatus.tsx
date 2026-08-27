@@ -1,7 +1,7 @@
-import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 
 import Markdown from "@src/components/MarkDown";
+import { HugeiconsIcon, type IconSvgElement } from "@src/icons";
 
 export interface AgentControlStatusProps {
   icon: IconSvgElement;

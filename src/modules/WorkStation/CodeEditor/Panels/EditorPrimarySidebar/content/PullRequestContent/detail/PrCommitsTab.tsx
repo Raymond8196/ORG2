@@ -7,16 +7,6 @@
  * inline via `GitCommitDetailContent`, which automatically fetches the PR ref
  * when the commit is not local yet.
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotDashedIcon from "@hugeicons/core-free-icons/CircleDotDashedIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import SecurityCheckIcon from "@hugeicons/core-free-icons/SecurityCheckIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -28,6 +18,18 @@ import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useCopyCheck } from "@src/hooks/ui";
+import {
+  ArrowLeft01Icon,
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleDotDashedIcon,
+  CodeIcon,
+  Copy01Icon,
+  GitCommitHorizontalIcon,
+  HugeiconsIcon,
+  SecurityCheckIcon,
+  Tick01Icon,
+} from "@src/icons";
 import GitCommitDetailContent from "@src/modules/WorkStation/CodeEditor/Panels/EditorMainPane/content/GitCommitDetailContent";
 import { ActivityHeaderActionButton } from "@src/modules/shared/components/ActivityTimeline";
 import { copyText } from "@src/util/data/clipboard";

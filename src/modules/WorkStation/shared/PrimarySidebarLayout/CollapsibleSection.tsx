@@ -7,15 +7,13 @@
  *
  * Shared by: CodeEditor, DatabaseManager, Browser
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 
 import {
   type SectionHeaderAction,
   isSectionHeaderCustomAction,
 } from "@src/components/TreePanelSidebar/types";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import {
   BUTTON_SIZE,
   SECTION_ACTION_BUTTON,

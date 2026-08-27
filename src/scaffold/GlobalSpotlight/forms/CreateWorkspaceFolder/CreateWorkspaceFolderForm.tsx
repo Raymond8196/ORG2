@@ -4,13 +4,11 @@
  * Form for creating a new local workspace folder.
  */
 import Button from "@/src/components/Button";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import Input from "@src/components/Input";
+import { CodeIcon, FolderClosedIcon, HugeiconsIcon } from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import { joinPathForDisplay } from "@src/util/file/pathUtils";
 

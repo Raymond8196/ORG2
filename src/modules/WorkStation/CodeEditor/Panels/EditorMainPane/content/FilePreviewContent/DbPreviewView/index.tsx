@@ -1,5 +1,3 @@
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +5,7 @@ import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
 import Select, { type SelectOption } from "@src/components/Select";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   TableSurface,
   type TableSurfaceColumn,

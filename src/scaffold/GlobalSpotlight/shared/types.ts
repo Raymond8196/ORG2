@@ -3,8 +3,9 @@
  *
  * Common types used across all spotlight components (Editor, Session, Global)
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
+
+import type { IconSvgElement } from "@src/icons";
 
 // ============ BASE PALETTE PROPS ============
 

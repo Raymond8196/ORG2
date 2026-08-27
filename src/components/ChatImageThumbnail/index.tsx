@@ -12,13 +12,11 @@
  *                       and read directly via `readFile`
  *   3. absolute path  — read directly via `readFile`
  */
-import Image01Icon from "@hugeicons/core-free-icons/Image01Icon";
-import ImageNotFound01Icon from "@hugeicons/core-free-icons/ImageNotFound01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { readFile } from "@tauri-apps/plugin-fs";
 import React, { memo, useCallback, useEffect, useState } from "react";
 
 import ImagePreviewOverlay from "@src/components/ImagePreviewOverlay";
+import { HugeiconsIcon, Image01Icon, ImageNotFound01Icon } from "@src/icons";
 import { uint8ArrayToDataUrl } from "@src/util/file/binaryUtils";
 import { imageRefToRustPath } from "@src/util/file/imageRefs";
 import { getImageMimeType } from "@src/util/file/previewTypes";

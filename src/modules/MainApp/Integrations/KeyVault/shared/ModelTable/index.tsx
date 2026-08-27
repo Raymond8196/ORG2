@@ -19,12 +19,6 @@
  *   - `useModelTableColumns`        → flat + group `SettingsTableColumn` defs.
  *   - `useModelGroupExpandable`     → expandable per-row cells in group view.
  */
-import Plus from "@hugeicons/core-free-icons/Add01Icon";
-import ListChevronsDownUp from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import ListChevronsUpDown from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import List from "@hugeicons/core-free-icons/ListIcon";
-import TableProperties from "@hugeicons/core-free-icons/TablePropertiesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,6 +27,14 @@ import InlineAlert from "@src/components/InlineAlert";
 import { getIconProviderFromModelName } from "@src/components/ModelIcon/config";
 import SettingsTable from "@src/components/SettingsTable";
 import { MODEL_TABLE_SWITCH_SIZE } from "@src/config/modelTable";
+import {
+  HugeiconsIcon,
+  ListIcon as List,
+  ListChevronsDownUpIcon as ListChevronsDownUp,
+  ListChevronsDownUpIcon as ListChevronsUpDown,
+  Add01Icon as Plus,
+  TablePropertiesIcon as TableProperties,
+} from "@src/icons";
 import type {
   ModelTableModelAlias,
   ModelTableVariantInfo,

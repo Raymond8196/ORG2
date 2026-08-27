@@ -7,14 +7,13 @@
  *
  * Extracted from RepoDetailPage.tsx to keep it under 600 lines.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import type { ScriptCategory } from "@src/modules/shared/launchpad/types";
 import {
   SectionContainer,

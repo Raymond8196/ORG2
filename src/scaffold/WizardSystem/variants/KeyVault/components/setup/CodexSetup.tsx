@@ -1,6 +1,3 @@
-import KeyboardIcon from "@hugeicons/core-free-icons/KeyboardIcon";
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import SearchAreaIcon from "@hugeicons/core-free-icons/SearchAreaIcon";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -8,6 +5,7 @@ import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import { CodexSessionSetup } from "@src/features/SessionSetup";
+import { KeyboardIcon, Login01Icon, SearchAreaIcon } from "@src/icons";
 import {
   SECTION_CONTROL_STYLE,
   SECTION_GAP_CLASSES,

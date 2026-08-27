@@ -5,13 +5,15 @@
  * by the pull-request detail: the large title with its muted #number, then a
  * status pill and the "{author} opened this issue · N comments" sentence.
  */
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import type { GitHubIssue } from "@src/api/tauri/github";
+import {
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { ActivityTimestamp } from "@src/modules/shared/components/ActivityTimeline";
 import GitHubFlowHeader from "@src/modules/shared/components/GitHubFlowHeader";
 

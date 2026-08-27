@@ -28,10 +28,6 @@
  *   - `null`     → the session creator (new-session mode); a successful
  *                  background launch adopts the new session in place.
  */
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -47,6 +43,12 @@ import {
 import { ChatProvider } from "@src/contexts/workspace/ChatContext";
 import { SessionService } from "@src/engines/SessionCore/services/SessionService";
 import { createLogger } from "@src/hooks/logger";
+import {
+  BubbleChatIcon,
+  HugeiconsIcon,
+  PencilEdit02Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import {
   activeChatPanelTabTypeAtom,
   openOrFocusSessionInChatPanelTabAtom,

@@ -1,5 +1,3 @@
-import MailOpen01Icon from "@hugeicons/core-free-icons/MailOpen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +17,7 @@ import {
   type SessionEvent,
   TOOL_USAGE_ARGS_KEY,
 } from "@src/engines/SessionCore/core/types";
+import { HugeiconsIcon, MailOpen01Icon } from "@src/icons";
 
 import {
   AgentTurnContext,

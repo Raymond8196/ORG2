@@ -1,5 +1,3 @@
-import ListFilterIcon from "@hugeicons/core-free-icons/ListFilterIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
@@ -17,6 +15,7 @@ import {
 } from "@src/engines/SessionCore/derived/simulatorEventFilters";
 import { getDropdownPanelStyle } from "@src/hooks/dropdown/dropdownPanelStyle";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
+import { HugeiconsIcon, ListFilterIcon } from "@src/icons";
 import { simulatorEventFiltersAtom } from "@src/store/ui/simulatorAtom";
 
 const FILTER_LABEL_KEYS: Record<SimulatorEventFilterValue, string> = {

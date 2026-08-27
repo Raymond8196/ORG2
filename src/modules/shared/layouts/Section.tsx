@@ -20,10 +20,9 @@
  *      <SectionContainer>...</SectionContainer>
  *    </Section>
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
+
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 import {
   SECTION_CONTAINER_CLASSES,

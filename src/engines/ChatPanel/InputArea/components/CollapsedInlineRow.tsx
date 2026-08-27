@@ -9,10 +9,6 @@
  *
  * Each pill shows icon + numeric count only. gap-1 between pills.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useState } from "react";
 
 import Button from "@src/components/Button";
@@ -23,6 +19,12 @@ import {
 import Dropdown from "@src/components/Dropdown";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
+import {
+  Add01Icon,
+  BrushCleaningIcon,
+  HugeiconsIcon,
+  Layout01Icon,
+} from "@src/icons";
 
 import type { ScrollNavState } from "../../ChatHistory";
 

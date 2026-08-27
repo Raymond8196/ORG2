@@ -1,9 +1,3 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import RocketIcon from "@hugeicons/core-free-icons/RocketIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { type FC, useCallback, useMemo } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -20,6 +14,14 @@ import IconButton from "@src/components/IconButton";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import {
+  ArrowDown01Icon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  CircleIcon,
+  HugeiconsIcon,
+  RocketIcon,
+} from "@src/icons";
 
 import {
   SIDEBAR_GUIDE_MILESTONE,

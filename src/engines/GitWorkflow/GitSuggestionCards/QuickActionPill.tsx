@@ -11,11 +11,10 @@
  *  - With `button` prop: outer shell is a non-interactive div; the
  *    provided button node is rendered on the right, always visible.
  */
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { useSafeHover } from "@src/hooks/ui/useSafeHover";
+import { ArrowRight02Icon, HugeiconsIcon } from "@src/icons";
 
 export interface QuickActionPillProps {
   /** Left-side icon element */

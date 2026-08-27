@@ -3,10 +3,6 @@
  *
  * Displays console log entries with filtering and search capabilities.
  */
-import BrushCleaningIcon from "@hugeicons/core-free-icons/BrushCleaningIcon";
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -24,6 +20,12 @@ import Input from "@src/components/Input";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { Placeholder } from "@src/components/Placeholder";
 import Select from "@src/components/Select";
+import {
+  BrushCleaningIcon,
+  Copy01Icon,
+  HugeiconsIcon,
+  Tick01Icon,
+} from "@src/icons";
 import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,

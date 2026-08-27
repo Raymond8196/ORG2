@@ -6,11 +6,11 @@
  *
  * SYNC: Syncs with workStationPrimarySidebarTabAtom so AI actions can switch tabs.
  */
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { HugeiconsIcon } from "@src/icons";
 import { workStationPrimarySidebarTabAtom } from "@src/store/ui/workStationAtom";
 
 import { ICON_CONFIG, PANEL_CONSTANTS, TAB_LABELS, TAB_ORDER } from "../config";

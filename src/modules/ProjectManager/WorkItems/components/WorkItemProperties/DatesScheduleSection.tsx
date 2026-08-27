@@ -1,12 +1,9 @@
-import Calendar01Icon from "@hugeicons/core-free-icons/Calendar01Icon";
-import TimeScheduleIcon from "@hugeicons/core-free-icons/TimeScheduleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
-
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import {
   FieldRow,
   type FieldRowVariant,
 } from "@src/components/PropertyField/PropertyFieldEditable";
+import { Calendar01Icon, HugeiconsIcon, TimeScheduleIcon } from "@src/icons";
 import type { WorkItem as WorkItemExtended } from "@src/types/core/workItem";
 
 import { DateQuickAssignDropdown } from "./DateQuickAssignDropdown";

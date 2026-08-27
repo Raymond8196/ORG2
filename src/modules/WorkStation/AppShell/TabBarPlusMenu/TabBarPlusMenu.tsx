@@ -6,8 +6,6 @@
  * while the extracted item renderer keeps this coordinator focused on menu
  * state and repository diff data.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +18,7 @@ import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailing
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
 import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
 
 import {

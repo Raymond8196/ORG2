@@ -11,8 +11,6 @@
  * View mode (kanban / diary) is driven by the `?view=` URL search param,
  * toggled from the Kanban Workstation header tabs.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, {
   useCallback,
@@ -33,6 +31,7 @@ import {
 import type { KanbanTask, TaskStatus } from "@src/features/KanbanBoard";
 import { useCloudSessionActions } from "@src/features/Org2Cloud/useCloudSessionActions";
 import { sidebarSelectedOrgIdAtom } from "@src/features/Organizations/sidebarOrgScopeAtom";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import { loadSessionRoster } from "@src/store/session";
 import { kanbanReplayModeAtom } from "@src/store/ui/kanbanReplayAtom";
 import {

@@ -4,8 +4,6 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { open as shellOpen } from "@tauri-apps/plugin-shell";
 import { useAtomValue } from "jotai";
 import React, { useEffect, useMemo, useState } from "react";
@@ -30,6 +28,7 @@ import {
   normalizeNotificationSoundPreset,
 } from "@src/config/notificationSounds";
 import type { NotificationSoundPreset } from "@src/config/notificationSounds";
+import { HugeiconsIcon, PlayIcon } from "@src/icons";
 import { NAV_BUTTON_PROPS } from "@src/modules/MainApp/Settings/config";
 import { useSetting } from "@src/store/settings";
 import { notificationSettingsAtom } from "@src/store/ui/notificationAtom";

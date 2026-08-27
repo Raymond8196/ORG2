@@ -1,6 +1,3 @@
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import EllipsisIcon from "@hugeicons/core-free-icons/EllipsisIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -13,6 +10,7 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { Delete02Icon, EllipsisIcon, HugeiconsIcon } from "@src/icons";
 import {
   FOLDER_HEADER,
   HEADER_BUTTON,

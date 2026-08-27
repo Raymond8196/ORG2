@@ -1,11 +1,10 @@
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
+import { Download01Icon, HugeiconsIcon } from "@src/icons";
 import {
   installAvailableAppUpdate,
   useAvailableAppUpdate,

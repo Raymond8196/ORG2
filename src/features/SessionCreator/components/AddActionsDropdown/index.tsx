@@ -7,10 +7,6 @@
  *
  * Uses shared useDropdownEngine hook for consistent behavior.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import AtIcon from "@hugeicons/core-free-icons/AtIcon";
-import AttachmentIcon from "@hugeicons/core-free-icons/AttachmentIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -23,6 +19,7 @@ import {
 } from "@src/components/Dropdown/tokens";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { Add01Icon, AtIcon, AttachmentIcon, HugeiconsIcon } from "@src/icons";
 
 import { ACTION_ITEMS } from "./config";
 

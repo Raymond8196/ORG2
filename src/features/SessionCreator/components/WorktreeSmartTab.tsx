@@ -1,15 +1,17 @@
-import CaseSensitiveIcon from "@hugeicons/core-free-icons/CaseSensitiveIcon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 
 import SearchInput from "@src/components/SearchInput";
+import {
+  CaseSensitiveIcon,
+  CircleDotIcon,
+  GitPullRequestIcon,
+  HashtagIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+  SparklesIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
 
 import {

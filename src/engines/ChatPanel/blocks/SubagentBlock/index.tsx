@@ -12,9 +12,6 @@
  *   2. **Success** — infinity icon, assignment prompt preview when available.
  *   3. **Failed / cancelled** — infinity icon, error body.
  */
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import SquareIcon from "@hugeicons/core-free-icons/SquareIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -29,6 +26,7 @@ import { ChatBubbleAvatar, ChatBubbleBody } from "@src/components/ChatBubble";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
 import { createLogger } from "@src/hooks/logger";
+import { Infinity01Icon, HugeiconsIcon, SquareIcon } from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
 import {
@@ -55,7 +53,7 @@ export interface SubagentBlockProps {
    */
   agentName?: string;
   /**
-   * Lucide icon slug for the delegated agent's avatar. Falls back to the
+   * Icon slug for the delegated agent's avatar. Falls back to the
    * delegation (infinity) mark when the agent has no resolved icon.
    */
   agentIconId?: string;

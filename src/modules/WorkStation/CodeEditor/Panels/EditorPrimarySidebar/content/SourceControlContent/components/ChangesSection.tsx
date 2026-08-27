@@ -3,12 +3,9 @@
  *
  * Displays unstaged files with stage, discard, stash, and diff actions
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 
+import { Add01Icon, ArchiveIcon, HugeiconsIcon, Undo02Icon } from "@src/icons";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
 import type { GitFile } from "@src/types/git/types";
 

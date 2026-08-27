@@ -9,8 +9,6 @@
  * - Result count and up/down navigation
  * - Escape to close
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import {
   type RefObject,
   forwardRef,
@@ -22,6 +20,7 @@ import {
 import { useTranslation } from "react-i18next";
 
 import { SearchInput } from "@src/components/SearchInput";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import type { UseChatSearchReturn } from "../hooks/useChatSearch";
 

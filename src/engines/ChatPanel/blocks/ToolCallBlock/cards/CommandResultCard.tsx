@@ -1,8 +1,11 @@
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import ComputerTerminal01Icon from "@hugeicons/core-free-icons/ComputerTerminal01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  ComputerTerminal01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import type { CommandResultData } from "../types";
 import { ToolResultCardFrame } from "./ToolResultCardFrame";

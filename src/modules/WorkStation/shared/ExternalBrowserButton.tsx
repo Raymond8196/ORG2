@@ -1,11 +1,10 @@
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button, { type ButtonProps } from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { HugeiconsIcon, InternetIcon } from "@src/icons";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
 export interface ExternalBrowserButtonProps {

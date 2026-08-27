@@ -6,15 +6,17 @@
  * and the overlay displays a live screencast stream. On "Take Over",
  * Chrome window is shown on-screen for direct user interaction.
  */
-import MonitorIcon from "@hugeicons/core-free-icons/MonitorIcon";
-import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import {
+  HugeiconsIcon,
+  MonitorIcon,
+  PauseIcon,
+  PlayIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import type { AgentBrowserOverlayProps } from "./types";
 

@@ -12,10 +12,6 @@
  * Exposes methods via ref:
  * - collapseAll(): Collapse all search result file headers
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { readTextFile, writeTextFile } from "@tauri-apps/plugin-fs";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
@@ -32,6 +28,12 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
 import { createLogger } from "@src/hooks/logger";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { HUMANTOOLS_TEXT_KEYS } from "@src/modules/WorkStation/shared";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
 import { workStationSearchFocusSignalAtom } from "@src/store/ui/workStationAtom";

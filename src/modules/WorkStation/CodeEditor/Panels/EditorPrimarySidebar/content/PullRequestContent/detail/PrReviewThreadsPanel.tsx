@@ -10,10 +10,6 @@
  * affordance requires changes to the shared CodeMirror diff component and is a
  * separate follow-up; the create path is already wired in the data layer.)
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -21,6 +17,12 @@ import type { GitHubReviewComment } from "@src/api/tauri/github";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Message01Icon,
+} from "@src/icons";
 import { formatTimeAgo } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/workstationIssueHelpers";
 import { MarkdownContent } from "@src/modules/shared/components/MarkdownContent";
 import MarkdownTextareaEditor, {

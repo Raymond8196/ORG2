@@ -1,7 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import ScreenRotationIcon from "@hugeicons/core-free-icons/ScreenRotationIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -12,6 +8,12 @@ import { useStepState } from "@src/engines/SessionCore";
 import { useSessionId } from "@src/engines/SessionCore/hooks/session";
 import { createLogger } from "@src/hooks/logger";
 import { useWingmanStatus } from "@src/hooks/wingman/useWingmanStatus";
+import {
+  Cancel01Icon,
+  Clock01Icon,
+  HugeiconsIcon,
+  ScreenRotationIcon,
+} from "@src/icons";
 import { streamRetryStatusAtom } from "@src/store/session/cliSessionStatusAtom";
 
 import StreamingHud from "./StreamingHud";

@@ -1,5 +1,3 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -13,6 +11,7 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 
 import { usePropertyDropdownDirection } from "./PropertyDropdownDirection";
 import {

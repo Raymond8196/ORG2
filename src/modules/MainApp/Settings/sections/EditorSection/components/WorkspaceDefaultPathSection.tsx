@@ -1,5 +1,3 @@
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { useAtom } from "jotai";
 import React, { useCallback, useEffect, useState } from "react";
@@ -12,6 +10,7 @@ import Select from "@src/components/Select";
 import { WORKSPACE_DEFAULT_REPO_LOCATION } from "@src/config/workspaceDefaultRepoPaths";
 import type { WorkspaceDefaultRepoLocation } from "@src/config/workspaceDefaultRepoPaths";
 import { createLogger } from "@src/hooks/logger";
+import { FolderOpenIcon, HugeiconsIcon } from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SECTION_CONTROL_STYLE,

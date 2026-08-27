@@ -4,15 +4,15 @@
  * Pure macOS-style dock bar — Glass pill with app icons.
  * Used by both My Station and Agent Station with different app lists.
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import type { IconSvgElement } from "@src/icons";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 
 import {
   CompactDockIconColumn,
-  DOCK_LUCIDE_ICON_PROPS,
+  DOCK_ICON_PROPS,
   DockSegmentDivider,
   StationDockGlassPill,
   StationDockRow,
@@ -78,7 +78,7 @@ export const Dock: React.FC<DockProps> = memo(
                     title={app.name}
                     data-tour-target={getTourTarget(app.id)}
                   >
-                    <AnyIcon icon={app.icon} {...DOCK_LUCIDE_ICON_PROPS} />
+                    <AnyIcon icon={app.icon} {...DOCK_ICON_PROPS} />
                   </div>
                 </CompactDockIconColumn>
               );

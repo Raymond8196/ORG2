@@ -11,7 +11,6 @@
  *     </SectionContainer>
  *   </SectionHeading>
  */
-import { type IconSvgElement } from "@hugeicons/react";
 import React, {
   type AriaAttributes,
   type ComponentType,
@@ -20,6 +19,7 @@ import React, {
 } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import type { IconSvgElement } from "@src/icons";
 
 import {
   SECTION_GAP_CLASSES,

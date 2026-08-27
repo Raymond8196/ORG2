@@ -1,10 +1,12 @@
-import Chromium from "@hugeicons/core-free-icons/InternetIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { openUrlInBrowserApp } from "@src/components/MarkDown/markdownUtils";
+import {
+  InternetIcon as Chromium,
+  InternetIcon as Globe,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import type { WebsiteCardData } from "../types";
 

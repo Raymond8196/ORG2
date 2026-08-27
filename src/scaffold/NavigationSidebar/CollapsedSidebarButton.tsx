@@ -1,5 +1,3 @@
-import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -9,6 +7,7 @@ import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut
 import Tooltip from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { getCollapsedSidebarButtonLeft } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
+import { HugeiconsIcon, PanelLeftIcon } from "@src/icons";
 import { sidebarCollapsedAtom } from "@src/store/ui/sidebarAtom";
 
 const CollapsedSidebarButtonComponent: React.FC = () => {

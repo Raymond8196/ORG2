@@ -3,8 +3,6 @@
  * for the unified external-import flow. Rendered by every
  * `external_import_*` wizard surface (rules / skills / agents).
  */
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -12,6 +10,7 @@ import { Placeholder } from "@src/components/Placeholder";
 import SettingsTable, {
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
+import { HugeiconsIcon, InboxIcon } from "@src/icons";
 
 import type { ExternalImportRow } from "./useExternalImport";
 

@@ -1,7 +1,3 @@
-import ChevronsDownUpIcon from "@hugeicons/core-free-icons/ChevronsDownUpIcon";
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +5,12 @@ import type { ItemKind } from "@src/api/types/externalImport";
 import Button from "@src/components/Button";
 import SettingsTable from "@src/components/SettingsTable";
 import type { CursorRepo } from "@src/hooks/policies";
+import {
+  ChevronsDownUpIcon,
+  Download01Icon,
+  HugeiconsIcon,
+  UnfoldMoreIcon,
+} from "@src/icons";
 import {
   SectionContainer,
   SectionRow,

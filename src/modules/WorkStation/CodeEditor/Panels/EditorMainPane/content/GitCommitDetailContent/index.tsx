@@ -7,8 +7,6 @@
  *
  * Uses the existing getGitCommitDiff API to fetch commit details.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue } from "jotai";
 import React, {
   memo,
@@ -24,6 +22,7 @@ import { gitFetchStream } from "@src/api/http/git/streaming";
 import { Placeholder } from "@src/components/Placeholder";
 import type { GitFileStatus } from "@src/config/gitStatus";
 import { CodeMirrorDiff } from "@src/features/CodeMirror";
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import {
   FileHeader,
   GIT_FILE_LIST_MAX_WIDTH,

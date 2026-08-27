@@ -1,10 +1,9 @@
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import SplitIcon from "@hugeicons/core-free-icons/SplitIcon";
 import type { TFunction } from "i18next";
 import React from "react";
 import { describe, expect, it, vi } from "vitest";
 
 import { RUNNING_LOCATIONS } from "@src/config/sessionCreatorConfig";
+import { CodeIcon, SplitIcon } from "@src/icons";
 
 import { buildSessionInfoSegments } from "../SessionInfoLine/buildSessionInfoSegments";
 import { LOCATION_ICONS } from "../SessionInfoLine/locationConfig";

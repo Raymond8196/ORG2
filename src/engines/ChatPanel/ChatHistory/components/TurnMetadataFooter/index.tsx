@@ -1,8 +1,3 @@
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -25,6 +20,13 @@ import type {
   TurnSummary,
 } from "@src/engines/SessionCore/storage/sqliteCache";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
+import {
+  GitCommitHorizontalIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  MoreHorizontalIcon,
+} from "@src/icons";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import {
   STATION_MODE,
@@ -40,7 +42,7 @@ import { mapTurnModifiedFilesToFileChanges } from "./turnFilesMapping";
 
 const DEFAULT_VISIBLE_FILES = 4;
 /**
- * Lucide glyphs fill their viewBox while FileTypeIcon SVGs carry internal
+ * Hugeicons glyphs fill their viewBox while FileTypeIcon SVGs carry internal
  * padding, so 14px/1.75 stroke reads the same optical size as the 16px
  * file icons in sibling rows (same pairing the composer pills use).
  */

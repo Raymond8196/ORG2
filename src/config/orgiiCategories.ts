@@ -8,9 +8,7 @@
  * Categories are fully dynamic — the backend defines the list and the
  * frontend renders whatever it receives. No hardcoded tier names.
  */
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
-import type { IconSvgElement } from "@hugeicons/react";
-
+import { FlashIcon, type IconSvgElement } from "@src/icons";
 import type { ORGIIPoolCategory, ORGIIPoolConfig } from "@src/types/model/pool";
 import { formatModelNameFull } from "@src/util/formatModelName";
 

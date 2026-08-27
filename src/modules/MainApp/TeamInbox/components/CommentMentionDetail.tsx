@@ -1,10 +1,8 @@
-import AtIcon from "@hugeicons/core-free-icons/AtIcon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Markdown from "@src/components/MarkDown";
+import { AtIcon, HugeiconsIcon, Message01Icon } from "@src/icons";
 import { CARD_ROW_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 import type { CommentMentionItem, TeamInboxNavigationIntent } from "../domain";

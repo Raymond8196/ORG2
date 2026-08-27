@@ -11,16 +11,18 @@
  */
 import { SQLite, sql } from "@codemirror/lang-sql";
 import { EditorView, keymap } from "@codemirror/view";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import TextAlignLeftIcon from "@hugeicons/core-free-icons/TextAlignLeftIcon";
-import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import CodeMirror from "@uiw/react-codemirror";
 import React, { memo, useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { TableInfo } from "@src/engines/DatabaseCore";
 import { createLogger } from "@src/hooks/logger";
+import {
+  HugeiconsIcon,
+  PlayIcon,
+  TextAlignLeftIcon,
+  WorkHistoryIcon,
+} from "@src/icons";
 
 import {
   BASIC_SETUP_SQL_CONFIG,

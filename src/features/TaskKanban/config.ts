@@ -1,15 +1,16 @@
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleIcon from "@hugeicons/core-free-icons/CircleIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import MessageCircleWarningIcon from "@hugeicons/core-free-icons/MessageCircleWarningIcon";
-import type { IconSvgElement } from "@hugeicons/react";
-
 import type { ImportedHistorySourceId } from "@src/api/tauri/externalHistory";
 import type {
   KanbanColumnConfig,
   TaskStatus,
 } from "@src/features/KanbanBoard/types";
+import {
+  ArchiveIcon,
+  CheckmarkCircle01Icon,
+  CircleIcon,
+  Clock01Icon,
+  type IconSvgElement,
+  MessageCircleWarningIcon,
+} from "@src/icons";
 import type { Session } from "@src/store/session";
 import { SESSION_STATUS_DOT_COLOR } from "@src/util/session/sessionStatusDot";
 

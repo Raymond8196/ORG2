@@ -2,17 +2,19 @@
  * DiffLineComponent - Renders individual diff lines with syntax highlighting.
  * Extracted from VirtualizedModernDiff for reuse and file size management.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowDownFromLineIcon from "@hugeicons/core-free-icons/ArrowDownFromLineIcon";
-import ArrowUpFromLineIcon from "@hugeicons/core-free-icons/ArrowUpFromLineIcon";
-import FoldVerticalIcon from "@hugeicons/core-free-icons/FoldVerticalIcon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { codeMirrorPrismTheme } from "@src/features/CodeMirror/themes/prism";
+import {
+  Add01Icon,
+  ArrowDownFromLineIcon,
+  ArrowUpFromLineIcon,
+  FoldVerticalIcon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  Tick01Icon,
+} from "@src/icons";
 import { PrismLight as PrismHighlighter } from "@src/util/language/prismLight";
 
 import type { DiffLine } from "./types";

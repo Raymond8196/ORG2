@@ -6,14 +6,16 @@
  *
  * `UnsavedChangesBar` is a convenience wrapper: one unsaved variant inside a Layer.
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import Undo02Icon from "@hugeicons/core-free-icons/Undo02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { IconButton } from "@src/components/IconButton";
+import {
+  HugeiconsIcon,
+  Loading03Icon,
+  Tick01Icon,
+  Undo02Icon,
+} from "@src/icons";
 import { HUMANTOOLS_TEXT_KEYS } from "@src/modules/WorkStation/shared/textTokens";
 import {
   HEADER_ICON_SIZE,

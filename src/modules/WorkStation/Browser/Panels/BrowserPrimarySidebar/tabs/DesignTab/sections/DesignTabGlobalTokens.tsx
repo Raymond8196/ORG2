@@ -4,13 +4,12 @@
  * Shows a single "Color Tokens" entry with total count.
  * Opens a consolidated tab with all color tokens.
  */
-import ColorPickerIcon from "@hugeicons/core-free-icons/ColorPickerIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/components/Placeholder";
 import type { TreePanelNode } from "@src/components/TreePanelSidebar/types";
+import { ColorPickerIcon, HugeiconsIcon } from "@src/icons";
 import { useGlobalTokens } from "@src/modules/WorkStation/Browser/hooks/useGlobalTokens";
 
 import { TREE_ICON_SIZE } from "../config";

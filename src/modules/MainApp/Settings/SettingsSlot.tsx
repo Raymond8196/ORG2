@@ -25,10 +25,6 @@ import {
   ScrollFadeContainer,
   SettingsBreadcrumb,
 } from "@/src/modules/shared/layouts/blocks";
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import GalleryThumbnailsIcon from "@hugeicons/core-free-icons/GalleryThumbnailsIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { Suspense, useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -56,6 +52,12 @@ import { getSettingsSectionById } from "@src/config/settingsUiManifest";
 // workbench surface behaves identically across both slot occupants.
 import { useChatPanelResize } from "@src/engines/ChatPanel/hooks/useChatPanelResize";
 import { useShouldOffsetChatPanelHeader } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
+import {
+  ArrowExpand01Icon,
+  ArrowLeft01Icon,
+  GalleryThumbnailsIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 import IntegrationsDetailPanel from "@src/modules/MainApp/Integrations/IntegrationsDetailPanel";
 import { IntegrationsPageListColumn } from "@src/modules/MainApp/Integrations/IntegrationsPageListColumn";
 import { useIntegrationsPage } from "@src/modules/MainApp/Integrations/useIntegrationsPage";

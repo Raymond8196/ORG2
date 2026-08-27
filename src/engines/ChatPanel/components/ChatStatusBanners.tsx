@@ -1,9 +1,8 @@
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
+import { HugeiconsIcon, PlayIcon } from "@src/icons";
 
 export const CHAT_RETRY_KIND = {
   RECONNECTING: "reconnecting",

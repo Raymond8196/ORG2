@@ -1,7 +1,3 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import ViewIcon from "@hugeicons/core-free-icons/ViewIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -9,6 +5,12 @@ import Breadcrumb from "@src/components/Breadcrumb";
 import Checkbox from "@src/components/Checkbox";
 import Collapse from "@src/components/Collapse";
 import Radio from "@src/components/Radio";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  SquareArrowUpRightIcon,
+  ViewIcon,
+} from "@src/icons";
 
 import NotifyBottom from "./NotifyBottom";
 

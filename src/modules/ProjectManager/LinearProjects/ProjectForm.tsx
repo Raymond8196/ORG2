@@ -1,5 +1,3 @@
-import FloppyDiskIcon from "@hugeicons/core-free-icons/FloppyDiskIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -7,6 +5,7 @@ import type { LinearTeamSummary } from "@src/api/http/integrations";
 import Button from "@src/components/Button";
 import Select from "@src/components/Select";
 import Textarea from "@src/components/Textarea";
+import { FloppyDiskIcon, HugeiconsIcon } from "@src/icons";
 
 import type { ProjectDraft } from "./types";
 

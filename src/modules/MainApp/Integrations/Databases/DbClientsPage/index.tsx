@@ -5,13 +5,12 @@
  * Embedded inside the Databases integrations section.
  * Row selection opens a preview panel when embedded.
  */
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   type DependencyStatus,
   useSystemDependencies,

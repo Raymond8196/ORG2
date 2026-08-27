@@ -15,8 +15,6 @@
  * session-level transcript action (`SessionHeaderActionsMenu`), and this is the
  * same idea one turn down.
  */
-import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useMemo, useRef } from "react";
 import { createPortal } from "react-dom";
@@ -29,6 +27,7 @@ import {
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { getDropdownPanelStyle } from "@src/hooks/dropdown/dropdownPanelStyle";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
+import { FirstBracketIcon, HugeiconsIcon } from "@src/icons";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { toIntlLocaleTag } from "@src/util/data/formatters/date";
 

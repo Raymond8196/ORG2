@@ -4,15 +4,17 @@
  * Configuration for the text selection dropdown that appears
  * when text is selected in terminal, browser, or editor views.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import FileScriptIcon from "@hugeicons/core-free-icons/FileScriptIcon";
-import MessageCircleQuestionMarkIcon from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
-import TextQuoteIcon from "@hugeicons/core-free-icons/TextQuoteIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  Add01Icon,
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  FileScriptIcon,
+  type IconSvgElement,
+  MessageCircleQuestionMarkIcon,
+  TextQuoteIcon,
+  Tick01Icon,
+  WorkHistoryIcon,
+} from "@src/icons";
 
 // ============================================
 // Types

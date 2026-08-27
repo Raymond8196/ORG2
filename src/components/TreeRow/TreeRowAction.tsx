@@ -17,10 +17,10 @@
  *   primary — bg-fill-3 on hover, icon turns text-primary-6
  *   success — bg-success-1 on hover, icon stays text-success-6 (static)
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import type { IconSvgElement } from "@src/icons";
 
 // ============================================
 // Types
@@ -30,7 +30,7 @@ import AnyIcon from "@src/components/AnyIcon";
 const TREE_ROW_ACTION_ICON_SIZE = 14;
 
 export interface TreeRowActionProps {
-  /** Lucide icon data to render */
+  /** Hugeicons glyph data to render */
   icon: IconSvgElement;
   /** Click handler */
   onClick: (event: React.MouseEvent) => void;

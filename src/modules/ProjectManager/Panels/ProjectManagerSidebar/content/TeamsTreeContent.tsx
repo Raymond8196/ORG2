@@ -1,6 +1,3 @@
-import Building02Icon from "@hugeicons/core-free-icons/Building02Icon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   memo,
   useCallback,
@@ -30,6 +27,7 @@ import {
   type FlattenedTreeNode,
   VirtualizedStickyTree,
 } from "@src/components/VirtualizedStickyTree";
+import { Building02Icon, HugeiconsIcon, UserMultipleIcon } from "@src/icons";
 
 interface LinearConnectionTeams {
   connection: SyncConnection;

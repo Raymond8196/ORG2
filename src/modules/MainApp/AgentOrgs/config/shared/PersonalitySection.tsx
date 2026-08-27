@@ -11,14 +11,12 @@
  * so the OS legacy-blob pipeline (`extractAgentDefPatch`) and the
  * direct `agentDef.updatePatch` pipeline both receive the edit.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Message from "@src/components/Message";
+import { Copy01Icon, HugeiconsIcon, Pen01Icon } from "@src/icons";
 import MarkdownEditor from "@src/modules/shared/components/MarkdownEditor";
 import {
   SECTION_ACTION_GAP_CLASSES,

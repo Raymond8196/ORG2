@@ -1,43 +1,44 @@
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import ArrowRight02Icon from "@hugeicons/core-free-icons/ArrowRight02Icon";
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CenterFocusIcon from "@hugeicons/core-free-icons/CenterFocusIcon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderOpenIcon from "@hugeicons/core-free-icons/FolderOpenIcon";
-import FolderSearchIcon from "@hugeicons/core-free-icons/FolderSearchIcon";
-import FolderSymlinkIcon from "@hugeicons/core-free-icons/FolderSymlinkIcon";
-import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GithubIcon from "@hugeicons/core-free-icons/GithubIcon";
-import HelpCircleIcon from "@hugeicons/core-free-icons/HelpCircleIcon";
-import Home01Icon from "@hugeicons/core-free-icons/Home01Icon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import LanguageCircleIcon from "@hugeicons/core-free-icons/LanguageCircleIcon";
-import LaptopMinimalIcon from "@hugeicons/core-free-icons/LaptopMinimalIcon";
-import Layers01Icon from "@hugeicons/core-free-icons/Layers01Icon";
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Message01Icon from "@hugeicons/core-free-icons/Message01Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import RocketIcon from "@hugeicons/core-free-icons/RocketIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import SquareArrowRight01Icon from "@hugeicons/core-free-icons/SquareArrowRight01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-
 import { ACTION_ID } from "@src/ActionSystem";
 import { LANGUAGE_NAMES, SUPPORTED_LANGUAGES } from "@src/i18n";
+import {
+  ArrowLeft02Icon,
+  ArrowRight02Icon,
+  ArrowUp02Icon,
+  Cancel01Icon,
+  CenterFocusIcon,
+  Clock01Icon,
+  CloudIcon,
+  CodeIcon,
+  Delete02Icon,
+  FolderAddIcon,
+  FolderClosedIcon,
+  FolderOpenIcon,
+  FolderSearchIcon,
+  FolderSymlinkIcon,
+  FolderTreeIcon,
+  GithubIcon,
+  HelpCircleIcon,
+  Home01Icon,
+  InternetIcon,
+  LanguageCircleIcon,
+  LaptopMinimalIcon,
+  Layers01Icon,
+  Layout01Icon,
+  Link02Icon,
+  LockIcon,
+  Message01Icon,
+  Pen01Icon,
+  Refresh04Icon,
+  RocketIcon,
+  Search01Icon,
+  Settings01Icon,
+  SparklesIcon,
+  SquareArrowRight01Icon,
+  SquareArrowUpRightIcon,
+  Tick01Icon,
+  WorkHistoryIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 import type { ActionDefinition } from "./types";
 

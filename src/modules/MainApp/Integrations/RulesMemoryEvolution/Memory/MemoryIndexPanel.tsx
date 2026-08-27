@@ -5,8 +5,7 @@
  * backend. Shown below the file table when the user clicks the "View Index"
  * toolbar button.
  */
-import BookOpen01Icon from "@hugeicons/core-free-icons/BookOpen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
+import { BookOpen01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface MemoryIndexPanelProps {
   indexText: string;

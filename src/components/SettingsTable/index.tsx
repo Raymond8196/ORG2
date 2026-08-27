@@ -1,7 +1,3 @@
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   type ReactNode,
   useEffect,
@@ -18,6 +14,12 @@ import Select from "@src/components/Select";
 import type { SelectOption, SelectProps } from "@src/components/Select";
 import Table, { type TableColumn } from "@src/components/Table";
 import Tooltip from "@src/components/Tooltip";
+import {
+  FilterIcon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+  Search01Icon,
+} from "@src/icons";
 
 import SearchSortBar, { type SearchSortBarProps } from "./SearchSortBar";
 import {

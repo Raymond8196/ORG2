@@ -6,8 +6,9 @@
  * synchronous lookup; runtime context comes from dedicated atoms
  * (e.g. integrationsCategoryAtom).
  */
-import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentType, ReactNode, SVGProps } from "react";
+
+import type { IconSvgElement } from "@src/icons";
 
 // ============================================
 // Types
@@ -36,7 +37,7 @@ export interface RouteToolbarButton {
   id: string;
   /** Fully custom button element. When set, icon/onClick/title fields are ignored by SettingsHeaderActions. */
   element?: ReactNode;
-  /** Lucide icon component (use this OR iconElement, not both) */
+  /** Icon glyph (use this OR iconElement, not both) */
   icon?: IconSvgElement;
   /** Pre-rendered icon element for custom SVGs (use this OR icon, not both) */
   iconElement?: ReactNode;

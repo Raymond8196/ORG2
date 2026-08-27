@@ -10,18 +10,19 @@
  * - `buildChatPanelSettingsActions` — chat panel position, pagination, and
  *   model-picker style toggles.
  */
-import ArrowLeftBigIcon from "@hugeicons/core-free-icons/ArrowLeftBigIcon";
-import ArrowRightBigIcon from "@hugeicons/core-free-icons/ArrowRightBigIcon";
-import ComputerSettingsIcon from "@hugeicons/core-free-icons/ComputerSettingsIcon";
-import ContrastIcon from "@hugeicons/core-free-icons/ContrastIcon";
-import LayoutTopIcon from "@hugeicons/core-free-icons/LayoutTopIcon";
-import Menu01Icon from "@hugeicons/core-free-icons/Menu01Icon";
-import MoonIcon from "@hugeicons/core-free-icons/MoonIcon";
-import PanelLeftIcon from "@hugeicons/core-free-icons/PanelLeftIcon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import Sun01Icon from "@hugeicons/core-free-icons/Sun01Icon";
-
 import { ACTION_ID } from "@src/ActionSystem";
+import {
+  ArrowLeftBigIcon,
+  ArrowRightBigIcon,
+  ComputerSettingsIcon,
+  ContrastIcon,
+  LayoutTopIcon,
+  Menu01Icon,
+  MoonIcon,
+  PanelLeftIcon,
+  SparklesIcon,
+  Sun01Icon,
+} from "@src/icons";
 
 import type { SpotlightStaticActionDefinition } from "./spotlightActionDefinitions.types";
 

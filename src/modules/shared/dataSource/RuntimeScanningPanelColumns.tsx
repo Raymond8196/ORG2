@@ -7,8 +7,6 @@
  * a plain builder function (not a hook/useMemo) since the panel recomputed
  * this array on every render before extraction — same behavior here.
  */
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { type Dispatch, type SetStateAction } from "react";
 
@@ -24,6 +22,7 @@ import {
 import SplitButton from "@src/components/SplitButton";
 import Switch from "@src/components/Switch";
 import Tag from "@src/components/Tag";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   type DataSourceConfigMap,
   type SourceFrequency,

@@ -1,9 +1,8 @@
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Avatar from "@src/components/Avatar";
+import { HugeiconsIcon, Login01Icon } from "@src/icons";
 
 interface SidebarAccountButtonProps {
   /** Resolved cloud identity; `null` means the user is signed out. */

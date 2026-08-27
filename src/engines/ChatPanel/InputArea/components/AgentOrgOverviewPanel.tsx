@@ -1,13 +1,3 @@
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import PauseIcon from "@hugeicons/core-free-icons/PauseIcon";
-import PlayIcon from "@hugeicons/core-free-icons/PlayIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
-import WorkHistoryIcon from "@hugeicons/core-free-icons/WorkHistoryIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom } from "jotai";
 import React, { memo, useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -21,6 +11,18 @@ import {
 import Button from "@src/components/Button";
 import { createLogger } from "@src/hooks/logger";
 import { useRefreshSpin } from "@src/hooks/ui";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  HierarchyCircle01Icon,
+  HugeiconsIcon,
+  InboxIcon,
+  PauseIcon,
+  PlayIcon,
+  Refresh04Icon,
+  UserCircleIcon,
+  WorkHistoryIcon,
+} from "@src/icons";
 import { activeSessionIdAtom } from "@src/store/session";
 
 import AgentOrgPlanApprovalCard from "./AgentOrgPlanApprovalCard";

@@ -4,13 +4,15 @@
  * Displays a single row in the split diff view
  * Shows old content on left, new content on right, with line numbers in center
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import MinusSignIcon from "@hugeicons/core-free-icons/MinusSignIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { codeMirrorPrismTheme } from "@src/features/CodeMirror/themes/prism";
+import {
+  Add01Icon,
+  HugeiconsIcon,
+  MinusSignIcon,
+  Tick01Icon,
+} from "@src/icons";
 import { PrismLight as PrismHighlighter } from "@src/util/language/prismLight";
 
 import type { AlignedLine } from "../types";

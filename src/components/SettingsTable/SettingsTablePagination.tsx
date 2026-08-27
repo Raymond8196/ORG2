@@ -9,15 +9,17 @@
  * `openEndedPageCount`: jumps stay enabled across loaded pages and the total
  * renders as "N+" while more remote pages exist.
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowLeftDoubleIcon from "@hugeicons/core-free-icons/ArrowLeftDoubleIcon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { type ReactNode, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Select from "@src/components/Select";
+import {
+  ArrowLeft01Icon,
+  ArrowLeftDoubleIcon,
+  ArrowRight01Icon,
+  ArrowRightDoubleIcon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 /** Shared prev/next icon-button style for table/list pagination footers. */
 export const PAGE_ICON_BUTTON =

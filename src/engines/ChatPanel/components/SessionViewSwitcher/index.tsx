@@ -11,14 +11,12 @@
  *   in play, so neither the raw document nor the turn index is held while the
  *   reader is back in the transcript.
  */
-import ClipboardIcon from "@hugeicons/core-free-icons/ClipboardIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import Select from "@src/components/Select";
+import { ClipboardIcon, HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import type { Session } from "@src/store/session";
 
 import { useSessionTurnIndex } from "../../hooks/useSessionTurnIndex";

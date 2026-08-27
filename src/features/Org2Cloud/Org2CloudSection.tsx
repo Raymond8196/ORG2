@@ -17,9 +17,6 @@ import {
   SectionContainer,
   SectionRow,
 } from "@/src/modules/shared/layouts/SectionLayout";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useStore } from "jotai";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -42,6 +39,7 @@ import {
 import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import { useOrg2CloudSignIn } from "@src/features/Org2Cloud/useOrg2CloudSignIn";
 import { createLogger } from "@src/hooks/logger";
+import { HugeiconsIcon, Pen01Icon, Refresh04Icon } from "@src/icons";
 
 const log = createLogger("Org2CloudSection");
 

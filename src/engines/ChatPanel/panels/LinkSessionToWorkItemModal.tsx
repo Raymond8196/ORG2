@@ -1,7 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Link02Icon from "@hugeicons/core-free-icons/Link02Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -12,6 +8,12 @@ import { linkSessionToWorkItem } from "@src/api/tauri/agent/session";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Message from "@src/components/Message";
+import {
+  Cancel01Icon,
+  HugeiconsIcon,
+  Link02Icon,
+  Search01Icon,
+} from "@src/icons";
 
 import {
   type WorkItemLinkOption,

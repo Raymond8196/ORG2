@@ -2,11 +2,6 @@
  * Commit marker tooltip/dropdown UI components for DiaryPanel.
  * Extracted to keep DiaryPanel/index.tsx under the 600-line limit.
  */
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import UserCircleIcon from "@hugeicons/core-free-icons/UserCircleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -17,6 +12,13 @@ import {
   DROPDOWN_ITEM,
 } from "@src/components/Dropdown/tokens";
 import type { GanttMarker } from "@src/features/GanttChart";
+import {
+  Clock01Icon,
+  GitCommitHorizontalIcon,
+  HashtagIcon,
+  HugeiconsIcon,
+  UserCircleIcon,
+} from "@src/icons";
 
 import type { DiaryCommitMarker } from "../../utils/diaryUtils";
 import {

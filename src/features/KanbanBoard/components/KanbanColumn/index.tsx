@@ -11,8 +11,6 @@ import {
   verticalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import cn from "classnames";
 import React, {
@@ -30,6 +28,7 @@ import {
   HEADER_BUTTON,
   HEADER_ICON_SIZE,
 } from "@src/config/workstation/tokens";
+import { Add01Icon, HugeiconsIcon } from "@src/icons";
 import { getUiScaleFromCssVar } from "@src/lib/dndKit";
 
 import type { KanbanColumnConfig, KanbanTask } from "../../types";

@@ -1,5 +1,6 @@
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
 import { describe, expect, it } from "vitest";
+
+import { Search01Icon } from "@src/icons";
 
 import {
   AGENT_SESSION_ACTIONS,

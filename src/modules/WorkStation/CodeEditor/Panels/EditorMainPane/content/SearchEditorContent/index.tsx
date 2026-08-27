@@ -12,14 +12,13 @@
  *
  * This is the content rendered when a "search" tab is active in the editor.
  */
-import FilterIcon from "@hugeicons/core-free-icons/FilterIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import { checkSemanticAvailable } from "@src/api/tauri/search";
 import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
+import { FilterIcon, HugeiconsIcon } from "@src/icons";
 
 import { SearchFilters } from "../../../shared";
 import SearchBar from "./SearchBar";

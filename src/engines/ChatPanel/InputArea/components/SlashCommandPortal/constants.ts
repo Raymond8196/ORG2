@@ -1,10 +1,11 @@
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import CpuIcon from "@hugeicons/core-free-icons/CpuIcon";
-import FlashIcon from "@hugeicons/core-free-icons/FlashIcon";
-import ToolboxIcon from "@hugeicons/core-free-icons/ToolboxIcon";
-import Wrench01Icon from "@hugeicons/core-free-icons/Wrench01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
-
+import {
+  BotIcon,
+  CpuIcon,
+  FlashIcon,
+  type IconSvgElement,
+  ToolboxIcon,
+  Wrench01Icon,
+} from "@src/icons";
 import type { SlashItemCategory } from "@src/types/extensions";
 
 export const FLYOUT_CATEGORIES = new Set<SlashItemCategory>(["skill", "tool"]);

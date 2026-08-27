@@ -1,5 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { AnimatePresence, motion } from "framer-motion";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useEffect, useMemo, useState } from "react";
@@ -7,6 +5,7 @@ import { createPortal } from "react-dom";
 
 import Button from "@src/components/Button";
 import { getMaterialConfig } from "@src/components/Glass/config";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import {
   POPUP_ANIMATION,
   POPUP_SHADOW,

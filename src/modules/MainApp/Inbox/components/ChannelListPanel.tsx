@@ -5,13 +5,13 @@
  * channels (Git, Work Items, Promotions). Selecting one shows the
  * classic message feed in the right pane via `ChannelFeedPanel`.
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import { LIST_PANEL_SECTIONS } from "@src/components/ListPanel";
 import { Placeholder } from "@src/components/Placeholder";
+import type { IconSvgElement } from "@src/icons";
 import ConfigListItem from "@src/modules/shared/layouts/ListDetailSubpage/ConfigListItem";
 import { ListPanelScrollArea } from "@src/modules/shared/layouts/blocks";
 

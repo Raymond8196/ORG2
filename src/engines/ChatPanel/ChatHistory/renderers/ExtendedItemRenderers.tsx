@@ -7,10 +7,6 @@
  *
  * Extracted from ChatItemRenderer for modularity.
  */
-import FileSymlink from "@hugeicons/core-free-icons/FileSymlinkIcon";
-import Chrome from "@hugeicons/core-free-icons/InternetIcon";
-import Globe from "@hugeicons/core-free-icons/InternetIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import i18next from "i18next";
 import { useAtomValue } from "jotai";
 import React from "react";
@@ -21,6 +17,12 @@ import { useStreamingDeltaForSession } from "@src/engines/SessionCore";
 import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
 import type { SessionEvent } from "@src/engines/SessionCore/core/types";
 import { createLogger } from "@src/hooks/logger";
+import {
+  InternetIcon as Chrome,
+  FileSymlinkIcon as FileSymlink,
+  InternetIcon as Globe,
+  HugeiconsIcon,
+} from "@src/icons";
 
 import ActionSummaryGroup from "../../ChatItems/ActionSummaryGroup";
 import EditActivityGroup from "../../ChatItems/EditActivityGroup";

@@ -6,9 +6,9 @@
  * - "compact": Label + bar
  * - "full": Used/limit + bar
  */
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
+
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 
 export function getQuotaTextColorClass(percentage: number): string {
   if (percentage < 10) return "text-danger-6";

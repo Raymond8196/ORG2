@@ -1,7 +1,7 @@
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
 import { describe, expect, it, vi } from "vitest";
 
 import { resolveAgentIcon } from "@src/config/agentIcons";
+import { UserMultipleIcon } from "@src/icons";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import type { Session } from "@src/store/session";
 import { resolveSessionDisplayMetadata } from "@src/util/session/sessionDisplayMetadata";

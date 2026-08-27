@@ -2,14 +2,6 @@
  * ChatPanelPlusMenu — the "+" button and its dropdown, placed in the chat
  * panel header toolbar (left of the "..." menu).
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import Briefcase02Icon from "@hugeicons/core-free-icons/Briefcase02Icon";
-import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
-import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import PictureInPicture01Icon from "@hugeicons/core-free-icons/PictureInPicture01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +12,16 @@ import {
 } from "@src/components/Dropdown/tokens";
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import {
+  Add01Icon,
+  BoxIcon,
+  Briefcase02Icon,
+  DashboardSquare01Icon,
+  GaugeIcon,
+  HugeiconsIcon,
+  LayoutThreeColumnIcon,
+  PictureInPicture01Icon,
+} from "@src/icons";
 import { isMacOS } from "@src/util/platform/tauri";
 
 import { CHAT_PANEL_HEADER_NO_DRAG_STYLE } from "../header";

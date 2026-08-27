@@ -9,12 +9,6 @@
  * - Labels: add/edit/remove work item labels
  * (more sections can be added here)
  */
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
-import TagsIcon from "@hugeicons/core-free-icons/TagsIcon";
-import UsbIcon from "@hugeicons/core-free-icons/UsbIcon";
-import UserIcon from "@hugeicons/core-free-icons/UserIcon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -24,6 +18,14 @@ import {
   getListIconClasses,
   getListItemClasses,
 } from "@src/components/ListPanel/tokens";
+import {
+  type IconSvgElement,
+  Settings01Icon,
+  TagsIcon,
+  UsbIcon,
+  UserIcon,
+  UserMultipleIcon,
+} from "@src/icons";
 import SplitViewLayout from "@src/modules/shared/layouts/SplitViewLayout";
 import { SUBPAGE_CONTENT_WRAPPER_CLASSES } from "@src/modules/shared/layouts/SubpageLayout/tokens";
 import type { Label, Person } from "@src/types/core/shared";

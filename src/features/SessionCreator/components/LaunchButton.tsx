@@ -5,9 +5,6 @@
  * Uses the same INPUT_AREA_BUTTONS tokens as InputActions
  * so both submit buttons are visually identical.
  */
-import ArrowUp02Icon from "@hugeicons/core-free-icons/ArrowUp02Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +13,7 @@ import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut
 import Tooltip from "@src/components/Tooltip";
 import { INPUT_AREA_BUTTONS } from "@src/config/inputAreaTokens";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { ArrowUp02Icon, HugeiconsIcon, Loading03Icon } from "@src/icons";
 import { chatAppearanceAtom } from "@src/store/config/configAtom";
 
 // ============================================

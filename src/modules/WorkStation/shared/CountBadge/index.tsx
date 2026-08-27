@@ -6,14 +6,16 @@
  *
  * Compact numeric count badge for workstation surfaces.
  */
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
+import {
+  Alert01Icon,
+  AlertCircleIcon,
+  type IconSvgElement,
+  InformationCircleIcon,
+  Tick01Icon,
+} from "@src/icons";
 
 // ============================================
 // Types

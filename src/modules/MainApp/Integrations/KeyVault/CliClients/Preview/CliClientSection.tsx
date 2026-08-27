@@ -1,10 +1,6 @@
 /**
  * Install / uninstall script section with mode selector on the left and method pills on the right.
  */
-import Copy01Icon from "@hugeicons/core-free-icons/Copy01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Download01Icon from "@hugeicons/core-free-icons/Download01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +11,12 @@ import PrerequisiteAlert from "@src/components/PrerequisiteAlert";
 import TabPill from "@src/components/TabPill";
 import type { InstallMethod } from "@src/config/cliAgents";
 import { INSTALL_METHOD_PREREQUISITES } from "@src/config/prerequisites";
+import {
+  Copy01Icon,
+  Delete02Icon,
+  Download01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 import { usePrerequisiteCheck } from "@src/modules/MainApp/Integrations/hooks/usePrerequisiteCheck";
 
 import {

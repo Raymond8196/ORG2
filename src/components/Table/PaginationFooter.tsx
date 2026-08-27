@@ -1,11 +1,9 @@
 import Button from "@/src/components/Button";
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
+import { ArrowLeft01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 import type { PaginationRenderContext, TablePagination } from "./types";
 

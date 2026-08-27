@@ -4,15 +4,13 @@
  * Centralized reducer managing all spotlight state.
  * Eliminates cascading re-renders by using a single state tree.
  */
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-
 import {
   LANGUAGE_NAMES,
   LANGUAGE_PREFERENCE,
   type LanguagePreference,
   type SupportedLanguage,
 } from "@src/i18n";
+import { FolderClosedIcon, WorkflowCircle05Icon } from "@src/icons";
 import { REPO_KIND } from "@src/store/repo/types";
 
 import { TAG_COLORS, getActionById } from "../../config";

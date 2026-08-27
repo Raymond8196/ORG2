@@ -4,12 +4,10 @@
  * A simple collapsible section for the DesignPanel.
  * Follows the same styling as PanelSectionHeader.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useEffect } from "react";
 
 import { useCollapsible } from "@src/hooks/ui/useCollapsible";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 // ============================================
 // Types

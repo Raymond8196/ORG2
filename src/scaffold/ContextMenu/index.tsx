@@ -11,12 +11,12 @@
  * - Fuzzy matching for files and folders
  * - File type specific icons
  */
-import AtIcon from "@hugeicons/core-free-icons/AtIcon";
 import React, { memo, useCallback, useEffect, useMemo, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { useMouseMoved } from "@src/hooks/ui/useMouseMoved";
+import { AtIcon } from "@src/icons";
 
 import { SearchResultsPanel, SecondLayerPanel } from "./MenuSections";
 import { MenuItemRow } from "./ResultItems";

@@ -6,15 +6,13 @@
  * `NestedActivityList` (same renderer as the inline chat-in-chat view),
  * with the final result displayed as markdown.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import Markdown from "@src/components/MarkDown";
 import { Placeholder } from "@src/components/Placeholder";
 import { NestedActivityListForSession } from "@src/engines/ChatPanel/blocks/SubagentBlock/NestedActivityList";
+import { ArrowRight01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import type { SubagentDetailTabData } from "@src/store/workstation/tabs/types";
 
 // ============================================

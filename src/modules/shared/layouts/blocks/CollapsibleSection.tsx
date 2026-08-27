@@ -4,13 +4,11 @@
  * Reusable collapsible section with chevron toggle.
  * Used in detail panels for Code Accounts, Channels, Memory Browser, etc.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { COLLAPSIBLE_SECTION_TOKENS } from "@src/config/detailPanelTokens";
 import { useCollapsible } from "@src/hooks/ui/useCollapsible";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface CollapsibleSectionProps {
   title: string;

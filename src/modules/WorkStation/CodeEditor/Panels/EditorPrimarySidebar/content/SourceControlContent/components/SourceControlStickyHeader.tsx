@@ -12,9 +12,6 @@
  * Extracted from SourceControlContent to keep that component under the
  * line limit.
  */
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -26,6 +23,7 @@ import {
   STICKY_ROW,
   stickyRowPadding,
 } from "@src/components/VirtualizedStickyTree";
+import { ArrowDown01Icon, ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 import {
   COUNT_BADGE,
   getCountBadgeSizeClass,

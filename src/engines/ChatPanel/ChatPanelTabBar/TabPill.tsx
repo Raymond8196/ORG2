@@ -7,22 +7,6 @@
  */
 import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import InboxIcon from "@hugeicons/core-free-icons/InboxIcon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import ListChecksIcon from "@hugeicons/core-free-icons/ListChecksIcon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import MessageAdd01Icon from "@hugeicons/core-free-icons/MessageAdd01Icon";
-import Settings02Icon from "@hugeicons/core-free-icons/Settings02Icon";
-import SquareTerminalIcon from "@hugeicons/core-free-icons/SquareTerminalIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -35,6 +19,24 @@ import { TabPillCloseButton } from "@src/components/TabPill/TabPillCloseButton";
 import { TabPillSurface } from "@src/components/TabPill/TabPillSurface";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
+import {
+  BoxIcon,
+  CircleDotIcon,
+  DashboardSquare01Icon,
+  GaugeIcon,
+  GitPullRequestIcon,
+  HashtagIcon,
+  HugeiconsIcon,
+  InboxIcon,
+  InformationCircleIcon,
+  LayoutThreeColumnIcon,
+  ListChecksIcon,
+  ListTodoIcon,
+  LockIcon,
+  MessageAdd01Icon,
+  Settings02Icon,
+  SquareTerminalIcon,
+} from "@src/icons";
 import { isGitHubIssueStatus } from "@src/modules/ProjectManager/WorkItems/workItemIdentity";
 import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { terminalSessionsAtom } from "@src/store/chatPanel/chatPanelTerminalAtom";

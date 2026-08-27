@@ -1,5 +1,3 @@
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +13,7 @@ import SettingsTable, {
   type SettingsTableColumn,
 } from "@src/components/SettingsTable";
 import { useRefreshSpin } from "@src/hooks/ui";
+import { HugeiconsIcon, Refresh04Icon } from "@src/icons";
 import {
   CollapsibleSection,
   DETAIL_PANEL_TOKENS,

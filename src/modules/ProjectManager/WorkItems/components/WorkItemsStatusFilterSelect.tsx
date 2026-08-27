@@ -1,11 +1,10 @@
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import Select from "@src/components/Select";
 import type { SelectOption } from "@src/components/Select";
+import { HugeiconsIcon, ListIcon } from "@src/icons";
 import { getWorkItemStatusConfig } from "@src/modules/ProjectManager/config/manage";
 
 import { FILTER_TO_STATUS, STATUS_FILTER_KEYS } from "../types";

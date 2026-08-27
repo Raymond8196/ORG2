@@ -1,8 +1,3 @@
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import GitPullRequestIcon from "@hugeicons/core-free-icons/GitPullRequestIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -14,6 +9,13 @@ import HoverCardBase, {
 } from "@src/components/SessionHoverCard/HoverCardBase";
 import { HoverCardUrlRow } from "@src/components/SessionHoverCard/HoverCardUrlRow";
 import { formatHoverCardTimeAgo } from "@src/components/SessionHoverCard/hoverCardTime";
+import {
+  Clock01Icon,
+  FileDiffIcon,
+  GitPullRequestIcon,
+  HugeiconsIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import {
   getPrStatusLabelKey,
   getPrStatusVariant,

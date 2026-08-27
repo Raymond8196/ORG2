@@ -1,5 +1,6 @@
-import type { IconSvgElement } from "@hugeicons/react";
 import React from "react";
+
+import type { IconSvgElement } from "@src/icons";
 
 import type { SpotlightItem, SpotlightItemData, StatusType } from "./shared";
 

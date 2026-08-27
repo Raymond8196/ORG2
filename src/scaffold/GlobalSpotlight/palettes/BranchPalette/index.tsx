@@ -9,17 +9,19 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
-import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import FolderMinusIcon from "@hugeicons/core-free-icons/FolderMinusIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import WorktreeSourceModal from "@src/features/SessionCreator/components/WorktreeSourceModal";
 import { useFilteredItems } from "@src/hooks/search";
+import {
+  FolderAddIcon,
+  FolderClosedIcon,
+  FolderMinusIcon,
+  HugeiconsIcon,
+  Refresh04Icon,
+  Tick01Icon,
+} from "@src/icons";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
 import { compactRepoPathForDisplay } from "@src/util/file/repoPathDisplay";
 

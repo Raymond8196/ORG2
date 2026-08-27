@@ -3,14 +3,16 @@
  *
  * Centralized configuration for the simulator dock apps.
  */
-import BubbleChatIcon from "@hugeicons/core-free-icons/BubbleChatIcon";
-import CodeIcon from "@hugeicons/core-free-icons/CodeIcon";
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import ListTodoIcon from "@hugeicons/core-free-icons/ListTodoIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import type { IconSvgElement } from "@hugeicons/react";
+import {
+  Infinity01Icon,
+  BubbleChatIcon,
+  CodeIcon,
+  type IconSvgElement,
+  InternetIcon,
+  Layout01Icon,
+  ListTodoIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 export interface DockApp {
   id: string;

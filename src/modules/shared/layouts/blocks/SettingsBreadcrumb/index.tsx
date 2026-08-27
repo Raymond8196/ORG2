@@ -19,10 +19,6 @@
  * Adding a new settings section only requires registering its URL slug
  * in `SEGMENT_REGISTRY` — no per-page wiring.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { createPortal } from "react-dom";
@@ -53,6 +49,12 @@ import {
 import type { CoreSettingsItemSegment } from "@src/config/mainAppPaths";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  Search01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import {
   settingsSelectionTitleAtom,

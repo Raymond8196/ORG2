@@ -12,12 +12,6 @@
  * - canvas:a2ui_push   — Push A2UI JSONL content (accumulated incrementally)
  * - canvas:a2ui_reset  — Reset A2UI state
  */
-import ArrowExpand01Icon from "@hugeicons/core-free-icons/ArrowExpand01Icon";
-import ArrowShrink01Icon from "@hugeicons/core-free-icons/ArrowShrink01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Layout01Icon from "@hugeicons/core-free-icons/Layout01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -28,6 +22,14 @@ import CanvasPreviewSurface, {
 } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/CanvasPreviewSurface";
 import type { CanvasInlineMode } from "@src/engines/ChatPanel/blocks/CanvasInlineCard/types";
 import type { SimulatorAppProps } from "@src/engines/Simulator/apps/core/types";
+import {
+  ArrowExpand01Icon,
+  ArrowShrink01Icon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  Layout01Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import {
   NoTabsPlaceholder,
   WORK_STATION_PLACEHOLDER_PAGE_BG_CLASS,

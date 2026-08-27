@@ -1,9 +1,8 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { formatModelAgentType, isApiKeyProvider } from "@src/assets/providers";
 import ModelIcon from "@src/components/ModelIcon";
+import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 export function getAccountSourceBreadcrumbParent(modelType: string): string {
   const brand = formatModelAgentType(modelType);

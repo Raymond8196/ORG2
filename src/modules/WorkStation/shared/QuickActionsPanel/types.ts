@@ -3,7 +3,7 @@
  *
  * Shared types for the quick actions panel used across work station.
  */
-import type { IconSvgElement } from "@hugeicons/react";
+import type { IconSvgElement } from "@src/icons";
 
 /**
  * A single quick action item

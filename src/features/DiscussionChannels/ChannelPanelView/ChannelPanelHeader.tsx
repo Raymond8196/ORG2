@@ -6,17 +6,19 @@
  * for cloud, `LocalChannelSettingsDialog` for local); this header only raises
  * the request — the owning view mounts whichever dialog matches the scope.
  */
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import LockIcon from "@hugeicons/core-free-icons/LockIcon";
-import Settings02Icon from "@hugeicons/core-free-icons/Settings02Icon";
-import UserMultipleIcon from "@hugeicons/core-free-icons/UserMultipleIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { PublishedHeaderSlotsView } from "@src/components/WindowChrome";
+import {
+  HashtagIcon,
+  HugeiconsIcon,
+  LockIcon,
+  Settings02Icon,
+  UserMultipleIcon,
+} from "@src/icons";
 import { PANEL_HEADER_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 export interface ChannelPanelHeaderProps {

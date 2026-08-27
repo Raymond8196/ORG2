@@ -1,10 +1,9 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { SESSION_CREATOR_LAUNCH_MODE } from "@src/features/SessionCreator/types";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import SessionCreatorChatPanel from "../ChatPanel";
 

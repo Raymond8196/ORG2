@@ -1,12 +1,10 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-
 import {
   SESSION_GROUP_LABELS,
   SESSION_GROUP_ORDER,
   type SessionGroupKey,
   getSessionGroupKey,
 } from "@src/config/sessionAgentGroups";
+import { Add01Icon, MoreHorizontalIcon } from "@src/icons";
 import type {
   NavigationMenuItem,
   NavigationMenuRowAction,

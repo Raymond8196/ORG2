@@ -4,18 +4,20 @@
  * CI status for a PR's head commit: modern check-runs + legacy commit statuses
  * from `github_get_checks`, grouped by outcome with a rolled-up summary line.
  */
-import CancelCircleIcon from "@hugeicons/core-free-icons/CancelCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleSlashIcon from "@hugeicons/core-free-icons/CircleSlashIcon";
-import Loading01Icon from "@hugeicons/core-free-icons/Loading01Icon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import type { GitHubChecksSummary } from "@src/api/tauri/github";
 import { Placeholder } from "@src/components/Placeholder";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  CancelCircleIcon,
+  CheckmarkCircle01Icon,
+  CircleSlashIcon,
+  HugeiconsIcon,
+  Loading01Icon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 import { formatTimeAgo } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/workstationIssueHelpers";
 import {
   type CiCheckState,

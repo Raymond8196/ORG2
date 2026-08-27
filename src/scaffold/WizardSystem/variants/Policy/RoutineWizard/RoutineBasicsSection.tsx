@@ -1,5 +1,3 @@
-import HierarchyCircle01Icon from "@hugeicons/core-free-icons/HierarchyCircle01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -10,6 +8,7 @@ import Textarea from "@src/components/Textarea";
 import TimePicker from "@src/components/TimePicker";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { useTimezoneSelect } from "@src/hooks/geo/useTimezoneSelect";
+import { HierarchyCircle01Icon, HugeiconsIcon } from "@src/icons";
 import {
   type CronParts,
   type ScheduleFrequency,

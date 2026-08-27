@@ -3,9 +3,9 @@
  * the rail renders, the session scope it shows at the top, and the props of
  * the rail itself.
  */
-import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentType } from "react";
 
+import type { IconSvgElement } from "@src/icons";
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 
 /**

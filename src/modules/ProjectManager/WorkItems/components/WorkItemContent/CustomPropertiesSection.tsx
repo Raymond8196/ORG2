@@ -1,8 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import ListChevronsDownUpIcon from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -18,6 +13,13 @@ import Checkbox from "@src/components/Checkbox";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import Select, { type SelectOption } from "@src/components/Select";
+import {
+  Add01Icon,
+  ArchiveIcon,
+  Cancel01Icon,
+  HugeiconsIcon,
+  ListChevronsDownUpIcon,
+} from "@src/icons";
 import { ActivityHeaderActionButton } from "@src/modules/shared/components/ActivityTimeline";
 
 import {

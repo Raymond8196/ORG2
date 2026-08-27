@@ -1,9 +1,3 @@
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import FolderClosedIcon from "@hugeicons/core-free-icons/FolderClosedIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -20,6 +14,14 @@ import {
 } from "@src/components/Dropdown/tokens";
 import IconButton from "@src/components/IconButton";
 import SelectGhostTrigger from "@src/components/Select/SelectGhostTrigger";
+import {
+  ArrowRight01Icon,
+  Delete02Icon,
+  FolderClosedIcon,
+  HugeiconsIcon,
+  Search01Icon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 import {
   formatCompactStatNumber,
   formatDiffStatsLabel,

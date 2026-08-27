@@ -1,9 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import PowerServiceIcon from "@hugeicons/core-free-icons/PowerServiceIcon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -19,6 +13,14 @@ import SettingsTable, {
 } from "@src/components/SettingsTable";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import type { CursorRepo } from "@src/hooks/policies";
+import {
+  Add01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  MoreHorizontalIcon,
+  PowerServiceIcon,
+  Refresh04Icon,
+} from "@src/icons";
 import type {
   McpBulkResult,
   McpResource,

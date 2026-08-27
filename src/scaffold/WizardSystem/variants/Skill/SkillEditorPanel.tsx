@@ -4,9 +4,6 @@
  * Layout uses SectionContainer + SectionRow (settings-style) inside
  * WizardShell > WizardStepLayout for consistent look with OS Agent config.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Alert01Icon from "@hugeicons/core-free-icons/Alert01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -22,6 +19,7 @@ import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import { CodeMirrorEditor } from "@src/features/CodeMirror/Editor";
 import type { UseSkillEditorReturn } from "@src/hooks/skills/useSkillEditor";
+import { Add01Icon, Alert01Icon, HugeiconsIcon } from "@src/icons";
 import {
   SKILL_SCOPE,
   type SkillScope,

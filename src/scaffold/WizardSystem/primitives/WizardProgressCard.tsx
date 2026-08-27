@@ -14,12 +14,11 @@
  * </WizardProgressCard>
  * ```
  */
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { TYPOGRAPHY } from "@src/config/workstation/tokens";
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 import { DETAIL_PANEL_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 export interface WizardProgressCardProps {

@@ -1,6 +1,6 @@
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useMemo } from "react";
+
+import { HugeiconsIcon, Loading03Icon } from "@src/icons";
 
 export type ButtonVariant =
   | "primary"

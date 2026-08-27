@@ -16,8 +16,6 @@
  *     Historical missing/unknown values resolve to Build. The creator default
  *     is never consulted for an existing session.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { createPortal } from "react-dom";
@@ -47,6 +45,7 @@ import {
   useSessionComposerModeFields,
   useSessionExecModeField,
 } from "@src/hooks/session/useSessionPatch";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import { creatorDefaultExecModeAtom } from "@src/store/session/creatorDefaultExecModeAtom";
 import { creatorDefaultProductModeAtom } from "@src/store/session/creatorDefaultProductModeAtom";
 import {

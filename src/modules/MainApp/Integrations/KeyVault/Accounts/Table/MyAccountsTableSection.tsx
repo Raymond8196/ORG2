@@ -1,7 +1,3 @@
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useCallback, useMemo, useState } from "react";
 
 import { CLI_AGENT } from "@src/api/types/keys";
@@ -17,6 +13,7 @@ import SettingsTable, {
 import Switch from "@src/components/Switch";
 import { MODEL_TABLE_SWITCH_SIZE } from "@src/config/modelTable";
 import type { KeyVaultAccount } from "@src/hooks/keyVault";
+import { Add01Icon, Delete02Icon, HugeiconsIcon, Pen01Icon } from "@src/icons";
 import { groupModels } from "@src/util/modelGrouping";
 
 import { EnabledFractionText } from "../../../shared/EnabledFractionText";

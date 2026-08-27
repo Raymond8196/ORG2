@@ -1,5 +1,3 @@
-import ArrowDown02Icon from "@hugeicons/core-free-icons/ArrowDown02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo, useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -15,6 +13,7 @@ import {
   ChatRetryBanner,
   toChatRetryKind,
 } from "@src/engines/ChatPanel/components/ChatStatusBanners";
+import { ArrowDown02Icon, HugeiconsIcon } from "@src/icons";
 import type { PendingPlanApproval } from "@src/store/session/planApprovalAtom";
 
 import type { ScrollNavState } from "./ChatHistory";

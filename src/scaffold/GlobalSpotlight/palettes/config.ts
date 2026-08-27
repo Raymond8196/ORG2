@@ -8,22 +8,23 @@
  * - Labels and icons
  * - Palette mode configurations
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import CommandIcon from "@hugeicons/core-free-icons/CommandIcon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import File01Icon from "@hugeicons/core-free-icons/File01Icon";
-import FolderAddIcon from "@hugeicons/core-free-icons/FolderAddIcon";
-import FolderTreeIcon from "@hugeicons/core-free-icons/FolderTreeIcon";
-import GitBranchIcon from "@hugeicons/core-free-icons/GitBranchIcon";
-import GitBranchMinusIcon from "@hugeicons/core-free-icons/GitBranchMinusIcon";
-import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
-import GripIcon from "@hugeicons/core-free-icons/GripIcon";
-import Unlink02Icon from "@hugeicons/core-free-icons/Unlink02Icon";
-import VariableIcon from "@hugeicons/core-free-icons/VariableIcon";
-import WorkflowCircle05Icon from "@hugeicons/core-free-icons/WorkflowCircle05Icon";
-import type { IconSvgElement } from "@hugeicons/react";
-
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import {
+  Add01Icon,
+  CommandIcon,
+  Delete02Icon,
+  File01Icon,
+  FolderAddIcon,
+  FolderTreeIcon,
+  GitBranchIcon,
+  GitBranchMinusIcon,
+  GitForkIcon,
+  GripIcon,
+  type IconSvgElement,
+  Unlink02Icon,
+  VariableIcon,
+  WorkflowCircle05Icon,
+} from "@src/icons";
 
 // ============ TYPES ============
 

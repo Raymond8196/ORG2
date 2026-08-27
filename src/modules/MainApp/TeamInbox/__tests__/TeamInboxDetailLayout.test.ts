@@ -1,8 +1,4 @@
 // @vitest-environment jsdom
-import ClipboardListIcon from "@hugeicons/core-free-icons/ClipboardListIcon";
-import InternetIcon from "@hugeicons/core-free-icons/InternetIcon";
-import SquareArrowUpRightIcon from "@hugeicons/core-free-icons/SquareArrowUpRightIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
 import {
@@ -15,6 +11,13 @@ import {
   it,
   vi,
 } from "vitest";
+
+import {
+  ClipboardListIcon,
+  HugeiconsIcon,
+  InternetIcon,
+  SquareArrowUpRightIcon,
+} from "@src/icons";
 
 import TeamInboxDetailLayout from "../components/TeamInboxDetailLayout";
 

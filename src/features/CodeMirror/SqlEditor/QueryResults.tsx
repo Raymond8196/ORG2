@@ -8,15 +8,17 @@
  * - Row count
  * - Scrollable results table
  */
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Clock01Icon from "@hugeicons/core-free-icons/Clock01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { Placeholder } from "@src/components/Placeholder";
 import type { QueryResult } from "@src/engines/DatabaseCore";
+import {
+  AlertCircleIcon,
+  CheckmarkCircle01Icon,
+  Clock01Icon,
+  HugeiconsIcon,
+} from "@src/icons";
 
 // ============================================
 // Types

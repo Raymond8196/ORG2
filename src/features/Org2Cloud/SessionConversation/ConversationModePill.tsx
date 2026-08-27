@@ -1,10 +1,8 @@
-import BotIcon from "@hugeicons/core-free-icons/BotIcon";
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import SelectorPill from "@src/components/SelectorPill";
+import { BotIcon, HugeiconsIcon, MessageMultiple01Icon } from "@src/icons";
 
 import {
   useConversationComposerMode,

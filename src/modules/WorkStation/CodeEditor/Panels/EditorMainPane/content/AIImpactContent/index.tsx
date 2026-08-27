@@ -7,12 +7,6 @@
  *
  * Ratio bars compare AI-attributed metrics against total git activity.
  */
-import FileCodeIcon from "@hugeicons/core-free-icons/FileCodeIcon";
-import FunctionSquareIcon from "@hugeicons/core-free-icons/FunctionSquareIcon";
-import GitCommitHorizontalIcon from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
-import HashtagIcon from "@hugeicons/core-free-icons/HashtagIcon";
-import SparklesIcon from "@hugeicons/core-free-icons/SparklesIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue } from "jotai";
 import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -24,6 +18,14 @@ import {
   getSessionImpact,
 } from "@src/api/tauri/lineage";
 import { Placeholder } from "@src/components/Placeholder";
+import {
+  FileCodeIcon,
+  FunctionSquareIcon,
+  GitCommitHorizontalIcon,
+  HashtagIcon,
+  HugeiconsIcon,
+  SparklesIcon,
+} from "@src/icons";
 import {
   CollapsibleSection,
   DETAIL_PANEL_TOKENS,

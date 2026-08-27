@@ -5,16 +5,13 @@
  * renders it as an editable "Properties" panel matching Cursor's native UI,
  * and serializes changes back into the full file content via onContentChange.
  */
-import Add01Icon from "@hugeicons/core-free-icons/Add01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useEffect, useRef, useState } from "react";
 
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Switch from "@src/components/Switch";
 import Textarea from "@src/components/Textarea";
+import { Add01Icon, Cancel01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import {
   SectionContainer,
   SectionRow,

@@ -3,11 +3,10 @@
  *
  * Display reply-to-question indicator with close button
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import MailReply01Icon from "@hugeicons/core-free-icons/MailReply01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
+
+import { Cancel01Icon, HugeiconsIcon, MailReply01Icon } from "@src/icons";
 
 import UserActionButton from "./UserActionButton";
 

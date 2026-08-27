@@ -5,12 +5,6 @@
  * overflow menu with copy-url/remove). Split out because it is the single
  * largest piece of that section's row-construction logic.
  */
-import GitForkIcon from "@hugeicons/core-free-icons/GitForkIcon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import MoreHorizontalIcon from "@hugeicons/core-free-icons/MoreHorizontalIcon";
-import PinIcon from "@hugeicons/core-free-icons/PinIcon";
-import PinOffIcon from "@hugeicons/core-free-icons/PinOffIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
@@ -38,6 +32,14 @@ import {
 import type { Org2CloudPresenceEntry } from "@src/features/Org2Cloud/org2CloudPresenceAtom";
 import { viewersForSession } from "@src/features/Org2Cloud/org2CloudPresenceAtom";
 import { useCloudSessionDownloadProgressEntry } from "@src/features/Org2Cloud/useCloudSessionDownloadSurface";
+import {
+  GitForkIcon,
+  HugeiconsIcon,
+  Loading03Icon,
+  MoreHorizontalIcon,
+  PinIcon,
+  PinOffIcon,
+} from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { copyText } from "@src/util/data/clipboard";

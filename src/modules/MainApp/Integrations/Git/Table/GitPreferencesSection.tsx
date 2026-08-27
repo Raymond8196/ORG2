@@ -1,5 +1,3 @@
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +6,7 @@ import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import Select from "@src/components/Select";
 import Switch from "@src/components/Switch";
+import { Delete02Icon, HugeiconsIcon } from "@src/icons";
 import SaveableTextarea from "@src/modules/shared/components/SaveableTextarea";
 import {
   SECTION_ACTION_GAP_CLASSES,

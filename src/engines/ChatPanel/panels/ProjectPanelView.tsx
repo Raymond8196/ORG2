@@ -1,11 +1,3 @@
-import ArrowRightDoubleIcon from "@hugeicons/core-free-icons/ArrowRightDoubleIcon";
-import BoxIcon from "@hugeicons/core-free-icons/BoxIcon";
-import DashboardSquare01Icon from "@hugeicons/core-free-icons/DashboardSquare01Icon";
-import InformationCircleIcon from "@hugeicons/core-free-icons/InformationCircleIcon";
-import LayoutThreeColumnIcon from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
-import ListIcon from "@hugeicons/core-free-icons/ListIcon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, {
   useCallback,
@@ -45,6 +37,16 @@ import {
   useCurrentUserMemberIds,
   useProjectDataChanged,
 } from "@src/hooks/project";
+import {
+  ArrowRightDoubleIcon,
+  BoxIcon,
+  DashboardSquare01Icon,
+  HugeiconsIcon,
+  InformationCircleIcon,
+  LayoutThreeColumnIcon,
+  ListIcon,
+  Search01Icon,
+} from "@src/icons";
 import WorkItemContentStack from "@src/modules/ProjectManager/WorkItems/components/WorkItemContentStack";
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";
 import WorkItemsListContent from "@src/modules/ProjectManager/WorkItems/components/WorkItemsListContent";

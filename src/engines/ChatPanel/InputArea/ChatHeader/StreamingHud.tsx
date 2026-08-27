@@ -9,12 +9,11 @@
  * It is a sibling of the stream-retry indicator in `ChatHeader` and follows
  * the same low-key pill styling so the input area chrome stays consistent.
  */
-import GaugeIcon from "@hugeicons/core-free-icons/GaugeIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
 import { useStreamingHud } from "@src/engines/ChatPanel/hooks/useStreamingHud";
+import { GaugeIcon, HugeiconsIcon } from "@src/icons";
 
 interface StreamingHudProps {
   sessionId: string | undefined;

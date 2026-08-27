@@ -6,10 +6,6 @@
  * Agents / Teams / CLIs switcher lives inside the page, not in a drill-down
  * sidebar level.
  */
-import ArrowLeft01Icon from "@hugeicons/core-free-icons/ArrowLeft01Icon";
-import Infinity01Icon from "@hugeicons/core-free-icons/Infinity01Icon";
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import Settings01Icon from "@hugeicons/core-free-icons/Settings01Icon";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useMemo } from "react";
 import { useTranslation } from "react-i18next";
@@ -28,6 +24,12 @@ import {
 } from "@src/config/mainAppPaths";
 import { ROUTES } from "@src/config/routes";
 import { SIDEBAR_MEMORY_KIND, useSidebarMemoryEntry } from "@src/hooks/perf";
+import {
+  Infinity01Icon,
+  ArrowLeft01Icon,
+  Search01Icon,
+  Settings01Icon,
+} from "@src/icons";
 import { APP_SECTIONS } from "@src/modules/MainApp/Settings/config";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import { settingsReturnPathAtom } from "@src/store/ui/settingsNavigationAtom";

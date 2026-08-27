@@ -21,11 +21,6 @@
  * Edit is inline (`Textarea` + Save / Cancel), the shape the comment plane
  * already uses — no dialog, no separate route.
  */
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import Delete02Icon from "@hugeicons/core-free-icons/Delete02Icon";
-import Pen01Icon from "@hugeicons/core-free-icons/Pen01Icon";
-import Tick01Icon from "@hugeicons/core-free-icons/Tick01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useSetAtom, useStore } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -37,6 +32,13 @@ import { LocalSessionReferenceCard } from "@src/components/SessionReferenceCard"
 import Textarea from "@src/components/Textarea";
 import Tooltip from "@src/components/Tooltip";
 import { CHAT_ITEM_PADDING_X } from "@src/engines/ChatPanel/blocks/primitives/config";
+import {
+  Cancel01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  Pen01Icon,
+  Tick01Icon,
+} from "@src/icons";
 import { openOrFocusSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabOpenAtoms";
 import { sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { LOCAL_CHANNEL_MESSAGE_MAX_LENGTH } from "@src/store/ui/localChannelMessagesAtom";

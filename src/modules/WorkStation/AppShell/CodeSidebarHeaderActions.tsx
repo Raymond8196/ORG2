@@ -1,5 +1,3 @@
-import Search01Icon from "@hugeicons/core-free-icons/Search01Icon";
-import type { IconSvgElement } from "@hugeicons/react";
 import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
@@ -8,6 +6,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
+import { type IconSvgElement, Search01Icon } from "@src/icons";
 import {
   PRIMARY_SIDEBAR_TABS,
   type PrimarySidebarTabKey,

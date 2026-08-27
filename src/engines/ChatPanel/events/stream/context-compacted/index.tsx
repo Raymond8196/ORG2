@@ -12,8 +12,6 @@
  * so this component renders the same block for every variant — mirroring
  * RateLimitHintEvent rather than ThinkingEvent's chat/simulator split.
  */
-import ArchiveIcon from "@hugeicons/core-free-icons/ArchiveIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -33,6 +31,7 @@ import {
   useNormalizedEventProps,
 } from "@src/engines/SessionCore/rendering/props";
 import type { EventVariant } from "@src/engines/SessionCore/rendering/types/universalProps";
+import { ArchiveIcon, HugeiconsIcon } from "@src/icons";
 
 export interface ContextCompactedEventProps extends RawEventInput {
   /** Force a specific variant (auto-detected if not provided) */

@@ -12,15 +12,17 @@
  * `useSessionRawTranscript` is called with `enabled = isRaw`, so a session that
  * never opens Raw pays neither the transcript load nor the JSON serialization.
  */
-import ChartGanttIcon from "@hugeicons/core-free-icons/ChartGanttIcon";
-import FileDiffIcon from "@hugeicons/core-free-icons/FileDiffIcon";
-import FirstBracketIcon from "@hugeicons/core-free-icons/FirstBracketIcon";
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { SelectOption } from "@src/components/Select";
+import {
+  ChartGanttIcon,
+  FileDiffIcon,
+  FirstBracketIcon,
+  HugeiconsIcon,
+  MessageMultiple01Icon,
+} from "@src/icons";
 
 import { useSessionRawTranscript } from "../components/SessionRawTranscriptDialog/useSessionRawTranscript";
 

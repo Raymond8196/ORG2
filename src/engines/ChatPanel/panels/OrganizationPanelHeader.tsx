@@ -1,6 +1,3 @@
-import CloudIcon from "@hugeicons/core-free-icons/CloudIcon";
-import LaptopIcon from "@hugeicons/core-free-icons/LaptopIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
@@ -16,6 +13,7 @@ import {
 import { buildOrgSelectorEntries } from "@src/features/Organizations/orgSelectorEntries";
 import { createLogger } from "@src/hooks/logger";
 import { useProjectDataChanged } from "@src/hooks/project";
+import { CloudIcon, HugeiconsIcon, LaptopIcon } from "@src/icons";
 import { openOrganizationInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 import { DEFAULT_SESSION_ORG_ID } from "@src/store/session";
 import type { ChatPanelSelectedOrganization } from "@src/store/ui/chatPanelAtom";

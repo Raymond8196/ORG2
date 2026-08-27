@@ -4,8 +4,9 @@
  * Centralized type definitions for the unified sidebar system.
  * All sidebar components should use these types for consistency.
  */
-import type { IconSvgElement } from "@hugeicons/react";
 import type { MouseEvent, ReactNode, Ref } from "react";
+
+import type { IconSvgElement } from "@src/icons";
 
 // ============================================
 // Base Types
@@ -14,7 +15,7 @@ import type { MouseEvent, ReactNode, Ref } from "react";
 /**
  * Sidebar icon representation.
  *
- * - Prefer Lucide icon components (e.g. `Terminal`)
+ * - Prefer hugeicons glyph data (e.g. `ComputerTerminal01Icon`)
  * - Some configs still use string icon names during migration (e.g. `"Terminal"`)
  */
 export type SidebarIcon = IconSvgElement | string;

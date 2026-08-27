@@ -1,10 +1,9 @@
-import ArrowLeft02Icon from "@hugeicons/core-free-icons/ArrowLeft02Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { ArrowLeft02Icon, HugeiconsIcon } from "@src/icons";
 import {
   SECTION_GAP_CLASSES,
   SECTION_SUBHEADING_CLASSES,

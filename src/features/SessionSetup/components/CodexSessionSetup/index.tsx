@@ -1,11 +1,3 @@
-import AlertCircleIcon from "@hugeicons/core-free-icons/AlertCircleIcon";
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import Loading03Icon from "@hugeicons/core-free-icons/Loading03Icon";
-import Login01Icon from "@hugeicons/core-free-icons/Login01Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,6 +8,16 @@ import SessionSetupStepIndicator from "@src/features/SessionSetup/components/Ses
 import { useCodexOAuthCapture } from "@src/features/SessionSetup/hooks/useCodexOAuthCapture";
 import { useOAuthBrowserAutoStart } from "@src/features/SessionSetup/hooks/useOAuthBrowserAutoStart";
 import { useWebviewPositionSync } from "@src/features/SessionSetup/hooks/useWebviewPositionSync";
+import {
+  AlertCircleIcon,
+  ArrowRight01Icon,
+  Cancel01Icon,
+  CheckmarkCircle01Icon,
+  HugeiconsIcon,
+  Loading03Icon,
+  Login01Icon,
+  Refresh04Icon,
+} from "@src/icons";
 import {
   SectionContainer,
   SectionRow,

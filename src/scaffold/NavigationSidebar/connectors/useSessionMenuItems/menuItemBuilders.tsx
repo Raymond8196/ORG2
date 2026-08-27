@@ -1,8 +1,6 @@
-import PinIcon from "@hugeicons/core-free-icons/PinIcon";
-import ViewOffIcon from "@hugeicons/core-free-icons/ViewOffIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
+import { HugeiconsIcon, PinIcon, ViewOffIcon } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { BranchPrSnapshot } from "@src/store/git";
 import type { Session } from "@src/store/session";

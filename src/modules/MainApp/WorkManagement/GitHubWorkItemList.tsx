@@ -1,12 +1,14 @@
-import CheckmarkCircle01Icon from "@hugeicons/core-free-icons/CheckmarkCircle01Icon";
-import CircleDotIcon from "@hugeicons/core-free-icons/CircleDotIcon";
-import PencilEdit02Icon from "@hugeicons/core-free-icons/PencilEdit02Icon";
-import Refresh04Icon from "@hugeicons/core-free-icons/Refresh04Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { ReactNode } from "react";
 
 import Button from "@src/components/Button";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import {
+  CheckmarkCircle01Icon,
+  CircleDotIcon,
+  HugeiconsIcon,
+  PencilEdit02Icon,
+  Refresh04Icon,
+} from "@src/icons";
 
 export function GitHubWorkItemToolbarActions({
   refreshLabel,

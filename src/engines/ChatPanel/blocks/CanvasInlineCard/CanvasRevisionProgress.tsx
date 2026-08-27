@@ -1,9 +1,7 @@
-import LoaderCircleIcon from "@hugeicons/core-free-icons/LoaderCircleIcon";
-import PenTool01Icon from "@hugeicons/core-free-icons/PenTool01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
+import { HugeiconsIcon, LoaderCircleIcon, PenTool01Icon } from "@src/icons";
 import type { CanvasRevisionDraft } from "@src/store/session/canvasRevisionDraftAtom";
 
 import CanvasRevisionSteps from "./CanvasRevisionSteps";

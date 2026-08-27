@@ -1,8 +1,7 @@
-import ArrowDown01Icon from "@hugeicons/core-free-icons/ArrowDown01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { forwardRef, memo } from "react";
 
 import SelectorPill from "@src/components/SelectorPill";
+import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 
 export interface SessionCreatorAgentHeroProps {
   name: string;

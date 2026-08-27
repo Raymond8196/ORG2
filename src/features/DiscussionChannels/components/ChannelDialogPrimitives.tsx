@@ -4,14 +4,13 @@
  * confirmation body, and action footer without importing either storage or
  * network state.
  */
-import TriangleAlertIcon from "@hugeicons/core-free-icons/TriangleAlertIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useId } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { ButtonVariant } from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
 import Input from "@src/components/Input";
+import { HugeiconsIcon, TriangleAlertIcon } from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 
 import {

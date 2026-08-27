@@ -1,6 +1,3 @@
-import Cancel01Icon from "@hugeicons/core-free-icons/Cancel01Icon";
-import RotateLeft01Icon from "@hugeicons/core-free-icons/RotateLeft01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -11,6 +8,7 @@ import { VoiceInputButton, VoiceRecordingBar } from "@src/components/Voice";
 import { INPUT_AREA_CONTROL_GROUP_CLASS } from "@src/config/inputAreaTokens";
 import type { PromptPolishControl } from "@src/engines/ChatPanel/hooks/useInputArea/types";
 import type { UseVoiceInputResult } from "@src/hooks/voice";
+import { Cancel01Icon, HugeiconsIcon, RotateLeft01Icon } from "@src/icons";
 
 import CiteCodePreview from "./CiteCodePreview";
 import ImageAttachmentPreview from "./ImageAttachmentPreview";

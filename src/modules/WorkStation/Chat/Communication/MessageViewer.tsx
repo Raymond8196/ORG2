@@ -1,5 +1,3 @@
-import UnfoldMoreIcon from "@hugeicons/core-free-icons/UnfoldMoreIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React, {
   useCallback,
   useEffect,
@@ -18,6 +16,7 @@ import {
   isPlanDisplayEvent,
 } from "@src/engines/SessionCore/derived/planDisplayEvents";
 import { usePendingPlanApproval } from "@src/hooks/session/usePendingPlanApproval";
+import { HugeiconsIcon, UnfoldMoreIcon } from "@src/icons";
 import type { SessionReplayPlaceholderMode } from "@src/modules/WorkStation/shared";
 
 import { isEmailBubbleEvent } from "./EmailMessageBubble";

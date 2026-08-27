@@ -12,8 +12,6 @@
  * status hook, and the Supabase anon key and access/refresh tokens are never
  * passed in, rendered, or copied.
  */
-import UsersRoundIcon from "@hugeicons/core-free-icons/UsersRoundIcon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import type { TFunction } from "i18next";
 import React, { useCallback, useMemo, useState } from "react";
 
@@ -28,6 +26,7 @@ import type {
   SyncJournalMember,
 } from "@src/features/Org2Cloud/org2CloudSyncJournal";
 import { useCopyCheck } from "@src/hooks/ui/useCopyCheck";
+import { HugeiconsIcon, UsersRoundIcon } from "@src/icons";
 import {
   SECTION_ACTION_GAP_CLASSES,
   SectionContainer,

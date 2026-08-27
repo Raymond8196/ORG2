@@ -4,14 +4,16 @@
  * Individual task card displayed in Kanban columns.
  * Shows task information with priority, tags, and metadata.
  */
-import ArrowRight01Icon from "@hugeicons/core-free-icons/ArrowRight01Icon";
-import MessageMultiple01Icon from "@hugeicons/core-free-icons/MessageMultiple01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Tag from "@src/components/Tag";
 import { resolveAgentIcon } from "@src/config/agentIcons";
+import {
+  ArrowRight01Icon,
+  HugeiconsIcon,
+  MessageMultiple01Icon,
+} from "@src/icons";
 import { formatModelNameFull } from "@src/util/formatModelName";
 
 import { type KanbanTask } from "../../types";
