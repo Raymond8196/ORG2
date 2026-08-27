@@ -23,6 +23,7 @@ import React, {
 } from "react";
 import { createPortal } from "react-dom";
 
+import AnyIcon from "@src/components/AnyIcon";
 import HoverSafeSubmenuBridge from "@src/components/Dropdown/HoverSafeSubmenuBridge";
 import {
   DROPDOWN_CLASSES,
@@ -93,14 +94,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({
         />
       );
     }
-    if (!item.icon) return null;
-    if (typeof item.icon === "string") {
-      return <i className={`${item.icon} text-[14px] text-text-2`} />;
-    }
-    return React.createElement(item.icon, {
-      size: 14,
-      className: "text-text-2",
-    });
+    return <AnyIcon icon={item.icon} size={14} className="text-text-2" />;
   }, [item.icon, isCurrent]);
 
   if (isHeaderItem(item)) {

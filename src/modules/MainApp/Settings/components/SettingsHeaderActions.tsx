@@ -25,6 +25,7 @@ import Plus from "@hugeicons/core-free-icons/Add01Icon";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React, { useState } from "react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
@@ -130,7 +131,7 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
             }`}
           >
             <span className="flex min-w-0 flex-1 items-center gap-2">
-              <HugeiconsIcon
+              <AnyIcon
                 icon={icon}
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}

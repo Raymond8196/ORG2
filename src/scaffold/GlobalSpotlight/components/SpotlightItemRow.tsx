@@ -15,6 +15,7 @@ import { revealItemInDir } from "@tauri-apps/plugin-opener";
 import React, { memo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import Checkbox from "@src/components/Checkbox";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { KeyboardShortcut } from "@src/components/KeyboardShortcut";
@@ -406,16 +407,13 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                 className="text-primary-6"
                 strokeWidth={2.5}
               />
-            ) : typeof item.icon === "string" ? (
-              <i
-                className={`${item.icon} text-[${SPOTLIGHT_TOKENS.iconSize}px] ${itemIconClassName}`}
-              />
             ) : (
-              React.createElement(item.icon, {
-                size: SPOTLIGHT_TOKENS.iconSize,
-                className: itemIconClassName,
-                strokeWidth: 2,
-              })
+              <AnyIcon
+                icon={item.icon}
+                size={SPOTLIGHT_TOKENS.iconSize}
+                className={itemIconClassName}
+                strokeWidth={2}
+              />
             )}
           </div>
         )}

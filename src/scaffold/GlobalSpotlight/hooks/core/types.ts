@@ -3,6 +3,7 @@
  *
  * Centralized type definitions for the new reducer-based spotlight system.
  */
+import { type IconSvgElement } from "@hugeicons/react";
 import type { ComponentType } from "react";
 
 import type { LanguagePreference } from "@src/i18n";
@@ -123,11 +124,14 @@ export interface UseConfirmationPageReturn {
   /** Formatted confirmation data */
   confirmationData: {
     actionLabel: string;
-    actionIcon: string | ComponentType<Record<string, unknown>>;
+    actionIcon:
+      | string
+      | IconSvgElement
+      | ComponentType<Record<string, unknown>>;
     parameters: Array<{
       label: string;
       value: string;
-      icon?: string | ComponentType<Record<string, unknown>>;
+      icon?: string | IconSvgElement | ComponentType<Record<string, unknown>>;
     }>;
   } | null;
   /** Confirm and execute the action */

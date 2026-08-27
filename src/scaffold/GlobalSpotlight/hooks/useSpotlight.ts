@@ -4,6 +4,7 @@
  * Orchestrates all spotlight functionality with the new reducer architecture.
  * This is the single hook that components use to access all spotlight features.
  */
+import { type IconSvgElement } from "@hugeicons/react";
 import { useAtomValue, useSetAtom } from "jotai";
 import {
   type ComponentType,
@@ -409,7 +410,11 @@ export function useSpotlight(
     (
       path: string,
       label: string,
-      _icon: string | ComponentType<Record<string, unknown>> | undefined
+      _icon:
+        | string
+        | IconSvgElement
+        | ComponentType<Record<string, unknown>>
+        | undefined
     ) => {
       dispatchActionOrFallback(
         ACTION_ID.APP_NAVIGATE,

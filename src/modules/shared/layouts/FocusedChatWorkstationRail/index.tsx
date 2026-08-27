@@ -15,6 +15,7 @@ import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 
 import GitHubIcon from "@src/assets/channelIcons/github.svg";
+import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
@@ -590,7 +591,6 @@ export function FocusedChatWorkstationRail({
             <div className="flex flex-col items-center gap-2">
               {workspaceItems.map((item) => {
                 const icon = item.icon;
-                const isGitHubRailIcon = icon === GitHubRailIcon;
                 return (
                   <button
                     key={item.key}
@@ -604,11 +604,7 @@ export function FocusedChatWorkstationRail({
                     }
                     title={item.status?.title ?? item.label}
                   >
-                    {isGitHubRailIcon ? (
-                      <GitHubRailIcon size={16} />
-                    ) : (
-                      <HugeiconsIcon icon={icon} size={16} strokeWidth={1.75} />
-                    )}
+                    <AnyIcon icon={icon} size={16} strokeWidth={1.75} />
                     {item.status ? (
                       <span
                         aria-hidden

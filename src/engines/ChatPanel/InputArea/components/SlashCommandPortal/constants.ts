@@ -3,6 +3,7 @@ import Cpu from "@hugeicons/core-free-icons/CpuIcon";
 import Zap from "@hugeicons/core-free-icons/FlashIcon";
 import Toolbox from "@hugeicons/core-free-icons/ToolboxIcon";
 import Wrench from "@hugeicons/core-free-icons/Wrench01Icon";
+import { type IconSvgElement } from "@hugeicons/react";
 import { HugeiconsIcon } from "@hugeicons/react";
 import React from "react";
 
@@ -21,18 +22,16 @@ export const CATEGORY_LABELS: Record<SlashItemCategory, string> = {
 export const MODE_FLYOUT_LABEL = "Mode";
 export const MODELS_FLYOUT_LABEL = "Models";
 
-export const ModeIcon = Bot as React.ComponentType<Record<string, unknown>>;
-export const ModelsIcon = Cpu as React.ComponentType<Record<string, unknown>>;
+export const ModeIcon = Bot;
+export const ModelsIcon = Cpu;
 
-export function categoryIcon(
-  category: SlashItemCategory
-): React.ComponentType<Record<string, unknown>> {
+export function categoryIcon(category: SlashItemCategory): IconSvgElement {
   switch (category) {
     case "skill":
-      return Toolbox as React.ComponentType<Record<string, unknown>>;
+      return Toolbox;
     case "action":
-      return Zap as React.ComponentType<Record<string, unknown>>;
+      return Zap;
     case "tool":
-      return Wrench as React.ComponentType<Record<string, unknown>>;
+      return Wrench;
   }
 }

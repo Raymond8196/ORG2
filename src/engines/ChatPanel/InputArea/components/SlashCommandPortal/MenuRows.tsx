@@ -154,11 +154,12 @@ export const FlyoutTriggerRow: React.FC<FlyoutTriggerRowProps> = React.memo(
         }}
       >
         <div className="flex items-center gap-2">
-          {React.createElement(categoryIcon(category), {
-            size: 14,
-            strokeWidth: 1.75,
-            className: iconClass(isOpen),
-          })}
+          <HugeiconsIcon
+            icon={categoryIcon(category)}
+            size={14}
+            strokeWidth={1.75}
+            className={iconClass(isOpen)}
+          />
           <span className={labelClass(isOpen)}>{label}</span>
         </div>
         <HugeiconsIcon

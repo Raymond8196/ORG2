@@ -6,6 +6,7 @@ import ArrowUpRight from "@hugeicons/core-free-icons/ArrowUpRight01Icon";
 import X from "@hugeicons/core-free-icons/Cancel01Icon";
 import { HugeiconsIcon, type IconSvgElement } from "@hugeicons/react";
 
+import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import FileTypeIcon from "@src/components/FileTypeIcon";
@@ -53,7 +54,7 @@ export function WorkstationItemRow({
         {item.fileName ? (
           <FileTypeIcon fileName={item.fileName} size="small" />
         ) : (
-          <HugeiconsIcon icon={item.icon} size={14} strokeWidth={1.75} />
+          <AnyIcon icon={item.icon} size={14} strokeWidth={1.75} />
         )}
       </span>
       <span className="min-w-0 flex-1 truncate">{item.label}</span>

@@ -4,6 +4,7 @@
  * Renders the confirmation page for actions without modals
  * Separated from main component for better maintainability
  */
+import { type IconSvgElement } from "@hugeicons/react";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -16,7 +17,7 @@ import type { UseConfirmationPageReturn } from "../hooks/core/types";
 type ConfirmationParameter = {
   label: string;
   value: string;
-  icon?: string | React.ComponentType<Record<string, unknown>>;
+  icon?: string | IconSvgElement | React.ComponentType<Record<string, unknown>>;
 };
 
 export interface SpotlightConfirmationViewProps {

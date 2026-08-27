@@ -1,5 +1,4 @@
 import Search from "@hugeicons/core-free-icons/Search01Icon";
-import { HugeiconsIcon } from "@hugeicons/react";
 import { describe, expect, it } from "vitest";
 
 import {
@@ -17,7 +16,18 @@ describe("Spotlight session search action icons", () => {
     );
 
     expect(metadataSearch?.icon).toBe(Search);
-    expect(ALL_SESSIONS_SEARCH_ICON.displayName).toBe("DatabaseSearch");
+    // Under lucide this asserted `displayName === "DatabaseSearch"`. Hugeicons
+    // icons are data, not components, so identity is asserted on the glyph's
+    // actual shape: the custom database-search mark is five elements, the last
+    // two being the search lens and its handle.
+    expect(ALL_SESSIONS_SEARCH_ICON).toHaveLength(5);
+    expect(ALL_SESSIONS_SEARCH_ICON.map(([tag]) => tag)).toEqual([
+      "path",
+      "path",
+      "path",
+      "circle",
+      "path",
+    ]);
     expect(fullTextSearch?.icon).toBe(ALL_SESSIONS_SEARCH_ICON);
     expect(fullTextSearch?.icon).not.toBe(metadataSearch?.icon);
   });

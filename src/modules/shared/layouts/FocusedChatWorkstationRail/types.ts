@@ -4,10 +4,18 @@
  * the rail itself.
  */
 import { type IconSvgElement } from "@hugeicons/react";
+import type { ComponentType } from "react";
 
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 
-export type FocusedChatRailIcon = IconSvgElement;
+/**
+ * A rail icon is either hugeicons glyph data — rendered through
+ * `HugeiconsIcon` — or a hand-authored SVG component. `GitHubRailIcon` is the
+ * only component today; it wraps a brand mark that is not part of any icon set.
+ */
+export type FocusedChatRailIcon =
+  | IconSvgElement
+  | ComponentType<{ size?: number; [key: string]: unknown }>;
 
 export type FocusedChatRailItem = {
   key: string;

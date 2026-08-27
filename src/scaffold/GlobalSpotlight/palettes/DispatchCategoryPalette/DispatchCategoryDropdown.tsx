@@ -22,6 +22,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -70,14 +71,7 @@ const DropdownRow: React.FC<DropdownRowProps> = ({ item, keyboardProps }) => {
         />
       );
     }
-    if (!item.icon) return null;
-    if (typeof item.icon === "string") {
-      return <i className={`${item.icon} text-[16px] text-text-2`} />;
-    }
-    return React.createElement(item.icon, {
-      size: 16,
-      className: "text-text-2",
-    });
+    return <AnyIcon icon={item.icon} size={16} className="text-text-2" />;
   }, [item.icon, isCurrent]);
 
   return (
