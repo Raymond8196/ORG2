@@ -21,12 +21,13 @@ import {
   BoxIcon,
   DockIcon,
   FolderAddIcon,
+  FolderGitTwoIcon,
   FolderLibraryIcon,
   GitPullRequestIcon,
   type IconSvgElement,
   KanbanIcon,
+  MessageAdd02Icon,
   PencilEdit02Icon,
-  PlayIcon,
   Refresh04Icon,
   Search01Icon,
   SparklesIcon,
@@ -109,7 +110,7 @@ export const AGENT_SESSION_ACTIONS = [
   {
     id: "open-session-creator",
     labelKey: "selectors.spotlight.actions.openSessionCreator.label",
-    icon: PlayIcon,
+    icon: MessageAdd02Icon,
     keywords: [
       "new session",
       "create session",
@@ -193,7 +194,7 @@ export const WORKSPACE_ACTIONS = [
   {
     id: "switch-workspace",
     labelKey: "selectors.spotlight.actions.switchWorkspace.label",
-    icon: FolderLibraryIcon,
+    icon: FolderGitTwoIcon,
     keywords: ["switch workspace", "workspace", "repo", "repository", "folder"],
     actionId: ACTION_ID.SPOTLIGHT_OPEN_WORKSPACE_PICKER,
     payload: { mode: "switch" },

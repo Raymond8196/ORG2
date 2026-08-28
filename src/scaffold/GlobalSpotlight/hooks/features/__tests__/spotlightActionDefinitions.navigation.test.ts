@@ -1,13 +1,30 @@
 import { describe, expect, it } from "vitest";
 
-import { Search01Icon } from "@src/icons";
+import { FolderGitTwoIcon, MessageAdd02Icon, Search01Icon } from "@src/icons";
 
 import {
   AGENT_SESSION_ACTIONS,
   ALL_SESSIONS_SEARCH_ICON,
+  WORKSPACE_ACTIONS,
 } from "../spotlightActionDefinitions.navigation";
 
-describe("Spotlight session search action icons", () => {
+describe("Spotlight action icons", () => {
+  it("matches the sidebar icon for the new-session action", () => {
+    const newSession = AGENT_SESSION_ACTIONS.find(
+      (action) => action.id === "open-session-creator"
+    );
+
+    expect(newSession?.icon).toBe(MessageAdd02Icon);
+  });
+
+  it("uses the repository glyph when switching workspaces", () => {
+    const switchWorkspace = WORKSPACE_ACTIONS.find(
+      (action) => action.id === "switch-workspace"
+    );
+
+    expect(switchWorkspace?.icon).toBe(FolderGitTwoIcon);
+  });
+
   it("distinguishes metadata search from full-text session search", () => {
     const metadataSearch = AGENT_SESSION_ACTIONS.find(
       (action) => action.id === "search-agent-sessions"
