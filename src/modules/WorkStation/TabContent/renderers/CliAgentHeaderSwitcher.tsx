@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 import type { CliAgentType } from "@src/api/types/keys";
 import Dropdown from "@src/components/Dropdown";
 import DropdownItem from "@src/components/Dropdown/DropdownItem";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -15,7 +16,6 @@ import {
   getIconProviderFromType,
 } from "@src/components/ModelIcon/config";
 import SelectGhostTrigger from "@src/components/Select/SelectGhostTrigger";
-import { HugeiconsIcon, Search01Icon } from "@src/icons";
 import type { AvailableCliAgent } from "@src/modules/MainApp/AgentOrgs/types";
 import { openAgentConfigInWorkStation } from "@src/util/ui/openAgentConfigInWorkStation";
 
@@ -94,22 +94,13 @@ export function CliAgentHeaderSwitcher({
       onMouseDown={(event) => event.stopPropagation()}
     >
       {showSearch ? (
-        <div className={DROPDOWN_CLASSES.searchContainer}>
-          <HugeiconsIcon
-            icon={Search01Icon}
-            data-icon="search"
-            size={DROPDOWN_ITEM.iconSize}
-            className="shrink-0 text-text-3"
-          />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={t("common:common.searchPlaceholder")}
-            className={DROPDOWN_CLASSES.searchInput}
-            aria-label={t("common:actions.search")}
-          />
-        </div>
+        <DropdownSearch
+          type="search"
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={t("common:common.searchPlaceholder")}
+          ariaLabel={t("common:actions.search")}
+        />
       ) : null}
       <div className={DROPDOWN_CLASSES.optionsContainerScrollbar}>
         {filteredAgents.map((agent) => (

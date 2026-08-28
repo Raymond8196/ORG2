@@ -7,6 +7,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import type { WorkspacePort } from "@src/api/tauri/workspacePorts";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -14,7 +15,6 @@ import {
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
 import {
   Copy01Icon,
@@ -22,7 +22,6 @@ import {
   HugeiconsIcon,
   InternetIcon,
   Loading03Icon,
-  Search01Icon,
   UnplugIcon,
 } from "@src/icons";
 import {
@@ -207,7 +206,6 @@ export const PortsStatusMenu: React.FC = memo(() => {
   const [externalExpanded, setExternalExpanded] = useState(
     () => workspaceCount === 0 && externalCount > 0
   );
-  const tauriSelectAll = useTauriSelectAllShortcut();
 
   const {
     isOpen,
@@ -332,22 +330,13 @@ export const PortsStatusMenu: React.FC = memo(() => {
             }}
             role="menu"
           >
-            <div className={DROPDOWN_CLASSES.searchContainer}>
-              <HugeiconsIcon
-                icon={Search01Icon}
-                data-icon="search"
-                size={DROPDOWN_ITEM.iconSize}
-                className="shrink-0 text-text-3"
-              />
-              <input
-                value={searchQuery}
-                onChange={(event) => setSearchQuery(event.target.value)}
-                onKeyDown={tauriSelectAll}
-                placeholder={t("workstation.ports.searchPlaceholder")}
-                className={DROPDOWN_CLASSES.searchInput}
-                autoFocus
-              />
-            </div>
+            <DropdownSearch
+              type="text"
+              value={searchQuery}
+              onChange={setSearchQuery}
+              placeholder={t("workstation.ports.searchPlaceholder")}
+              autoFocus
+            />
 
             <div className={DROPDOWN_CLASSES.optionsContainerBelowHeader}>
               {!hasAnyMatches ? (

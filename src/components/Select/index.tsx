@@ -17,18 +17,12 @@
  * <Select mode="multiple" showSearch options={options} onChange={handleChange} />
  * ```
  */
-import React, {
-  forwardRef,
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { forwardRef, useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import DropdownOptionsRenderer from "@src/components/Dropdown/DropdownOptionsRenderer";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -39,13 +33,11 @@ import { useDropdownKeyboard } from "@src/components/Dropdown/useDropdownKeyboar
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import { getDropdownPanelStyle } from "@src/hooks/dropdown/dropdownPanelStyle";
 import { useDropdownEngine } from "@src/hooks/dropdown/useDropdownEngine";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import {
   ArrowDown01Icon,
   Cancel01Icon,
   HugeiconsIcon,
   Loading03Icon,
-  Search01Icon,
 } from "@src/icons";
 import { useCurrentTheme } from "@src/util/ui/theme/themeUtils";
 
@@ -126,8 +118,6 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
 
     // ---- Search state ----
     const [searchValue, setSearchValue] = useState("");
-    const searchInputRef = useRef<HTMLInputElement>(null);
-    const tauriSelectAll = useTauriSelectAllShortcut();
 
     const filteredOptions = useMemo(() => {
       if (!showSearch || !searchValue) return flatOptions;
@@ -214,33 +204,13 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
 
     // ---- Search change handler ----
     const handleSearchChange = useCallback(
-      (event: React.ChangeEvent<HTMLInputElement>) => {
-        const val = event.target.value;
+      (val: string) => {
         setSearchValue(val);
         resetHighlight();
         onSearch?.(val);
       },
       [resetHighlight, onSearch]
     );
-
-    // The search field lives in a portal that is a sibling of the trigger,
-    // so its key events cannot bubble to the trigger's navigation handler.
-    // Forward navigation keys explicitly while preserving Tauri's Cmd/Ctrl+A.
-    const handleSearchKeyDown = useCallback(
-      (event: React.KeyboardEvent<HTMLInputElement>) => {
-        tauriSelectAll(event);
-        if (!event.defaultPrevented) handleKeyDown(event);
-      },
-      [handleKeyDown, tauriSelectAll]
-    );
-
-    // ---- Focus search input on open ----
-    useEffect(() => {
-      if (currentPopupVisible && showSearch) {
-        const timer = setTimeout(() => searchInputRef.current?.focus(), 10);
-        return () => clearTimeout(timer);
-      }
-    }, [currentPopupVisible, showSearch]);
 
     // ---- Trigger rendering ----
     const renderValue = () => {
@@ -418,27 +388,14 @@ const Select = forwardRef<HTMLDivElement, SelectProps>(
               style={panelPositionStyle}
             >
               {showSearch && (
-                <div className={DROPDOWN_CLASSES.searchContainer}>
-                  <HugeiconsIcon
-                    icon={Search01Icon}
-                    data-icon="search"
-                    size={DROPDOWN_ITEM.iconSize}
-                    className="shrink-0 text-text-3"
-                  />
-                  <input
-                    ref={searchInputRef}
-                    type="text"
-                    placeholder={t("common:actions.search")}
-                    value={searchValue}
-                    onChange={handleSearchChange}
-                    onClick={(event) => event.stopPropagation()}
-                    onKeyDown={handleSearchKeyDown}
-                    autoCorrect="off"
-                    autoCapitalize="off"
-                    spellCheck={false}
-                    className={DROPDOWN_CLASSES.searchInput}
-                  />
-                </div>
+                <DropdownSearch
+                  type="text"
+                  value={searchValue}
+                  onChange={handleSearchChange}
+                  onKeyDown={handleKeyDown}
+                  placeholder={t("common:actions.search")}
+                  autoFocus
+                />
               )}
               <DropdownOptionsRenderer
                 options={filteredOptions}

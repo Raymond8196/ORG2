@@ -29,6 +29,10 @@ import { atom } from "jotai";
 import { atomFamily } from "jotai-family";
 
 import { createLogger } from "@src/hooks/logger";
+import {
+  type QueuedMessage,
+  messageQueueAtom,
+} from "@src/store/ui/messageQueueAtom";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
 import { isInteractiveTool } from "../core/interactiveTools";
@@ -45,9 +49,11 @@ import {
 import type { SessionEvent } from "../core/types";
 import { ensureCursorIdeEventsInStore } from "../sync/adapters/cursorIdeAdapter";
 import {
-  derivePlanDisplayEvents,
-  planEventContentSignature,
-} from "./planDisplayEvents";
+  appendLiveAssistantEvent,
+  filterQueuedSyntheticUserEvents,
+} from "./chatEvents";
+import { areChatTranscriptsStructurallyEqual } from "./chatTranscriptStructure";
+import { derivePlanDisplayEvents } from "./planDisplayEvents";
 
 const log = createLogger("sessionScopedChatEvents");
 
@@ -171,28 +177,22 @@ export function extractSessionChatEvents(
   return [];
 }
 
-function chatEventsStable(
-  next: SessionEvent[],
-  prev: SessionEvent[],
-  streaming: boolean
-): boolean {
-  if (streaming) return false;
-  if (next.length !== prev.length) return false;
-  for (let i = 0; i < next.length; i++) {
-    if (next[i].id !== prev[i].id) return false;
-    if (next[i].displayStatus !== prev[i].displayStatus) return false;
-    if (next[i].isDelta !== prev[i].isDelta) return false;
-    const na = next[i].args as Record<string, unknown> | undefined;
-    const pa = prev[i].args as Record<string, unknown> | undefined;
-    if (na?.["action"] !== pa?.["action"]) return false;
-    if (na?.["subagentSessionId"] !== pa?.["subagentSessionId"]) return false;
-    if (
-      planEventContentSignature(next[i]) !== planEventContentSignature(prev[i])
-    ) {
-      return false;
-    }
-  }
-  return true;
+function deriveFamilyChatEvents(
+  snapshot: Snapshot | null,
+  sessionId: string,
+  queuedMessages: readonly QueuedMessage[]
+): SessionEvent[] {
+  const streaming = snapshot ? isSnapshotActivelyStreaming(snapshot) : false;
+  return appendLiveAssistantEvent(
+    derivePlanDisplayEvents(
+      filterQueuedSyntheticUserEvents(
+        extractSessionChatEvents(snapshot),
+        queuedMessages as QueuedMessage[]
+      )
+    ),
+    sessionId,
+    streaming ? "\u200b" : null
+  );
 }
 
 /**
@@ -207,11 +207,14 @@ export const chatEventsForSessionAtomFamily = atomFamily(
 
     const a = atom((get) => {
       const { snapshot } = get(sessionSnapshotAtomFamily(sessionId));
-      const next = derivePlanDisplayEvents(extractSessionChatEvents(snapshot));
+      const queuedMessages = get(messageQueueAtom);
+      const next = deriveFamilyChatEvents(snapshot, sessionId, queuedMessages);
       const streaming = snapshot
         ? isSnapshotActivelyStreaming(snapshot)
         : false;
-      if (chatEventsStable(next, prevChatEvents, streaming)) {
+      if (
+        areChatTranscriptsStructurallyEqual(next, prevChatEvents, streaming)
+      ) {
         return prevChatEvents;
       }
       prevChatEvents = next;

@@ -10,6 +10,7 @@ import React, { memo, useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -17,13 +18,7 @@ import {
 } from "@src/components/Dropdown/tokens";
 import FileTreePreview from "@src/components/FileTreePreview";
 import { useDropdownEngine } from "@src/hooks/dropdown";
-import {
-  ArrowUp02Icon,
-  HugeiconsIcon,
-  PinIcon,
-  PinOffIcon,
-  Search01Icon,
-} from "@src/icons";
+import { ArrowUp02Icon, HugeiconsIcon, PinIcon, PinOffIcon } from "@src/icons";
 import type { PinnedAction } from "@src/store/session/pinnedActionsAtom";
 import type { SlashItem } from "@src/types/extensions";
 import { fuzzyMatch, fuzzyScore } from "@src/util/search/fuzzy";
@@ -323,26 +318,13 @@ const PinActionsPanel: React.FC<PinActionsPanelProps> = memo(
         )}
 
         {/* Search header */}
-        <div className={DROPDOWN_CLASSES.searchContainer}>
-          <HugeiconsIcon
-            icon={Search01Icon}
-            data-icon="search"
-            size={DROPDOWN_ITEM.iconSize}
-            className="shrink-0 text-text-3"
-          />
-          <input
-            ref={inputRef}
-            type="text"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder={t("input.pinnedActions.searchPlaceholder")}
-            className={DROPDOWN_CLASSES.searchInput}
-            autoComplete="off"
-            autoCorrect="off"
-            autoCapitalize="off"
-            spellCheck={false}
-          />
-        </div>
+        <DropdownSearch
+          ref={inputRef}
+          type="text"
+          value={query}
+          onChange={setQuery}
+          placeholder={t("input.pinnedActions.searchPlaceholder")}
+        />
 
         {/* List */}
         <div

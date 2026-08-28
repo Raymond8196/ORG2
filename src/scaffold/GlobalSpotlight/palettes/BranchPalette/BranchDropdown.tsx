@@ -19,6 +19,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -28,12 +29,10 @@ import {
   type UseDropdownListNavigationReturn,
   useDropdownEngine,
 } from "@src/hooks/dropdown";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
 import {
   FolderClosedIcon,
   HugeiconsIcon,
-  Search01Icon,
   Tick01Icon,
   WorkflowCircle05Icon,
 } from "@src/icons";
@@ -131,7 +130,6 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
 }) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const tauriSelectAll = useTauriSelectAllShortcut();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -265,22 +263,13 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
         width,
       }}
     >
-      <div className={DROPDOWN_CLASSES.searchContainer}>
-        <HugeiconsIcon
-          icon={Search01Icon}
-          data-icon="search"
-          size={DROPDOWN_ITEM.iconSize}
-          className="shrink-0 text-text-3"
-        />
-        <input
-          ref={inputRef}
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          onKeyDown={tauriSelectAll}
-          placeholder={t("selectors.spotlight.placeholders.branch")}
-          className={DROPDOWN_CLASSES.searchInput}
-        />
-      </div>
+      <DropdownSearch
+        ref={inputRef}
+        type="text"
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={t("selectors.spotlight.placeholders.branch")}
+      />
 
       <div
         className={DROPDOWN_CLASSES.optionsContainerOverlay}
