@@ -180,12 +180,12 @@ const TurnCollapsePinBar: React.FC<TurnCollapsePinBarProps> = memo(
               strokeWidth={1.75}
               className="shrink-0 text-text-2 transition-colors group-hover/turn-collapse:text-text-1"
             />
-            <span className="inline-flex min-w-0 flex-1 items-center gap-2 leading-tight">
-              <span className="shrink-0 select-text whitespace-nowrap font-medium text-text-2 transition-colors group-hover/turn-collapse:text-text-1">
+            <span className="inline-flex min-w-0 flex-1 select-none items-center gap-2 leading-tight">
+              <span className="shrink-0 whitespace-nowrap font-medium text-text-2 transition-colors group-hover/turn-collapse:text-text-1">
                 {label}
               </span>
               {showRange && (
-                <span className="min-w-0 select-text truncate text-text-3">
+                <span className="min-w-0 truncate text-text-3">
                   {rangeLabel}
                 </span>
               )}
