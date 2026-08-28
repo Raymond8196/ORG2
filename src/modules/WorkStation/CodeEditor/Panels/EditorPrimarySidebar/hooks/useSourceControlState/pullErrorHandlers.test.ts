@@ -48,24 +48,30 @@ beforeEach(() => {
 describe("handlePullError — uncommitted_changes → Stash & Pull", () => {
   it("stashes with untracked files, retries the pull, and restores the stash", async () => {
     pullConflictOpen.mockResolvedValueOnce("stash_pull");
-    const options = makeOptions();
+    const stashPush = vi.fn().mockResolvedValue(true);
+    const doPull = vi
+      .fn()
+      .mockResolvedValue({ success: true, errorType: "none" as const });
+    const stashPop = vi.fn().mockResolvedValue(true);
+    const options = makeOptions({ stashPush, doPull, stashPop });
 
     const handled = await handlePullError(options);
 
     expect(handled).toBe(true);
-    expect(options.stashPush).toHaveBeenCalledWith(
+    expect(stashPush).toHaveBeenCalledWith(
       "Auto-stash before pulling into feature/x",
       true
     );
-    expect(options.doPull).toHaveBeenCalledTimes(1);
+    expect(doPull).toHaveBeenCalledTimes(1);
     // The restore is the point of "Stash & Pull": the user asked to pull,
     // not to move their changes into the stash.
-    expect(options.stashPop).toHaveBeenCalledWith(0);
-    const pushOrder = options.stashPush.mock.invocationCallOrder[0];
-    const pullOrder = options.doPull.mock.invocationCallOrder[0];
-    const popOrder = options.stashPop.mock.invocationCallOrder[0];
-    expect(pushOrder).toBeLessThan(pullOrder);
-    expect(pullOrder).toBeLessThan(popOrder);
+    expect(stashPop).toHaveBeenCalledWith(0);
+    expect(stashPush.mock.invocationCallOrder[0]).toBeLessThan(
+      doPull.mock.invocationCallOrder[0]
+    );
+    expect(doPull.mock.invocationCallOrder[0]).toBeLessThan(
+      stashPop.mock.invocationCallOrder[0]
+    );
   });
 
   it("still attempts the restore when the retried pull fails", async () => {
