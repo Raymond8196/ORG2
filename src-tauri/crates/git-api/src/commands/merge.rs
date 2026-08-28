@@ -8,6 +8,10 @@ use crate::types::*;
  */
 use std::path::Path;
 
+#[cfg(test)]
+#[path = "tests/merge_tests.rs"]
+mod tests;
+
 // ============================================
 // Merge Operations
 // ============================================
@@ -84,17 +88,27 @@ pub fn merge_continue(repo_path: &Path) -> Result<GitMergeResult, String> {
 // Rebase Operations
 // ============================================
 
+/// Args for `git rebase`.
+///
+/// `--autostash` for the same reason pulls carry it (see
+/// `remote::pull_strategy_args`): a bare `git rebase` refuses to start on any
+/// dirty working tree ("cannot rebase: You have unstaged changes"), even when
+/// nothing overlaps the replayed commits.
+pub(crate) fn rebase_args<'a>(upstream: &'a str, branch: Option<&'a str>) -> Vec<&'a str> {
+    let mut args = vec!["rebase", "--autostash", upstream];
+    if let Some(b) = branch {
+        args.push(b);
+    }
+    args
+}
+
 /// Rebase onto branch
 pub fn rebase_branch(
     repo_path: &Path,
     upstream: &str,
     branch: Option<&str>,
 ) -> Result<GitRebaseResult, String> {
-    let mut args = vec!["rebase", upstream];
-
-    if let Some(b) = branch {
-        args.push(b);
-    }
+    let args = rebase_args(upstream, branch);
 
     let output = run_git(repo_path, &args)?;
 
