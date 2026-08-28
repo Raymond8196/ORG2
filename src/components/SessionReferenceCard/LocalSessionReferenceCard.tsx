@@ -7,7 +7,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import { useSessionTurnOverview } from "@src/components/SessionHoverCard/useSessionTurnOverview";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { sessionToKanbanTask } from "@src/features/TaskKanban/hooks/useKanbanTasks/sessionToKanbanTask";
-import { FolderGitTwoIcon, HugeiconsIcon, RepeatIcon } from "@src/icons";
+import { CodeIcon, HugeiconsIcon, RepeatIcon } from "@src/icons";
 import {
   renderBreathingStatusDot,
   renderStatusDot,
@@ -143,8 +143,8 @@ const LocalSessionReferenceCard: React.FC<LocalSessionReferenceCardProps> = ({
           <ReferenceCardMetaItem
             icon={
               <HugeiconsIcon
-                icon={FolderGitTwoIcon}
-                data-icon="folder-git-2"
+                icon={CodeIcon}
+                data-icon="code"
                 size={11}
                 strokeWidth={1.75}
                 aria-hidden

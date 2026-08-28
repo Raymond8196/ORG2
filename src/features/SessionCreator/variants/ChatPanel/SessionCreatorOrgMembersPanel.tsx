@@ -28,6 +28,10 @@ import { DispatchCategoryPalette } from "@src/scaffold/GlobalSpotlight/palettes/
 import type { AgentSelection } from "@src/scaffold/GlobalSpotlight/palettes/DispatchCategoryPalette";
 import { UnifiedModelPalette } from "@src/scaffold/GlobalSpotlight/palettes/UnifiedModelPalette";
 import { flattenOrgToMembers } from "@src/scaffold/WizardSystem/variants/AgentOrg/orgTree";
+import {
+  BUILTIN_SDE_DEF_ID,
+  SDE_AGENT_ICON_ID,
+} from "@src/util/session/sessionDispatch";
 
 import {
   applyAgentRuntimeConfig,
@@ -93,7 +97,9 @@ function resolveMemberAgent(
   const definition = allAgents.find((agent) => agent.id === agentId);
   return {
     label: definition?.name ?? agentId,
-    iconId: definition?.iconId ?? "code",
+    iconId:
+      definition?.iconId ??
+      (agentId === BUILTIN_SDE_DEF_ID ? SDE_AGENT_ICON_ID : "code"),
     cliAgentType: null,
   };
 }

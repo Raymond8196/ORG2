@@ -29,13 +29,13 @@ import {
   HugeiconsIcon,
   InboxIcon,
   InformationCircleIcon,
-  LayoutThreeColumnIcon,
   ListChecksIcon,
   ListTodoIcon,
   LockIcon,
   MessageAdd01Icon,
   Settings02Icon,
   SquareTerminalIcon,
+  TrelloIcon,
 } from "@src/icons";
 import { isGitHubIssueStatus } from "@src/modules/ProjectManager/WorkItems/workItemIdentity";
 import type { ChatPanelTab } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -264,7 +264,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "work-management") {
     const WorkManagementIcon =
       tab.managementSection === WORK_MANAGEMENT_SECTION.KANBAN
-        ? LayoutThreeColumnIcon
+        ? TrelloIcon
         : ListTodoIcon;
     icon = (
       <HugeiconsIcon

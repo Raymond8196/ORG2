@@ -12,10 +12,10 @@ import {
   Delete02Icon,
   FolderAddIcon,
   FolderClosedIcon,
+  FolderLibraryIcon,
   FolderOpenIcon,
   FolderSearchIcon,
   FolderSymlinkIcon,
-  FolderTreeIcon,
   GithubIcon,
   HelpCircleIcon,
   Home01Icon,
@@ -76,7 +76,7 @@ export const ICONS = {
 
   // Navigation / Pages
   home: Home01Icon,
-  workspace: FolderTreeIcon,
+  workspace: FolderLibraryIcon,
   workspaceLayout: Layout01Icon,
   folder: FolderClosedIcon,
   folderOpen: FolderOpenIcon,
@@ -104,7 +104,7 @@ export const ICONS = {
   aiSpark: SparklesIcon,
 
   // Selector-specific icons
-  switchRepo: FolderTreeIcon,
+  switchRepo: CodeIcon,
   removeRepo: Delete02Icon,
   removeBranch: Delete02Icon,
   editRepo: Pen01Icon,

@@ -15,6 +15,7 @@ import {
   ArrowLeftRightIcon,
   CodeIcon,
   FolderClosedIcon,
+  FolderLibraryIcon,
   FolderTreeIcon,
   HugeiconsIcon,
   Loading03Icon,
@@ -123,15 +124,15 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         >
           {isMultiRoot ? (
             <HugeiconsIcon
-              icon={FolderTreeIcon}
-              data-icon="folder-tree"
+              icon={FolderLibraryIcon}
+              data-icon="folder-library"
               size={13}
               className="shrink-0 text-text-1"
             />
           ) : (
             <HugeiconsIcon
-              icon={CodeIcon}
-              data-icon="code"
+              icon={isGitInitialized === false ? FolderClosedIcon : CodeIcon}
+              data-icon={isGitInitialized === false ? "folder" : "code"}
               size={13}
               className="shrink-0 text-text-1"
             />

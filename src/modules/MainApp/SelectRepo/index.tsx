@@ -18,7 +18,7 @@ import { createLogger } from "@src/hooks/logger";
 import {
   CodeIcon,
   FolderClosedIcon,
-  FolderTreeIcon,
+  FolderLibraryIcon,
   HugeiconsIcon,
   Search01Icon,
   Settings01Icon,
@@ -124,8 +124,8 @@ const SelectRepoActionsList: React.FC<SelectRepoActionsListProps> = ({
       >
         <div className="flex w-full items-center gap-3">
           <HugeiconsIcon
-            icon={FolderTreeIcon}
-            data-icon="folder-tree"
+            icon={FolderLibraryIcon}
+            data-icon="folder-library"
             size={16}
             strokeWidth={1.5}
             className="h-4 w-4 flex-shrink-0 text-text-2"
@@ -264,8 +264,8 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
                 >
                   <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-violet-600 shadow-[0_1px_3px_rgba(0,0,0,0.1)]">
                     <HugeiconsIcon
-                      icon={FolderTreeIcon}
-                      data-icon="folder-tree"
+                      icon={FolderLibraryIcon}
+                      data-icon="folder-library"
                       size={20}
                       className="text-white"
                     />

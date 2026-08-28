@@ -27,6 +27,7 @@ export { default as Activity01Icon } from "@hugeicons/core-free-icons/Activity01
 export { default as Add01Icon } from "@hugeicons/core-free-icons/Add01Icon";
 export { default as AiGenerativeIcon } from "@hugeicons/core-free-icons/AiGenerativeIcon";
 export { default as AiNetworkIcon } from "@hugeicons/core-free-icons/AiNetworkIcon";
+export { default as AiProgrammingIcon } from "@hugeicons/core-free-icons/AiProgrammingIcon";
 export { default as Airplane01Icon } from "@hugeicons/core-free-icons/Airplane01Icon";
 export { default as Alert01Icon } from "@hugeicons/core-free-icons/Alert01Icon";
 export { default as AlertCircleIcon } from "@hugeicons/core-free-icons/AlertCircleIcon";
@@ -137,6 +138,7 @@ export { default as CloudIcon } from "@hugeicons/core-free-icons/CloudIcon";
 export { default as CloudLoadingIcon } from "@hugeicons/core-free-icons/CloudLoadingIcon";
 export { default as CloudUploadIcon } from "@hugeicons/core-free-icons/CloudUploadIcon";
 export { default as CodeIcon } from "@hugeicons/core-free-icons/CodeIcon";
+export { default as ContentWritingIcon } from "@hugeicons/core-free-icons/ContentWritingIcon";
 export { default as Coffee01Icon } from "@hugeicons/core-free-icons/Coffee01Icon";
 export { default as CogIcon } from "@hugeicons/core-free-icons/CogIcon";
 export { default as Coins01Icon } from "@hugeicons/core-free-icons/Coins01Icon";
@@ -204,6 +206,7 @@ export { default as FolderCogIcon } from "@hugeicons/core-free-icons/FolderCogIc
 export { default as FolderGitTwoIcon } from "@hugeicons/core-free-icons/FolderGitTwoIcon";
 export { default as FolderInputIcon } from "@hugeicons/core-free-icons/FolderInputIcon";
 export { default as FolderKanbanIcon } from "@hugeicons/core-free-icons/FolderKanbanIcon";
+export { default as FolderLibraryIcon } from "@hugeicons/core-free-icons/FolderLibraryIcon";
 export { default as FolderMinusIcon } from "@hugeicons/core-free-icons/FolderMinusIcon";
 export { default as FolderOpenIcon } from "@hugeicons/core-free-icons/FolderOpenIcon";
 export { default as FolderPenIcon } from "@hugeicons/core-free-icons/FolderPenIcon";
@@ -408,6 +411,7 @@ export { default as Ticket01Icon } from "@hugeicons/core-free-icons/Ticket01Icon
 export { default as TimeScheduleIcon } from "@hugeicons/core-free-icons/TimeScheduleIcon";
 export { default as Timer01Icon } from "@hugeicons/core-free-icons/Timer01Icon";
 export { default as ToolboxIcon } from "@hugeicons/core-free-icons/ToolboxIcon";
+export { default as TrelloIcon } from "@hugeicons/core-free-icons/TrelloIcon";
 export { default as TriangleAlertIcon } from "@hugeicons/core-free-icons/TriangleAlertIcon";
 export { default as TypeIcon } from "@hugeicons/core-free-icons/TypeIcon";
 export { default as Undo02Icon } from "@hugeicons/core-free-icons/Undo02Icon";

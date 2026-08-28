@@ -43,9 +43,9 @@ import {
   DashboardSquare01Icon,
   HugeiconsIcon,
   InformationCircleIcon,
-  LayoutThreeColumnIcon,
   ListIcon,
   Search01Icon,
+  TrelloIcon,
 } from "@src/icons";
 import WorkItemContentStack from "@src/modules/ProjectManager/WorkItems/components/WorkItemContentStack";
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";
@@ -696,8 +696,8 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
             />
           ) : (
             <HugeiconsIcon
-              icon={LayoutThreeColumnIcon}
-              data-icon="columns-3"
+              icon={TrelloIcon}
+              data-icon="trello"
               size={15}
               strokeWidth={1.8}
             />
