@@ -176,14 +176,17 @@ export function ChatPanelStartPage({
       : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
         ? "work-item"
         : "more";
+  const showSuggestionCards =
+    createTarget !== CHAT_PANEL_CREATE_TARGET.PROJECT &&
+    createTarget !== CHAT_PANEL_CREATE_TARGET.WORK_ITEM;
   const suggestionCards = utilityActions.map((action) => (
     <LaunchpadActionCard key={action.id} action={action} presentation="card" />
   ));
-  const suggestionPills = (
+  const suggestionPills = showSuggestionCards ? (
     <LaunchpadActionGrid className="mx-auto w-full" presentation="card">
       {suggestionCards}
     </LaunchpadActionGrid>
-  );
+  ) : null;
   const manualMiddleContent = (
     <div
       className="flex w-full flex-col items-center justify-center gap-4"
@@ -192,7 +195,7 @@ export function ChatPanelStartPage({
       <h1 className="text-center text-[18px] font-normal leading-relaxed tracking-tight text-text-1 sm:text-[20px]">
         {t("creator.manualLaunchpadQuestion")}
       </h1>
-      {suggestionPills}
+      {showSuggestionCards ? suggestionPills : null}
     </div>
   );
   const workItemModeControl = (

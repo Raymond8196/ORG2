@@ -40,7 +40,7 @@ const createTargetProps = {
 };
 
 describe("ChatPanelStartPage", () => {
-  it("renders the install-latest-update action in More", () => {
+  it("renders the install-latest-update action for other More targets", () => {
     mocks.useAvailableAppUpdate.mockReturnValue({
       available: true,
       version: "1.1.20",
@@ -55,6 +55,7 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
+        createTarget: CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS,
         moreLauncher: (middleContent, _manualMiddleContent, modeControl) =>
           createElement(
             "div",
@@ -91,18 +92,13 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain("select-bare");
     expect(markup).toContain("select-title-row");
     expect(markup).not.toContain("select-ghost");
-    expect(markup).toContain("Create project");
+    expect(markup).toContain("Manage Agents / Skills");
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-trailing-control"'
     );
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-trailing-separator"'
     );
-    expect(markup).toContain(
-      'data-testid="chat-panel-start-page-project-mode-toggle"'
-    );
-    expect(markup).toContain("common:terminology.agent");
-    expect(markup).toContain('aria-pressed="true"');
     expect(
       markup.indexOf('data-testid="chat-panel-start-page-tab-more"')
     ).toBeLessThan(
@@ -113,15 +109,14 @@ describe("ChatPanelStartPage", () => {
     ).toBeLessThan(
       markup.indexOf('data-testid="chat-panel-start-page-create-target-select"')
     );
-    expect(markup).toContain("inline-flex h-[28px]");
-    expect(markup.indexOf('data-testid="embedded-more-creator"')).toBeLessThan(
-      markup.indexOf('data-testid="chat-panel-start-page-project-mode-toggle"')
-    );
     expect(
       markup.match(/data-testid="chat-panel-start-page-trailing-separator"/g)
     ).toHaveLength(1);
     expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-project-mode-separator"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-project-mode-toggle"'
     );
     expect(markup).not.toContain("Agent session");
     expect(markup).not.toContain("Create Work Item");
@@ -164,12 +159,48 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
+        createTarget: CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS,
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         t,
       })
     );
 
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-install-latest-update"'
+    );
+  });
+
+  it("does not render suggestion cards for a new Project", () => {
+    mocks.useAvailableAppUpdate.mockReturnValue({
+      available: true,
+      version: "1.1.20",
+    });
+    const t = ((key: string) => key) as TFunction<
+      ["sessions", "common", "projects", "navigation"]
+    >;
+
+    const markup = renderToStaticMarkup(
+      createElement(ChatPanelStartPage, {
+        ...createTargetProps,
+        onAddApiKey: vi.fn(),
+        onInstallLatestUpdate: vi.fn(),
+        t,
+      })
+    );
+
+    expect(markup).toContain(
+      'data-testid="chat-panel-start-page-project-mode-toggle"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-import-session"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-add-api-key"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-show-runtime"'
+    );
     expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-install-latest-update"'
     );
@@ -184,6 +215,7 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
+        createTarget: CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS,
         onAddApiKey: vi.fn(),
         onInstallLatestUpdate: vi.fn(),
         t,
@@ -271,18 +303,17 @@ describe("ChatPanelStartPage", () => {
     expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-utility-actions"'
     );
-    expect(markup).toContain('data-testid="chat-panel-start-page-add-api-key"');
-    expect(markup).toContain(
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-add-api-key"'
+    );
+    expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-show-runtime"'
     );
-    expect(markup).toContain(
+    expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-import-session"'
     );
-    expect(markup).toContain(
+    expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-install-latest-update"'
-    );
-    expect(markup.indexOf("creator.manualLaunchpadQuestion")).toBeLessThan(
-      markup.indexOf('data-testid="chat-panel-start-page-import-session"')
     );
     expect(markup).not.toContain(
       'data-testid="chat-panel-start-page-new-work-item"'
