@@ -21,6 +21,10 @@ import {
   sessionCreatorStateAtom,
 } from "@src/store/session";
 import { getBigThreeRegionModelTypeForSession } from "@src/util/session/regionAlertModel";
+import {
+  BUILTIN_SDE_DEF_ID,
+  SDE_AGENT_ICON_ID,
+} from "@src/util/session/sessionDispatch";
 
 import { resolveSessionCreatorAgentHeroContent } from "./resolveSessionCreatorAgentHero";
 
@@ -105,7 +109,10 @@ export function useChatPanelAgentPresentation({
   }, [selectedAgentDefId, selectedAgentDefinition, setCreatorState]);
 
   const resolvedAgentName = selectedAgentDefinition?.name ?? agentName;
-  const resolvedAgentIconId = selectedAgentDefinition?.iconId || agentIconId;
+  const resolvedAgentIconId =
+    selectedAgentDefId === BUILTIN_SDE_DEF_ID
+      ? SDE_AGENT_ICON_ID
+      : selectedAgentDefinition?.iconId || agentIconId;
   const hasAgentSelected = Boolean(
     (isCliMode && cliAgentType) ||
     (targetKind === SESSION_TARGET_KIND.AGENT_ORG && selectedAgentOrgId) ||

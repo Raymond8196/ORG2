@@ -17,6 +17,7 @@ import {
   CloudIcon as Cloud,
   CodeIcon as Code,
   CursorMagicSelection04Icon as ComputerUse,
+  ContentWritingIcon as ContentWriting,
   CreditCardIcon as CreditCard,
   DatabaseIcon as Database,
   File02Icon as FileText,
@@ -159,7 +160,7 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
 
   // work-station roots
   workstation: { labelKey: "navigation:labels.workspace", icon: FolderOpen },
-  code: { labelKey: "navigation:labels.codeEditor", icon: Code },
+  code: { labelKey: "navigation:labels.codeEditor", icon: ContentWriting },
   browser: { labelKey: "navigation:labels.browser", icon: Chromium },
   project: {
     labelKey: "navigation:labels.projectManager",

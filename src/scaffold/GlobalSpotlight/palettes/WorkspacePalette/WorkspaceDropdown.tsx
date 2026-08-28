@@ -114,7 +114,7 @@ const RepoRow: React.FC<RepoRowProps> = ({
   const isSystemPath = isSystemPathRepoItem(repo);
   const Icon = isSystemHomeRepoItem(repo)
     ? ICONS.home
-    : isSystemPath
+    : isSystemPath || repo.kind === REPO_KIND.FOLDER
       ? ICONS.folder
       : ICONS.repo;
   const shouldShowDescription = Boolean(repo.description && !isSystemPath);

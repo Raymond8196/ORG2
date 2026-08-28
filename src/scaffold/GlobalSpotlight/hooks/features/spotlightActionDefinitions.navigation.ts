@@ -21,16 +21,16 @@ import {
   BoxIcon,
   DockIcon,
   FolderAddIcon,
-  FolderTreeIcon,
+  FolderLibraryIcon,
   GitPullRequestIcon,
   type IconSvgElement,
-  LayoutThreeColumnIcon,
   PencilEdit02Icon,
   PlayIcon,
   Refresh04Icon,
   Search01Icon,
   SparklesIcon,
   SquareTerminalIcon,
+  TrelloIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
 
@@ -193,7 +193,7 @@ export const WORKSPACE_ACTIONS = [
   {
     id: "switch-workspace",
     labelKey: "selectors.spotlight.actions.switchWorkspace.label",
-    icon: FolderTreeIcon,
+    icon: FolderLibraryIcon,
     keywords: ["switch workspace", "workspace", "repo", "repository", "folder"],
     actionId: ACTION_ID.SPOTLIGHT_OPEN_WORKSPACE_PICKER,
     payload: { mode: "switch" },
@@ -226,7 +226,7 @@ export const WORKSPACE_ACTIONS = [
   {
     id: "create-multi-repo-workspace",
     labelKey: "selectors.spotlight.actions.createMultiRepoWorkspace.label",
-    icon: FolderTreeIcon,
+    icon: FolderLibraryIcon,
     keywords: [
       "create workspace",
       "multi repo workspace",
@@ -265,7 +265,7 @@ export const STATION_MODE_ACTIONS = [
   {
     id: "open-kanban",
     labelKey: "common:spotlightActions.openKanban",
-    icon: LayoutThreeColumnIcon,
+    icon: TrelloIcon,
     keywords: ["kanban", "project", "work items"],
     shortcut: getShortcutKeys("open_kanban"),
     actionId: ACTION_ID.WORKSTATION_OPEN_KANBAN,

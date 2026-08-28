@@ -33,6 +33,7 @@ import {
 } from "@src/components/ModelIcon/config";
 import {
   AiGenerativeIcon,
+  AiProgrammingIcon,
   BookEditIcon,
   BotIcon,
   BrainIcon,
@@ -112,6 +113,7 @@ function resolveCanonicalBrandIcon(
 
 const ICON_MAP: Record<string, IconSvgElement> = {
   omega: RecordIcon,
+  "ai-programming": AiProgrammingIcon,
   code: CodeIcon,
   monitor: MonitorIcon,
   network: HierarchyCircle01Icon,

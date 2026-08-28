@@ -19,8 +19,8 @@ import {
   DashboardSquare01Icon,
   GaugeIcon,
   HugeiconsIcon,
-  LayoutThreeColumnIcon,
   PictureInPicture01Icon,
+  TrelloIcon,
 } from "@src/icons";
 import { isMacOS } from "@src/util/platform/tauri";
 
@@ -71,8 +71,8 @@ export function PlusMenuContent({
       id: "work-management",
       icon: (
         <HugeiconsIcon
-          icon={LayoutThreeColumnIcon}
-          data-icon="columns-3"
+          icon={TrelloIcon}
+          data-icon="trello"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />

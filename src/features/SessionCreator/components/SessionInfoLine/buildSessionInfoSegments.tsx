@@ -12,7 +12,7 @@ import {
 import {
   CodeIcon,
   FolderClosedIcon,
-  FolderTreeIcon,
+  FolderLibraryIcon,
   Home01Icon,
   HugeiconsIcon,
   WorkflowCircle05Icon,
@@ -39,7 +39,7 @@ interface SessionInfoDisplayParams {
 export interface SessionInfoDisplayState {
   sourceDisplayName: string;
   SourceIcon:
-    | typeof FolderTreeIcon
+    | typeof FolderLibraryIcon
     | typeof CodeIcon
     | typeof Home01Icon
     | typeof FolderClosedIcon;
@@ -63,10 +63,10 @@ export function getSessionInfoDisplayState({
       t("selectors.sessionInfo.sourcePlaceholder"),
     SourceIcon: isSystemHomeSource
       ? Home01Icon
-      : isSystemPathSource
-        ? FolderClosedIcon
-        : isMultiRoot
-          ? FolderTreeIcon
+      : isMultiRoot
+        ? FolderLibraryIcon
+        : isSystemPathSource || repoKind === REPO_KIND.FOLDER
+          ? FolderClosedIcon
           : CodeIcon,
     hasSource: !!repoName || isMultiRoot,
     showBranchRow:

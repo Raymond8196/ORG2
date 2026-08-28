@@ -64,6 +64,7 @@ import {
   SparklesIcon as Sparkles,
   SquareTerminalIcon as SquareTerminal,
   ComputerTerminal01Icon as Terminal,
+  TrelloIcon as Trello,
 } from "@src/icons";
 import { isGitHubIssueStatus } from "@src/modules/ProjectManager/WorkItems/workItemIdentity";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
@@ -114,6 +115,7 @@ export const WORKSTATION_TAB_ICONS = {
   Sparkles,
   SquareTerminal,
   Terminal,
+  Trello,
 } as const satisfies Record<string, IconSvgElement>;
 
 type WorkstationTabIconName = keyof typeof WORKSTATION_TAB_ICONS;

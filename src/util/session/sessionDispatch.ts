@@ -67,6 +67,9 @@ export interface SessionPrefixConfig {
   externalHistorySourceId?: ImportedHistorySourceId;
 }
 
+/** Icon slug for the built-in SDE Agent across current and historical sessions. */
+export const SDE_AGENT_ICON_ID = "ai-programming";
+
 /**
  * Registry of all known session prefixes.
  * Order matters: first match wins for prefix detection.
@@ -88,7 +91,7 @@ export const SESSION_PREFIX_REGISTRY: readonly SessionPrefixConfig[] = [
     prefix: "sdeagent-",
     category: "rust_agent",
     variant: RUST_AGENT_TYPE.SDE,
-    iconId: "code",
+    iconId: SDE_AGENT_ICON_ID,
     defId: "builtin:sde",
   },
   {
@@ -102,7 +105,7 @@ export const SESSION_PREFIX_REGISTRY: readonly SessionPrefixConfig[] = [
     prefix: "agentsession-",
     category: "rust_agent",
     variant: RUST_AGENT_TYPE.SDE,
-    iconId: "code",
+    iconId: SDE_AGENT_ICON_ID,
   },
   {
     prefix: "cliagent-",

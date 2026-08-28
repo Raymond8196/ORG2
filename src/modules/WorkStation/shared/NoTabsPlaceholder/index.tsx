@@ -18,7 +18,7 @@ import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import {
   BubbleChatIcon,
   ChartNoAxesGanttIcon,
-  CodeIcon,
+  ContentWritingIcon,
   DatabaseIcon,
   type IconSvgElement,
   InternetIcon,
@@ -66,7 +66,7 @@ export interface NoTabsPlaceholderProps {
 // ============================================
 
 const ICON_MAP: Record<PlaceholderIcon, IconSvgElement> = {
-  editor: CodeIcon,
+  editor: ContentWritingIcon,
   "source-control": WorkflowCircle05Icon,
   browser: InternetIcon,
   database: DatabaseIcon,
