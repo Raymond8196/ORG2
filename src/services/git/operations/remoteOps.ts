@@ -15,7 +15,7 @@ import {
   showGitAuthenticationDialog,
 } from "@src/util/dialogs/gitAuthenticationDialog";
 
-import { TerminalService } from "../../terminal";
+import { noRepoContextFailure } from "./noRepoContext";
 import type { GitOperationResult } from "./types";
 import {
   getOutputIntegration,
@@ -85,19 +85,7 @@ export async function push(
     }
   }
 
-  // Fall back to terminal command
-  const cmd = params.force ? "git push --force" : "git push";
-  try {
-    await TerminalService.execute(cmd);
-    return { success: true, errorType: "none" };
-  } catch (error) {
-    const parsed = parseGitError(error);
-    return {
-      success: false,
-      errorType: parsed.type,
-      message: parsed.message,
-    };
-  }
+  return noRepoContextFailure("the push");
 }
 
 /**
@@ -112,23 +100,6 @@ const DEFAULT_PULL_STRATEGY: GitPullStrategy =
 function getUserPullStrategy(): GitPullStrategy {
   const strategy = getStore().get(gitPullStrategyAtom);
   return strategy ?? DEFAULT_PULL_STRATEGY;
-}
-
-/**
- * Build the terminal pull command with strategy flags.
- * Always pass explicit flag so Git knows how to reconcile when branches diverge.
- * Rebase carries --autostash: a bare `git pull --rebase` refuses to start on
- * any dirty working tree, even when nothing overlaps the incoming commits.
- */
-function buildPullCommand(strategy: GitPullStrategy): string {
-  switch (strategy) {
-    case "rebase":
-      return "git pull --rebase --autostash";
-    case "ff-only":
-      return "git pull --ff-only";
-    default:
-      return "git pull --no-rebase";
-  }
 }
 
 async function getRemoteUrl(remoteName?: string): Promise<string | undefined> {
@@ -420,17 +391,7 @@ export async function pull(
     }
   }
 
-  try {
-    await TerminalService.execute(buildPullCommand(strategy));
-    return { success: true, errorType: "none" };
-  } catch (error) {
-    const parsed = parseGitError(error);
-    return {
-      success: false,
-      errorType: parsed.type,
-      message: parsed.message,
-    };
-  }
+  return noRepoContextFailure("the pull");
 }
 
 /**
@@ -478,17 +439,7 @@ export async function fetch(
     }
   }
 
-  try {
-    await TerminalService.execute("git fetch");
-    return { success: true, errorType: "none" };
-  } catch (error) {
-    const parsed = parseGitError(error);
-    return {
-      success: false,
-      errorType: parsed.type,
-      message: parsed.message,
-    };
-  }
+  return noRepoContextFailure("the fetch");
 }
 
 /**
