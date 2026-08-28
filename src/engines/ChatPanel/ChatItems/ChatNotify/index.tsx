@@ -8,7 +8,7 @@ import Radio from "@src/components/Radio";
 import {
   ArrowRight01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   ViewIcon,
 } from "@src/icons";
 
@@ -163,7 +163,7 @@ const ChatNotify: React.FC<ChatNotifyProps> = ({
                         onClick={handleItemRedirect}
                       >
                         <HugeiconsIcon
-                          icon={SquareArrowUpRightIcon}
+                          icon={SquareArrowUpRight02Icon}
                           data-icon="square-arrow-out-up-right"
                           size={12}
                         />

@@ -37,7 +37,7 @@ import {
   GitForkIcon,
   HugeiconsIcon,
   Search01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   StarIcon,
 } from "@src/icons";
 import {
@@ -169,7 +169,7 @@ const SearchRepoCard: React.FC<SearchRepoCardProps> = ({
             iconOnly
             icon={
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 size={13}
               />

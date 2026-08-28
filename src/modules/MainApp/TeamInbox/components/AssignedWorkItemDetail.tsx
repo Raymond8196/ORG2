@@ -9,7 +9,7 @@ import {
   ClipboardListIcon,
   HugeiconsIcon,
   InternetIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
@@ -364,7 +364,7 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       openLabel={t("teamInbox.actions.openWorkItem")}
       openIcon={
         <HugeiconsIcon
-          icon={SquareArrowUpRightIcon}
+          icon={SquareArrowUpRight02Icon}
           data-icon="square-arrow-out-up-right"
           size={14}
           strokeWidth={1.75}

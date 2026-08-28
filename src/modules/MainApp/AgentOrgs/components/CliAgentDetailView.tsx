@@ -24,7 +24,7 @@ import {
   BookOpen01Icon,
   HugeiconsIcon,
   Refresh04Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { CliLaunchProfileSection } from "@src/modules/MainApp/Integrations/KeyVault/CliClients/Preview/CliLaunchProfileSection";
 import {
@@ -230,7 +230,7 @@ const CliAgentDetailView: React.FC<CliAgentDetailViewProps> = ({
             variant="tertiary"
             icon={
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 size={14}
               />

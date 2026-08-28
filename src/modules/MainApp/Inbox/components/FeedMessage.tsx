@@ -25,7 +25,7 @@ import {
   ArrowRight01Icon,
   HugeiconsIcon,
   Loading03Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 import {
@@ -147,7 +147,7 @@ const FeedMessage: React.FC<FeedMessageProps> = ({
                     }
                     icon={
                       <HugeiconsIcon
-                        icon={SquareArrowUpRightIcon}
+                        icon={SquareArrowUpRight02Icon}
                         data-icon="square-arrow-out-up-right"
                         size={12}
                       />

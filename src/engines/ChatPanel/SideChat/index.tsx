@@ -47,7 +47,7 @@ import {
   BubbleChatIcon,
   HugeiconsIcon,
   PencilEdit02Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import {
   activeChatPanelTabTypeAtom,
@@ -230,7 +230,7 @@ const SideChatWindow: React.FC<ChatPanelSideChatProps> = ({
                 title={tCommon("actions.openInTab")}
               >
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={HEADER_ICON_SIZE.sm}
                 />

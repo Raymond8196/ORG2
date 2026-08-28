@@ -8,7 +8,7 @@ import React from "react";
 
 import { getToolIcon } from "@src/config/toolIcons";
 import type { ToolUsageMetadata } from "@src/engines/SessionCore/core/types";
-import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
 import {
@@ -61,7 +61,7 @@ const WebSearchResultRow: React.FC<{ result: WebSearchResult }> = React.memo(
         title={result.snippet || result.url}
         leading={
           <HugeiconsIcon
-            icon={SquareArrowUpRightIcon}
+            icon={SquareArrowUpRight02Icon}
             data-icon="square-arrow-out-up-right"
             size={14}
             className="shrink-0 text-text-3"

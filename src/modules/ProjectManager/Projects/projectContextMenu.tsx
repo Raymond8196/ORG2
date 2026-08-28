@@ -12,7 +12,7 @@ import {
   Flag01Icon,
   HugeiconsIcon,
   ListChevronsDownUpIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   Tag01Icon,
   Unlink02Icon,
   UserIcon,
@@ -464,7 +464,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
       id: "open",
       label: t("common:actions.open"),
       icon: createElement(HugeiconsIcon, {
-        icon: SquareArrowUpRightIcon,
+        icon: SquareArrowUpRight02Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary:

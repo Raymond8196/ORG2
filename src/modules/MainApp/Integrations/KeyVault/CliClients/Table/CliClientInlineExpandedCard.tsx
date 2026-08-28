@@ -8,7 +8,7 @@ import {
   Add01Icon,
   HugeiconsIcon,
   Refresh04Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
 
@@ -155,7 +155,7 @@ const CliClientInlineExpandedCard = ({
               size="small"
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={14}
                 />

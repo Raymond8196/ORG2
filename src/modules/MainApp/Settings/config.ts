@@ -10,7 +10,7 @@ import { getSettingsSectionsByTab } from "@src/config/settingsUiManifest";
 import {
   ArrowRight01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 export interface SettingsSectionConfig {
@@ -100,7 +100,7 @@ export const NAV_BUTTON_PROPS = {
   variant: "secondary" as const,
   size: "default" as const,
   icon: createElement(HugeiconsIcon, {
-    icon: SquareArrowUpRightIcon,
+    icon: SquareArrowUpRight02Icon,
     size: 14,
   }),
   iconPosition: "right" as const,

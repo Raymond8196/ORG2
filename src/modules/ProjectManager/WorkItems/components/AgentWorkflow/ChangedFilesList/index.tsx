@@ -11,7 +11,7 @@ import {
   ArrowDown01Icon,
   ArrowRight01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 import DiffSummary from "./DiffSummary";
@@ -150,7 +150,7 @@ const ChangedFilesList: React.FC<ChangedFilesListProps> = ({
             className="mr-2 shrink-0 rounded-md p-1.5 text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1"
           >
             <HugeiconsIcon
-              icon={SquareArrowUpRightIcon}
+              icon={SquareArrowUpRight02Icon}
               data-icon="square-arrow-out-up-right"
               size={13}
             />

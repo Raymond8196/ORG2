@@ -7,7 +7,7 @@ import {
   FolderCogIcon,
   HugeiconsIcon,
   Key02Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 import ToolUsageBadge from "../ToolCallBlock/ToolUsageBadge";
@@ -71,7 +71,7 @@ function appTypeIcon(appType: SetupRepoAppType): React.ReactNode {
   if (appType === "web")
     return (
       <HugeiconsIcon
-        icon={SquareArrowUpRightIcon}
+        icon={SquareArrowUpRight02Icon}
         data-icon="square-arrow-out-up-right"
         size={12}
         className={cls}
@@ -287,7 +287,7 @@ const LaunchAppContent: React.FC<{
     {url && (
       <div className="flex items-center gap-1.5 rounded px-1.5 py-1 hover:bg-fill-2">
         <HugeiconsIcon
-          icon={SquareArrowUpRightIcon}
+          icon={SquareArrowUpRight02Icon}
           data-icon="square-arrow-out-up-right"
           size={11}
           className="shrink-0 text-text-3"

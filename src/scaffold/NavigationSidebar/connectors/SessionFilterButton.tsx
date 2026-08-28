@@ -20,7 +20,7 @@ import {
   ListChevronsDownUpIcon,
   Refresh04Icon,
   SlidersHorizontalIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   TickDouble01Icon,
 } from "@src/icons";
 
@@ -310,7 +310,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       }
                       suffix={
                         <HugeiconsIcon
-                          icon={SquareArrowUpRightIcon}
+                          icon={SquareArrowUpRight02Icon}
                           data-icon="arrow-up-right"
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}

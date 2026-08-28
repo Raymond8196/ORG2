@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import FileTypeIcon from "@src/components/FileTypeIcon";
-import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import { formatPathForPlatformDisplay } from "@src/util/file/repoPathDisplay";
 import { openFileInEditor } from "@src/util/ui/openFileInEditor";
 
@@ -60,7 +60,7 @@ const FileCard: React.FC<FileCardProps> = ({ card }) => {
         title={t("cards.openFile")}
       >
         <HugeiconsIcon
-          icon={SquareArrowUpRightIcon}
+          icon={SquareArrowUpRight02Icon}
           data-icon="square-arrow-out-up-right"
           size={13}
         />

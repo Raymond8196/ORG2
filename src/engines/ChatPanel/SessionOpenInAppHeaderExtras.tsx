@@ -11,7 +11,7 @@ import Button from "@src/components/Button";
 import Message from "@src/components/Message";
 import Tooltip from "@src/components/Tooltip";
 import { createLogger } from "@src/hooks/logger";
-import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import { isImportedHistorySession } from "@src/util/session/sessionDispatch";
 
 const log = createLogger("ChatPanel");
@@ -127,7 +127,7 @@ const SessionOpenInAppHeaderExtras: React.FC<
           data-testid="session-open-in-app-button"
           icon={
             <HugeiconsIcon
-              icon={SquareArrowUpRightIcon}
+              icon={SquareArrowUpRight02Icon}
               data-icon="square-arrow-out-up-right"
               size={14}
               strokeWidth={2}

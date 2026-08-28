@@ -12,7 +12,7 @@ import { useTranslation } from "react-i18next";
 import type { MemberEntry } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Switch from "@src/components/Switch";
-import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import {
   SECTION_DESCRIPTION_CLASSES,
   SectionContainer,
@@ -89,7 +89,7 @@ const MembersSection: React.FC<MembersSectionProps> = ({
             <Button
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={14}
                 />

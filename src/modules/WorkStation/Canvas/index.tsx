@@ -28,7 +28,7 @@ import {
   Cancel01Icon,
   HugeiconsIcon,
   Layout01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import {
   NoTabsPlaceholder,
@@ -210,7 +210,7 @@ function CanvasApp(props: SimulatorAppProps) {
               size="sm"
             >
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 className="h-3.5 w-3.5"
               />

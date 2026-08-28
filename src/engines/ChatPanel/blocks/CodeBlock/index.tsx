@@ -22,7 +22,7 @@ import { useCopyCheck } from "@src/hooks/ui";
 import {
   Copy01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   Tick01Icon,
   ViewIcon,
   ViewOffIcon,
@@ -359,7 +359,7 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                     onClick={handleOpenFile}
                   >
                     <HugeiconsIcon
-                      icon={SquareArrowUpRightIcon}
+                      icon={SquareArrowUpRight02Icon}
                       data-icon="square-arrow-out-up-right"
                       size={14}
                       strokeWidth={1.75}
@@ -458,7 +458,7 @@ const ChatCodeBlock: React.FC<ChatCodeBlockProps> = memo(
                   onClick={handleOpenFile}
                 >
                   <HugeiconsIcon
-                    icon={SquareArrowUpRightIcon}
+                    icon={SquareArrowUpRight02Icon}
                     data-icon="square-arrow-out-up-right"
                     size={14}
                     strokeWidth={1.75}

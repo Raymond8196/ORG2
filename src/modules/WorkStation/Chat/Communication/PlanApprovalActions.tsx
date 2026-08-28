@@ -18,7 +18,7 @@ import {
   CheckmarkCircle01Icon,
   HugeiconsIcon,
   Pen01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 const ICON_SIZE = 12;
@@ -100,7 +100,7 @@ const PlanApprovalActions: React.FC<PlanApprovalActionsProps> = ({
           onClick={onOpenInMyStation}
           icon={
             <HugeiconsIcon
-              icon={SquareArrowUpRightIcon}
+              icon={SquareArrowUpRight02Icon}
               data-icon="square-arrow-out-up-right"
               size={ICON_SIZE}
             />

@@ -13,7 +13,7 @@ import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 import {
   Cancel01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 import { RailItemStatus } from "./RailItemStatus";
@@ -73,7 +73,7 @@ export function WorkstationItemRow({
       {item.status ? <RailItemStatus status={item.status} /> : null}
       {item.external ? (
         <HugeiconsIcon
-          icon={SquareArrowUpRightIcon}
+          icon={SquareArrowUpRight02Icon}
           data-icon="arrow-up-right"
           aria-hidden
           className="shrink-0 text-text-3"

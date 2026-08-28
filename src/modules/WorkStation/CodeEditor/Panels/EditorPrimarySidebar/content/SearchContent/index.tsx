@@ -32,7 +32,7 @@ import {
   ArrowDown01Icon,
   ArrowRight01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { HUMANTOOLS_TEXT_KEYS } from "@src/modules/WorkStation/shared";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
@@ -393,7 +393,7 @@ export const SearchContent = forwardRef<
                   title={t("tooltips.openInEditorTab")}
                 >
                   <HugeiconsIcon
-                    icon={SquareArrowUpRightIcon}
+                    icon={SquareArrowUpRight02Icon}
                     data-icon="arrow-up-right-from-square"
                     size={14}
                     strokeWidth={1.75}

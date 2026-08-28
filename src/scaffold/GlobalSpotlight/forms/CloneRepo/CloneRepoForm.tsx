@@ -21,7 +21,7 @@ import {
   FolderOpenIcon,
   HugeiconsIcon,
   LockIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import { joinPathForDisplay } from "@src/util/file/pathUtils";
@@ -317,7 +317,7 @@ const CloneRepoForm: React.FC<CloneRepoFormProps> = ({
                 size="default"
                 icon={
                   <HugeiconsIcon
-                    icon={SquareArrowUpRightIcon}
+                    icon={SquareArrowUpRight02Icon}
                     data-icon="square-arrow-out-up-right"
                     size={14}
                   />

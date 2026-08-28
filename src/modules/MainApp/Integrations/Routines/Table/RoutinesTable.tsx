@@ -12,7 +12,7 @@ import SettingsTable, {
 import Switch from "@src/components/Switch";
 import TabPill from "@src/components/TabPill";
 import { useRoutineResultNavigation } from "@src/hooks/navigation";
-import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import {
   DETAIL_PANEL_TOKENS,
   DetailPanelContainer,
@@ -134,7 +134,7 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
             >
               {t("routineFields.openSession")}
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="external-link"
                 size={11}
               />
@@ -160,7 +160,7 @@ const RoutineFireHistory: React.FC<{ routine: RoutineDefinition }> = ({
             >
               {t("routineFields.openWorkItem")}
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="external-link"
                 size={11}
               />

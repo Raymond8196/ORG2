@@ -21,7 +21,7 @@ import {
   HugeiconsIcon,
   ListChevronsDownUpIcon,
   Refresh04Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { ExternalBrowserButton } from "@src/modules/WorkStation/shared/ExternalBrowserButton";
 import type { SourceControlFilterMode } from "@src/modules/WorkStation/shared/SidebarModules";
@@ -176,7 +176,7 @@ export const SourceControlHeaderContent: React.FC<
               title={t("common:actions.openInNewTab")}
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={HEADER_ICON_SIZE.sm}
                 />

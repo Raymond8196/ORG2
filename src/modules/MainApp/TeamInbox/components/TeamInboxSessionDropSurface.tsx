@@ -10,7 +10,7 @@ import {
   InboxIcon,
   Link02Icon,
   RotateLeft01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import type { SessionReferenceOpen } from "@src/shared/dnd/sessionTabDrag";
 import { useSessionDropTarget } from "@src/shared/dnd/useSessionDropTarget";
@@ -383,7 +383,7 @@ const TeamInboxSessionDropSurface: React.FC<
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={14}
                   aria-hidden

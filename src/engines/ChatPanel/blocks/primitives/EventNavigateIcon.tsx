@@ -11,7 +11,10 @@
 import React, { memo } from "react";
 
 import AnyIcon from "@src/components/AnyIcon";
-import { CircleArrowOutUpRightIcon, SquareArrowUpRightIcon } from "@src/icons";
+import {
+  CircleArrowOutUpRightIcon,
+  SquareArrowUpRight02Icon,
+} from "@src/icons";
 
 const BASE_CLASSES =
   "flex h-5 cursor-pointer select-none items-center justify-center rounded-md border-none bg-transparent text-text-3 transition-colors hover:bg-fill-2 hover:text-text-1";
@@ -48,7 +51,7 @@ const EventNavigateIcon: React.FC<EventNavigateIconProps> = memo(
     const Icon =
       variant === "footer-hover"
         ? CircleArrowOutUpRightIcon
-        : SquareArrowUpRightIcon;
+        : SquareArrowUpRight02Icon;
 
     return (
       <button

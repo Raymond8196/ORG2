@@ -30,9 +30,9 @@ import {
   CircleSlashIcon,
   GitPullRequestIcon,
   HugeiconsIcon,
-  Loading01Icon,
+  Loading03Icon,
   Refresh04Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 import {
@@ -94,7 +94,7 @@ function CheckStateIcon({
     case "pending":
       return (
         <HugeiconsIcon
-          icon={Loading01Icon}
+          icon={Loading03Icon}
           data-icon="loader"
           size={size}
           strokeWidth={1.9}
@@ -189,7 +189,7 @@ const CheckRow: React.FC<CheckRowProps> = memo(({ item, onOpenDetails }) => {
             }}
           >
             <HugeiconsIcon
-              icon={SquareArrowUpRightIcon}
+              icon={SquareArrowUpRight02Icon}
               data-icon="square-arrow-out-up-right"
               size={MENU_ICON_SIZE}
             />

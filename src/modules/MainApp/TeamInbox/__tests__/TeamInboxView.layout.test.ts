@@ -12,7 +12,7 @@ import {
   vi,
 } from "vitest";
 
-import { InternetIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { InternetIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import type { ManagedPrItem } from "../../WorkManagement/githubManagedItemModel";
@@ -689,7 +689,7 @@ describe("TeamInboxView split layout", () => {
     expect(browserAction.props.icon.props.icon).toBe(InternetIcon);
     expect(browserAction.props.testId).toBe("team-inbox-open-github-pr");
     expect(tabAction.props.label).toBe("teamInbox.actions.openPullRequest");
-    expect(tabAction.props.icon.props.icon).toBe(SquareArrowUpRightIcon);
+    expect(tabAction.props.icon.props.icon).toBe(SquareArrowUpRight02Icon);
     expect(tabAction.props.testId).toBe("team-inbox-open-pr-tab");
     act(() => browserAction.props.onClick());
     expect(openExternalLink).toHaveBeenCalledWith(

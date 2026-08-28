@@ -17,7 +17,7 @@ import { useCopyCheck } from "@src/hooks/ui";
 import {
   Copy01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   Tick01Icon,
 } from "@src/icons";
 import { copyText } from "@src/util/data/clipboard";
@@ -100,7 +100,7 @@ const CodeBlock = memo<CodeBlockProps>(
               onClick={handleOpenFile}
             >
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 size={14}
                 strokeWidth={1.75}

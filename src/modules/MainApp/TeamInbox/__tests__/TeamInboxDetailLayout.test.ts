@@ -16,7 +16,7 @@ import {
   ClipboardListIcon,
   HugeiconsIcon,
   InternetIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 import TeamInboxDetailLayout from "../components/TeamInboxDetailLayout";
@@ -67,7 +67,7 @@ describe("TeamInboxDetailLayout header actions", () => {
           markUnreadLabel: "Mark unread",
           openLabel: "Open work item",
           openIcon: createElement(HugeiconsIcon, {
-            icon: SquareArrowUpRightIcon,
+            icon: SquareArrowUpRight02Icon,
             "aria-hidden": true,
           }),
           headerAuxiliaryAction: {
@@ -150,7 +150,7 @@ describe("TeamInboxDetailLayout header actions", () => {
             markUnreadLabel: "Mark unread",
             openLabel: "Open work item",
             openIcon: createElement(HugeiconsIcon, {
-              icon: SquareArrowUpRightIcon,
+              icon: SquareArrowUpRight02Icon,
               "aria-hidden": true,
             }),
             openPlacement: "header",

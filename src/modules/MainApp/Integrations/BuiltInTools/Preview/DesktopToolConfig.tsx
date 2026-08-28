@@ -50,7 +50,7 @@ import {
   HugeiconsIcon,
   Loading03Icon,
   Refresh04Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { NAV_BUTTON_PROPS } from "@src/modules/MainApp/Settings/config";
 import {
@@ -586,7 +586,7 @@ const ComputerUseConfig: React.FC = () => {
             size="default"
             icon={
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 size={14}
               />

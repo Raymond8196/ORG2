@@ -9,7 +9,7 @@ import {
   ClipboardIcon,
   HugeiconsIcon,
   Layers01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   Tick01Icon,
   WorkflowCircle05Icon,
 } from "@src/icons";
@@ -181,7 +181,7 @@ const CursorPluginInlineExpandedCard: React.FC<
                 {skill.name}
               </span>
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 size={11}
                 className="shrink-0 text-text-3"
@@ -230,7 +230,7 @@ const CursorPluginInlineExpandedCard: React.FC<
                 {hook.label}
               </span>
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 size={11}
                 className="shrink-0 text-text-3"

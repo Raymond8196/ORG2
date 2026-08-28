@@ -34,7 +34,7 @@ import {
   Settings01Icon,
   SparklesIcon,
   SquareArrowRight01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   Tick01Icon,
   WorkHistoryIcon,
   WorkflowCircle05Icon,
@@ -83,7 +83,7 @@ export const ICONS = {
   folderPlus: FolderAddIcon,
 
   // Tab types
-  tabOpen: SquareArrowUpRightIcon,
+  tabOpen: SquareArrowUpRight02Icon,
   tabClosed: WorkHistoryIcon,
   tabChat: Message01Icon,
   tabAgent: SparklesIcon,

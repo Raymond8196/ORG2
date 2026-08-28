@@ -22,7 +22,7 @@ import {
   Layers01Icon,
   Loading03Icon,
   Search01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import type { ComponentSearchResult } from "@src/modules/WorkStation/Browser/hooks/useSourceNavigation";
 import type { SourceLocation } from "@src/modules/WorkStation/Browser/hooks/useWebviewInspector";
@@ -245,7 +245,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                   </div>
                 </div>
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={10}
                   className="mt-1 shrink-0 text-text-3"
@@ -313,7 +313,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                         </div>
                       </div>
                       <HugeiconsIcon
-                        icon={SquareArrowUpRightIcon}
+                        icon={SquareArrowUpRight02Icon}
                         data-icon="square-arrow-out-up-right"
                         size={10}
                         className="mt-1 shrink-0 text-text-3"
@@ -399,7 +399,7 @@ export const SourcePanel: React.FC<SourcePanelProps> = memo(
                             </div>
                           </div>
                           <HugeiconsIcon
-                            icon={SquareArrowUpRightIcon}
+                            icon={SquareArrowUpRight02Icon}
                             data-icon="square-arrow-out-up-right"
                             size={10}
                             className="shrink-0 text-text-3"

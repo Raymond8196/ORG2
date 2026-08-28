@@ -11,7 +11,7 @@ import { Placeholder } from "@src/components/Placeholder";
 import {
   HugeiconsIcon,
   InternetIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import type { ManagedPrItem } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import { LoadingBar } from "@src/modules/shared/layouts/blocks";
@@ -102,7 +102,7 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
                   )}
                   icon={
                     <HugeiconsIcon
-                      icon={SquareArrowUpRightIcon}
+                      icon={SquareArrowUpRight02Icon}
                       data-icon="square-arrow-out-up-right"
                       size={14}
                       strokeWidth={1.75}

@@ -19,7 +19,7 @@ import {
   Cancel01Icon,
   HugeiconsIcon,
   Layout01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { EditorTabService } from "@src/services/workStation/EditorTabService";
 import { getCanvasPreviewTabId } from "@src/store/workstation/tabs/factories/canvasPreview";
@@ -109,7 +109,7 @@ const CanvasPreviewTabRenderer: React.FC<UnifiedTabContentProps> = memo(
               size="sm"
             >
               <HugeiconsIcon
-                icon={SquareArrowUpRightIcon}
+                icon={SquareArrowUpRight02Icon}
                 data-icon="square-arrow-out-up-right"
                 size={12}
               />

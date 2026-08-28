@@ -13,7 +13,7 @@ import {
   GitPullRequestIcon,
   HugeiconsIcon,
   Loading03Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 import type { PrCreationState, PrSectionProps } from "./types";
@@ -152,7 +152,7 @@ const PrSection: React.FC<PrSectionProps> = ({
                 className="inline-flex items-center gap-1.5 text-sm font-medium text-primary-6 hover:underline"
               >
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={13}
                 />

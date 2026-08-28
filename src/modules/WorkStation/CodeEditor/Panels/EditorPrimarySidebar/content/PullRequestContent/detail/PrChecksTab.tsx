@@ -16,7 +16,7 @@ import {
   CircleSlashIcon,
   HugeiconsIcon,
   Loading01Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { formatTimeAgo } from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/hooks/workstationIssueHelpers";
 import {
@@ -113,7 +113,7 @@ function CheckRow({
           title={t("git.pr.details", "Details")}
         >
           <HugeiconsIcon
-            icon={SquareArrowUpRightIcon}
+            icon={SquareArrowUpRight02Icon}
             data-icon="square-arrow-out-up-right"
             size={13}
             strokeWidth={1.9}

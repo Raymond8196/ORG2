@@ -15,7 +15,7 @@ import {
   MonitorIcon,
   PauseIcon,
   PlayIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 
 import type { AgentBrowserOverlayProps } from "./types";
@@ -51,7 +51,7 @@ export const AgentBrowserOverlay: React.FC<AgentBrowserOverlayProps> = memo(
             {isPaused ? (
               <span className="rounded bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-600">
                 <HugeiconsIcon
-                  icon={SquareArrowUpRightIcon}
+                  icon={SquareArrowUpRight02Icon}
                   data-icon="square-arrow-out-up-right"
                   size={10}
                   className="mr-1 inline"

@@ -7,7 +7,7 @@ import PrStatusBadge from "@src/components/PrStatusBadge";
 import type { ExtractedGitArtifactData } from "@src/engines/SessionCore/core/types";
 import {
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
   WorkflowCircle05Icon,
 } from "@src/icons";
 import GitCommitRow from "@src/modules/WorkStation/CodeEditor/Panels/EditorPrimarySidebar/content/GitHistoryContent/GitCommitRow";
@@ -212,7 +212,7 @@ const PullRequestSubmissionRow: React.FC<{
             title={t("actions.openOnGitHub", "Open on GitHub")}
           >
             <HugeiconsIcon
-              icon={SquareArrowUpRightIcon}
+              icon={SquareArrowUpRight02Icon}
               data-icon="square-arrow-out-up-right"
               size={14}
             />

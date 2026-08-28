@@ -24,7 +24,7 @@ import {
   HugeiconsIcon,
   MonitorIcon,
   Refresh04Icon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import {
   webviewBlockedAtom,
@@ -415,7 +415,7 @@ export const BrowserCore: React.FC<BrowserCoreProps> = ({
                       size="small"
                       icon={
                         <HugeiconsIcon
-                          icon={SquareArrowUpRightIcon}
+                          icon={SquareArrowUpRight02Icon}
                           data-icon="square-arrow-out-up-right"
                           size={14}
                           strokeWidth={1.75}

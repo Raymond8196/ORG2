@@ -17,7 +17,7 @@ import {
   ArrowShrink01Icon,
   Cancel01Icon,
   HugeiconsIcon,
-  SquareArrowUpRightIcon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { IFRAME_STYLE_NONCE, stampStyleNonces } from "@src/util/iframeCspNonce";
 
@@ -142,7 +142,7 @@ const CodePreview: React.FC<CodePreviewProps> = ({
             title={t("codePreview.openExternal")}
           >
             <HugeiconsIcon
-              icon={SquareArrowUpRightIcon}
+              icon={SquareArrowUpRight02Icon}
               data-icon="square-arrow-out-up-right"
               size={12}
             />

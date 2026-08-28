@@ -2,7 +2,7 @@ import React from "react";
 
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import PrStatusBadge from "@src/components/PrStatusBadge";
-import { HugeiconsIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import { formatStatNumber } from "@src/shared/pr/formatStatNumber";
 
 import { ToolResultCardFrameLink } from "./ToolResultCardFrame";
@@ -89,7 +89,7 @@ const SessionLinkCard: React.FC<SessionLinkCardProps> = ({ card }) => {
         </div>
 
         <HugeiconsIcon
-          icon={SquareArrowUpRightIcon}
+          icon={SquareArrowUpRight02Icon}
           data-icon="square-arrow-out-up-right"
           size={13}
           className="mt-0.5 shrink-0 text-text-4 transition-colors hover:text-text-2"

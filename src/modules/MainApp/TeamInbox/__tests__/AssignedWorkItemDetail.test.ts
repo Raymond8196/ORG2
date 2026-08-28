@@ -12,7 +12,7 @@ import {
   vi,
 } from "vitest";
 
-import { InternetIcon, SquareArrowUpRightIcon } from "@src/icons";
+import { InternetIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import AssignedWorkItemDetail from "../components/AssignedWorkItemDetail";
@@ -287,7 +287,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     expect(React.isValidElement(openIcon)).toBe(true);
     expect(
       (openIcon as React.ReactElement<{ icon?: unknown }>).props.icon
-    ).toBe(SquareArrowUpRightIcon);
+    ).toBe(SquareArrowUpRight02Icon);
     const browserAction = mocks.detailLayoutProps?.headerAuxiliaryAction as
       | {
           label: string;
@@ -478,7 +478,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     expect(React.isValidElement(openIcon)).toBe(true);
     expect(
       (openIcon as React.ReactElement<{ icon?: unknown }>).props.icon
-    ).toBe(SquareArrowUpRightIcon);
+    ).toBe(SquareArrowUpRight02Icon);
     act(() => {
       (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
     });
