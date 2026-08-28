@@ -204,7 +204,13 @@ export function createGitOperationHandler<TParams>(
               errorType,
               `${error}\n${captured}`
             );
-            if (showErrorDialog) {
+            // Same auth guard as onComplete: the caller's credential-retry
+            // flow opens its own dialog for auth failures, and showing both
+            // stacked two modals.
+            if (
+              showErrorDialog &&
+              resolvedErrorType !== "authentication_failed"
+            ) {
               setTimeout(() => {
                 showGitErrorAndHandle({
                   operation: operationName,
@@ -220,9 +226,38 @@ export function createGitOperationHandler<TParams>(
             resolve({ success: false, errorType: resolvedErrorType });
           },
         }
-      ).then((cleanup) => {
-        cleanupRef.current = cleanup;
-      });
+      ).then(
+        (cleanup) => {
+          cleanupRef.current = cleanup;
+        },
+        (error: unknown) => {
+          // Stream setup itself failed (backend down, bad URL): neither
+          // callback will ever fire, so settle the promise here — without
+          // this the operation's spinner never resolves.
+          const message =
+            error instanceof Error ? error.message : String(error);
+          const resolvedErrorType = resolveGitErrorType(
+            operationName,
+            undefined,
+            message
+          );
+          if (
+            showErrorDialog &&
+            resolvedErrorType !== "authentication_failed"
+          ) {
+            setTimeout(() => {
+              showGitErrorAndHandle({
+                operation: operationName,
+                repoId,
+                repoPath,
+                errorType: resolvedErrorType,
+                errorMessage: message,
+              });
+            }, 0);
+          }
+          resolve({ success: false, errorType: resolvedErrorType });
+        }
+      );
     });
   };
 }
@@ -301,9 +336,15 @@ export function createGitOperationHandlerWithReject<TParams>(
             reject(new Error(error));
           },
         }
-      ).then((cleanup) => {
-        cleanupRef.current = cleanup;
-      });
+      ).then(
+        (cleanup) => {
+          cleanupRef.current = cleanup;
+        },
+        (error: unknown) => {
+          // Settle on stream-setup failure — see createGitOperationHandler.
+          reject(error instanceof Error ? error : new Error(String(error)));
+        }
+      );
     });
   };
 }
