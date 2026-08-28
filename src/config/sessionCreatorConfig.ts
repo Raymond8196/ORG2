@@ -190,6 +190,7 @@ export interface RunningLocationEntry {
   id: RunningLocation;
   icon: typeof LaptopIcon;
   iconClassName?: string;
+  /** Namespace-qualified i18n key for the display label. */
   i18nKey: string;
   name: string;
   description: string;
@@ -200,7 +201,7 @@ export const RUNNING_LOCATIONS: RunningLocationEntry[] = [
   {
     id: "local",
     icon: LaptopIcon,
-    i18nKey: "planner.runningLocation.local",
+    i18nKey: "sessions:planner.runningLocation.local",
     name: "This Mac",
     description: "Run on this device",
   },
@@ -208,14 +209,16 @@ export const RUNNING_LOCATIONS: RunningLocationEntry[] = [
     id: "worktree",
     icon: SplitIcon,
     iconClassName: "rotate-90",
-    i18nKey: "planner.runningLocation.worktree",
+    i18nKey: "sessions:planner.runningLocation.worktree",
     name: "New Worktree",
     description: "Run in a new git worktree",
   },
   {
     id: "cloud",
     icon: CloudIcon,
-    i18nKey: "planner.runningLocation.cloud",
+    // Shares the localized environment label with the workstation trail
+    // (`planner.runningLocation.cloud` was "Cloud" in every locale).
+    i18nKey: "common:workstation.sessionEnvCloud",
     name: "Cloud",
     description: "Run in the cloud",
     disabled: true,

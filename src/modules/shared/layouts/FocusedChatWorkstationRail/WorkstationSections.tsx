@@ -10,6 +10,7 @@ import {
   WorkflowCircle05Icon,
 } from "@src/icons";
 
+import { EnvironmentKindRow } from "./EnvironmentKindRow";
 import { WorkspaceContextRow } from "./WorkspaceContextRow";
 import { WorkstationItemRow } from "./WorkstationItemRow";
 import type { WorkstationSectionsProps } from "./types";
@@ -42,6 +43,12 @@ export function WorkstationSections({
               section.environment.worktreeBranchName ||
               section.environment.workItem) && (
               <>
+                {section.environment.environmentKind && (
+                  <EnvironmentKindRow
+                    compact={compact}
+                    kind={section.environment.environmentKind}
+                  />
+                )}
                 {section.environment.repoName && (
                   <WorkspaceContextRow
                     compact={compact}
@@ -54,6 +61,12 @@ export function WorkstationSections({
                     compact={compact}
                     icon={WorkflowCircle05Icon}
                     label={section.environment.branchName}
+                    active={section.environment.branchAction?.active}
+                    chevron={Boolean(section.environment.branchAction)}
+                    onClick={section.environment.branchAction?.onClick}
+                    onRequestClose={onRequestClose}
+                    title={section.environment.branchAction?.label}
+                    ariaLabel={section.environment.branchAction?.label}
                   />
                 )}
                 {section.environment.worktreeBranchName && (

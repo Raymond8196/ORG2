@@ -155,7 +155,7 @@ export function buildSessionInfoSegments({
       label:
         worktreeLocation === "worktree" && worktreeLocationLabel
           ? worktreeLocationLabel
-          : t(`sessions:${locationEntry.i18nKey}`),
+          : t(locationEntry.i18nKey),
       maxLabelWidth: SESSION_INFO_LABEL_MAX_WIDTH,
       active: isLocationDropdownOpen,
       tooltip: disabled ? undefined : (

@@ -76,7 +76,7 @@ export function WorkstationItemRow({
           icon={SquareArrowUpRight02Icon}
           data-icon="arrow-up-right"
           aria-hidden
-          className="shrink-0 text-text-3"
+          className="shrink-0 text-text-2"
           size={13}
           strokeWidth={1.75}
         />
