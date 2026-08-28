@@ -223,12 +223,15 @@ describe("terminal fallback — the command string built for each operation", ()
     expect(execute.mock.calls).toEqual([["git pull --rebase --autostash"]]);
   });
 
-  it("falls back to merge when the strategy setting is absent altogether", async () => {
+  it("falls back to the registry default when the setting is absent", async () => {
+    // Regression: this used to fall back to a literal "merge", so an
+    // unhydrated settings atom pulled with a different strategy at startup
+    // than the shipped default ("rebase").
     const remoteOps = await loadRemoteOps({ pullStrategy: null });
 
     await remoteOps.pull();
 
-    expect(execute.mock.calls).toEqual([["git pull --no-rebase"]]);
+    expect(execute.mock.calls).toEqual([["git pull --rebase --autostash"]]);
   });
 
   it("reads the user's configured pull strategy when the caller passes none", async () => {
