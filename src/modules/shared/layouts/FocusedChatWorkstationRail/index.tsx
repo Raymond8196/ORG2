@@ -36,9 +36,11 @@ import {
   LayoutListIcon,
   SquareTerminalIcon,
 } from "@src/icons";
+import { openBranchSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
+import { spotlightOpenAtom } from "@src/store/ui/uiAtom";
 import { activeWorkspaceRootAtom } from "@src/store/workspace";
 import { requestNewBrowserSessionAtom } from "@src/store/workstation";
 import {
@@ -134,6 +136,17 @@ export function FocusedChatWorkstationRail({
     activeWorkspaceRoot?.repo?.name ?? activeWorkspaceRoot?.name ?? undefined;
   const { currentBranch } = useRepoSelection({ autoLoad: false });
   const activeBranchName = currentBranch || undefined;
+
+  // Selected state for the branch-switcher row: engaged on click, released
+  // when the spotlight closes. The spotlight's own layer state is internal,
+  // so a later unrelated spotlight open must not re-highlight the row.
+  const spotlightOpen = useAtomValue(spotlightOpenAtom);
+  const [branchSwitcherEngaged, setBranchSwitcherEngaged] = useState(false);
+  if (branchSwitcherEngaged && !spotlightOpen) {
+    // Render-time adjustment instead of an effect (react.dev guidance).
+    setBranchSwitcherEngaged(false);
+  }
+  const branchSwitcherOpen = branchSwitcherEngaged && spotlightOpen;
 
   const { repoId, repoPath: activeRepoPath } = useActiveRepoRef();
   const { additions: reviewAdditions, deletions: reviewDeletions } =
@@ -450,6 +463,15 @@ export function FocusedChatWorkstationRail({
     const localEnvironment: FocusedChatSessionContext = {
       repoName: activeRepoName,
       branchName: activeBranchName,
+      // Same switcher as the workstation status bar's branch button.
+      branchAction: {
+        active: branchSwitcherOpen,
+        label: t("common:workstation.switchLocalBranchTooltip"),
+        onClick: () => {
+          setBranchSwitcherEngaged(true);
+          openBranchSpotlight();
+        },
+      },
     };
     return resolveFocusedChatWorkstationSectionOrder(
       openTabItems.length > 0,
@@ -478,6 +500,7 @@ export function FocusedChatWorkstationRail({
   }, [
     activeBranchName,
     activeRepoName,
+    branchSwitcherOpen,
     hasSessionEnvironment,
     openTabItems,
     sessionContext,

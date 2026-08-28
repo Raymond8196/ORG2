@@ -58,6 +58,18 @@ export interface FocusedChatWorkstationRailProps {
 
 export interface FocusedChatSessionContext {
   branchName?: string;
+  /**
+   * Where the session's environment runs. Rendered as a passive chevron row
+   * (no switcher wired yet).
+   */
+  environmentKind?: "local" | "cloud";
+  /** Switcher action on the branch row (chevron affordance + click). */
+  branchAction?: {
+    /** Switcher popup currently open (row highlights, chevron flips up). */
+    active?: boolean;
+    label: string;
+    onClick: () => void;
+  };
   repoName?: string;
   repoPath?: string;
   worktreeBranchName?: string;

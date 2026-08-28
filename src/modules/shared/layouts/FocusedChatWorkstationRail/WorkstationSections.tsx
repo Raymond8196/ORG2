@@ -2,11 +2,15 @@
  * WorkstationSections — renders the rail's section list in both the wide
  * (trail) and compact (dropdown menu) presentations.
  */
+import { useTranslation } from "react-i18next";
+
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 import {
+  CloudIcon,
   FolderClosedIcon,
   FolderKanbanIcon,
   GitForkIcon,
+  LaptopIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
 
@@ -19,6 +23,7 @@ export function WorkstationSections({
   onRequestClose,
   sections,
 }: WorkstationSectionsProps) {
+  const { t } = useTranslation();
   return (
     <div
       className={compact ? "space-y-2" : WORKSTATION_TRAIL_CONTENT.sectionList}
@@ -42,6 +47,22 @@ export function WorkstationSections({
               section.environment.worktreeBranchName ||
               section.environment.workItem) && (
               <>
+                {section.environment.environmentKind && (
+                  <WorkspaceContextRow
+                    compact={compact}
+                    icon={
+                      section.environment.environmentKind === "cloud"
+                        ? CloudIcon
+                        : LaptopIcon
+                    }
+                    label={t(
+                      section.environment.environmentKind === "cloud"
+                        ? "common:workstation.sessionEnvCloud"
+                        : "common:workstation.sessionEnvLocal"
+                    )}
+                    chevron
+                  />
+                )}
                 {section.environment.repoName && (
                   <WorkspaceContextRow
                     compact={compact}
@@ -54,6 +75,12 @@ export function WorkstationSections({
                     compact={compact}
                     icon={WorkflowCircle05Icon}
                     label={section.environment.branchName}
+                    active={section.environment.branchAction?.active}
+                    chevron={Boolean(section.environment.branchAction)}
+                    onClick={section.environment.branchAction?.onClick}
+                    onRequestClose={onRequestClose}
+                    title={section.environment.branchAction?.label}
+                    ariaLabel={section.environment.branchAction?.label}
                   />
                 )}
                 {section.environment.worktreeBranchName && (

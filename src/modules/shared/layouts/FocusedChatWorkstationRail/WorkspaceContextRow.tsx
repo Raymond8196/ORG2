@@ -3,10 +3,20 @@
  * repo, branch, worktree, or the linked work item.
  */
 import AnyIcon from "@src/components/AnyIcon";
+import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
+import Tooltip from "@src/components/Tooltip";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
-import type { IconSvgElement } from "@src/icons";
+import {
+  ArrowDown01Icon,
+  ArrowUp01Icon,
+  HugeiconsIcon,
+  type IconSvgElement,
+} from "@src/icons";
 
 export function WorkspaceContextRow({
+  active = false,
+  ariaLabel,
+  chevron = false,
   compact = false,
   icon,
   label,
@@ -15,6 +25,11 @@ export function WorkspaceContextRow({
   testId,
   title,
 }: {
+  /** Switcher popup currently open: chevron flips up, hover highlight sticks. */
+  active?: boolean;
+  ariaLabel?: string;
+  /** Trailing chevron affordance for switcher rows. */
+  chevron?: boolean;
   compact?: boolean;
   icon: IconSvgElement;
   label: string;
@@ -36,15 +51,32 @@ export function WorkspaceContextRow({
       >
         {label}
       </span>
+      {chevron && (
+        <HugeiconsIcon
+          icon={active ? ArrowUp01Icon : ArrowDown01Icon}
+          data-icon={active ? "chevron-up" : "chevron-down"}
+          aria-hidden
+          className="shrink-0 text-text-2"
+          size={13}
+          strokeWidth={1.75}
+        />
+      )}
     </>
   );
 
   if (onClick) {
-    return (
+    // Switcher rows get the rail's styled tooltip; other clickable rows keep
+    // the native title.
+    const styledTooltip = chevron ? (title ?? label) : undefined;
+    const button = (
       <button
         type="button"
-        className={`${className} w-full text-left transition-colors hover:bg-fill-2`}
-        title={title ?? label}
+        className={`${className} w-full text-left transition-colors hover:bg-fill-2 ${
+          active ? "bg-fill-2" : ""
+        }`}
+        title={styledTooltip ? undefined : (title ?? label)}
+        aria-label={ariaLabel}
+        aria-expanded={chevron ? active : undefined}
         data-testid={testId}
         role={compact ? "menuitem" : undefined}
         onClick={() => {
@@ -55,6 +87,21 @@ export function WorkspaceContextRow({
         {content}
       </button>
     );
+
+    if (styledTooltip) {
+      return (
+        <Tooltip
+          content={<KeyboardShortcutTooltipContent label={styledTooltip} />}
+          position="left"
+          framedPanel
+          mouseEnterDelay={200}
+          smartPlacement
+        >
+          {button}
+        </Tooltip>
+      );
+    }
+    return button;
   }
 
   return (
