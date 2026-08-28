@@ -171,6 +171,7 @@ export { default as DiamondIcon } from "@hugeicons/core-free-icons/DiamondIcon";
 export { default as DiffIcon } from "@hugeicons/core-free-icons/DiffIcon";
 export { default as DockIcon } from "@hugeicons/core-free-icons/DockIcon";
 export { default as Download01Icon } from "@hugeicons/core-free-icons/Download01Icon";
+export { default as Download02Icon } from "@hugeicons/core-free-icons/Download02Icon";
 export { default as EclipseIcon } from "@hugeicons/core-free-icons/EclipseIcon";
 export { default as Edit01Icon } from "@hugeicons/core-free-icons/Edit01Icon";
 export { default as Edit02Icon } from "@hugeicons/core-free-icons/Edit02Icon";

@@ -17,7 +17,7 @@ import { usePinnedActionsVisibilityContextMenu } from "@src/engines/ChatPanel/In
 import type { SessionLaunchWorkItemContext } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { LaunchpadActionGrid } from "@src/features/SessionCreator/components/LaunchpadActionGrid";
 import {
-  CircleArrowUp01Icon,
+  Download02Icon,
   HierarchyCircle01Icon,
   HugeiconsIcon,
   NotificationOff01Icon,
@@ -193,7 +193,7 @@ const SessionCreatorChatPanelView: React.FC<
   const sessionInfoLine = (
     <SessionInfoLine
       {...sessionInfoProps}
-      trailingContent={cliLaunchModeSwitch}
+      leadingContent={cliLaunchModeSwitch}
       dropdownDirection={
         isLaunchpadLayout ? "up" : sessionInfoProps.dropdownDirection
       }
@@ -325,8 +325,8 @@ const SessionCreatorChatPanelView: React.FC<
           type="warning"
           icon={
             <HugeiconsIcon
-              icon={CircleArrowUp01Icon}
-              data-icon="circle-arrow-up"
+              icon={Download02Icon}
+              data-icon="download"
               size={14}
               strokeWidth={1.8}
             />

@@ -131,8 +131,8 @@ export interface SessionInfoLineProps {
   worktreeSource?: WorktreeLaunchSource | null;
   onWorktreeLocationChange?: (location: RunningLocation) => void;
   onWorktreeSourceSelect?: (selection: WorktreeLaunchSelection) => void;
-  /** Optional control rendered after the repository, location, and branch pills. */
-  trailingContent?: React.ReactNode;
+  /** Optional control rendered before the repository, location, and branch pills. */
+  leadingContent?: React.ReactNode;
 }
 
 const LOCATION_ROWS: LocationRow[] = RUNNING_LOCATIONS.map((entry) => ({
@@ -276,7 +276,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   worktreeSource,
   onWorktreeLocationChange,
   onWorktreeSourceSelect,
-  trailingContent,
+  leadingContent,
   disabled = false,
   hideBranch = false,
 }) => {
@@ -616,14 +616,14 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
 
   return (
     <>
-      {trailingContent ? (
-        <div className="inline-flex flex-wrap items-center gap-1.5">
-          {sessionInfoPills}
+      {leadingContent ? (
+        <div className="inline-flex flex-wrap items-center gap-0">
+          {leadingContent}
           <span
             aria-hidden
             className="inline-flex h-3 w-px shrink-0 bg-border-2"
           />
-          {trailingContent}
+          {sessionInfoPills}
         </div>
       ) : (
         sessionInfoPills
