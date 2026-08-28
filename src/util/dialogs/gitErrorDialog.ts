@@ -36,6 +36,17 @@ export interface GitErrorDialogOptions {
   commandOutput?: string;
   /** Timestamp of when the error occurred */
   timestamp?: Date;
+  /**
+   * The parameters the failed operation actually ran with, so a
+   * stash-and-retry re-runs the SAME operation. Without these, the retry
+   * re-reads the pull-strategy setting (an explicit "pull with rebase"
+   * retried as a merge pull) and drops remote/branch.
+   */
+  retryContext?: {
+    remote?: string;
+    branch?: string;
+    strategy?: "merge" | "rebase" | "ff-only";
+  };
 }
 
 export interface GitErrorInfo {
