@@ -8,7 +8,6 @@ import type {
   AddAction,
   IntegrationCategory,
 } from "@src/api/types/integrations";
-import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
 import {
   BlocksIcon,
   CalendarArrowUpIcon,
@@ -16,6 +15,7 @@ import {
   Download01Icon,
   File02Icon,
   Key01Icon,
+  McpServerIcon,
   UnplugIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
@@ -127,7 +127,7 @@ function buildMcpDropdownItems(
     {
       id: "mcp-server",
       label: t("toolbarPlusMenu.addMcpServer"),
-      icon: McpLogoIcon,
+      icon: McpServerIcon,
       onClick: () => dispatch("add-mcp"),
     },
   ];

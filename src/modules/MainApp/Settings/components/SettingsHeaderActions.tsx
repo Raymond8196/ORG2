@@ -23,7 +23,6 @@
  */
 import React, { useState } from "react";
 
-import AnyIcon from "@src/components/AnyIcon";
 import Dropdown from "@src/components/Dropdown";
 import {
   DROPDOWN_CLASSES,
@@ -52,7 +51,7 @@ const HeaderIconButton: React.FC<HeaderIconButtonProps> = ({ item }) => {
   const icon =
     item.iconElement ??
     (item.icon ? (
-      <AnyIcon
+      <HugeiconsIcon
         icon={item.icon}
         size={HEADER_ICON_SIZE.sm}
         strokeWidth={2}
@@ -130,7 +129,7 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
             }`}
           >
             <span className="flex min-w-0 flex-1 items-center gap-2">
-              <AnyIcon
+              <HugeiconsIcon
                 icon={icon}
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}

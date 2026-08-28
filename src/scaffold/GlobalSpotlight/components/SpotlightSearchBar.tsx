@@ -103,9 +103,9 @@ export const SpotlightSearchBar: React.FC<SpotlightSearchBarProps> = ({
     />
   );
 
-  // AnyIcon resolves every shape a segment can carry: an icon-font class
-  // string, a brand-mark component (including forwardRef/memo wrappers, which
-  // `typeof === "function"` misses), and hugeicons glyph data — which a
+  // AnyIcon resolves every shape a segment can carry: `""` (deliberate
+  // no-icon), a brand-mark component (including forwardRef/memo wrappers,
+  // which `typeof === "function"` misses), and hugeicons glyph data — which a
   // hand-rolled switch here used to drop entirely, leaving pills iconless.
   const renderPillIcon = (segment: PathSegment) => (
     <AnyIcon icon={segment.icon} size={14} className="text-primary-6" />

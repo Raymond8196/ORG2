@@ -11,7 +11,8 @@
  *   - hugeicons glyph data            -> rendered via `HugeiconsIcon`
  *   - a hand-authored SVG component   -> brand marks (GitHub, MCP) that no icon
  *                                        set provides
- *   - a legacy icon-font class name   -> a few old call sites still pass one
+ *   - `""`                            -> the deliberate "no icon here" spelling
+ *                                        used by item models (renders nothing)
  *
  * ...and a fourth: nothing at all. `HugeiconsIcon` does `[...icon]` internally,
  * so an `undefined` icon throws
@@ -38,6 +39,17 @@ export type RenderableIcon =
   | IconSvgElement
   | ComponentType<Record<string, unknown>>;
 
+/**
+ * A `RenderableIcon`, or a string.
+ *
+ * The only meaningful string is `""` — several item models (notably the
+ * spotlight items) spell "no icon" that way, and `AnyIcon` renders it as
+ * nothing. Non-empty strings are NOT icons anymore: the icon-font pathway
+ * died with the lucide→hugeicons migration (name-keyed registries such as
+ * `ICON_NAME_MAP` / `WORKSTATION_TAB_ICONS` resolve their strings to glyph
+ * data BEFORE rendering). `AnyIcon` renders an unexpected non-empty string
+ * as nothing, with a dev-only warning.
+ */
 export type AnyIconSource = string | RenderableIcon;
 
 export interface AnyIconProps {
@@ -74,9 +86,7 @@ const AnyIcon: React.FC<AnyIconProps> = ({
   ...rest
 }) => {
   // An empty string is how several call sites (notably the spotlight item
-  // model) spell "no icon". Treat it as absent rather than as an icon-font
-  // class name, which would render an empty <i> that still takes layout space
-  // and knocks the row's alignment out.
+  // model) spell "no icon".
   // `""` is deliberate ("no icon here"), so it is silent; a missing icon is a
   // mistake worth surfacing.
   if (icon === "") return null;
@@ -96,15 +106,19 @@ const AnyIcon: React.FC<AnyIconProps> = ({
     return null;
   }
 
-  // Legacy icon-font class name.
+  // A NON-empty string is not an icon: the icon-font pathway is gone, and
+  // every name-keyed registry resolves its strings to glyph data before
+  // rendering. Degrade like an unresolved icon rather than emitting a dead
+  // <i> tag that still takes layout space.
   if (typeof icon === "string") {
-    return (
-      <i
-        className={`${icon} ${className ?? ""}`.trim()}
-        style={{ fontSize: size }}
-        {...rest}
-      />
-    );
+    if (process.env.NODE_ENV !== "production") {
+      console.warn(
+        `[AnyIcon] got the string "${icon}" instead of an icon. Icon-font ` +
+          `classes are no longer rendered; resolve names to glyph data ` +
+          `before the render boundary.`
+      );
+    }
+    return null;
   }
 
   // Glyph data is an array; check it BEFORE treating the value as a component.

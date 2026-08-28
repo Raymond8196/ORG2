@@ -123,13 +123,8 @@ const NavigationMenu: React.FC<NavigationMenuProps> = React.memo(
           );
         }
 
+        // `AnyIcon` handles every remaining shape, including `""` (= no icon).
         if (!icon) return null;
-
-        if (typeof icon === "string") {
-          return (
-            <i className={`${icon} flex-shrink-0 text-[14px] ${colorClass}`} />
-          );
-        }
 
         return (
           <AnyIcon

@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { WorkStationTab } from "@src/store/workstation/tabs/types";
 
-import { SortableTab, resolveWorkstationTabIntegrationIcon } from ".";
+import { SortableTab, resolveWorkstationTabIntegrationIcon } from "..";
 
 vi.mock("@src/components/IntegrationIcon", () => ({
   default: ({ type, size }: { type: string; size: number }) =>
