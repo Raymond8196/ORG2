@@ -61,7 +61,12 @@ pub fn stash_push(
 
 /// List stashes
 pub fn stash_list(repo_path: &Path) -> Result<Vec<StashEntry>, String> {
-    let output = run_git(repo_path, &["stash", "list", "--format=%gd|%s|%gs"])?;
+    // %gd is the real selector ("stash@{N}"). Deriving the index from line
+    // position instead desynchronized on any line the parser skipped, and a
+    // follow-up stash_drop/apply(index) then destroyed the WRONG stash.
+    // %H is the stash commit id — the only identity that survives other
+    // stashes being pushed or dropped.
+    let output = run_git(repo_path, &["stash", "list", "--format=%gd|%H|%gs"])?;
 
     if !output.status.success() {
         return Err(String::from_utf8_lossy(&output.stderr).to_string());
@@ -70,17 +75,34 @@ pub fn stash_list(repo_path: &Path) -> Result<Vec<StashEntry>, String> {
     let stdout = String::from_utf8_lossy(&output.stdout);
     let mut stashes = Vec::new();
 
-    for (index, line) in stdout.lines().enumerate() {
-        let parts: Vec<&str> = line.splitn(3, '|').collect();
-        if parts.len() < 2 {
+    for line in stdout.lines() {
+        // splitn(3) keeps any '|' inside the subject intact.
+        let mut parts = line.splitn(3, '|');
+        let (Some(selector), Some(sha), Some(subject)) = (parts.next(), parts.next(), parts.next())
+        else {
             continue;
-        }
+        };
+        let Some(index) = selector
+            .strip_prefix("stash@{")
+            .and_then(|rest| rest.strip_suffix('}'))
+            .and_then(|n| n.parse::<u32>().ok())
+        else {
+            continue;
+        };
+
+        // The subject is "WIP on <branch>: <sha> <msg>" for bare stashes or
+        // "On <branch>: <msg>" for `stash push -m`.
+        let branch = subject
+            .strip_prefix("WIP on ")
+            .or_else(|| subject.strip_prefix("On "))
+            .and_then(|rest| rest.split(':').next())
+            .map(|branch| branch.to_string());
 
         stashes.push(StashEntry {
-            index: index as u32,
-            message: parts.get(2).unwrap_or(&parts[1]).to_string(),
-            branch: None,
-            commit_sha: None,
+            index,
+            message: subject.to_string(),
+            branch,
+            commit_sha: Some(sha.to_string()),
         });
     }
 
