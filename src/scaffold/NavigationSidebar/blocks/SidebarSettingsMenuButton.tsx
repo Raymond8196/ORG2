@@ -2,6 +2,7 @@ import { useAtomValue } from "jotai";
 import React, {
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -77,11 +78,12 @@ interface SidebarSettingsMenuButtonProps {
 
 function getSubmenuPosition(
   trigger: HTMLElement,
-  parentPanel: HTMLElement | null
+  parentPanel: HTMLElement | null,
+  opensUpward: boolean
 ): SubmenuPosition {
   const rect = trigger.getBoundingClientRect();
   const parentRect = parentPanel?.getBoundingClientRect();
-  const { width: vpWidth, height: vpHeight } = getViewportSize();
+  const { width: vpWidth, height: viewportHeight } = getViewportSize();
   const rightSideLeft = rect.right + SUBMENU_GAP_PX;
   const left =
     rightSideLeft + SUBMENU_WIDTH_PX > vpWidth
@@ -89,7 +91,14 @@ function getSubmenuPosition(
       : rightSideLeft;
   return {
     left,
-    bottom: parentRect ? vpHeight - parentRect.bottom : 8,
+    opensUpward,
+    parentTop: parentRect?.top ?? DROPDOWN_PANEL.viewportPadding,
+    parentBottom:
+      parentRect?.bottom ?? viewportHeight - DROPDOWN_PANEL.viewportPadding,
+    top: Math.max(
+      DROPDOWN_PANEL.viewportPadding,
+      rect.top - DROPDOWN_PANEL.padding
+    ),
   };
 }
 
@@ -115,6 +124,46 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
   );
   const [utilityPanelPosition, setUtilityPanelPosition] =
     useState<DropdownEnginePosition | null>(null);
+
+  useLayoutEffect(() => {
+    if (!activeSubmenu || !submenuPosition || !submenuPanelRef.current) return;
+
+    const { height: submenuHeight } =
+      submenuPanelRef.current.getBoundingClientRect();
+    const { height: viewportHeight } = getViewportSize();
+    const viewportTop = DROPDOWN_PANEL.viewportPadding;
+    const viewportBottom = viewportHeight - DROPDOWN_PANEL.viewportPadding;
+    const boundaryTop = Math.max(viewportTop, submenuPosition.parentTop);
+    const boundaryBottom = Math.min(
+      viewportBottom,
+      submenuPosition.parentBottom
+    );
+    const boundaryHeight = boundaryBottom - boundaryTop;
+    const boundaryAlignedTop = submenuPosition.opensUpward
+      ? boundaryBottom - submenuHeight
+      : boundaryTop;
+    const parentClampedTop =
+      submenuHeight > boundaryHeight
+        ? boundaryAlignedTop
+        : Math.min(
+            Math.max(submenuPosition.top, boundaryTop),
+            boundaryBottom - submenuHeight
+          );
+    const viewportMaxTop = Math.max(
+      DROPDOWN_PANEL.viewportPadding,
+      viewportHeight - submenuHeight - DROPDOWN_PANEL.viewportPadding
+    );
+    const clampedTop = Math.max(
+      viewportTop,
+      Math.min(parentClampedTop, viewportMaxTop)
+    );
+
+    if (clampedTop === submenuPosition.top) return;
+    setSubmenuPosition((current) =>
+      current ? { ...current, top: clampedTop } : current
+    );
+  }, [activeSubmenu, submenuPosition]);
+
   const handleSettingsMenuOpenChange = useCallback((open: boolean) => {
     if (open) return;
     setActiveSubmenu(null);
@@ -193,9 +242,15 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
   const openSubmenu = useCallback(
     (submenu: SettingsSubmenu, target: HTMLElement) => {
       setActiveSubmenu(submenu);
-      setSubmenuPosition(getSubmenuPosition(target, panelRef.current));
+      setSubmenuPosition(
+        getSubmenuPosition(
+          target,
+          panelRef.current,
+          panelPosition.bottom !== undefined
+        )
+      );
     },
-    [panelRef]
+    [panelPosition.bottom, panelRef]
   );
 
   const handleOpenSettings = useCallback(() => {

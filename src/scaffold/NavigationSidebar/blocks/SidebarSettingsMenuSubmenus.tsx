@@ -19,7 +19,10 @@ export type SettingsSubmenu =
 
 export interface SubmenuPosition {
   left: number;
-  bottom: number;
+  opensUpward: boolean;
+  parentBottom: number;
+  parentTop: number;
+  top: number;
 }
 
 interface AppearanceOption {
@@ -72,7 +75,7 @@ export function SidebarSettingsMenuSubmenus({
       <div
         ref={submenuPanelRef}
         className={`${DROPDOWN_CLASSES.menuPanelBase} ${DROPDOWN_WIDTHS.panelWidthClass} fixed`}
-        style={{ left: submenuPosition.left, bottom: submenuPosition.bottom }}
+        style={{ left: submenuPosition.left, top: submenuPosition.top }}
         onPointerDown={onSubmenuPointerDown}
         onMouseDown={onSubmenuMouseDown}
       >
@@ -103,7 +106,7 @@ export function SidebarSettingsMenuSubmenus({
       <div
         ref={submenuPanelRef}
         className={`${DROPDOWN_CLASSES.menuPanelWithHeaderBase} ${DROPDOWN_WIDTHS.panelWidthClass} fixed`}
-        style={{ left: submenuPosition.left, bottom: submenuPosition.bottom }}
+        style={{ left: submenuPosition.left, top: submenuPosition.top }}
         onPointerDown={onSubmenuPointerDown}
         onMouseDown={onSubmenuMouseDown}
       >

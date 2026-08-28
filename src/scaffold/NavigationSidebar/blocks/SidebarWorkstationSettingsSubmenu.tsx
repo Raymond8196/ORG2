@@ -26,7 +26,7 @@ interface SidebarWorkstationSettingsSubmenuProps {
   panelRef: React.Ref<HTMLDivElement>;
   position: {
     left: number;
-    bottom: number;
+    top: number;
   };
   mode: "chatPanelLocation" | "workstation";
   onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
@@ -168,7 +168,7 @@ export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSetti
       <div
         ref={panelRef}
         className={`${DROPDOWN_CLASSES.menuPanelWithHeaderBase} ${DROPDOWN_WIDTHS.panelWidthClass} fixed`}
-        style={{ left: position.left, bottom: position.bottom }}
+        style={{ left: position.left, top: position.top }}
         onPointerDown={onPointerDown}
         onMouseDown={onMouseDown}
       >
