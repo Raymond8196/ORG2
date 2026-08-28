@@ -27,7 +27,7 @@ use tokio::process::Command;
 use git::{tokio_git_command, util::is_transient_error};
 
 use super::commit::append_orgii_coauthor_trailer;
-use super::remote::{contains_word, pull_strategy_args};
+use super::remote::{contains_word, pull_strategy_args, should_set_upstream};
 
 type GitEventStream = Pin<Box<dyn Stream<Item = Result<Event, std::convert::Infallible>> + Send>>;
 
@@ -344,6 +344,29 @@ fn git_resolution_error_response(error: String) -> Response {
 // SSE Stream Handlers
 // ============================================
 
+/// `git rev-parse --abbrev-ref <spec>` — None on failure or a detached HEAD.
+async fn rev_parse_abbrev(repo_path: &std::path::Path, spec: &str) -> Option<String> {
+    let mut cmd = tokio_git_command().ok()?;
+    let output = cmd
+        .args(["rev-parse", "--abbrev-ref", spec])
+        .current_dir(repo_path)
+        .stdin(Stdio::null())
+        .stdout(Stdio::piped())
+        .stderr(Stdio::null())
+        .output()
+        .await
+        .ok()?;
+    if !output.status.success() {
+        return None;
+    }
+    let name = String::from_utf8_lossy(&output.stdout).trim().to_string();
+    if name.is_empty() || name == "HEAD" {
+        None
+    } else {
+        Some(name)
+    }
+}
+
 /// Stream git push output via Server-Sent Events
 pub async fn push_stream(
     Path(_repo_id): Path<String>,
@@ -351,8 +374,21 @@ pub async fn push_stream(
 ) -> Response {
     let repo_path = PathBuf::from(&query.path);
     let remote = query.remote.unwrap_or_else(|| "origin".to_string());
-    let set_upstream = query.set_upstream.unwrap_or(false);
     let force = query.force.unwrap_or(false);
+
+    // Mirror push_to_remote: auto-detect a missing or renamed upstream instead
+    // of trusting a client flag that defaults to false — without this, the
+    // first push of a new branch through the streaming path always failed
+    // with "the current branch has no upstream branch".
+    let current_branch = rev_parse_abbrev(&repo_path, "HEAD").await;
+    let set_upstream = if query.set_upstream.unwrap_or(false) {
+        true
+    } else if let Some(current) = current_branch.as_deref() {
+        let upstream = rev_parse_abbrev(&repo_path, &format!("{current}@{{upstream}}")).await;
+        should_set_upstream(upstream.as_deref(), current, &remote)
+    } else {
+        false
+    };
 
     let mut cmd = match tokio_git_command() {
         Ok(command) => command,
@@ -369,8 +405,11 @@ pub async fn push_stream(
     }
 
     cmd.arg(&remote);
-    if let Some(branch) = query.branch {
-        cmd.arg(&branch);
+    // `-u` needs an explicit refspec: a bare `git push -u origin` on a branch
+    // without an upstream still fails, so fall back to the current branch.
+    let branch = query.branch.or(current_branch);
+    if let Some(branch) = &branch {
+        cmd.arg(branch);
     }
 
     cmd.current_dir(&repo_path)
@@ -383,7 +422,15 @@ pub async fn push_stream(
         .stdout(Stdio::piped())
         .stderr(Stdio::piped());
 
-    let command_str = format!("git push {}", remote);
+    let command_str = format!(
+        "git push{} {}{}",
+        if set_upstream { " -u" } else { "" },
+        remote,
+        branch
+            .as_deref()
+            .map(|b| format!(" {b}"))
+            .unwrap_or_default()
+    );
     let stream = stream_git_command(cmd, command_str, "push").await;
 
     sse_response(stream)
