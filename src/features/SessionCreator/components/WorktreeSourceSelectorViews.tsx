@@ -4,6 +4,7 @@ import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -14,7 +15,6 @@ import {
   type UseDropdownListNavigationReturn,
   useDropdownEngine,
 } from "@src/hooks/dropdown";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { HugeiconsIcon, Refresh04Icon, Tick01Icon } from "@src/icons";
 import { useSelectorKernel } from "@src/scaffold/GlobalSpotlight/palettes/core";
 import {
@@ -340,7 +340,6 @@ export function WorktreeSourceDropdownView({
   onSelect,
 }: WorktreeSourceSelectorViewProps) {
   const inputRef = useRef<HTMLInputElement>(null);
-  const tauriSelectAll = useTauriSelectAllShortcut();
   const handleSelect = useCallback(
     (item: WorktreeSourcePickerItem) => {
       if (!resolving) onSelect(item);
@@ -394,23 +393,23 @@ export function WorktreeSourceDropdownView({
         width,
       }}
     >
-      <div className={`${DROPDOWN_CLASSES.searchContainer} gap-2`}>
-        <WorktreeSourceModeSwitch
-          mode={mode}
-          disabled={resolving}
-          onChange={onModeChange}
-        />
-        <input
-          ref={inputRef}
-          value={query}
-          onChange={(event) => onQueryChange(event.target.value)}
-          onKeyDown={tauriSelectAll}
-          placeholder={searchPlaceholder}
-          aria-label={searchAriaLabel}
-          className={DROPDOWN_CLASSES.searchInput}
-          disabled={resolving}
-        />
-      </div>
+      <DropdownSearch
+        ref={inputRef}
+        type="text"
+        value={query}
+        onChange={onQueryChange}
+        placeholder={searchPlaceholder}
+        ariaLabel={searchAriaLabel}
+        leading={
+          <WorktreeSourceModeSwitch
+            mode={mode}
+            disabled={resolving}
+            onChange={onModeChange}
+          />
+        }
+        containerClassName="gap-2"
+        disabled={resolving}
+      />
 
       <div
         className={DROPDOWN_CLASSES.optionsContainerOverlay}

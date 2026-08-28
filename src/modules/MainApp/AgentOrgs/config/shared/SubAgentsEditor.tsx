@@ -38,7 +38,10 @@ import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
 import Button from "@src/components/Button";
-import { DropdownPanel } from "@src/components/Dropdown/exports";
+import {
+  DropdownPanel,
+  DropdownSearch,
+} from "@src/components/Dropdown/exports";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -145,15 +148,14 @@ const AddSubAgentButton: React.FC<AddSubAgentButtonProps> = ({
               width: Math.max(panelPosition.width, 220),
             }}
           >
-            <div className={DROPDOWN_CLASSES.searchContainer}>
-              <input
-                autoFocus
-                value={search}
-                onChange={(evt) => setSearch(evt.target.value)}
-                className={DROPDOWN_CLASSES.searchInput}
-                placeholder={t("common:actions.search")}
-              />
-            </div>
+            <DropdownSearch
+              type="text"
+              value={search}
+              onChange={setSearch}
+              placeholder={t("common:actions.search")}
+              leading={null}
+              autoFocus
+            />
             <div className={`${DROPDOWN_CLASSES.optionsContainer} max-h-52`}>
               {filtered.length === 0 ? (
                 <div className={DROPDOWN_CLASSES.listMessage}>

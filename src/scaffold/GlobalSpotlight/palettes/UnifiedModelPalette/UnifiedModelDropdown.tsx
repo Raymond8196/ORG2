@@ -20,6 +20,7 @@ import React, {
 import { createPortal } from "react-dom";
 
 import AnyIcon from "@src/components/AnyIcon";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import HoverSafeSubmenuBridge from "@src/components/Dropdown/HoverSafeSubmenuBridge";
 import {
   DROPDOWN_CLASSES,
@@ -31,14 +32,8 @@ import {
   type UseDropdownListNavigationReturn,
   useDropdownEngine,
 } from "@src/hooks/dropdown";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
-import {
-  ArrowRight01Icon,
-  HugeiconsIcon,
-  Search01Icon,
-  Tick01Icon,
-} from "@src/icons";
+import { ArrowRight01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { SpotlightItem } from "../../shared";
@@ -179,7 +174,6 @@ export const UnifiedModelDropdown: React.FC<UnifiedModelDropdownProps> = ({
   placement = "bottom",
 }) => {
   const inputRef = useRef<HTMLInputElement>(null);
-  const tauriSelectAll = useTauriSelectAllShortcut();
 
   const {
     recentItems,
@@ -479,22 +473,13 @@ export const UnifiedModelDropdown: React.FC<UnifiedModelDropdownProps> = ({
           width: DROPDOWN_WIDTH,
         }}
       >
-        <div className={DROPDOWN_CLASSES.searchContainer}>
-          <HugeiconsIcon
-            icon={Search01Icon}
-            data-icon="search"
-            size={DROPDOWN_ITEM.iconSize}
-            className="shrink-0 text-text-3"
-          />
-          <input
-            ref={inputRef}
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            onKeyDown={tauriSelectAll}
-            placeholder={placeholder}
-            className={DROPDOWN_CLASSES.searchInput}
-          />
-        </div>
+        <DropdownSearch
+          ref={inputRef}
+          type="text"
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={placeholder}
+        />
 
         <div
           className={DROPDOWN_CLASSES.optionsContainerOverlay}
