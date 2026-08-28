@@ -13,6 +13,7 @@ import { ICON_CONFIG, PANEL_CONSTANTS } from "../config";
 
 const {
   filter: FilterIcon,
+  search: SearchIcon,
   addFile: AddFileIcon,
   addFolder: AddFolderIcon,
   refresh: RefreshIcon,
@@ -61,16 +62,16 @@ export function useExplorerActions({
     const actions: SectionHeaderAction[] = [];
 
     actions.push({
-      key: "filter",
+      key: "search",
       icon: (
         <AnyIcon
-          icon={FilterIcon}
+          icon={SearchIcon}
           size={PANEL_CONSTANTS.ACTION_ICON_SIZE}
           strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           className={showFilterFiles ? "text-primary-6" : ""}
         />
       ),
-      tooltip: "Filter",
+      tooltip: "Search",
       onClick: onToggleFilterFiles,
     });
 

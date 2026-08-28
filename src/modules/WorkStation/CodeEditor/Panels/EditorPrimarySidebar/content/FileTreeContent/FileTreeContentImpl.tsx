@@ -60,8 +60,8 @@ import { useElementDimensions } from "@src/hooks/ui/layout/useElementDimensions"
 import {
   ArrowDown01Icon,
   ArrowRight01Icon,
-  FilterIcon,
   HugeiconsIcon,
+  Search01Icon,
 } from "@src/icons";
 import { FolderHeaderRow } from "@src/modules/WorkStation/shared/FolderHeaderRow";
 import { fileTreeSelectedPathAtom } from "@src/store/ui/fileTreeSelectionAtom";
@@ -82,7 +82,7 @@ import {
 } from "./useFileTreeMutationState";
 import { flattenTree } from "./utils/treeUtils";
 
-const DEFAULT_FILTER_PLACEHOLDER = "Filter files";
+const DEFAULT_FILTER_PLACEHOLDER = "Search files";
 const DEFAULT_EMPTY_MESSAGE = "No files found";
 const DEFAULT_NO_RESULTS_MESSAGE = "No files matching filter";
 
@@ -124,7 +124,7 @@ export const FileTreeContent = memo(
       const { t } = useTranslation();
       const resolvedFilterPlaceholder =
         filterPlaceholder ??
-        t("placeholders.filterFiles", {
+        t("placeholders.searchFiles", {
           defaultValue: DEFAULT_FILTER_PLACEHOLDER,
         });
       const resolvedEmptyMessage =
@@ -413,8 +413,8 @@ export const FileTreeContent = memo(
                 <Input
                   prefix={
                     <HugeiconsIcon
-                      icon={FilterIcon}
-                      data-icon="filter-icon"
+                      icon={Search01Icon}
+                      data-icon="search-icon"
                       size={14}
                       strokeWidth={1.75}
                     />
