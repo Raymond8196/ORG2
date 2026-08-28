@@ -86,6 +86,8 @@ interface SettingsSlotProps {
   position: ChatPanelPosition;
   /** True when hosted as a flex sibling (full/compact); false when inset. */
   embedded: boolean;
+  /** Unclipped boundary host for the centered resize indicator. */
+  resizeIndicatorHost?: HTMLElement | null;
 }
 
 // ────────────────────────────────────────────────────────────────────────────
@@ -252,6 +254,7 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
   maximized,
   position,
   embedded,
+  resizeIndicatorHost,
 }) => {
   const { t } = useTranslation("settings");
   const { t: tCommon } = useTranslation("common");
@@ -321,6 +324,14 @@ const SettingsSlot: React.FC<SettingsSlotProps> = ({
     >
       {!maximized && (
         <VerticalResizeHandle
+          indicatorHost={resizeIndicatorHost}
+          indicatorPlacement={
+            resizeIndicatorHost
+              ? "center"
+              : position === "left"
+                ? "start"
+                : "end"
+          }
           onMouseDown={handleMouseDown}
           variant={embedded ? "border" : "transparent"}
           noAccent={!embedded}

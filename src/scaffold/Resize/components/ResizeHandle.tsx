@@ -11,7 +11,8 @@
  * - Double-click prevention
  * - Accessible with proper cursor feedback
  */
-import React, { memo, useCallback, useRef } from "react";
+import React, { memo, useCallback, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
@@ -36,10 +37,12 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = memo(
     tooltipLabel,
     tooltipShortcut,
     indicatorPlacement = "center",
+    indicatorHost,
     className = "",
   }) => {
     const isVertical = axis === "x";
     const lastClickTimeRef = useRef<number>(0);
+    const [isHovered, setIsHovered] = useState(false);
 
     const handleMouseDown = useCallback(
       (event: React.MouseEvent) => {
@@ -64,6 +67,9 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = memo(
       event.preventDefault();
       event.stopPropagation();
     }, []);
+
+    const handleMouseEnter = useCallback(() => setIsHovered(true), []);
+    const handleMouseLeave = useCallback(() => setIsHovered(false), []);
 
     const restingBg = variant === "border" ? "bg-border-2" : "bg-transparent";
 
@@ -94,10 +100,12 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = memo(
       ? "absolute inset-y-0 -left-[6px] w-[13px] cursor-col-resize"
       : "absolute inset-x-0 -top-[6px] h-[13px] cursor-row-resize";
 
-    // Keep the bright affordance inside the actual 1px divider. It therefore
-    // inherits every layout update from the line itself and cannot lag behind
-    // during rapid RAF-driven resizing.
+    // The default indicator stays inside the divider. Boundaries hosted by an
+    // overflow-clipped pane can instead provide a zero-width sibling host;
+    // that host moves in the same flex layout as the divider, keeping the
+    // centered indicator synchronized without coordinate tracking.
     const showIndicator = !noHover && !noAccent;
+    const usesIndicatorHost = indicatorHost != null;
     const verticalIndicatorPosition =
       indicatorPlacement === "start"
         ? "right-0"
@@ -120,13 +128,28 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = memo(
       "bg-primary-6",
       "transition-opacity",
       "duration-150",
-      isResizing ? "opacity-100" : "opacity-0 group-hover/resize:opacity-100",
+      usesIndicatorHost && isHovered
+        ? "opacity-100"
+        : usesIndicatorHost
+          ? "opacity-0"
+          : "opacity-0 group-hover/resize:opacity-100",
     ].join(" ");
+    const indicatorElement = (
+      <div
+        data-resize-handle-indicator
+        className={indicatorClasses}
+        style={
+          isResizing ? { opacity: 0, transitionDuration: "0ms" } : undefined
+        }
+      />
+    );
 
     const handleElement = (
       <div
         className={`${wrapperClasses} group/resize`}
         onMouseDown={handleMouseDown}
+        onMouseEnter={usesIndicatorHost ? handleMouseEnter : undefined}
+        onMouseLeave={usesIndicatorHost ? handleMouseLeave : undefined}
         onDoubleClick={handleDoubleClick}
         onContextMenu={onContextMenu}
         onClick={preventClick}
@@ -143,9 +166,11 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = memo(
           onContextMenu={onContextMenu}
           onClick={preventClick}
         />
-        {showIndicator && (
-          <div data-resize-handle-indicator className={indicatorClasses} />
-        )}
+        {showIndicator && !usesIndicatorHost && indicatorElement}
+        {showIndicator &&
+          usesIndicatorHost &&
+          indicatorHost &&
+          createPortal(indicatorElement, indicatorHost)}
       </div>
     );
 

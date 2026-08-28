@@ -115,6 +115,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     embedded = false,
     active = true,
     position = "right",
+    resizeIndicatorHost,
     sessionCreatorSlot: SessionCreatorSlot,
   }) => {
     const { t } = useTranslation([
@@ -731,6 +732,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           isTerminalTabActive={isTerminalTabActive}
           onResizeMouseDown={handleMouseDown}
           panelRef={panelRef}
+          resizeIndicatorHost={resizeIndicatorHost}
           resizeTooltipLabel={t("chat.hideWorkstation")}
           resizeTooltipShortcut={getShortcutKeys("maximize_chat")}
           sessionModals={sessionModals}

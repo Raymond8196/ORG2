@@ -43,12 +43,14 @@ describe("ResizeHandle indicator", () => {
     reactActEnvironment.IS_REACT_ACT_ENVIRONMENT = false;
   });
 
-  it("keeps the bright segment attached to the actual divider line", () => {
+  it("centers the bright segment in an unclipped layout-boundary host", () => {
+    const indicatorHost = document.createElement("div");
+    document.body.appendChild(indicatorHost);
     act(() => {
       root.render(
         React.createElement(ResizeHandle, {
           axis: "x",
-          indicatorPlacement: "start",
+          indicatorHost,
           onMouseDown: () => undefined,
         })
       );
@@ -57,15 +59,40 @@ describe("ResizeHandle indicator", () => {
     const handle = container.querySelector<HTMLElement>('[role="separator"]');
     expect(handle).not.toBeNull();
 
-    const indicator = handle!.querySelector<HTMLElement>(
+    const indicator = indicatorHost.querySelector<HTMLElement>(
       "[data-resize-handle-indicator]"
     );
     expect(indicator).not.toBeNull();
-    expect(handle!.contains(indicator)).toBe(true);
+    expect(handle!.contains(indicator)).toBe(false);
     expect(indicator?.className).toContain("absolute");
     expect(indicator?.className).toContain("w-[4px]");
-    expect(indicator?.className).toContain("right-0");
+    expect(indicator?.className).toContain("left-1/2");
+    expect(indicator?.className).toContain("-translate-x-1/2");
     expect(indicator?.className).not.toContain("fixed");
+    indicatorHost.remove();
+  });
+
+  it("hides the bright segment immediately while dragging", () => {
+    const indicatorHost = document.createElement("div");
+    document.body.appendChild(indicatorHost);
+    act(() => {
+      root.render(
+        React.createElement(ResizeHandle, {
+          axis: "x",
+          indicatorHost,
+          isResizing: true,
+          onMouseDown: () => undefined,
+        })
+      );
+    });
+
+    const indicator = indicatorHost.querySelector<HTMLElement>(
+      "[data-resize-handle-indicator]"
+    );
+    expect(indicator).not.toBeNull();
+    expect(indicator?.style.opacity).toBe("0");
+    expect(indicator?.style.transitionDuration).toBe("0ms");
+    indicatorHost.remove();
   });
 
   it("shows the contextual shortcut only after one second of hover", () => {

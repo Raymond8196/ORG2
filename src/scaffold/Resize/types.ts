@@ -115,6 +115,8 @@ export interface ResizeHandleProps {
   tooltipShortcut?: string;
   /** Side of the divider into which the thicker center indicator extends */
   indicatorPlacement?: ResizeHandleIndicatorPlacement;
+  /** Optional unclipped layout-boundary host for the visual indicator */
+  indicatorHost?: HTMLElement | null;
   /** Additional class name */
   className?: string;
 }
