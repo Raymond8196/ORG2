@@ -41,17 +41,21 @@ pub fn merge_branch(
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-    let has_conflicts = stdout.contains("CONFLICT") || stderr.contains("CONFLICT");
+    // A conflict is a state, not a substring: a clean run whose diffstat
+    // lists a file named CONFLICTS.md must not report failure. Exit 0 means
+    // no conflicts; on failure the unmerged-file list is the ground truth.
+    let conflicted_files = if output.status.success() {
+        vec![]
+    } else {
+        get_conflicted_files(repo_path)
+    };
+    let has_conflicts = !conflicted_files.is_empty();
 
     Ok(GitMergeResult {
         success: output.status.success() && !has_conflicts,
         message: format!("{}{}", stdout, stderr),
         has_conflicts,
-        conflicted_files: if has_conflicts {
-            get_conflicted_files(repo_path)
-        } else {
-            vec![]
-        },
+        conflicted_files,
     })
 }
 
@@ -115,23 +119,33 @@ pub fn rebase_branch(
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-    let has_conflicts = stdout.contains("CONFLICT") || stderr.contains("CONFLICT");
+    // A conflict is a state, not a substring: a clean run whose diffstat
+    // lists a file named CONFLICTS.md must not report failure. Exit 0 means
+    // no conflicts; on failure the unmerged-file list is the ground truth.
+    let conflicted_files = if output.status.success() {
+        vec![]
+    } else {
+        get_conflicted_files(repo_path)
+    };
+    let has_conflicts = !conflicted_files.is_empty();
 
     Ok(GitRebaseResult {
         success: output.status.success() && !has_conflicts,
         message: format!("{}{}", stdout, stderr),
         has_conflicts,
-        conflicted_files: if has_conflicts {
-            get_conflicted_files(repo_path)
-        } else {
-            vec![]
-        },
+        conflicted_files,
     })
 }
 
 /// Continue rebase
 pub fn rebase_continue(repo_path: &Path) -> Result<GitRebaseResult, String> {
-    let output = run_git(repo_path, &["rebase", "--continue"])?;
+    let output = run_git(
+        repo_path,
+        // core.editor=true: continuing after a resolved conflict otherwise
+        // opens the commit-message editor, which hangs (or aborts the
+        // continue) in a process with no TTY.
+        &["-c", "core.editor=true", "rebase", "--continue"],
+    )?;
 
     let message = if output.status.success() {
         String::from_utf8_lossy(&output.stdout).to_string()
@@ -165,17 +179,21 @@ pub fn rebase_skip(repo_path: &Path) -> Result<GitRebaseResult, String> {
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-    let has_conflicts = stdout.contains("CONFLICT") || stderr.contains("CONFLICT");
+    // A conflict is a state, not a substring: a clean run whose diffstat
+    // lists a file named CONFLICTS.md must not report failure. Exit 0 means
+    // no conflicts; on failure the unmerged-file list is the ground truth.
+    let conflicted_files = if output.status.success() {
+        vec![]
+    } else {
+        get_conflicted_files(repo_path)
+    };
+    let has_conflicts = !conflicted_files.is_empty();
 
     Ok(GitRebaseResult {
         success: output.status.success() && !has_conflicts,
         message: format!("{}{}", stdout, stderr),
         has_conflicts,
-        conflicted_files: if has_conflicts {
-            get_conflicted_files(repo_path)
-        } else {
-            vec![]
-        },
+        conflicted_files,
     })
 }
 
@@ -202,23 +220,31 @@ pub fn cherry_pick_commit(
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-    let has_conflicts = stdout.contains("CONFLICT") || stderr.contains("CONFLICT");
+    // A conflict is a state, not a substring: a clean run whose diffstat
+    // lists a file named CONFLICTS.md must not report failure. Exit 0 means
+    // no conflicts; on failure the unmerged-file list is the ground truth.
+    let conflicted_files = if output.status.success() {
+        vec![]
+    } else {
+        get_conflicted_files(repo_path)
+    };
+    let has_conflicts = !conflicted_files.is_empty();
 
     Ok(GitCherryPickResult {
         success: output.status.success() && !has_conflicts,
         message: format!("{}{}", stdout, stderr),
         has_conflicts,
-        conflicted_files: if has_conflicts {
-            get_conflicted_files(repo_path)
-        } else {
-            vec![]
-        },
+        conflicted_files,
     })
 }
 
 /// Continue cherry-pick
 pub fn cherry_pick_continue(repo_path: &Path) -> Result<GitCherryPickResult, String> {
-    let output = run_git(repo_path, &["cherry-pick", "--continue"])?;
+    let output = run_git(
+        repo_path,
+        // core.editor=true: see rebase_continue.
+        &["-c", "core.editor=true", "cherry-pick", "--continue"],
+    )?;
 
     let message = if output.status.success() {
         String::from_utf8_lossy(&output.stdout).to_string()
@@ -268,17 +294,21 @@ pub fn revert_commit(
     let stdout = String::from_utf8_lossy(&output.stdout).to_string();
     let stderr = String::from_utf8_lossy(&output.stderr).to_string();
 
-    let has_conflicts = stdout.contains("CONFLICT") || stderr.contains("CONFLICT");
+    // A conflict is a state, not a substring: a clean run whose diffstat
+    // lists a file named CONFLICTS.md must not report failure. Exit 0 means
+    // no conflicts; on failure the unmerged-file list is the ground truth.
+    let conflicted_files = if output.status.success() {
+        vec![]
+    } else {
+        get_conflicted_files(repo_path)
+    };
+    let has_conflicts = !conflicted_files.is_empty();
 
     Ok(GitRevertResult {
         success: output.status.success() && !has_conflicts,
         message: format!("{}{}", stdout, stderr),
         has_conflicts,
-        conflicted_files: if has_conflicts {
-            get_conflicted_files(repo_path)
-        } else {
-            vec![]
-        },
+        conflicted_files,
     })
 }
 
@@ -295,7 +325,11 @@ pub fn revert_abort(repo_path: &Path) -> Result<(), String> {
 
 /// Continue revert
 pub fn revert_continue(repo_path: &Path) -> Result<GitRevertResult, String> {
-    let output = run_git(repo_path, &["revert", "--continue"])?;
+    let output = run_git(
+        repo_path,
+        // core.editor=true: see rebase_continue.
+        &["-c", "core.editor=true", "revert", "--continue"],
+    )?;
 
     let message = if output.status.success() {
         String::from_utf8_lossy(&output.stdout).to_string()
