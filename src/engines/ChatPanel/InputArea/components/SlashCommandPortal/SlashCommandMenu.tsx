@@ -15,15 +15,13 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
-  DROPDOWN_ITEM,
   DROPDOWN_PANEL,
 } from "@src/components/Dropdown/tokens";
 import FileTreePreview from "@src/components/FileTreePreview";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useMouseMoved } from "@src/hooks/ui/useMouseMoved";
-import { HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { useFloatingPortalPosition } from "../useFloatingPortalPosition";
 import FlyoutSubmenu from "./FlyoutSubmenu";
@@ -70,7 +68,6 @@ const SlashCommandMenu: React.FC<SlashCommandPortalProps> = ({
   const listRef = useRef<HTMLDivElement>(null);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const menuOpenedAtRef = useRef(0);
-  const tauriSelectAll = useTauriSelectAllShortcut();
 
   // Build the unified entry list
   const { entries, totalFlat } = useEntries({
@@ -287,39 +284,22 @@ const SlashCommandMenu: React.FC<SlashCommandPortalProps> = ({
         }}
       >
         {isHeaderMode && (
-          <div
-            className={DROPDOWN_CLASSES.searchContainer}
-            data-testid="slash-command-search"
-          >
-            <HugeiconsIcon
-              icon={Search01Icon}
-              data-icon="search"
-              size={DROPDOWN_ITEM.iconSize}
-              className="shrink-0 text-text-3"
-            />
-            <input
-              ref={searchInputRef}
-              data-slash-search-input="true"
-              type="text"
-              value={searchQuery}
-              onChange={(e) => onSearchQueryChange?.(e.target.value)}
-              onKeyDown={(e) => {
-                tauriSelectAll(e);
-                if (e.defaultPrevented) return;
-                if (keyboardHandlerRef.current?.(e.nativeEvent)) {
-                  e.preventDefault();
-                }
-              }}
-              placeholder={t("creator.slashSearchPlaceholder", {
-                defaultValue: "Search commands…",
-              })}
-              className={DROPDOWN_CLASSES.searchInput}
-              autoComplete="off"
-              autoCorrect="off"
-              autoCapitalize="off"
-              spellCheck={false}
-            />
-          </div>
+          <DropdownSearch
+            ref={searchInputRef}
+            data-slash-search-input="true"
+            testId="slash-command-search"
+            type="text"
+            value={searchQuery}
+            onChange={(value) => onSearchQueryChange?.(value)}
+            onKeyDown={(event) => {
+              if (keyboardHandlerRef.current?.(event.nativeEvent)) {
+                event.preventDefault();
+              }
+            }}
+            placeholder={t("creator.slashSearchPlaceholder", {
+              defaultValue: "Search commands…",
+            })}
+          />
         )}
 
         <div

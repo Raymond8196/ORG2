@@ -22,6 +22,7 @@ import { useTranslation } from "react-i18next";
 
 import { repoApi } from "@src/api/tauri/repo";
 import AnyIcon from "@src/components/AnyIcon";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -36,8 +37,7 @@ import {
   type UseDropdownListNavigationReturn,
   useDropdownEngine,
 } from "@src/hooks/dropdown";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
-import { HugeiconsIcon, Search01Icon, Tick01Icon } from "@src/icons";
+import { HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { REPO_KIND, cachedReposAtom } from "@src/store/repo";
 import {
   isMultiRootWorkspaceAtom,
@@ -239,7 +239,6 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
 }) => {
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
-  const tauriSelectAll = useTauriSelectAllShortcut();
 
   const [searchQuery, setSearchQuery] = useState("");
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
@@ -648,22 +647,13 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
         width,
       }}
     >
-      <div className={DROPDOWN_CLASSES.searchContainer}>
-        <HugeiconsIcon
-          icon={Search01Icon}
-          data-icon="search"
-          size={DROPDOWN_ITEM.iconSize}
-          className="shrink-0 text-text-3"
-        />
-        <input
-          ref={inputRef}
-          value={searchQuery}
-          onChange={(event) => setSearchQuery(event.target.value)}
-          onKeyDown={tauriSelectAll}
-          placeholder={t("selectors.spotlight.placeholders.workspace")}
-          className={DROPDOWN_CLASSES.searchInput}
-        />
-      </div>
+      <DropdownSearch
+        ref={inputRef}
+        type="text"
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={t("selectors.spotlight.placeholders.workspace")}
+      />
 
       <div
         className={DROPDOWN_CLASSES.optionsContainerOverlay}

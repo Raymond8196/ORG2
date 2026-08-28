@@ -6,6 +6,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import Dropdown from "@src/components/Dropdown";
 import DropdownItem from "@src/components/Dropdown/DropdownItem";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import {
   DROPDOWN_CLASSES,
@@ -19,7 +20,6 @@ import {
   Delete02Icon,
   FolderClosedIcon,
   HugeiconsIcon,
-  Search01Icon,
   WorkflowCircle05Icon,
 } from "@src/icons";
 import {
@@ -280,22 +280,13 @@ export function SourceControlScopeToolbar({
       onMouseDown={(event) => event.stopPropagation()}
     >
       {showSearch ? (
-        <div className={DROPDOWN_CLASSES.searchContainer}>
-          <HugeiconsIcon
-            icon={Search01Icon}
-            data-icon="search"
-            size={DROPDOWN_ITEM.iconSize}
-            className="shrink-0 text-text-3"
-          />
-          <input
-            type="search"
-            value={searchQuery}
-            onChange={(event) => setSearchQuery(event.target.value)}
-            placeholder={t("sourceControl.scope.searchPlaceholder")}
-            className={DROPDOWN_CLASSES.searchInput}
-            aria-label={t("sourceControl.scope.searchPlaceholder")}
-          />
-        </div>
+        <DropdownSearch
+          type="search"
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={t("sourceControl.scope.searchPlaceholder")}
+          ariaLabel={t("sourceControl.scope.searchPlaceholder")}
+        />
       ) : null}
       <div className={DROPDOWN_CLASSES.optionsContainerScrollbar}>
         {showMainScope ? (

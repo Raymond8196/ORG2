@@ -26,11 +26,11 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import AnyIcon, { type RenderableIcon } from "@src/components/AnyIcon";
+import DropdownSearch from "@src/components/Dropdown/DropdownSearch";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
   DROPDOWN_PANEL,
-  DROPDOWN_SEARCH,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
 import {
@@ -48,13 +48,7 @@ import {
 } from "@src/config/mainAppPaths";
 import type { CoreSettingsItemSegment } from "@src/config/mainAppPaths";
 import { useDropdownEngine } from "@src/hooks/dropdown";
-import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
-import {
-  ArrowRight01Icon,
-  HugeiconsIcon,
-  Search01Icon,
-  Tick01Icon,
-} from "@src/icons";
+import { ArrowRight01Icon, HugeiconsIcon, Tick01Icon } from "@src/icons";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import {
   settingsSelectionTitleAtom,
@@ -169,7 +163,6 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [selectorOpen, setSelectorOpen] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
-  const tauriSelectAll = useTauriSelectAllShortcut();
 
   const selectorGroups = useMemo<SettingsSelectorGroup[]>(
     () =>
@@ -293,39 +286,25 @@ const SettingsBreadcrumb: React.FC<SettingsBreadcrumbProps> = ({
               minWidth: Math.max(panelPosition.width, 240),
             }}
           >
-            <div className={DROPDOWN_CLASSES.searchContainer}>
-              <HugeiconsIcon
-                icon={Search01Icon}
-                data-icon="search"
-                size={DROPDOWN_SEARCH.iconSize}
-                className="shrink-0 text-text-3"
-              />
-              <input
-                ref={inputRef}
-                type="text"
-                value={searchQuery}
-                onChange={(event) => {
-                  setSearchQuery(event.target.value);
-                  keyboard.setSelectedIndex(0);
-                }}
-                onKeyDown={(event) => {
-                  tauriSelectAll(event);
-                  if (event.defaultPrevented) return;
-                  if (
-                    event.key === "ArrowDown" ||
-                    event.key === "ArrowUp" ||
-                    event.key === "Enter"
-                  ) {
-                    keyboard.handleKeyDown(event);
-                  }
-                }}
-                placeholder={tSettings("searchPlaceholder")}
-                className={DROPDOWN_CLASSES.searchInput}
-                spellCheck={false}
-                autoCorrect="off"
-                autoCapitalize="off"
-              />
-            </div>
+            <DropdownSearch
+              ref={inputRef}
+              type="text"
+              value={searchQuery}
+              onChange={(value) => {
+                setSearchQuery(value);
+                keyboard.setSelectedIndex(0);
+              }}
+              onKeyDown={(event) => {
+                if (
+                  event.key === "ArrowDown" ||
+                  event.key === "ArrowUp" ||
+                  event.key === "Enter"
+                ) {
+                  keyboard.handleKeyDown(event);
+                }
+              }}
+              placeholder={tSettings("searchPlaceholder")}
+            />
             <div
               className={`${DROPDOWN_CLASSES.optionsContainerOverlay} max-h-[360px]`}
             >
