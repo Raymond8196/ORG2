@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { WorkStationTab } from "@src/store/workstation/tabs/types";
 
-import { SortableTab, resolveWorkstationTabIntegrationIcon } from ".";
+import { SortableTab, resolveWorkstationTabIntegrationIcon } from "..";
 
 vi.mock("@src/components/IntegrationIcon", () => ({
   default: ({ type, size }: { type: string; size: number }) =>
@@ -85,7 +85,7 @@ describe("resolveWorkstationTabIntegrationIcon", () => {
     expect(activeSurface).toContain("text-text-1");
     expect(activeSurface).not.toContain("text-primary-6");
     expect(markup).toMatch(
-      /<svg[^>]*class="[^"]*lucide-layout-grid[^"]*text-text-1[^"]*"/
+      /<svg[^>]*class="[^"]*text-text-1[^"]*"[^>]*data-icon="layout-grid"/
     );
   });
 });

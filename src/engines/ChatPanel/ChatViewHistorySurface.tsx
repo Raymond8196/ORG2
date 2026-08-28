@@ -17,7 +17,6 @@ import AgentOrgOverviewPanel from "./InputArea/components/AgentOrgOverviewPanel"
 
 interface ChatViewHistorySurfaceProps {
   sessionId: string;
-  chatEvents: SessionEvent[];
   groupChatViewActive: boolean;
   groupChatMergedEvents: SessionEvent[];
   groupChatAgents: ReadonlyArray<{ sessionId: string }>;
@@ -49,7 +48,6 @@ interface ChatViewHistorySurfaceProps {
 
 export function ChatViewHistorySurface({
   sessionId,
-  chatEvents,
   groupChatViewActive,
   groupChatMergedEvents,
   groupChatAgents,
@@ -79,7 +77,6 @@ export function ChatViewHistorySurface({
   return (
     <ConversationStreamProvider
       sessionId={sessionId}
-      chatEvents={chatEvents}
       overrideEvents={groupChatViewActive ? groupChatMergedEvents : undefined}
     >
       <GroupChatProvider

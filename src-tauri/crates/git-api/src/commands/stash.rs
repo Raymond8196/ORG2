@@ -8,6 +8,10 @@ use crate::types::*;
  */
 use std::path::Path;
 
+#[cfg(test)]
+#[path = "tests/stash_tests.rs"]
+mod tests;
+
 /// Create a stash
 pub fn stash_push(
     repo_path: &Path,
@@ -42,10 +46,16 @@ pub fn stash_push(
         return Err(String::from_utf8_lossy(&output.stderr).to_string());
     };
 
+    // `git stash push` exits 0 without stashing anything when the tree is
+    // clean ("No local changes to save"). Reporting a stash_ref in that case
+    // pointed callers at whatever unrelated stash happened to sit at
+    // stash@{0} — a destructive mis-target for any follow-up pop or drop.
+    let stashed = !message_out.contains("No local changes to save");
+
     Ok(GitStashResult {
         success: true,
         message: message_out,
-        stash_ref: Some("stash@{0}".to_string()),
+        stash_ref: stashed.then(|| "stash@{0}".to_string()),
     })
 }
 

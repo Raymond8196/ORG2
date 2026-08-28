@@ -41,6 +41,7 @@ export interface UseSyncOperationsOptions {
   /** Whether the current branch has an upstream (remote tracking branch) */
   hasUpstream: boolean;
   stashPush: (message?: string, includeUntracked?: boolean) => Promise<boolean>;
+  stashPop: (index: number) => Promise<boolean>;
   fetchGitStatus: () => Promise<void>;
   refreshStashes: () => Promise<void>;
   /** Ref to PR creation handler (used when push hits a protected branch) */
@@ -90,6 +91,7 @@ export function useSyncOperations(
     behind,
     hasUpstream,
     stashPush,
+    stashPop,
     fetchGitStatus,
     refreshStashes,
     onCreatePrRef,
@@ -243,6 +245,7 @@ export function useSyncOperations(
           currentFiles: filesRef.current,
           doPull,
           stashPush,
+          stashPop,
           dispatch,
         });
         if (!handled) {
@@ -322,6 +325,7 @@ export function useSyncOperations(
     doPush,
     currentBranch,
     stashPush,
+    stashPop,
     dispatch,
     handleProtectedBranch,
   ]);
@@ -341,6 +345,7 @@ export function useSyncOperations(
           currentFiles: filesRef.current,
           doPull,
           stashPush,
+          stashPop,
           dispatch,
         });
         if (!handled) {
@@ -359,7 +364,15 @@ export function useSyncOperations(
     } finally {
       setPullLoading(false);
     }
-  }, [selectedRepoId, pullLoading, doPull, currentBranch, stashPush, dispatch]);
+  }, [
+    selectedRepoId,
+    pullLoading,
+    doPull,
+    currentBranch,
+    stashPush,
+    stashPop,
+    dispatch,
+  ]);
 
   // Handle standalone push (with preflight fetch + error dialog handling)
   // Fetches first so we can detect remote changes before pushing,

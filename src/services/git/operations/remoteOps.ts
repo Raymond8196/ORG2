@@ -3,6 +3,7 @@
  */
 import { gitApi } from "@src/api/http/git";
 import { getGitHubGitCredentialForRemote } from "@src/api/tauri/github";
+import { GIT_SETTINGS_REGISTRY } from "@src/config/settingsSchema/registry/git";
 import { showGitErrorAndHandle } from "@src/hooks/git/useGitErrorDialog";
 import { createLogger } from "@src/hooks/logger";
 import {
@@ -100,21 +101,29 @@ export async function push(
 }
 
 /**
- * Read the user's preferred pull strategy from settings
+ * Read the user's preferred pull strategy from settings.
+ * Falls back to the registry default rather than a literal: an unhydrated
+ * settings atom must not silently pull with a different strategy at startup
+ * than the one the app ships with.
  */
+const DEFAULT_PULL_STRATEGY: GitPullStrategy =
+  GIT_SETTINGS_REGISTRY["git.pullStrategy"].default;
+
 function getUserPullStrategy(): GitPullStrategy {
   const strategy = getStore().get(gitPullStrategyAtom);
-  return strategy ?? "merge";
+  return strategy ?? DEFAULT_PULL_STRATEGY;
 }
 
 /**
  * Build the terminal pull command with strategy flags.
  * Always pass explicit flag so Git knows how to reconcile when branches diverge.
+ * Rebase carries --autostash: a bare `git pull --rebase` refuses to start on
+ * any dirty working tree, even when nothing overlaps the incoming commits.
  */
 function buildPullCommand(strategy: GitPullStrategy): string {
   switch (strategy) {
     case "rebase":
-      return "git pull --rebase";
+      return "git pull --rebase --autostash";
     case "ff-only":
       return "git pull --ff-only";
     default:

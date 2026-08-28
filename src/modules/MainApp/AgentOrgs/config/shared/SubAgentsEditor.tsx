@@ -34,7 +34,6 @@
  */
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
-import { Plus, X } from "lucide-react";
 import React, { useCallback, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 
@@ -47,6 +46,7 @@ import {
 import NumberInput from "@src/components/NumberInput";
 import Switch from "@src/components/Switch";
 import { useDropdownEngine } from "@src/hooks/dropdown";
+import { Add01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import {
   builtInAgentsAtom,
   customAgentsAtom,
@@ -118,7 +118,13 @@ const AddSubAgentButton: React.FC<AddSubAgentButtonProps> = ({
       <Button
         ref={triggerRef}
         size="default"
-        icon={<Plus size={DROPDOWN_ITEM.iconSize} />}
+        icon={
+          <HugeiconsIcon
+            icon={Add01Icon}
+            data-icon="plus"
+            size={DROPDOWN_ITEM.iconSize}
+          />
+        }
         data-testid="agent-orgs-subagents-add-button"
         onClick={toggle}
       >
@@ -359,7 +365,13 @@ const SubAgentsEditor: React.FC<SubAgentsEditorProps> = ({
           >
             <SectionRow label={resolveAgentName(ref.agentId)}>
               <Button
-                icon={<X size={DROPDOWN_ITEM.iconSize} />}
+                icon={
+                  <HugeiconsIcon
+                    icon={Cancel01Icon}
+                    data-icon="x"
+                    size={DROPDOWN_ITEM.iconSize}
+                  />
+                }
                 iconOnly
                 appearance="ghost"
                 variant="danger"

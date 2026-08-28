@@ -4,7 +4,6 @@
  * Composes useEntries, useFloatingPortalPosition, useKeyboard, FlyoutSubmenu,
  * and the individual MenuRow components into the full slash command experience.
  */
-import { Search } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -24,6 +23,7 @@ import {
 import FileTreePreview from "@src/components/FileTreePreview";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useMouseMoved } from "@src/hooks/ui/useMouseMoved";
+import { HugeiconsIcon, Search01Icon } from "@src/icons";
 
 import { useFloatingPortalPosition } from "../useFloatingPortalPosition";
 import FlyoutSubmenu from "./FlyoutSubmenu";
@@ -291,7 +291,9 @@ const SlashCommandMenu: React.FC<SlashCommandPortalProps> = ({
             className={DROPDOWN_CLASSES.searchContainer}
             data-testid="slash-command-search"
           >
-            <Search
+            <HugeiconsIcon
+              icon={Search01Icon}
+              data-icon="search"
               size={DROPDOWN_ITEM.iconSize}
               className="shrink-0 text-text-3"
             />

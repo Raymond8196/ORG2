@@ -1,5 +1,4 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import { Search } from "lucide-react";
 import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
@@ -8,6 +7,7 @@ import { normalizeSidebarGuideProgress } from "@src/config/settingsSchema/sideba
 import { createLogger } from "@src/hooks/logger";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
+import { Search01Icon } from "@src/icons";
 import { teamInboxUnreadCountAtom } from "@src/modules/MainApp/TeamInbox/store";
 import { useTeamInboxDataSource } from "@src/modules/MainApp/TeamInbox/useTeamInboxDataSource";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
@@ -777,7 +777,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
           />
         }
         onAddNew={handleOpenSpotlight}
-        addIcon={Search}
+        addIcon={Search01Icon}
         addLabel={tCommon("actions.search")}
         addTooltipContent={
           <SidebarSearchShortcutTooltip

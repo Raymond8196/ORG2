@@ -13,10 +13,12 @@ import { getSessionForkedFrom } from "@src/features/TeamCollaboration/forkSessio
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
 import { isSessionActiveAtom } from "@src/store/session/cliSessionStatusAtom";
 import { cursorIdeTurnSummariesAtomFamily } from "@src/store/session/cursorIdeTurnSummariesAtom";
-import { type Session } from "@src/store/session/sessionAtom";
+import { type Session, sessionByIdAtom } from "@src/store/session/sessionAtom";
 import { isCursorIdeSession } from "@src/util/session/sessionDispatch";
 
+import { ParentAgentSenderProvider } from "../ChatItems/ParentAgentSenderContext";
 import { SharedConversationSenderProvider } from "../ChatItems/SharedConversationSenderContext";
+import { resolveParentAgentSenderSessionId } from "../ChatItems/parentAgentSender";
 import { useChatSessionId } from "../ChatSessionContext";
 import {
   type ChatHistoryProps,
@@ -223,6 +225,37 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     totalFlatItems: projection.totalFlatItems,
     turnPaginationEnabled,
   });
+  // Agent-started sessions carry no message the reader wrote: their user-role
+  // turns are the parent's dispatches. Resolve the parent once here so every
+  // row renders the same attribution without its own store subscription.
+  const parentAgentSessionId = useMemo(
+    () =>
+      activeId
+        ? resolveParentAgentSenderSessionId({
+            sessionId: activeId,
+            parentSessionId: activeSession?.parentSessionId,
+            orgMemberId: activeSession?.orgMemberId,
+            background: activeSession?.background,
+          })
+        : null,
+    [
+      activeId,
+      activeSession?.background,
+      activeSession?.orgMemberId,
+      activeSession?.parentSessionId,
+    ]
+  );
+  const parentSession = useAtomValue(
+    sessionByIdAtom(parentAgentSessionId ?? "")
+  );
+  const parentAgentSender = useMemo(
+    () =>
+      parentAgentSessionId
+        ? { parentSessionId: parentAgentSessionId, parentSession }
+        : null,
+    [parentAgentSessionId, parentSession]
+  );
+
   const actions = useChatHistoryItemActions({
     displaySourceGroupIndices: projection.displaySourceGroupIndices,
     groupHeaders: projection.groupHeaders,
@@ -232,40 +265,42 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
 
   return (
     <SharedConversationSenderProvider value={sharedConversationSender}>
-      <ChatHistoryView
-        actions={actions}
-        activeId={activeId}
-        agentOrgCurrentMemberId={agentOrgCurrentMemberId}
-        agentOrgCurrentMemberName={agentOrgCurrentMemberName}
-        agentOrgMembers={agentOrgMembers}
-        agentOrgOverviewPanel={agentOrgOverviewPanel}
-        bottomInset={bottomInset}
-        chatPanelPosition={chatPanelPosition}
-        displayMode={displayMode}
-        emptyState={emptyState}
-        groupChatEnabled={Boolean(groupChat?.enabled)}
-        groupChatViewActive={groupChatViewActive}
-        groupChatViewAvailable={groupChatViewAvailable}
-        handlePlanningIndicatorCount={handlePlanningIndicatorCount}
-        handleReloadSession={handleReloadSession}
-        hideGroupUserMessage={hideGroupUserMessage}
-        historyState={historyState}
-        mutationActionsDisabled={mutationActionsDisabled}
-        navigation={navigation}
-        newEventDividerLabel={newEventDividerLabel}
-        onAgentOrgMemberSelect={onAgentOrgMemberSelect}
-        onAgentOrgRunViewRefresh={onAgentOrgRunViewRefresh}
-        onGroupChatViewToggle={onGroupChatViewToggle}
-        paginationTrailingSlot={paginationTrailingSlot}
-        pinnedHeaderPortalHost={pinnedHeaderPortalHost}
-        chromeTopInset={chromeTopInset}
-        planningIndicatorScope={planningIndicatorScope}
-        projection={projection}
-        search={search}
-        surfaceBgClass={surfaceBgClass}
-        turnPaginationEnabled={turnPaginationEnabled}
-        viewport={viewport}
-      />
+      <ParentAgentSenderProvider value={parentAgentSender}>
+        <ChatHistoryView
+          actions={actions}
+          activeId={activeId}
+          agentOrgCurrentMemberId={agentOrgCurrentMemberId}
+          agentOrgCurrentMemberName={agentOrgCurrentMemberName}
+          agentOrgMembers={agentOrgMembers}
+          agentOrgOverviewPanel={agentOrgOverviewPanel}
+          bottomInset={bottomInset}
+          chatPanelPosition={chatPanelPosition}
+          displayMode={displayMode}
+          emptyState={emptyState}
+          groupChatEnabled={Boolean(groupChat?.enabled)}
+          groupChatViewActive={groupChatViewActive}
+          groupChatViewAvailable={groupChatViewAvailable}
+          handlePlanningIndicatorCount={handlePlanningIndicatorCount}
+          handleReloadSession={handleReloadSession}
+          hideGroupUserMessage={hideGroupUserMessage}
+          historyState={historyState}
+          mutationActionsDisabled={mutationActionsDisabled}
+          navigation={navigation}
+          newEventDividerLabel={newEventDividerLabel}
+          onAgentOrgMemberSelect={onAgentOrgMemberSelect}
+          onAgentOrgRunViewRefresh={onAgentOrgRunViewRefresh}
+          onGroupChatViewToggle={onGroupChatViewToggle}
+          paginationTrailingSlot={paginationTrailingSlot}
+          pinnedHeaderPortalHost={pinnedHeaderPortalHost}
+          chromeTopInset={chromeTopInset}
+          planningIndicatorScope={planningIndicatorScope}
+          projection={projection}
+          search={search}
+          surfaceBgClass={surfaceBgClass}
+          turnPaginationEnabled={turnPaginationEnabled}
+          viewport={viewport}
+        />
+      </ParentAgentSenderProvider>
     </SharedConversationSenderProvider>
   );
 };

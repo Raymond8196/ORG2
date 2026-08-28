@@ -9,7 +9,6 @@
  * The active variant is selected by the `general.modelPickerStyle`
  * setting and dispatched from the caller (e.g. SessionCreator).
  */
-import { Check, Search } from "lucide-react";
 import React, {
   useCallback,
   useEffect,
@@ -20,6 +19,7 @@ import React, {
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
+import AnyIcon from "@src/components/AnyIcon";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
@@ -31,6 +31,7 @@ import {
 } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { useFilteredItems } from "@src/hooks/search";
+import { HugeiconsIcon, Search01Icon, Tick01Icon } from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { SpotlightItem } from "../../types";
@@ -60,21 +61,16 @@ const DropdownRow: React.FC<DropdownRowProps> = ({ item, keyboardProps }) => {
   const renderedIcon = useMemo(() => {
     if (isCurrent) {
       return (
-        <Check
+        <HugeiconsIcon
+          icon={Tick01Icon}
+          data-icon="check"
           size={DROPDOWN_ITEM.iconSize}
           strokeWidth={2.25}
           className="text-primary-6"
         />
       );
     }
-    if (!item.icon) return null;
-    if (typeof item.icon === "string") {
-      return <i className={`${item.icon} text-[16px] text-text-2`} />;
-    }
-    return React.createElement(item.icon, {
-      size: 16,
-      className: "text-text-2",
-    });
+    return <AnyIcon icon={item.icon} size={16} className="text-text-2" />;
   }, [item.icon, isCurrent]);
 
   return (
@@ -234,7 +230,9 @@ export const DispatchCategoryDropdown: React.FC<
       }}
     >
       <div className={DROPDOWN_CLASSES.searchContainer}>
-        <Search
+        <HugeiconsIcon
+          icon={Search01Icon}
+          data-icon="search"
           size={DROPDOWN_ITEM.iconSize}
           className="shrink-0 text-text-3"
         />

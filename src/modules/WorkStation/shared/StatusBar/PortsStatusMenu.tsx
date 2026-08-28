@@ -2,7 +2,6 @@
  * Ports status-bar menu: workspace vs external listening ports.
  */
 import { useAtomValue, useSetAtom } from "jotai";
-import { Chromium, Copy, Loader2, Search, Trash2, Unplug } from "lucide-react";
 import React, { memo, useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -17,6 +16,15 @@ import {
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useTauriSelectAllShortcut } from "@src/hooks/keyboard";
 import { createLogger } from "@src/hooks/logger";
+import {
+  Copy01Icon,
+  Delete02Icon,
+  HugeiconsIcon,
+  InternetIcon,
+  Loading03Icon,
+  Search01Icon,
+  UnplugIcon,
+} from "@src/icons";
 import {
   addressForPort,
   browserUrlForPort,
@@ -125,7 +133,12 @@ const PortRow: React.FC<PortRowProps> = memo(
               onOpen(port);
             }}
           >
-            <Chromium size={MENU_ICON_SIZE} aria-hidden />
+            <HugeiconsIcon
+              icon={InternetIcon}
+              data-icon="chrome"
+              size={MENU_ICON_SIZE}
+              aria-hidden
+            />
           </button>
           <button
             type="button"
@@ -137,7 +150,11 @@ const PortRow: React.FC<PortRowProps> = memo(
               onCopy(port);
             }}
           >
-            <Copy size={MENU_ICON_SIZE} />
+            <HugeiconsIcon
+              icon={Copy01Icon}
+              data-icon="copy"
+              size={MENU_ICON_SIZE}
+            />
           </button>
           {canStop && (
             <button
@@ -152,12 +169,18 @@ const PortRow: React.FC<PortRowProps> = memo(
               }}
             >
               {stopping ? (
-                <Loader2
+                <HugeiconsIcon
+                  icon={Loading03Icon}
+                  data-icon="loader-2"
                   size={MENU_ICON_SIZE}
                   className="animate-spin text-danger-6"
                 />
               ) : (
-                <Trash2 size={MENU_ICON_SIZE} />
+                <HugeiconsIcon
+                  icon={Delete02Icon}
+                  data-icon="trash-2"
+                  size={MENU_ICON_SIZE}
+                />
               )}
             </button>
           )}
@@ -282,7 +305,12 @@ export const PortsStatusMenu: React.FC = memo(() => {
           className="gap-1.5"
           dataTestId="status-bar-ports"
         >
-          <Unplug size={13} className="text-text-1" />
+          <HugeiconsIcon
+            icon={UnplugIcon}
+            data-icon="unplug"
+            size={13}
+            className="text-text-1"
+          />
           <StatusBarLabel emphasis numeric className="text-text-1">
             {workspaceCount}
           </StatusBarLabel>
@@ -305,7 +333,9 @@ export const PortsStatusMenu: React.FC = memo(() => {
             role="menu"
           >
             <div className={DROPDOWN_CLASSES.searchContainer}>
-              <Search
+              <HugeiconsIcon
+                icon={Search01Icon}
+                data-icon="search"
                 size={DROPDOWN_ITEM.iconSize}
                 className="shrink-0 text-text-3"
               />
