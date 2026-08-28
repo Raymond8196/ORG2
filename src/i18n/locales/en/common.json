@@ -2061,7 +2061,7 @@
     "toolLayout": "Workstation",
     "dockAutoHide": "Dock Auto-hide",
     "modelPickerStyle": "Picker",
-    "chatPanelPagination": "Pagination",
+    "paginateChatHistory": "Paginate chat history",
     "modelPickerSpotlight": "Spotlight",
     "modelPickerMenu": "Menu",
     "left": "Left",

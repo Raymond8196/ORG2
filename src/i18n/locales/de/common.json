@@ -2132,7 +2132,7 @@
     "toolLayout": "Arbeitsstation",
     "dockAutoHide": "Dock automatisch ausblenden",
     "modelPickerStyle": "Auswahl",
-    "chatPanelPagination": "Paginierung",
+    "paginateChatHistory": "Chatverlauf paginieren",
     "captionPlacement": "Beschriftungszeile",
     "modelPickerSpotlight": "Spotlight",
     "modelPickerMenu": "Menü",

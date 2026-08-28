@@ -2132,7 +2132,7 @@
     "toolLayout": "Station de travail",
     "dockAutoHide": "Masquage automatique du Dock",
     "modelPickerStyle": "Sélecteur",
-    "chatPanelPagination": "Pagination",
+    "paginateChatHistory": "Paginer l’historique du chat",
     "modelPickerSpotlight": "Spotlight",
     "modelPickerMenu": "Menu",
     "replayStatusPosition": "Position du statut Replay",

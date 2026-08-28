@@ -2131,7 +2131,7 @@
     "toolLayout": "Trạm làm việc",
     "dockAutoHide": "Tự ẩn Dock",
     "modelPickerStyle": "Bộ chọn",
-    "chatPanelPagination": "Phân trang",
+    "paginateChatHistory": "Phân trang lịch sử trò chuyện",
     "modelPickerSpotlight": "Spotlight",
     "modelPickerMenu": "Menu",
     "left": "Trái",

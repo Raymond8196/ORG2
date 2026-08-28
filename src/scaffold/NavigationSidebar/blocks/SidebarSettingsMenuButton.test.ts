@@ -224,7 +224,7 @@ describe("SidebarSettingsMenuButton", () => {
     expect(submenuText).toContain("layoutSettings.chatPanelLocation");
     expect(submenuText).toContain("layoutSettings.sidebarPosition");
     expect(submenuText).toContain("layoutSettings.modelPickerStyle");
-    expect(submenuText).toContain("layoutSettings.chatPanelPagination");
+    expect(submenuText).toContain("layoutSettings.paginateChatHistory");
 
     const segmentedControls = Array.from(
       document.body.querySelectorAll<HTMLElement>('[role="group"]')
@@ -242,7 +242,7 @@ describe("SidebarSettingsMenuButton", () => {
     ]);
     expect(
       document.body.querySelector('[role="switch"]')?.getAttribute("aria-label")
-    ).toBe("layoutSettings.chatPanelPagination");
+    ).toBe("layoutSettings.paginateChatHistory");
   });
 
   it("aligns a second-level menu with the row that opens it", async () => {

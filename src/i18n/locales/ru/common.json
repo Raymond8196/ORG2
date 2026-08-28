@@ -2142,7 +2142,7 @@
     "toolLayout": "Рабочая станция",
     "dockAutoHide": "Автоскрытие Dock",
     "modelPickerStyle": "Селектор",
-    "chatPanelPagination": "Пагинация",
+    "paginateChatHistory": "Разбивать историю чата на страницы",
     "modelPickerSpotlight": "Spotlight",
     "modelPickerMenu": "Меню",
     "left": "Слева",

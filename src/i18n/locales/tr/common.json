@@ -2134,7 +2134,7 @@
     "toolLayout": "İş istasyonu",
     "dockAutoHide": "Dock otomatik gizle",
     "modelPickerStyle": "Seçici",
-    "chatPanelPagination": "Sayfalama",
+    "paginateChatHistory": "Sohbet geçmişini sayfalandır",
     "captionPlacement": "Altyazı satırı",
     "modelPickerSpotlight": "Spotlight",
     "modelPickerMenu": "Menü",

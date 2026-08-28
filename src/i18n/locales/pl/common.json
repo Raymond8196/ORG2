@@ -2142,7 +2142,7 @@
     "toolLayout": "Stacja robocza",
     "dockAutoHide": "Automatyczne ukrywanie docka",
     "modelPickerStyle": "Wybór",
-    "chatPanelPagination": "Paginacja",
+    "paginateChatHistory": "Podziel historię czatu na strony",
     "modelPickerSpotlight": "Spotlight",
     "modelPickerMenu": "Menu",
     "left": "Lewa",
