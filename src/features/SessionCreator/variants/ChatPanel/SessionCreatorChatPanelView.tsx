@@ -193,6 +193,7 @@ const SessionCreatorChatPanelView: React.FC<
   const sessionInfoLine = (
     <SessionInfoLine
       {...sessionInfoProps}
+      trailingContent={cliLaunchModeSwitch}
       dropdownDirection={
         isLaunchpadLayout ? "up" : sessionInfoProps.dropdownDirection
       }
@@ -260,10 +261,6 @@ const SessionCreatorChatPanelView: React.FC<
   const showWorkItemAttachmentControl =
     !hideWorkItemAttachmentControl &&
     (!isLaunchpadLayout || Boolean(multiRunnerContent));
-  const hasSetupControlsAfterCliSwitch =
-    showWorkItemAttachmentControl ||
-    Boolean(orgMembersPanelProps) ||
-    Boolean(pinnedActionsContent);
   const sessionSetupActions = !hideSessionSetupControls ? (
     <div
       className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
@@ -273,17 +270,13 @@ const SessionCreatorChatPanelView: React.FC<
         composerInputRef={composerInputRef}
         manageButtonPlacement="before-actions"
         managePanelAlign="left"
-        showBeforeActionsSeparator={Boolean(cliLaunchModeSwitch)}
+        showBeforeActionsSeparator={false}
         showPinnedActions={showPinnedActionPills}
         trailingContent={pinnedActionsContent}
         leadingContent={
           <>
             {browserElementRowContent}
             {leadingActionSlot}
-            {cliLaunchModeSwitch}
-            {cliLaunchModeSwitch && hasSetupControlsAfterCliSwitch && (
-              <div aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border-2" />
-            )}
             {showWorkItemAttachmentControl && (
               <WorkItemAttachmentControl
                 composerInputRef={composerInputRef}

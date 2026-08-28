@@ -131,6 +131,8 @@ export interface SessionInfoLineProps {
   worktreeSource?: WorktreeLaunchSource | null;
   onWorktreeLocationChange?: (location: RunningLocation) => void;
   onWorktreeSourceSelect?: (selection: WorktreeLaunchSelection) => void;
+  /** Optional control rendered after the repository, location, and branch pills. */
+  trailingContent?: React.ReactNode;
 }
 
 const LOCATION_ROWS: LocationRow[] = RUNNING_LOCATIONS.map((entry) => ({
@@ -274,6 +276,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
   worktreeSource,
   onWorktreeLocationChange,
   onWorktreeSourceSelect,
+  trailingContent,
   disabled = false,
   hideBranch = false,
 }) => {
@@ -607,9 +610,24 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
     return segment;
   });
 
+  const sessionInfoPills = (
+    <PillGroup segments={segments} className="flex-wrap" strongSurface />
+  );
+
   return (
     <>
-      <PillGroup segments={segments} className="flex-wrap" strongSurface />
+      {trailingContent ? (
+        <div className="inline-flex flex-wrap items-center gap-1.5">
+          {sessionInfoPills}
+          <span
+            aria-hidden
+            className="inline-flex h-3 w-px shrink-0 bg-border-2"
+          />
+          {trailingContent}
+        </div>
+      ) : (
+        sessionInfoPills
+      )}
 
       {/* Repo Selector */}
       {useDropdownPicker ? (
