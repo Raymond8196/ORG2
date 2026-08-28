@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   areCommentAnchorIdentitiesEqual,
   toCommentAnchorIdentities,
-} from "../commentAnchorIdentities";
+} from "./commentAnchorIdentities";
 
 describe("toCommentAnchorIdentities", () => {
   it("returns the shared empty list when there are no events", () => {
