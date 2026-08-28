@@ -43,6 +43,12 @@ pub fn replace(
 
     for replacer in replacers {
         for search in replacer(content, old_string) {
+            // A replacer can trim a whitespace-only old_string down to an
+            // empty candidate. A zero-width match would make replace_all
+            // interleave new_string between every character of the file.
+            if search.is_empty() {
+                continue;
+            }
             let index = content.find(&search);
             let Some(idx) = index else { continue };
             not_found = false;
@@ -423,7 +429,9 @@ fn trimmed_boundary_replacer(content: &str, find: &str) -> Vec<String> {
 
     let mut results = Vec::new();
 
-    if content.contains(trimmed) {
+    // `trimmed` is empty for a whitespace-only find, so `contains` would be
+    // vacuously true and yield a zero-width candidate.
+    if !trimmed.is_empty() && content.contains(trimmed) {
         results.push(trimmed.to_string());
     }
 
