@@ -395,6 +395,7 @@ export { default as SquareTerminalIcon } from "@hugeicons/core-free-icons/Square
 export { default as SquareUnlock01Icon } from "@hugeicons/core-free-icons/SquareUnlock01Icon";
 export { default as StarIcon } from "@hugeicons/core-free-icons/StarIcon";
 export { default as StopCircleIcon } from "@hugeicons/core-free-icons/StopCircleIcon";
+export { default as StopIcon } from "@hugeicons/core-free-icons/StopIcon";
 export { default as Store01Icon } from "@hugeicons/core-free-icons/Store01Icon";
 export { default as Sun01Icon } from "@hugeicons/core-free-icons/Sun01Icon";
 export { default as TablePropertiesIcon } from "@hugeicons/core-free-icons/TablePropertiesIcon";

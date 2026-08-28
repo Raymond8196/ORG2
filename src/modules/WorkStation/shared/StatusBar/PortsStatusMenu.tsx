@@ -18,11 +18,11 @@ import { useDropdownEngine } from "@src/hooks/dropdown";
 import { createLogger } from "@src/hooks/logger";
 import {
   Copy01Icon,
-  Delete02Icon,
   HugeiconsIcon,
   InternetIcon,
   Loading03Icon,
   ServerStack03Icon,
+  StopIcon,
 } from "@src/icons";
 import {
   addressForPort,
@@ -176,8 +176,8 @@ const PortRow: React.FC<PortRowProps> = memo(
                 />
               ) : (
                 <HugeiconsIcon
-                  icon={Delete02Icon}
-                  data-icon="trash-2"
+                  icon={StopIcon}
+                  data-icon="stop"
                   size={MENU_ICON_SIZE}
                 />
               )}
@@ -349,12 +349,6 @@ export const PortsStatusMenu: React.FC = memo(() => {
                 <>
                   {workspaceGroups.length === 0 ? (
                     <>
-                      <div className={DROPDOWN_CLASSES.sectionLabel}>
-                        {sectionLabelWithCount(
-                          t("workstation.ports.workspaceSection"),
-                          0
-                        )}
-                      </div>
                       {!isSearching && (
                         <div className={DROPDOWN_CLASSES.listMessage}>
                           {t("workstation.ports.noWorkspacePorts")}
@@ -364,12 +358,6 @@ export const PortsStatusMenu: React.FC = memo(() => {
                   ) : (
                     workspaceGroups.map((group) => (
                       <React.Fragment key={group.folderId}>
-                        <div className={DROPDOWN_CLASSES.sectionLabel}>
-                          {sectionLabelWithCount(
-                            group.displayName,
-                            group.ports.length
-                          )}
-                        </div>
                         {group.ports.map((port) => (
                           <PortRow
                             key={port.id}
