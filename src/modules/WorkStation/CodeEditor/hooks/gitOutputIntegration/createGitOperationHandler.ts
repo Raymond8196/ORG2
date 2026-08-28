@@ -26,6 +26,19 @@ function inferGitErrorTypeFromText(
 ): GitErrorType {
   const normalizedText = errorText.toLowerCase();
 
+  // Protected-branch first: git appends "failed to push some refs" to every
+  // rejection, so the broader non-fast-forward family below would otherwise
+  // shadow policy rejections and tell the user to pull, which cannot help.
+  if (
+    operationName === "push" &&
+    (normalizedText.includes("protected branch") ||
+      normalizedText.includes("branch is protected") ||
+      normalizedText.includes("pre-receive hook declined") ||
+      normalizedText.includes("remote rejected"))
+  ) {
+    return "protected_branch";
+  }
+
   if (
     operationName === "push" &&
     (normalizedText.includes("non-fast-forward") ||
