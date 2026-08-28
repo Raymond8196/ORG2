@@ -232,8 +232,6 @@ export function useSyncOperations(
 
     setSyncLoading(true);
     try {
-      const currentAhead = aheadRef.current;
-
       // Always pull first (includes fetch + merge). When already
       // up-to-date this is a fast no-op.
       const pullResult = await doPull();
@@ -253,6 +251,17 @@ export function useSyncOperations(
         }
         return;
       }
+
+      // Decide the push on a FRESH ahead count, not one captured before the
+      // pull: commits made outside the panel's commit button (an AI
+      // dispatch, the terminal, an external editor) never bump the
+      // optimistic offset, and the last status poll may predate them — a
+      // stale count made sync silently skip the push (while reporting
+      // success), or let a large push bypass its confirmation. Same
+      // refresh-then-read pattern the non-fast-forward branch below already
+      // uses for the behind count.
+      await fetchGitStatusRef.current();
+      const currentAhead = aheadRef.current;
 
       // Check if pushing many commits - show confirmation dialog
       if (currentAhead >= LARGE_PUSH_THRESHOLD) {
