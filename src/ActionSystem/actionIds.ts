@@ -39,10 +39,8 @@ export const ACTION_ID = {
   WORKSTATION_TOGGLE_CHAT_FOCUS: "workstation.toggleChatFocus",
   WORKSTATION_TOGGLE_CHAT_PANEL_VISIBILITY:
     "workstation.toggleChatPanelVisibility",
-  CHAT_PANEL_SET_MY_STATION_LEFT: "chatPanel.setMyStationLeft",
-  CHAT_PANEL_SET_MY_STATION_RIGHT: "chatPanel.setMyStationRight",
-  CHAT_PANEL_SET_AGENT_STATION_LEFT: "chatPanel.setAgentStationLeft",
-  CHAT_PANEL_SET_AGENT_STATION_RIGHT: "chatPanel.setAgentStationRight",
+  CHAT_PANEL_SET_LEFT: "chatPanel.setLeft",
+  CHAT_PANEL_SET_RIGHT: "chatPanel.setRight",
   CHAT_PANEL_ENABLE_PAGINATION: "chatPanel.enablePagination",
   CHAT_PANEL_DISABLE_PAGINATION: "chatPanel.disablePagination",
   CHAT_PANEL_USE_MODEL_PICKER_SPOTLIGHT: "chatPanel.useModelPickerSpotlight",

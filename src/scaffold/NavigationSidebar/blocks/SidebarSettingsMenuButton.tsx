@@ -30,13 +30,12 @@ import {
 import { useAppNavigation } from "@src/hooks/navigation";
 import {
   ArrowRight01Icon,
-  BubbleChatIcon,
   CircleIcon,
   Cursor02Icon,
   GaugeIcon,
   HelpCircleIcon,
   HugeiconsIcon,
-  LaptopIcon,
+  Layout01Icon,
   Login01Icon,
   Settings01Icon,
   Sun01Icon,
@@ -511,51 +510,22 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               </button>
               <button
                 type="button"
-                className={`${DROPDOWN_CLASSES.menuActionItem} ${activeSubmenu === "chatPanelLocation" ? DROPDOWN_CLASSES.itemActive : ""} justify-between`}
+                className={`${DROPDOWN_CLASSES.menuActionItem} ${activeSubmenu === "layout" ? DROPDOWN_CLASSES.itemActive : ""} justify-between`}
                 onMouseEnter={(event) =>
-                  openSubmenu("chatPanelLocation", event.currentTarget)
+                  openSubmenu("layout", event.currentTarget)
                 }
-                onFocus={(event) =>
-                  openSubmenu("chatPanelLocation", event.currentTarget)
-                }
+                onFocus={(event) => openSubmenu("layout", event.currentTarget)}
+                data-testid="sidebar-settings-layout"
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={BubbleChatIcon}
-                    data-icon="message-circle"
+                    icon={Layout01Icon}
+                    data-icon="layout"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />
                   <span className="truncate">
-                    {t("common:layoutSettings.newChatPanel")}
-                  </span>
-                </span>
-                <HugeiconsIcon
-                  icon={ArrowRight01Icon}
-                  data-icon="chevron-right"
-                  size={DROPDOWN_ITEM.iconSize}
-                  className={MENU_ARROW_CLASS_NAME}
-                />
-              </button>
-              <button
-                type="button"
-                className={`${DROPDOWN_CLASSES.menuActionItem} ${activeSubmenu === "workstation" ? DROPDOWN_CLASSES.itemActive : ""} justify-between`}
-                onMouseEnter={(event) =>
-                  openSubmenu("workstation", event.currentTarget)
-                }
-                onFocus={(event) =>
-                  openSubmenu("workstation", event.currentTarget)
-                }
-              >
-                <span className="flex min-w-0 items-center gap-2">
-                  <HugeiconsIcon
-                    icon={LaptopIcon}
-                    data-icon="laptop"
-                    size={DROPDOWN_ITEM.iconSize}
-                    className={MENU_ICON_CLASS_NAME}
-                  />
-                  <span className="truncate">
-                    {t("sidebar.settingsMenu.workstation")}
+                    {tSettings("general.layout")}
                   </span>
                 </span>
                 <HugeiconsIcon

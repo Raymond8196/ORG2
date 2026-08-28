@@ -2114,11 +2114,8 @@
     "addWorkspace": "Workspace ekle..."
   },
   "layoutSettings": {
-    "myStation": "İstasyonum",
-    "agentStation": "Agent istasyonu",
     "chatPanelLocation": "Sohbet paneli konumu",
     "agentLayout": "Agent",
-    "newChatPanel": "Sohbet paneli",
     "focusChat": "Sohbete odaklan",
     "chatLeft": "Sohbet solda",
     "chatRight": "Sohbet sağda",
@@ -2173,10 +2170,6 @@
     "switchToLightTheme": "Açık temaya geç",
     "switchToDarkTheme": "Koyu temaya geç",
     "switchToHighContrastTheme": "Yüksek kontrast temaya geç",
-    "moveMyStationChatLeft": "My Station sohbetini sola taşı",
-    "moveMyStationChatRight": "My Station sohbetini sağa taşı",
-    "moveAgentStationChatLeft": "Agent Station sohbetini sola taşı",
-    "moveAgentStationChatRight": "Agent Station sohbetini sağa taşı",
     "enableChatPagination": "Sohbet sayfalandırmasını aç",
     "disableChatPagination": "Sohbet sayfalandırmasını kapat",
     "useModelPickerSpotlight": "Spotlight model seçiciyi kullan",

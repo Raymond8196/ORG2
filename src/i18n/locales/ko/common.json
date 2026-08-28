@@ -2111,11 +2111,8 @@
     "addWorkspace": "Workspace 추가..."
   },
   "layoutSettings": {
-    "myStation": "내 스테이션",
-    "agentStation": "Agent 스테이션",
     "chatPanelLocation": "채팅 패널 위치",
     "agentLayout": "Agent",
-    "newChatPanel": "채팅 패널",
     "focusChat": "채팅 포커스",
     "chatLeft": "왼쪽 채팅",
     "chatRight": "오른쪽 채팅",
@@ -2170,10 +2167,6 @@
     "switchToLightTheme": "라이트 테마로 전환",
     "switchToDarkTheme": "다크 테마로 전환",
     "switchToHighContrastTheme": "고대비 테마로 전환",
-    "moveMyStationChatLeft": "My Station 채팅을 왼쪽으로 이동",
-    "moveMyStationChatRight": "My Station 채팅을 오른쪽으로 이동",
-    "moveAgentStationChatLeft": "Agent Station 채팅을 왼쪽으로 이동",
-    "moveAgentStationChatRight": "Agent Station 채팅을 오른쪽으로 이동",
     "enableChatPagination": "채팅 페이지 나누기 켜기",
     "disableChatPagination": "채팅 페이지 나누기 끄기",
     "useModelPickerSpotlight": "Spotlight 모델 선택기 사용",

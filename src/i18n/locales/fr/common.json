@@ -2112,11 +2112,8 @@
     "addWorkspace": "Ajouter un espace de travail..."
   },
   "layoutSettings": {
-    "myStation": "Ma station",
-    "agentStation": "Station de l'Agent",
     "chatPanelLocation": "Emplacement du panneau de chat",
     "agentLayout": "Agent",
-    "newChatPanel": "Panneau de chat",
     "focusChat": "Focus Chat",
     "chatLeft": "Chat à gauche",
     "chatRight": "Chat à droite",
@@ -2171,10 +2168,6 @@
     "switchToLightTheme": "Passer au thème clair",
     "switchToDarkTheme": "Passer au thème sombre",
     "switchToHighContrastTheme": "Passer au thème contraste élevé",
-    "moveMyStationChatLeft": "Déplacer le chat de My Station à gauche",
-    "moveMyStationChatRight": "Déplacer le chat de My Station à droite",
-    "moveAgentStationChatLeft": "Déplacer le chat de l'Agent Station à gauche",
-    "moveAgentStationChatRight": "Déplacer le chat de l'Agent Station à droite",
     "enableChatPagination": "Activer la pagination du chat",
     "disableChatPagination": "Désactiver la pagination du chat",
     "useModelPickerSpotlight": "Utiliser le sélecteur de modèles Spotlight",

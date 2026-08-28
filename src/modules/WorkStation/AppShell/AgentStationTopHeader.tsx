@@ -44,7 +44,7 @@ import {
   simulatorCaptionBarEnabledAtom,
   simulatorEffectiveDockAppAtom,
 } from "@src/store/ui/simulatorAtom";
-import { sessionChatPositionAtom } from "@src/store/ui/workStationAtom";
+import { chatPanelPositionAtom } from "@src/store/ui/workStationAtom";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import { SimulatorAgentChip, StationModeChip } from "../shared";
@@ -54,7 +54,7 @@ const AgentStationTopHeader: React.FC = memo(() => {
   const shouldOffsetLeftChrome = useShouldOffsetWorkStationTopBar();
   const getStationChatVisible = useAtomValue(activeStationChatVisibleAtom);
   const chatWidth = useAtomValue(chatWidthAtom);
-  const sessionChatPosition = useAtomValue(sessionChatPositionAtom);
+  const chatPanelPosition = useAtomValue(chatPanelPositionAtom);
   const toggleChatPanelMaximized = useSetAtom(toggleChatPanelMaximizedAtom);
   const isChatPanelVisible =
     getStationChatVisible("agent-station") && chatWidth > 0;
@@ -220,7 +220,7 @@ const AgentStationTopHeader: React.FC = memo(() => {
               shortcutId="maximize_chat"
               onClick={handleToggleChatPanelMaximized}
             >
-              {sessionChatPosition === "left" ? (
+              {chatPanelPosition === "left" ? (
                 <HugeiconsIcon
                   icon={PanelRightIcon}
                   data-icon="panel-right"

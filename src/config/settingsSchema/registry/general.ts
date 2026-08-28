@@ -159,20 +159,10 @@ export const GENERAL_SETTINGS_REGISTRY = {
       "Show a theme-aware depth edge between the macOS sidebar and content panel",
     category: "general",
   },
-  "general.workStationChatPosition": {
+  "general.chatPanelPosition": {
     schema: z.enum(["left", "right"]),
     default: "left" as const,
-    description: "Chat panel side for My Station layouts",
-    category: "general",
-    enumLabels: {
-      left: "Left",
-      right: "Right",
-    },
-  },
-  "general.sessionChatPosition": {
-    schema: z.enum(["left", "right"]),
-    default: "left" as const,
-    description: "Chat panel side for Agent Station layouts",
+    description: "Chat panel side shared by My Station and Agent Station",
     category: "general",
     enumLabels: {
       left: "Left",

@@ -170,7 +170,6 @@
     "settingsMenu": {
       "appearance": "Appearance",
       "language": "Language",
-      "workstation": "Workstation",
       "viewRam": "View RAM",
       "tutorials": "Tutorials",
       "openSettings": "Open Settings"

@@ -2,11 +2,11 @@ import { useAtom, useAtomValue, useSetAtom } from "jotai";
 import React, { useCallback } from "react";
 import { useTranslation } from "react-i18next";
 
-import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import SegmentedTextPill from "@src/components/SegmentedTextPill";
 import Switch from "@src/components/Switch";
 import {
   type ModelPickerStyle,
@@ -16,19 +16,17 @@ import {
 } from "@src/store/ui/chatPanelAtom";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
-  sessionChatPositionAtom,
-  workStationChatPositionAtom,
+  chatPanelPositionAtom,
   workStationLayoutModeAtom,
   workStationLayoutModePersistAtom,
 } from "@src/store/ui/workStationAtom";
 
-interface SidebarWorkstationSettingsSubmenuProps {
+interface SidebarLayoutSettingsSubmenuProps {
   panelRef: React.Ref<HTMLDivElement>;
   position: {
     left: number;
     top: number;
   };
-  mode: "chatPanelLocation" | "workstation";
   onPointerDown: (event: React.PointerEvent<HTMLDivElement>) => void;
   onMouseDown: (event: React.MouseEvent<HTMLDivElement>) => void;
 }
@@ -36,7 +34,7 @@ interface SidebarWorkstationSettingsSubmenuProps {
 type ChatPanelPosition = "left" | "right";
 type WorkstationSidebarPosition = "left" | "right";
 
-function SelectionRow<TValue extends string>({
+function SegmentedControlRow<TValue extends string>({
   label,
   value,
   options,
@@ -48,24 +46,16 @@ function SelectionRow<TValue extends string>({
   onChange: (value: TValue) => void;
 }) {
   return (
-    <>
-      <div className={DROPDOWN_CLASSES.sectionLabel}>{label}</div>
-      {options.map((option) => {
-        const selected = value === option.value;
-        return (
-          <button
-            key={option.value}
-            type="button"
-            className={`${DROPDOWN_CLASSES.menuActionItem} ${selected ? DROPDOWN_CLASSES.itemSelected : ""} justify-between`}
-            onClick={() => onChange(option.value)}
-            aria-selected={selected}
-          >
-            <span>{option.label}</span>
-            {selected && <DropdownSelectedCheck />}
-          </button>
-        );
-      })}
-    </>
+    <div className={DROPDOWN_CLASSES.menuControlItem}>
+      <span className="min-w-0 flex-1 truncate">{label}</span>
+      <SegmentedTextPill
+        ariaLabel={label}
+        size="small"
+        value={value}
+        options={[...options]}
+        onChange={onChange}
+      />
+    </div>
   );
 }
 
@@ -81,23 +71,25 @@ function SwitchControlRow({
   return (
     <div className={DROPDOWN_CLASSES.menuControlItem}>
       <span>{label}</span>
-      <Switch checked={checked} onCheckedChange={onChange} size="small" />
+      <Switch
+        checked={checked}
+        onCheckedChange={onChange}
+        size="small"
+        ariaLabel={label}
+      />
     </div>
   );
 }
 
-export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSettingsSubmenuProps> =
-  React.memo(({ panelRef, position, mode, onPointerDown, onMouseDown }) => {
+export const SidebarLayoutSettingsSubmenu: React.FC<SidebarLayoutSettingsSubmenuProps> =
+  React.memo(({ panelRef, position, onPointerDown, onMouseDown }) => {
     const { t } = useTranslation("common");
     const stationMode = useAtomValue(stationModeAtom);
     const setStationChatVisible = useSetAtom(activeStationChatVisibleAtom);
     const layoutMode = useAtomValue(workStationLayoutModeAtom);
     const setLayoutModePersist = useSetAtom(workStationLayoutModePersistAtom);
-    const [chatPosition, setChatPosition] = useAtom(
-      workStationChatPositionAtom
-    );
-    const [agentChatPosition, setAgentChatPosition] = useAtom(
-      sessionChatPositionAtom
+    const [chatPanelPosition, setChatPanelPosition] = useAtom(
+      chatPanelPositionAtom
     );
     const [modelPickerStyle, setModelPickerStyle] =
       useAtom(modelPickerStyleAtom);
@@ -113,56 +105,15 @@ export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSetti
       { value: "dropdown", label: t("layoutSettings.modelPickerMenu") },
     ] as const;
 
-    const handleStationChatPositionChange = useCallback(
+    const handleChatPanelPositionChange = useCallback(
       (value: ChatPanelPosition) => {
         if (stationMode === "my-station" || stationMode === "agent-station") {
           setStationChatVisible(stationMode, true);
         }
-        setChatPosition(value);
+        setChatPanelPosition(value);
       },
-      [setChatPosition, setStationChatVisible, stationMode]
+      [setChatPanelPosition, setStationChatVisible, stationMode]
     );
-
-    const content =
-      mode === "chatPanelLocation" ? (
-        <>
-          <SelectionRow<ChatPanelPosition>
-            label={t("layoutSettings.myStation")}
-            value={chatPosition}
-            options={chatPositionOptions}
-            onChange={handleStationChatPositionChange}
-          />
-          <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
-          <SelectionRow<ChatPanelPosition>
-            label={t("layoutSettings.agentStation")}
-            value={agentChatPosition}
-            options={chatPositionOptions}
-            onChange={setAgentChatPosition}
-          />
-          <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
-          <SwitchControlRow
-            label={t("layoutSettings.chatPanelPagination")}
-            checked={chatTurnPaginationEnabled}
-            onChange={setChatTurnPaginationEnabled}
-          />
-        </>
-      ) : (
-        <>
-          <SelectionRow<WorkstationSidebarPosition>
-            label={t("layoutSettings.sidebarPosition")}
-            value={layoutMode}
-            options={chatPositionOptions}
-            onChange={setLayoutModePersist}
-          />
-          <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
-          <SelectionRow<ModelPickerStyle>
-            label={t("layoutSettings.modelPickerStyle")}
-            value={modelPickerStyle}
-            options={modelPickerStyleOptions}
-            onChange={setModelPickerStyle}
-          />
-        </>
-      );
 
     return (
       <div
@@ -172,10 +123,33 @@ export const SidebarWorkstationSettingsSubmenu: React.FC<SidebarWorkstationSetti
         onPointerDown={onPointerDown}
         onMouseDown={onMouseDown}
       >
-        <div className={DROPDOWN_CLASSES.itemsColumnPadded}>{content}</div>
+        <div className={DROPDOWN_CLASSES.itemsColumnPadded}>
+          <SegmentedControlRow<ChatPanelPosition>
+            label={t("layoutSettings.chatPanelLocation")}
+            value={chatPanelPosition}
+            options={chatPositionOptions}
+            onChange={handleChatPanelPositionChange}
+          />
+          <SegmentedControlRow<WorkstationSidebarPosition>
+            label={t("layoutSettings.sidebarPosition")}
+            value={layoutMode}
+            options={chatPositionOptions}
+            onChange={setLayoutModePersist}
+          />
+          <SegmentedControlRow<ModelPickerStyle>
+            label={t("layoutSettings.modelPickerStyle")}
+            value={modelPickerStyle}
+            options={modelPickerStyleOptions}
+            onChange={setModelPickerStyle}
+          />
+          <SwitchControlRow
+            label={t("layoutSettings.chatPanelPagination")}
+            checked={chatTurnPaginationEnabled}
+            onChange={setChatTurnPaginationEnabled}
+          />
+        </div>
       </div>
     );
   });
 
-SidebarWorkstationSettingsSubmenu.displayName =
-  "SidebarWorkstationSettingsSubmenu";
+SidebarLayoutSettingsSubmenu.displayName = "SidebarLayoutSettingsSubmenu";

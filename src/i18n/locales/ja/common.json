@@ -2111,11 +2111,8 @@
     "addWorkspace": "Workspace を追加..."
   },
   "layoutSettings": {
-    "myStation": "自分のステーション",
-    "agentStation": "Agent のステーション",
     "chatPanelLocation": "チャットパネルの位置",
     "agentLayout": "Agent",
-    "newChatPanel": "チャットパネル",
     "focusChat": "チャットフォーカス",
     "chatLeft": "左チャット",
     "chatRight": "右チャット",
@@ -2172,10 +2169,6 @@
     "switchToLightTheme": "ライトテーマに切り替え",
     "switchToDarkTheme": "ダークテーマに切り替え",
     "switchToHighContrastTheme": "ハイコントラストテーマに切り替え",
-    "moveMyStationChatLeft": "My Station のチャットを左に移動",
-    "moveMyStationChatRight": "My Station のチャットを右に移動",
-    "moveAgentStationChatLeft": "Agent Station のチャットを左に移動",
-    "moveAgentStationChatRight": "Agent Station のチャットを右に移動",
     "enableChatPagination": "チャットのページ分割をオンにする",
     "disableChatPagination": "チャットのページ分割をオフにする",
     "useModelPickerSpotlight": "Spotlight モデル選択を使う",

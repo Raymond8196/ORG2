@@ -2126,11 +2126,8 @@
     "addWorkspace": "新增工作區..."
   },
   "layoutSettings": {
-    "myStation": "我的工作站",
-    "agentStation": "Agent的工作站",
     "chatPanelLocation": "聊天面板位置",
     "agentLayout": "Agent",
-    "newChatPanel": "聊天面板",
     "focusChat": "專注聊天",
     "chatLeft": "左側聊天",
     "chatRight": "右側聊天",
@@ -2187,10 +2184,6 @@
     "switchToLightTheme": "切換到淺色主題",
     "switchToDarkTheme": "切換到深色主題",
     "switchToHighContrastTheme": "切換到高對比度主題",
-    "moveMyStationChatLeft": "將我的工作站聊天移到左側",
-    "moveMyStationChatRight": "將我的工作站聊天移到右側",
-    "moveAgentStationChatLeft": "將 Agent 工作站聊天移到左側",
-    "moveAgentStationChatRight": "將 Agent 工作站聊天移到右側",
     "enableChatPagination": "開啟聊天分頁",
     "disableChatPagination": "關閉聊天分頁",
     "useModelPickerSpotlight": "使用 Spotlight 模型選擇器",

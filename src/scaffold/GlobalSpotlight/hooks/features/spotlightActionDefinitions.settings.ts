@@ -89,14 +89,12 @@ export function buildThemeActions(
 }
 
 export function buildChatPanelSettingsActions({
-  myStationChatPosition,
-  agentStationChatPosition,
+  chatPanelPosition,
   chatTurnPaginationEnabled,
   modelPickerStyle,
   workstationSidebarPosition,
 }: {
-  myStationChatPosition: "left" | "right";
-  agentStationChatPosition: "left" | "right";
+  chatPanelPosition: "left" | "right";
   chatTurnPaginationEnabled: boolean;
   modelPickerStyle: "spotlight" | "dropdown";
   workstationSidebarPosition: "left" | "right";
@@ -105,51 +103,24 @@ export function buildChatPanelSettingsActions({
 
   actions.push({
     id:
-      myStationChatPosition === "left"
-        ? "set-my-station-chat-right"
-        : "set-my-station-chat-left",
+      chatPanelPosition === "left"
+        ? "set-chat-panel-right"
+        : "set-chat-panel-left",
     labelKey:
-      myStationChatPosition === "left"
-        ? "common:spotlightActions.moveMyStationChatRight"
-        : "common:spotlightActions.moveMyStationChatLeft",
-    icon:
-      myStationChatPosition === "left" ? ArrowRightBigIcon : ArrowLeftBigIcon,
+      chatPanelPosition === "left"
+        ? "common:layoutSettings.chatRight"
+        : "common:layoutSettings.chatLeft",
+    icon: chatPanelPosition === "left" ? ArrowRightBigIcon : ArrowLeftBigIcon,
     keywords: [
-      "my station chat",
+      "chat panel side",
       "chat panel location",
       "chat left",
       "chat right",
     ],
     actionId:
-      myStationChatPosition === "left"
-        ? ACTION_ID.CHAT_PANEL_SET_MY_STATION_RIGHT
-        : ACTION_ID.CHAT_PANEL_SET_MY_STATION_LEFT,
-    payload: {},
-    closeOnSuccess: false,
-  });
-
-  actions.push({
-    id:
-      agentStationChatPosition === "left"
-        ? "set-agent-station-chat-right"
-        : "set-agent-station-chat-left",
-    labelKey:
-      agentStationChatPosition === "left"
-        ? "common:spotlightActions.moveAgentStationChatRight"
-        : "common:spotlightActions.moveAgentStationChatLeft",
-    icon:
-      agentStationChatPosition === "left"
-        ? ArrowRightBigIcon
-        : ArrowLeftBigIcon,
-    keywords: [
-      "agent station chat",
-      "agent chat location",
-      "chat panel location",
-    ],
-    actionId:
-      agentStationChatPosition === "left"
-        ? ACTION_ID.CHAT_PANEL_SET_AGENT_STATION_RIGHT
-        : ACTION_ID.CHAT_PANEL_SET_AGENT_STATION_LEFT,
+      chatPanelPosition === "left"
+        ? ACTION_ID.CHAT_PANEL_SET_RIGHT
+        : ACTION_ID.CHAT_PANEL_SET_LEFT,
     payload: {},
     closeOnSuccess: false,
   });
