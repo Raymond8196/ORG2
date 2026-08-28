@@ -33,7 +33,6 @@ interface ChatViewHistorySurfaceProps {
   handleScrollNavChange: NonNullable<ChatHistoryProps["onScrollNavChange"]>;
   followAgentNav: ChatHistoryProps["followAgentNav"];
   browserAddToConversationNav: ChatHistoryProps["browserAddToConversationNav"];
-  onRegisterSearchOpen: ChatHistoryProps["onRegisterSearchOpen"];
   displayMode: ChatHistoryProps["displayMode"];
   turnPaginationEnabled: boolean;
   paginationTrailingSlot: ChatHistoryProps["paginationTrailingSlot"];
@@ -65,7 +64,6 @@ export function ChatViewHistorySurface({
   handleScrollNavChange,
   followAgentNav,
   browserAddToConversationNav,
-  onRegisterSearchOpen,
   displayMode,
   turnPaginationEnabled,
   paginationTrailingSlot,
@@ -129,7 +127,6 @@ export function ChatViewHistorySurface({
             onScrollNavChange={handleScrollNavChange}
             followAgentNav={followAgentNav}
             browserAddToConversationNav={browserAddToConversationNav}
-            onRegisterSearchOpen={onRegisterSearchOpen}
             displayMode={displayMode}
             turnPaginationEnabled={turnPaginationEnabled}
             paginationTrailingSlot={paginationTrailingSlot}
