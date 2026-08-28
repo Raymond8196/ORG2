@@ -17,7 +17,7 @@ import { usePinnedActionsVisibilityContextMenu } from "@src/engines/ChatPanel/In
 import type { SessionLaunchWorkItemContext } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { LaunchpadActionGrid } from "@src/features/SessionCreator/components/LaunchpadActionGrid";
 import {
-  CircleArrowUp01Icon,
+  Download02Icon,
   HierarchyCircle01Icon,
   HugeiconsIcon,
   NotificationOff01Icon,
@@ -193,6 +193,7 @@ const SessionCreatorChatPanelView: React.FC<
   const sessionInfoLine = (
     <SessionInfoLine
       {...sessionInfoProps}
+      leadingContent={cliLaunchModeSwitch}
       dropdownDirection={
         isLaunchpadLayout ? "up" : sessionInfoProps.dropdownDirection
       }
@@ -260,10 +261,6 @@ const SessionCreatorChatPanelView: React.FC<
   const showWorkItemAttachmentControl =
     !hideWorkItemAttachmentControl &&
     (!isLaunchpadLayout || Boolean(multiRunnerContent));
-  const hasSetupControlsAfterCliSwitch =
-    showWorkItemAttachmentControl ||
-    Boolean(orgMembersPanelProps) ||
-    Boolean(pinnedActionsContent);
   const sessionSetupActions = !hideSessionSetupControls ? (
     <div
       className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
@@ -273,17 +270,13 @@ const SessionCreatorChatPanelView: React.FC<
         composerInputRef={composerInputRef}
         manageButtonPlacement="before-actions"
         managePanelAlign="left"
-        showBeforeActionsSeparator={Boolean(cliLaunchModeSwitch)}
+        showBeforeActionsSeparator={false}
         showPinnedActions={showPinnedActionPills}
         trailingContent={pinnedActionsContent}
         leadingContent={
           <>
             {browserElementRowContent}
             {leadingActionSlot}
-            {cliLaunchModeSwitch}
-            {cliLaunchModeSwitch && hasSetupControlsAfterCliSwitch && (
-              <div aria-hidden className="mx-1 h-4 w-px shrink-0 bg-border-2" />
-            )}
             {showWorkItemAttachmentControl && (
               <WorkItemAttachmentControl
                 composerInputRef={composerInputRef}
@@ -332,8 +325,8 @@ const SessionCreatorChatPanelView: React.FC<
           type="warning"
           icon={
             <HugeiconsIcon
-              icon={CircleArrowUp01Icon}
-              data-icon="circle-arrow-up"
+              icon={Download02Icon}
+              data-icon="download"
               size={14}
               strokeWidth={1.8}
             />

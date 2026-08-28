@@ -165,7 +165,7 @@ describe("PinnedActionsBar", () => {
     expect(container.textContent).toContain("Setup controls");
   });
 
-  it("omits the leading divider when the preceding GUI/TUI control is absent", () => {
+  it("omits the leading divider when requested", () => {
     const composerInputRef = createRef<ComposerInputRef>();
 
     act(() =>
