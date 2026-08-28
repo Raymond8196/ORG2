@@ -1,12 +1,12 @@
 import React from "react";
 
 import {
-  BoxIcon,
   GaugeIcon,
   GithubIcon,
   InboxIcon,
   KanbanIcon,
   MessageAdd02Icon,
+  PackageAdd01Icon,
   PencilEdit02Icon,
 } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
@@ -149,8 +149,8 @@ export function buildProjectsPinnedMenuItems({
       id: PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
       key: PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
       label: createProjectLabel,
-      icon: BoxIcon,
-      iconName: "box",
+      icon: PackageAdd01Icon,
+      iconName: "package-add",
       dataTestId: "sidebar-create-project",
     },
     {

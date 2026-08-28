@@ -319,6 +319,7 @@ export { default as NotificationBubbleIcon } from "@hugeicons/core-free-icons/No
 export { default as NotificationOff01Icon } from "@hugeicons/core-free-icons/NotificationOff01Icon";
 export { default as OptionIcon } from "@hugeicons/core-free-icons/OptionIcon";
 export { default as Package01Icon } from "@hugeicons/core-free-icons/Package01Icon";
+export { default as PackageAdd01Icon } from "@hugeicons/core-free-icons/PackageAdd01Icon";
 export { default as PackageDeliveredIcon } from "@hugeicons/core-free-icons/PackageDeliveredIcon";
 export { default as PackageIcon } from "@hugeicons/core-free-icons/PackageIcon";
 export { default as PaintBrush01Icon } from "@hugeicons/core-free-icons/PaintBrush01Icon";

@@ -22,7 +22,6 @@ import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
 import {
   BoxIcon,
   CircleDotIcon,
-  DashboardSquare01Icon,
   GaugeIcon,
   GitPullRequestIcon,
   HashtagIcon,
@@ -34,6 +33,9 @@ import {
   ListTodoIcon,
   LockIcon,
   MessageAdd01Icon,
+  MessageAdd02Icon,
+  PackageAdd01Icon,
+  PencilEdit02Icon,
   Settings02Icon,
   SquareTerminalIcon,
 } from "@src/icons";
@@ -169,8 +171,8 @@ export const TabPill = memo(function TabPill({
     if (createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT) {
       icon = (
         <HugeiconsIcon
-          icon={BoxIcon}
-          data-icon="box"
+          icon={PackageAdd01Icon}
+          data-icon="package-add"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -179,8 +181,8 @@ export const TabPill = memo(function TabPill({
     } else if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
       icon = (
         <HugeiconsIcon
-          icon={ListChecksIcon}
-          data-icon="list-checks"
+          icon={PencilEdit02Icon}
+          data-icon="square-pen"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -199,8 +201,8 @@ export const TabPill = memo(function TabPill({
     } else {
       icon = (
         <HugeiconsIcon
-          icon={DashboardSquare01Icon}
-          data-icon="layout-grid"
+          icon={MessageAdd02Icon}
+          data-icon="message-add"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
