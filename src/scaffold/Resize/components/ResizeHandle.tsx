@@ -35,6 +35,7 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = memo(
     noAccent = false,
     tooltipLabel,
     tooltipShortcut,
+    indicatorPlacement = "center",
     className = "",
   }) => {
     const isVertical = axis === "x";
@@ -97,12 +98,24 @@ export const ResizeHandle: React.FC<ResizeHandleProps> = memo(
     // inherits every layout update from the line itself and cannot lag behind
     // during rapid RAF-driven resizing.
     const showIndicator = !noHover && !noAccent;
+    const verticalIndicatorPosition =
+      indicatorPlacement === "start"
+        ? "right-0"
+        : indicatorPlacement === "end"
+          ? "left-0"
+          : "left-1/2 -translate-x-1/2";
+    const horizontalIndicatorPosition =
+      indicatorPlacement === "start"
+        ? "bottom-0"
+        : indicatorPlacement === "end"
+          ? "top-0"
+          : "top-1/2 -translate-y-1/2";
     const indicatorClasses = [
       "pointer-events-none",
       "absolute",
       isVertical
-        ? "left-0 top-1/2 h-14 w-px -translate-y-1/2"
-        : "left-1/2 top-0 h-px w-14 -translate-x-1/2",
+        ? `top-1/2 h-14 w-[4px] -translate-y-1/2 ${verticalIndicatorPosition}`
+        : `left-1/2 h-[4px] w-14 -translate-x-1/2 ${horizontalIndicatorPosition}`,
       "rounded-full",
       "bg-primary-6",
       "transition-opacity",

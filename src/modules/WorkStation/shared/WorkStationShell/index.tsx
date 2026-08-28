@@ -256,6 +256,7 @@ export const WorkStationShell: React.FC<WorkStationShellProps> = memo(
     const primarySidebarResizeHandle = !resolvedPrimarySidebar.collapsed &&
       resolvedPrimarySidebar.onSizeChange && (
         <VerticalResizeHandle
+          indicatorPlacement={isLeftMode ? "start" : "end"}
           isResizing={isPrimarySidebarResizing}
           variant="border"
           onMouseDown={handlePrimarySidebarResize}

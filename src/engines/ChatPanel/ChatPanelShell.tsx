@@ -58,6 +58,7 @@ export function ChatPanelShell({
     <VerticalResizeHandle
       key="chat-panel-resize-handle"
       className={`!z-[80] ${isLeftPosition ? "-ml-px" : "-mr-px"}`}
+      indicatorPlacement={isLeftPosition ? "start" : "end"}
       isResizing={isDragging}
       onMouseDown={onResizeMouseDown}
       tooltipLabel={resizeTooltipLabel}

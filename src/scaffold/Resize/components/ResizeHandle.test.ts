@@ -48,6 +48,7 @@ describe("ResizeHandle indicator", () => {
       root.render(
         React.createElement(ResizeHandle, {
           axis: "x",
+          indicatorPlacement: "start",
           onMouseDown: () => undefined,
         })
       );
@@ -62,7 +63,8 @@ describe("ResizeHandle indicator", () => {
     expect(indicator).not.toBeNull();
     expect(handle!.contains(indicator)).toBe(true);
     expect(indicator?.className).toContain("absolute");
-    expect(indicator?.className).toContain("w-px");
+    expect(indicator?.className).toContain("w-[4px]");
+    expect(indicator?.className).toContain("right-0");
     expect(indicator?.className).not.toContain("fixed");
   });
 

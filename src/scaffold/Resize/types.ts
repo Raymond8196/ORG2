@@ -92,6 +92,7 @@ export interface ResizableShellProps {
 
 /** Visual variant for resize handle default (resting) state */
 export type ResizeHandleVariant = "transparent" | "border";
+export type ResizeHandleIndicatorPlacement = "start" | "center" | "end";
 
 export interface ResizeHandleProps {
   /** Resize axis */
@@ -112,6 +113,8 @@ export interface ResizeHandleProps {
   tooltipLabel?: ReactNode;
   /** Keyboard shortcut displayed beside the contextual tooltip label */
   tooltipShortcut?: string;
+  /** Side of the divider into which the thicker center indicator extends */
+  indicatorPlacement?: ResizeHandleIndicatorPlacement;
   /** Additional class name */
   className?: string;
 }
