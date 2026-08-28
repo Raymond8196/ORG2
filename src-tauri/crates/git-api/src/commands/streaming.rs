@@ -27,7 +27,7 @@ use tokio::process::Command;
 use git::{tokio_git_command, util::is_transient_error};
 
 use super::commit::append_orgii_coauthor_trailer;
-use super::remote::pull_strategy_args;
+use super::remote::{contains_word, pull_strategy_args};
 
 type GitEventStream = Pin<Box<dyn Stream<Item = Result<Event, std::convert::Infallible>> + Send>>;
 
@@ -41,16 +41,10 @@ pub(crate) fn detect_error_type_from_output(output: &str, operation: &str) -> &'
 
     match operation {
         "push" => {
-            // Non-fast-forward (remote has changes we don't have)
-            if lower.contains("non-fast-forward")
-                || lower.contains("fetch first")
-                || lower.contains("updates were rejected")
-                || lower.contains("failed to push some refs")
-            {
-                return "non_fast_forward";
-            }
-
-            // Protected branch
+            // Protected branch / policy rejection — checked BEFORE the
+            // non-fast-forward patterns, because git appends "error: failed to
+            // push some refs" to every rejection and the broader arm would
+            // shadow this one (see detect_push_error_type in remote.rs).
             if lower.contains("protected branch")
                 || lower.contains("branch is protected")
                 || lower.contains("cannot push to")
@@ -58,6 +52,15 @@ pub(crate) fn detect_error_type_from_output(output: &str, operation: &str) -> &'
                 || lower.contains("remote rejected")
             {
                 return "protected_branch";
+            }
+
+            // Non-fast-forward (remote has changes we don't have)
+            if lower.contains("non-fast-forward")
+                || lower.contains("fetch first")
+                || lower.contains("updates were rejected")
+                || lower.contains("failed to push some refs")
+            {
+                return "non_fast_forward";
             }
         }
         "pull" => {
@@ -94,8 +97,8 @@ pub(crate) fn detect_error_type_from_output(output: &str, operation: &str) -> &'
         || lower.contains("unable to get password from user")
         || lower.contains("permission denied (publickey)")
         || lower.contains("repository not found")
-        || lower.contains("saml")
-        || lower.contains("sso")
+        || contains_word(&lower, "saml")
+        || contains_word(&lower, "sso")
         || lower.contains("password authentication was removed")
         || lower.contains("requested url returned error: 403")
     {

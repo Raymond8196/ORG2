@@ -42,6 +42,52 @@ fn push_protected_branch() {
     );
 }
 
+/// Regression: real rejections always end with "error: failed to push some
+/// refs", which the non-fast-forward arm matches — protected-branch must win
+/// on full output, and a plain rejection must still be non-fast-forward.
+#[test]
+fn push_classification_on_full_real_output() {
+    assert_eq!(
+        detect_error_type_from_output(
+            "remote: error: GH006: Protected branch update failed for refs/heads/main.\n \
+             ! [remote rejected] main -> main (protected branch hook declined)\n\
+             error: failed to push some refs to 'https://github.com/acme/app.git'",
+            "push"
+        ),
+        "protected_branch"
+    );
+    assert_eq!(
+        detect_error_type_from_output(
+            " ! [rejected]        main -> main (fetch first)\n\
+             error: failed to push some refs to 'https://github.com/acme/app.git'\n\
+             hint: Updates were rejected because the remote contains work that you do not\n\
+             hint: have locally.",
+            "push"
+        ),
+        "non_fast_forward"
+    );
+}
+
+/// Regression: the auth arm used to match the bare substring "sso" — which
+/// hides inside "processor", "associate", etc. — ahead of the network arm.
+#[test]
+fn dns_failure_on_sso_containing_repo_name_is_network() {
+    assert_eq!(
+        detect_error_type_from_output(
+            "fatal: unable to access 'https://github.com/acme/processor-service.git/': Could not resolve host: github.com",
+            "fetch"
+        ),
+        "network_error"
+    );
+    assert_eq!(
+        detect_error_type_from_output(
+            "remote: The `acme' organization has enabled or enforced SAML SSO.",
+            "fetch"
+        ),
+        "authentication_failed"
+    );
+}
+
 // ============================================
 // detect_error_type_from_output — pull
 // ============================================
