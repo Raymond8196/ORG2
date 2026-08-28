@@ -39,6 +39,7 @@ import {
   getChatPanelBackgroundStyle,
   getChatSlotLayoutStyle,
   getPagePanelBackgroundStyle,
+  getResizeIndicatorHostStyle,
   getWorkbenchLayoutStyle,
 } from "@src/modules/shared/layouts/viewContainerTokens";
 import { GlobalSpotlightPortal } from "@src/scaffold/GlobalSpotlight/GlobalSpotlightPortal";
@@ -300,6 +301,7 @@ const AppLayoutComponent: React.FC<AppLayoutProps> = ({
         key="chat-workstation-resize-indicator-host"
         ref={setResizeIndicatorHostElement}
         className="pointer-events-none relative z-[80] w-0 flex-none self-stretch overflow-visible"
+        style={getResizeIndicatorHostStyle(chatPosition)}
         data-chat-workstation-resize-indicator-host
         aria-hidden
       />
