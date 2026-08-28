@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-import { switchMode } from "./useModeSwitchActions";
+import { switchMode } from "../useModeSwitchActions";
 
 const storeGetSpy = vi.hoisted(() => vi.fn());
 const sendMessageSpy = vi.hoisted(() => vi.fn());
