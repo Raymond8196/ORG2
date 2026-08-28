@@ -1,6 +1,6 @@
 use crate::commands::remote::{
     contains_word, detect_fetch_error_type, detect_pull_error_type, detect_push_error_type,
-    pull_from_remote, pull_strategy_args,
+    pull_from_remote, pull_strategy_args, should_set_upstream,
 };
 use crate::types::GitErrorType;
 
@@ -163,6 +163,54 @@ fn push_error_unknown() {
         detect_push_error_type("some other error"),
         GitErrorType::Unknown,
     );
+}
+
+// ============================================
+// should_set_upstream
+// ============================================
+
+#[test]
+fn set_upstream_when_none_configured() {
+    assert!(should_set_upstream(None, "feat/x", "origin"));
+}
+
+/// Regression: the old comparison used only the last `/`-segment of the
+/// upstream ref, so "origin/feat/x" shortened to "x", never equalled
+/// "feat/x", and every slash-named branch re-set its upstream on every push.
+#[test]
+fn no_set_upstream_when_upstream_matches_slash_branch() {
+    assert!(!should_set_upstream(
+        Some("origin/feat/x"),
+        "feat/x",
+        "origin"
+    ));
+    assert!(!should_set_upstream(
+        Some("origin/feat/org2-cloud-auth"),
+        "feat/org2-cloud-auth",
+        "origin"
+    ));
+    assert!(!should_set_upstream(Some("origin/main"), "main", "origin"));
+}
+
+#[test]
+fn set_upstream_for_renamed_branch_on_same_remote() {
+    assert!(should_set_upstream(Some("origin/main"), "feat/x", "origin"));
+}
+
+/// An upstream deliberately configured on a different remote must be left
+/// alone — `-u` would silently overwrite it.
+#[test]
+fn no_set_upstream_when_upstream_is_on_another_remote() {
+    assert!(!should_set_upstream(
+        Some("upstream/feat/x"),
+        "feat/x",
+        "origin"
+    ));
+    assert!(!should_set_upstream(
+        Some("upstream/main"),
+        "main",
+        "origin"
+    ));
 }
 
 // ============================================

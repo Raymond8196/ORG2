@@ -355,6 +355,32 @@ pub(crate) fn contains_word(haystack: &str, needle: &str) -> bool {
     false
 }
 
+/// Whether a push should pass `-u` for the current branch.
+///
+/// - No upstream configured: yes.
+/// - Upstream on the push remote but under a different branch name (the
+///   renamed-branch scenario): yes.
+/// - Upstream already `<remote>/<current>`: no.
+/// - Upstream on a *different* remote: no — that is deliberate user
+///   configuration, and `-u` would silently overwrite it.
+///
+/// The previous implementation compared only the last `/`-segment of the
+/// upstream ref, so every branch with a slash in its name ("feat/x" vs the
+/// segment "x") re-set its upstream on every push.
+pub(crate) fn should_set_upstream(
+    upstream: Option<&str>,
+    current_branch: &str,
+    remote: &str,
+) -> bool {
+    match upstream {
+        None => true,
+        Some(upstream) => match upstream.strip_prefix(&format!("{remote}/")) {
+            Some(short) => short != current_branch,
+            None => false,
+        },
+    }
+}
+
 /// Detect error type from push error message
 pub(crate) fn detect_push_error_type(message: &str) -> GitErrorType {
     let lower = message.to_lowercase();
@@ -435,20 +461,13 @@ pub fn push_to_remote(repo_path: &Path, request: &PushRequest) -> Result<GitPush
     });
 
     // Determine if we need to set upstream
-    // Set upstream if:
-    // 1. Explicitly requested
-    // 2. No upstream exists
-    // 3. Upstream branch name doesn't match local branch name (renamed branch scenario)
     let needs_set_upstream = request.set_upstream
-        || upstream_branch.as_ref().is_none_or(|upstream| {
-            if let Some(ref current) = current_branch {
-                // Extract branch name from "origin/branch-name"
-                let upstream_short = upstream.split('/').next_back().unwrap_or(upstream);
-                upstream_short != current
-            } else {
-                false
+        || match (&current_branch, &upstream_branch) {
+            (Some(current), upstream) => {
+                should_set_upstream(upstream.as_deref(), current, remote_name)
             }
-        });
+            (None, upstream) => upstream.is_none(),
+        };
 
     let mut args = vec!["push"];
 
