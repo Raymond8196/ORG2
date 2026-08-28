@@ -2,18 +2,15 @@
  * WorkstationSections — renders the rail's section list in both the wide
  * (trail) and compact (dropdown menu) presentations.
  */
-import { useTranslation } from "react-i18next";
-
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 import {
-  CloudIcon,
   FolderClosedIcon,
   FolderKanbanIcon,
   GitForkIcon,
-  LaptopIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
 
+import { EnvironmentKindRow } from "./EnvironmentKindRow";
 import { WorkspaceContextRow } from "./WorkspaceContextRow";
 import { WorkstationItemRow } from "./WorkstationItemRow";
 import type { WorkstationSectionsProps } from "./types";
@@ -23,7 +20,6 @@ export function WorkstationSections({
   onRequestClose,
   sections,
 }: WorkstationSectionsProps) {
-  const { t } = useTranslation();
   return (
     <div
       className={compact ? "space-y-2" : WORKSTATION_TRAIL_CONTENT.sectionList}
@@ -48,19 +44,9 @@ export function WorkstationSections({
               section.environment.workItem) && (
               <>
                 {section.environment.environmentKind && (
-                  <WorkspaceContextRow
+                  <EnvironmentKindRow
                     compact={compact}
-                    icon={
-                      section.environment.environmentKind === "cloud"
-                        ? CloudIcon
-                        : LaptopIcon
-                    }
-                    label={t(
-                      section.environment.environmentKind === "cloud"
-                        ? "common:workstation.sessionEnvCloud"
-                        : "common:workstation.sessionEnvLocal"
-                    )}
-                    chevron
+                    kind={section.environment.environmentKind}
                   />
                 )}
                 {section.environment.repoName && (

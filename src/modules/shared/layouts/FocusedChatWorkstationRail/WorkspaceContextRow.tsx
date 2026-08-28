@@ -65,9 +65,9 @@ export function WorkspaceContextRow({
   );
 
   if (onClick) {
-    // Switcher rows get the rail's styled tooltip; other clickable rows keep
-    // the native title.
-    const styledTooltip = chevron ? (title ?? label) : undefined;
+    // Switcher rows with an explicit action title get the rail's styled
+    // tooltip; other clickable rows keep the native title.
+    const styledTooltip = chevron && title ? title : undefined;
     const button = (
       <button
         type="button"
