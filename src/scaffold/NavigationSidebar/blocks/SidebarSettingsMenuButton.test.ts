@@ -253,7 +253,7 @@ describe("SidebarSettingsMenuButton", () => {
     const nativeGetBoundingClientRect =
       HTMLElement.prototype.getBoundingClientRect;
     vi.spyOn(HTMLElement.prototype, "getBoundingClientRect").mockImplementation(
-      function () {
+      function (this: HTMLElement) {
         if (this === appearanceTrigger) {
           return createRect({
             top: 400,
