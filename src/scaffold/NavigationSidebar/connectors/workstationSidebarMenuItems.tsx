@@ -5,9 +5,9 @@ import {
   GaugeIcon,
   GithubIcon,
   InboxIcon,
+  KanbanIcon,
   MessageAdd02Icon,
   PencilEdit02Icon,
-  TrelloIcon,
 } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
@@ -105,8 +105,8 @@ export function buildPinnedMenuItems({
       id: KANBAN_MENU_ITEM_ID,
       key: KANBAN_MENU_ITEM_ID,
       label: kanbanLabel,
-      icon: TrelloIcon,
-      iconName: "trello",
+      icon: KanbanIcon,
+      iconName: "kanban",
       shortcut: kanbanShortcut,
     },
     {

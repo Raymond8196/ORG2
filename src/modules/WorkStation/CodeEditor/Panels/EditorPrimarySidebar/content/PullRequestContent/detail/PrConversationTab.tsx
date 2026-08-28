@@ -4,8 +4,8 @@
  * GitHub-style PR conversation: a flow-title header (title · #number · status
  * pill · merge-flow sentence) over the PR description and the interleaved
  * comment/review timeline. A bottom composer posts a conversation comment or
- * submits a review. The operations sidebar renders at the panel level beside
- * the tabs, not inside this tab.
+ * submits a review. The operations sidebar stays at the panel level beside
+ * the tabs.
  *
  * Reuses the shared timeline primitives so it renders identically to the Issue
  * detail view.
@@ -171,12 +171,6 @@ type TimelineEntry =
 interface PrConversationTabProps {
   /** GitHub-style flow-title block rendered above the timeline. */
   flowHeader?: React.ReactNode;
-  /**
-   * Details rail stacked under the flow title, above the description. The host
-   * passes this only when the pane is too narrow to keep the rail as its own
-   * column; otherwise the rail renders beside the tabs.
-   */
-  sidebar?: React.ReactNode;
   detail: Record<string, unknown> | null;
   identity: PrIdentity;
   conversation: GitHubIssueComment[];
@@ -195,7 +189,6 @@ interface PrConversationTabProps {
 
 export const PrConversationTab: React.FC<PrConversationTabProps> = ({
   flowHeader,
-  sidebar,
   detail,
   identity,
   conversation,
@@ -351,14 +344,6 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
           {flowHeader ? (
             <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 pt-5`}>
               {flowHeader}
-            </div>
-          ) : null}
-          {sidebar ? (
-            <div
-              className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 pt-4`}
-              data-testid="pr-conversation-stacked-sidebar"
-            >
-              {sidebar}
             </div>
           ) : null}
           <div

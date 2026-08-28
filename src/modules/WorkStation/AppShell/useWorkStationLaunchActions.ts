@@ -18,12 +18,12 @@ import { useTranslation } from "react-i18next";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import {
   BoxIcon,
-  DashboardSquare01Icon,
   FileDiffIcon,
   FileSearchIcon,
   FolderClosedIcon,
   type IconSvgElement,
   InternetIcon,
+  KanbanIcon,
   ListTodoIcon,
   Shield02Icon,
   SquareTerminalIcon,
@@ -123,7 +123,7 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       },
       {
         id: "searchSessions",
-        icon: DashboardSquare01Icon,
+        icon: KanbanIcon,
         label: t("workstation.plusMenu.searchSessions"),
         onClick: () => openTabInMainPane(createSearchSessionsTab()),
       },

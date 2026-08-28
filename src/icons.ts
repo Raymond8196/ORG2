@@ -364,6 +364,7 @@ export { default as SearchMinusIcon } from "@hugeicons/core-free-icons/SearchMin
 export { default as SecurityBlockIcon } from "@hugeicons/core-free-icons/SecurityBlockIcon";
 export { default as SecurityCheckIcon } from "@hugeicons/core-free-icons/SecurityCheckIcon";
 export { default as ServerStack01Icon } from "@hugeicons/core-free-icons/ServerStack01Icon";
+export { default as ServerStack03Icon } from "@hugeicons/core-free-icons/ServerStack03Icon";
 export { default as Settings01Icon } from "@hugeicons/core-free-icons/Settings01Icon";
 export { default as Settings02Icon } from "@hugeicons/core-free-icons/Settings02Icon";
 export { default as Shaka01Icon } from "@hugeicons/core-free-icons/Shaka01Icon";

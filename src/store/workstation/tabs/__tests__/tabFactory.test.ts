@@ -454,10 +454,10 @@ describe("Subagent Factories", () => {
 });
 
 describe("Kanban tab factory", () => {
-  it("uses the Trello glyph", () => {
+  it("uses the Kanban glyph", () => {
     expect(createSearchSessionsTab()).toMatchObject({
       title: "Kanban",
-      icon: "Trello",
+      icon: "Kanban",
     });
   });
 });

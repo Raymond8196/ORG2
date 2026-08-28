@@ -1,7 +1,7 @@
 import type React from "react";
 import { describe, expect, it } from "vitest";
 
-import { TrelloIcon } from "@src/icons";
+import { KanbanIcon } from "@src/icons";
 import { GENERAL_LAYOUT_TOUR_TARGETS } from "@src/scaffold/Tutorials/generalLayoutTourConfig";
 
 import {
@@ -43,8 +43,8 @@ describe("buildPinnedMenuItems", () => {
       tourTarget: GENERAL_LAYOUT_TOUR_TARGETS.runtimeNavigation,
     });
     expect(items[1]).toMatchObject({
-      icon: TrelloIcon,
-      iconName: "trello",
+      icon: KanbanIcon,
+      iconName: "kanban",
     });
     expect(items[0]?.openContextMenuOnSelectedClick).toBeUndefined();
   });

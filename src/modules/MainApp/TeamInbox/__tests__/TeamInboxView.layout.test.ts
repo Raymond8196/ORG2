@@ -666,15 +666,15 @@ describe("TeamInboxView split layout", () => {
       },
     });
     expect(onOpenPullRequestTab).not.toHaveBeenCalled();
-    const headerActions = componentProps.prDetail
-      ?.headerActions as React.ReactElement<{
+    const tabActions = componentProps.prDetail
+      ?.tabActions as React.ReactElement<{
       className: string;
       children: React.ReactNode;
     }>;
-    expect(React.isValidElement(headerActions)).toBe(true);
-    expect(headerActions.props.className).toContain("gap-px");
+    expect(React.isValidElement(tabActions)).toBe(true);
+    expect(tabActions.props.className).toContain("gap-px");
     const [browserAction, tabAction] = React.Children.toArray(
-      headerActions.props.children
+      tabActions.props.children
     ) as Array<
       React.ReactElement<{
         label: string;

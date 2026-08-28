@@ -9,9 +9,9 @@ import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useRepoGitInitialization } from "@src/hooks/git";
 import {
   CircleDotIcon,
+  GitCommitIcon,
   GitPullRequestIcon,
   HugeiconsIcon,
-  WorkHistoryIcon,
 } from "@src/icons";
 import { CODE_EDITOR_TOUR_TARGETS } from "@src/scaffold/Tutorials/codeEditorTourConfig";
 import { workStationPrimarySidebarCollapsedPersistAtom } from "@src/store/ui/workStationAtom";
@@ -85,8 +85,8 @@ const SourceControlHeaderActionsComponent: React.FC = () => {
             aria-label={historyLabel}
             icon={
               <HugeiconsIcon
-                icon={WorkHistoryIcon}
-                data-icon="history"
+                icon={GitCommitIcon}
+                data-icon="git-commit"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={2}
               />

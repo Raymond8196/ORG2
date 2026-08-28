@@ -73,7 +73,7 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
           identity={selectedPullRequestIdentity}
           repoPath={selectedPullRequest.repoPath}
           repoId={selectedPullRequest.repoId}
-          headerActions={
+          tabActions={
             <div
               className="flex items-center gap-px"
               data-testid="team-inbox-pr-detail-actions"

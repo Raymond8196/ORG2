@@ -24,13 +24,13 @@ import {
   FolderLibraryIcon,
   GitPullRequestIcon,
   type IconSvgElement,
+  KanbanIcon,
   PencilEdit02Icon,
   PlayIcon,
   Refresh04Icon,
   Search01Icon,
   SparklesIcon,
   SquareTerminalIcon,
-  TrelloIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
 
@@ -265,7 +265,7 @@ export const STATION_MODE_ACTIONS = [
   {
     id: "open-kanban",
     labelKey: "common:spotlightActions.openKanban",
-    icon: TrelloIcon,
+    icon: KanbanIcon,
     keywords: ["kanban", "project", "work items"],
     shortcut: getShortcutKeys("open_kanban"),
     actionId: ACTION_ID.WORKSTATION_OPEN_KANBAN,

@@ -56,6 +56,10 @@ import {
 } from "@src/shared/dnd/sessionTabDrag";
 import { useSessionTabDropTarget } from "@src/shared/dnd/useSessionTabDropTarget";
 import { openTeamInboxInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabOpenAtoms";
+import {
+  canMoveWorkstationPrTabToChatPanel,
+  moveWorkstationPrTabToChatPanelAtom,
+} from "@src/store/chatPanel/chatPanelTabPlacementAtom";
 import { type GitFileInfo, gitFileStatusMapAtom } from "@src/store/git";
 import {
   moveSessionTabAtom,
@@ -224,6 +228,9 @@ export const TabBar: React.FC<TabBarProps> = memo(
     const tabsContainerRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const moveSessionTab = useSetAtom(moveSessionTabAtom);
+    const moveWorkstationPrTabToChatPanel = useSetAtom(
+      moveWorkstationPrTabToChatPanelAtom
+    );
     const openSessionInWorkstation = useSetAtom(openSessionInWorkstationAtom);
     const openTeamInbox = useSetAtom(openTeamInboxInChatPanelTabAtom);
     const requestSessionHandoff = useSetAtom(
@@ -314,20 +321,22 @@ export const TabBar: React.FC<TabBarProps> = memo(
     );
 
     const handleCloseContextMenu = useCallback(() => setContextMenu(null), []);
-    const handleMoveSessionToChatPanel = useCallback(
+    const handleMoveToChatPanel = useCallback(
       (tab: WorkStationTab) => {
         const sessionId = tab.data.sessionId;
-        if (tab.type !== "chat-session" || typeof sessionId !== "string") {
+        if (tab.type === "chat-session" && typeof sessionId === "string") {
+          moveSessionTab({
+            source: "workstation",
+            sourceTabId: tab.id,
+            sessionId,
+            title: tab.title,
+          });
           return;
         }
-        moveSessionTab({
-          source: "workstation",
-          sourceTabId: tab.id,
-          sessionId,
-          title: tab.title,
-        });
+
+        moveWorkstationPrTabToChatPanel(tab.id);
       },
-      [moveSessionTab]
+      [moveSessionTab, moveWorkstationPrTabToChatPanel]
     );
     const handleViewRawTranscript = useCallback((sessionId: string) => {
       setRawTranscriptSessionId(sessionId);
@@ -482,7 +491,14 @@ export const TabBar: React.FC<TabBarProps> = memo(
             onCloseTab={onTabClose}
             onCloseOtherTabs={onCloseOtherTabs ?? noopTabAction}
             onCloseSavedTabs={onCloseSavedTabs ?? noopAction}
-            onMoveSessionToChatPanel={handleMoveSessionToChatPanel}
+            onMoveToChatPanel={
+              (contextMenu.tab.type === "chat-session" &&
+                typeof contextMenu.tab.data.sessionId === "string" &&
+                contextMenu.tab.data.sessionId.length > 0) ||
+              canMoveWorkstationPrTabToChatPanel(contextMenu.tab)
+                ? handleMoveToChatPanel
+                : undefined
+            }
             onViewRawTranscript={handleViewRawTranscript}
             onCreateWorkItemFromSession={handleCreateWorkItemFromSession}
             dispatch={dispatch}

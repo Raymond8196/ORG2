@@ -22,7 +22,7 @@ import {
   HugeiconsIcon,
   InternetIcon,
   Loading03Icon,
-  UnplugIcon,
+  ServerStack03Icon,
 } from "@src/icons";
 import {
   addressForPort,
@@ -304,8 +304,8 @@ export const PortsStatusMenu: React.FC = memo(() => {
           dataTestId="status-bar-ports"
         >
           <HugeiconsIcon
-            icon={UnplugIcon}
-            data-icon="unplug"
+            icon={ServerStack03Icon}
+            data-icon="server-stack-03"
             size={13}
             className="text-text-1"
           />
