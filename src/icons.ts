@@ -263,6 +263,8 @@ export { default as LaptopIcon } from "@hugeicons/core-free-icons/LaptopIcon";
 export { default as LaptopMinimalIcon } from "@hugeicons/core-free-icons/LaptopMinimalIcon";
 export { default as Layers01Icon } from "@hugeicons/core-free-icons/Layers01Icon";
 export { default as Layout01Icon } from "@hugeicons/core-free-icons/Layout01Icon";
+export { default as LayoutAlignLeftIcon } from "@hugeicons/core-free-icons/LayoutAlignLeftIcon";
+export { default as LayoutAlignRightIcon } from "@hugeicons/core-free-icons/LayoutAlignRightIcon";
 export { default as LayoutListIcon } from "@hugeicons/core-free-icons/LayoutListIcon";
 export { default as LayoutThreeColumnIcon } from "@hugeicons/core-free-icons/LayoutThreeColumnIcon";
 export { default as LayoutTopIcon } from "@hugeicons/core-free-icons/LayoutTopIcon";
@@ -320,7 +322,9 @@ export { default as Package01Icon } from "@hugeicons/core-free-icons/Package01Ic
 export { default as PackageDeliveredIcon } from "@hugeicons/core-free-icons/PackageDeliveredIcon";
 export { default as PackageIcon } from "@hugeicons/core-free-icons/PackageIcon";
 export { default as PaintBrush01Icon } from "@hugeicons/core-free-icons/PaintBrush01Icon";
+export { default as PanelLeftCloseIcon } from "@hugeicons/core-free-icons/PanelLeftCloseIcon";
 export { default as PanelLeftIcon } from "@hugeicons/core-free-icons/PanelLeftIcon";
+export { default as PanelRightCloseIcon } from "@hugeicons/core-free-icons/PanelRightCloseIcon";
 export { default as PanelRightIcon } from "@hugeicons/core-free-icons/PanelRightIcon";
 export { default as PanelRightOpenIcon } from "@hugeicons/core-free-icons/PanelRightOpenIcon";
 export { default as PanelTopIcon } from "@hugeicons/core-free-icons/PanelTopIcon";
@@ -376,6 +380,7 @@ export { default as Shield01Icon } from "@hugeicons/core-free-icons/Shield01Icon
 export { default as Shield02Icon } from "@hugeicons/core-free-icons/Shield02Icon";
 export { default as ShieldAlertIcon } from "@hugeicons/core-free-icons/ShieldAlertIcon";
 export { default as SidebarBottomIcon } from "@hugeicons/core-free-icons/SidebarBottomIcon";
+export { default as SidebarLeft01Icon } from "@hugeicons/core-free-icons/SidebarLeft01Icon";
 export { default as SignalFull01Icon } from "@hugeicons/core-free-icons/SignalFull01Icon";
 export { default as SkipBackIcon } from "@hugeicons/core-free-icons/SkipBackIcon";
 export { default as SlashIcon } from "@hugeicons/core-free-icons/SlashIcon";

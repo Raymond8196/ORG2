@@ -14,6 +14,7 @@ import {
   ComputerVideoIcon,
   HugeiconsIcon,
   PanelRightIcon,
+  PanelRightOpenIcon,
   SquareTerminalIcon,
 } from "@src/icons";
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
@@ -275,14 +276,25 @@ export function ChatPanelHeader({
           nativeTitle={false}
           onClick={stationAvailable ? handleChatFocusToggle : undefined}
           disabled={!stationAvailable}
+          className="group"
         >
           {isChatFocus ? (
-            <HugeiconsIcon
-              icon={PanelRightIcon}
-              data-icon="panel-right"
-              size={HEADER_ICON_SIZE.md}
-              strokeWidth={1.75}
-            />
+            <span className="relative flex h-4 w-4 items-center justify-center">
+              <HugeiconsIcon
+                icon={PanelRightIcon}
+                data-icon="panel-right"
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={1.75}
+                className="absolute transition-opacity duration-150 group-hover:opacity-0"
+              />
+              <HugeiconsIcon
+                icon={PanelRightOpenIcon}
+                data-icon="panel-right-open"
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={1.75}
+                className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+              />
+            </span>
           ) : (
             <HugeiconsIcon
               icon={ArrowExpand01Icon}

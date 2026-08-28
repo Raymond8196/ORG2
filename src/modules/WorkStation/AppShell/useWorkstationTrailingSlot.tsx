@@ -19,6 +19,8 @@ import {
   BubbleChatIcon,
   Cancel01Icon,
   HugeiconsIcon,
+  PanelLeftCloseIcon,
+  PanelRightCloseIcon,
   PanelRightIcon,
 } from "@src/icons";
 import ProjectManagerWorkItemsTabBarTrailing from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectManagerWorkItemsTabBarTrailing";
@@ -121,21 +123,42 @@ export function useWorkstationTrailingSlot({
           title={hideWorkstationLabel}
           shortcutId="maximize_chat"
           onClick={handleToggleChatPanelMaximized}
+          className="group"
         >
           {workStationChatPosition === "left" ? (
-            <HugeiconsIcon
-              icon={PanelRightIcon}
-              data-icon="panel-right"
-              size={HEADER_ICON_SIZE.md}
-              strokeWidth={2}
-            />
+            <span className="relative flex h-4 w-4 items-center justify-center">
+              <HugeiconsIcon
+                icon={PanelRightIcon}
+                data-icon="panel-right"
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={2}
+                className="absolute transition-opacity duration-150 group-hover:opacity-0"
+              />
+              <HugeiconsIcon
+                icon={PanelRightCloseIcon}
+                data-icon="panel-right-close"
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={2}
+                className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+              />
+            </span>
           ) : (
-            <HugeiconsIcon
-              icon={Cancel01Icon}
-              data-icon="x"
-              size={HEADER_ICON_SIZE.md}
-              strokeWidth={1.75}
-            />
+            <span className="relative flex h-4 w-4 items-center justify-center">
+              <HugeiconsIcon
+                icon={Cancel01Icon}
+                data-icon="x"
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={1.75}
+                className="absolute transition-opacity duration-150 group-hover:opacity-0"
+              />
+              <HugeiconsIcon
+                icon={PanelLeftCloseIcon}
+                data-icon="panel-left-close"
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={2}
+                className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+              />
+            </span>
           )}
         </TabBarTrailingIconButton>
       ) : null;
