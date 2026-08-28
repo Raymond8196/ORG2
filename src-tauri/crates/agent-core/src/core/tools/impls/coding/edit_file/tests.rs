@@ -16,6 +16,36 @@ fn test_empty_old_string_error() {
     }
 }
 
+#[test]
+fn test_whitespace_only_old_string_without_match_is_not_found() {
+    // trimmed_boundary_replacer used to emit an empty candidate for any
+    // whitespace-only old_string; replace_all then interleaved new_string
+    // between every character of the file.
+    for replace_all in [false, true] {
+        let error = replace("abc\ndef", " ", "X", replace_all).unwrap_err();
+        assert!(error.contains("Could not find old_string"));
+    }
+}
+
+#[test]
+fn test_whitespace_old_string_matching_empty_line_is_not_found() {
+    // line_trimmed_replacer used to emit the matched empty line as an empty
+    // candidate for a whitespace+newline old_string.
+    for replace_all in [false, true] {
+        let error = replace("a\n\nb", " \n", "X", replace_all).unwrap_err();
+        assert!(error.contains("Could not find old_string"));
+    }
+}
+
+#[test]
+fn test_whitespace_only_old_string_with_real_match_still_replaces() {
+    assert_eq!(replace("a  b", "  ", " ", false).unwrap(), "a b");
+    assert_eq!(
+        replace("a\n\nb\n\nc", "\n\n", "\n", true).unwrap(),
+        "a\nb\nc"
+    );
+}
+
 #[tokio::test]
 async fn test_tool_rejects_empty_search_without_changing_file() {
     let workspace = tempfile::tempdir().unwrap();
