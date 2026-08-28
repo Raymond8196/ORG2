@@ -61,8 +61,12 @@ export function EnvironmentKindRow({
 
   return (
     <div className="[&_.dropdown-trigger-wrapper]:block [&_.dropdown-trigger-wrapper]:w-full">
+      {/* Portal to the body: the trail body is an overflow container that
+          would clip an absolutely-positioned panel. `left` centers the panel
+          on the row, matching the shortcut tooltips. */}
       <Dropdown
-        position="left-start"
+        position="left"
+        getPopupContainer={() => document.body}
         popupVisible={open}
         onVisibleChange={setOpen}
         className={`${DROPDOWN_CLASSES.panelAnimated} w-[180px]`}

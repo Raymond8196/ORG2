@@ -173,9 +173,13 @@ export function getPortalTransform(
     case "bl":
       return "translateX(-100%)";
     case "left":
+      return "translate(-100%, -50%)";
+    case "left-start":
+      return "translateX(-100%)";
+    case "left-end":
+      return "translate(-100%, -100%)";
     case "right":
       return "translateY(-50%)";
-    case "left-end":
     case "right-end":
       return "translateY(-100%)";
     default:
