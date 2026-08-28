@@ -454,8 +454,11 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           className={IDLE_SIDEBAR_RESIZE_HANDLE_CLASS_NAME}
           isResizing={isDragging}
           noAccent={IS_WINDOWS_HOST}
+          indicatorPlacement="start"
           onMouseDown={handleMouseDown}
           onContextMenu={handleResizeContextMenu}
+          tooltipLabel={i18next.t("common:tooltips.hideSidebar")}
+          tooltipShortcut={hideSidebarShortcut}
           variant={IS_WINDOWS_HOST ? "transparent" : "border"}
         />
       </div>

@@ -1,7 +1,7 @@
 import React, { useCallback, useEffect, useRef } from "react";
 
-import AnyIcon, { type RenderableIcon } from "@src/components/AnyIcon";
 import { CODEMIRROR_STYLE_NONCE } from "@src/features/CodeMirror/config/nonce";
+import { HugeiconsIcon, type IconSvgElement } from "@src/icons";
 
 type AnimationStrategy =
   | "stroke-draw"
@@ -459,7 +459,8 @@ export function triggerIconAnimation(containerElement: HTMLElement) {
 }
 
 interface HoverAnimatedIconProps {
-  icon: RenderableIcon;
+  /** Static hugeicons glyph data — every caller passes an `@src/icons` import. */
+  icon: IconSvgElement;
   iconName?: string;
   size?: number;
   strokeWidth?: number;
@@ -512,7 +513,7 @@ export default function HoverAnimatedIcon({
       data-icon-wrapper={iconName || ""}
       onMouseEnter={handleMouseEnter}
     >
-      <AnyIcon
+      <HugeiconsIcon
         icon={icon}
         size={size}
         strokeWidth={strokeWidth}

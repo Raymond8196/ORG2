@@ -6,7 +6,7 @@
  * synchronous lookup; runtime context comes from dedicated atoms
  * (e.g. integrationsCategoryAtom).
  */
-import type { ComponentType, ReactNode, SVGProps } from "react";
+import type { ReactNode } from "react";
 
 import type { IconSvgElement } from "@src/icons";
 
@@ -15,13 +15,11 @@ import type { IconSvgElement } from "@src/icons";
 // ============================================
 
 /**
- * A toolbar icon is either hugeicons glyph data — rendered through
- * `HugeiconsIcon` — or a hand-authored SVG component (brand marks such as
- * `McpLogoIcon`, which are not part of any icon set).
+ * A toolbar icon is hugeicons glyph data, rendered through `HugeiconsIcon`.
+ * (The one brand-mark component this union used to admit — the MCP logo —
+ * now maps to the vendor's `McpServerIcon` glyph, which draws the same mark.)
  */
-export type ToolbarDropdownIcon =
-  | IconSvgElement
-  | ComponentType<SVGProps<SVGSVGElement>>;
+export type ToolbarDropdownIcon = IconSvgElement;
 
 export interface ToolbarDropdownItem {
   id: string;

@@ -35,6 +35,13 @@ import type { OptimizedChatItem } from "../chatItemPipeline/types";
 import { NewEventDivider } from "../components/NewEventDivider";
 import TurnMetadataFooterSlot from "../components/TurnMetadataFooterSlot";
 import { CHAT_FOOTER_SPACER } from "../config/chatFooterSpacer";
+import {
+  CHAT_EVENT_IDS_ATTR,
+  CHAT_FLAT_INDEX_ATTR,
+  CHAT_ITEM_ID_ATTR,
+  formatChatEventIdsAttribute,
+} from "../hooks/chatSearchDom";
+import { collectChatItemEventIds } from "../hooks/chatSearchProjection";
 import { getUnloadedTurnMeta, isTurnPreviewItem } from "../hooks/useChatGroups";
 import { ChatItemRenderer } from "./ChatItemRenderer";
 import ChatItemWrap from "./ChatItemWrap";
@@ -535,9 +542,28 @@ export const GroupItemRenderer: React.FC<GroupItemRendererProps> = memo(
       !isStructuralUnloadedTurnItem &&
       !isStructuralOnlyItem;
 
+    const chatSearchEventIds =
+      chatItem && !isHiddenUnloadedTurnItem && !isStructuralOnlyItem
+        ? collectChatItemEventIds(chatItem)
+        : [];
+
     return (
       <AgentTurnContext.Provider value={turnContext}>
-        <div style={{ minHeight: 1, ...turnGapStyle }}>
+        <div
+          style={{ minHeight: 1, ...turnGapStyle }}
+          {...(chatItem
+            ? {
+                [CHAT_ITEM_ID_ATTR]: chatItem.chunk_id,
+                [CHAT_FLAT_INDEX_ATTR]: flatIndex,
+                ...(chatSearchEventIds.length > 0
+                  ? {
+                      [CHAT_EVENT_IDS_ATTR]:
+                        formatChatEventIdsAttribute(chatSearchEventIds),
+                    }
+                  : {}),
+              }
+            : {})}
+        >
           {showNewEventDivider && (
             <NewEventDivider label={newEventDividerLabel as string} />
           )}

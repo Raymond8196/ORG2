@@ -73,15 +73,11 @@ const SidebarHeader: React.FC<SidebarHeaderProps> = React.memo(
                 key: tab.key,
                 label: tab.label,
                 icon: tab.icon ? (
-                  typeof tab.icon === "string" ? (
-                    <i className={`${tab.icon} text-[14px]`} />
-                  ) : (
-                    <AnyIcon
-                      icon={tab.icon}
-                      size={14}
-                      className="h-[14px] w-[14px]"
-                    />
-                  )
+                  <AnyIcon
+                    icon={tab.icon}
+                    size={14}
+                    className="h-[14px] w-[14px]"
+                  />
                 ) : undefined,
               }))}
               onChange={handleTabChange}

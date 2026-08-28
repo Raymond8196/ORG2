@@ -5,15 +5,7 @@
  */
 import type { ComponentType, LazyExoticComponent } from "react";
 
-import { getToolIconComponent } from "@src/config/toolIcons";
-import { resolveToolName } from "@src/engines/SessionCore/rendering/registry/toolAliases";
-import {
-  BrainIcon,
-  HelpCircleIcon,
-  type IconSvgElement,
-  Message01Icon,
-  UserIcon,
-} from "@src/icons";
+import { type IconSvgElement } from "@src/icons";
 
 import { getAllEventTypes } from "./events";
 
@@ -52,42 +44,4 @@ export function prefetchCommonComponents(): void {
       });
     }
   });
-}
-
-// ============================================
-// Trajectory timeline icons (aligned with chat)
-// ============================================
-
-/**
- * Conversation / lifecycle rows — match SessionCore chat blocks.
- * Agent replies use `MessageSquare` like `AgentMessageBlock`; tools use Rust-backed icons below.
- */
-const TRAJECTORY_CHAT_ALIGNED_ICON: Record<string, IconSvgElement> = {
-  message: Message01Icon,
-  /** User prompts — same `MessageSquare` as assistant `message` rows (chat-aligned) */
-  user_message: Message01Icon,
-  /** Fallback if functionName is still `user_input` before grouping */
-  user_input: Message01Icon,
-  thinking: BrainIcon,
-  ask_user_questions: HelpCircleIcon,
-  raw_event: UserIcon,
-};
-
-/**
- * Icon for a trajectory row: same rules as chat `ToolCallBlock` / `getToolIconComponent`
- * (Rust `list_all_tools` icon ids + `TOOL_ICON_COMPONENTS` fallbacks). Pass the group's
- * representative `functionName` (first event) so grouped `command` / `search` resolve correctly.
- */
-export function getTrajectoryTimelineIcon(
-  groupType: string,
-  toolNameForRust?: string
-): IconSvgElement {
-  const chatAligned = TRAJECTORY_CHAT_ALIGNED_ICON[groupType];
-  if (chatAligned) {
-    return chatAligned;
-  }
-
-  const nameForTool =
-    toolNameForRust && toolNameForRust.length > 0 ? toolNameForRust : groupType;
-  return getToolIconComponent(resolveToolName(nameForTool));
 }

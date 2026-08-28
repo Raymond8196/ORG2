@@ -1,8 +1,8 @@
 /**
  * Shared renderIcon utility
  *
- * Renders a SidebarIcon (hugeicons glyph data or string icon name)
- * with optional favicon and loading spinner support.
+ * Renders a SidebarIcon (hugeicons glyph data) with optional favicon and
+ * loading spinner support.
  */
 import React from "react";
 
@@ -24,7 +24,6 @@ interface RenderIconOptions {
  *
  * Supports:
  * - Hugeicons glyph data (IconSvgElement)
- * - String icon names (legacy, renders <i> tag)
  * - Favicon URLs (renders <img>)
  * - Loading spinner animation
  */
@@ -50,11 +49,6 @@ export function renderSidebarIcon(
   }
 
   if (!icon) return null;
-
-  // Legacy string icon name
-  if (typeof icon === "string") {
-    return <i className={`${icon} ${className}`} style={{ fontSize: size }} />;
-  }
 
   // Hugeicons glyph data, rendered through the shared wrapper.
   // strokeWidth is pinned to 2 to preserve the weight lucide rendered at (kept deliberately);

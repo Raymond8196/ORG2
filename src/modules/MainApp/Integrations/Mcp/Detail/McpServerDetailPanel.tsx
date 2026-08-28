@@ -17,7 +17,6 @@ import {
   File02Icon,
   HugeiconsIcon,
   Loading03Icon,
-  ServerStack01Icon,
 } from "@src/icons";
 import type {
   McpResource,
@@ -163,7 +162,6 @@ const McpServerDetailPanel: React.FC<McpServerDetailPanelProps> = ({
   return (
     <DetailPanelContainer>
       <PanelHeader
-        icon={ServerStack01Icon}
         breadcrumb={{
           parent: t("mcp.tab"),
           current: server.name,

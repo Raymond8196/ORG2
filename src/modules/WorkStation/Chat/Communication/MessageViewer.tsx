@@ -1,3 +1,4 @@
+import { useAtomValue } from "jotai";
 import React, {
   useCallback,
   useEffect,
@@ -10,7 +11,9 @@ import { useTranslation } from "react-i18next";
 
 import type { AgentOrgRunMemberView, AgentOrgTask } from "@src/api/tauri/agent";
 import Button from "@src/components/Button";
+import { useChatSearchPanePresentation } from "@src/engines/ChatPanel/ChatHistory/hooks/chatSearch";
 import { useStreamingDeltaForSession } from "@src/engines/SessionCore";
+import { sessionIdAtom } from "@src/engines/SessionCore/core/atoms";
 import {
   derivePlanApprovalViewState,
   isPlanDisplayEvent,
@@ -118,6 +121,8 @@ export interface MessageViewerProps {
   orgMembers?: ReadonlyArray<AgentOrgRunMemberView>;
   /** Durable task snapshot for Agent Org sessions. Undefined for ordinary sessions. */
   agentOrgTasks?: ReadonlyArray<AgentOrgTask>;
+  /** Shared chat-search sync: drop panel-local selection when the active match moves. */
+  onSearchActiveEventChange?: (eventId: string | null) => void;
 }
 
 export const MessageViewer: React.FC<MessageViewerProps> = ({
@@ -135,12 +140,24 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
   setViewMode,
   orgMembers,
   agentOrgTasks,
+  onSearchActiveEventChange,
 }) => {
   const handleNavigateToTodoList = useCallback(() => {
     setViewMode?.("todo");
   }, [setViewMode]);
   const { t } = useTranslation(["common", "sessions"]);
+  const sessionId = useAtomValue(sessionIdAtom);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
+  const followBottomRef = useRef(true);
+  const { activeEventId: activeSearchEventId, isOpen: isChatSearchOpen } =
+    useChatSearchPanePresentation({
+      sessionId,
+      highlightRootRef: scrollContainerRef,
+      scrollRootRef: scrollContainerRef,
+      suppressFollowBottomRef: followBottomRef,
+      onActiveEventChange: onSearchActiveEventChange,
+      layoutKey: `${viewMode}:${currentEventId ?? ""}:${messages.length}`,
+    });
   const loadMoreScrollAnchorRef = useRef<{
     scrollTop: number;
     scrollHeight: number;
@@ -209,7 +226,6 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
     scrollContainer.scrollTop = anchor.scrollTop + heightDelta;
   }, [renderedMessageCount, visibleMessages.length]);
 
-  const followBottomRef = useRef(true);
   const lastScrollTopRef = useRef(0);
 
   // Switching to a different view/replay window starts fresh at the bottom, so
@@ -246,6 +262,7 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
     // still following it (or already sitting at the bottom).
     if (
       !followBottomRef.current &&
+      !isChatSearchOpen &&
       !isViewportAtBottom({
         scrollTop: scrollContainer.scrollTop,
         scrollHeight: scrollContainer.scrollHeight,
@@ -263,6 +280,7 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
     return () => cancelAnimationFrame(frameId);
   }, [
     currentEventId,
+    isChatSearchOpen,
     lastMessageId,
     liveContentLength,
     messages.length,
@@ -417,6 +435,7 @@ export const MessageViewer: React.FC<MessageViewerProps> = ({
                   }
                   showChrome={showChrome}
                   orgMembers={orgMembers}
+                  activeSearchEventId={activeSearchEventId}
                 />
               </React.Fragment>
             );

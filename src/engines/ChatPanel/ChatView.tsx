@@ -96,7 +96,6 @@ export type { ChatViewProps } from "./ChatViewTypes";
 const ChatView: React.FC<ChatViewProps> = memo(
   ({
     sessionId,
-    onRegisterSearchOpen,
     displayMode = "full",
     turnPaginationEnabled = true,
     position = "right",
@@ -585,7 +584,6 @@ const ChatView: React.FC<ChatViewProps> = memo(
                   handleScrollNavChange={handleScrollNavChange}
                   followAgentNav={followAgentNav}
                   browserAddToConversationNav={browserAddToConversationNav}
-                  onRegisterSearchOpen={onRegisterSearchOpen}
                   displayMode={displayMode}
                   turnPaginationEnabled={turnPaginationEnabled}
                   paginationTrailingSlot={groupChatHistoryAction}

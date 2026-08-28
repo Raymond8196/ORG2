@@ -5,9 +5,6 @@
  * All consumers should import from mainAppPaths.ts (which re-exports everything
  * here) so import paths are stable.
  */
-import { type ComponentType } from "react";
-
-import { McpLogoIcon } from "@src/assets/channelIcons/McpLogoIcon";
 import { type RenderableIcon } from "@src/components/AnyIcon";
 import {
   Activity01Icon as Activity,
@@ -29,6 +26,7 @@ import {
   LegalHammerIcon as Hammer,
   InboxIcon as Inbox,
   Key01Icon as Key,
+  McpServerIcon,
   HierarchyCircle01Icon as Network,
   PackageIcon as Package,
   PackageDeliveredIcon as PackageCheck,
@@ -136,9 +134,7 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
   // mcp / skills (legacy segment keys + per-agent labels)
   mcp: {
     labelKey: "integrations:toolsArea.mcp",
-    // Cast narrows only the prop bag — the value stays a component, which
-    // `RenderableIcon` admits and `AnyIcon` dispatches on at runtime.
-    icon: McpLogoIcon as unknown as ComponentType<Record<string, unknown>>,
+    icon: McpServerIcon,
   },
   skills: { labelKey: "integrations:categories.skills", icon: Toolbox },
   // settings root — the unified surface header

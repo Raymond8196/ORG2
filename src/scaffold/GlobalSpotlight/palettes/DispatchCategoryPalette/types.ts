@@ -58,8 +58,8 @@ export interface DispatchCategoryPaletteProps extends BasePaletteProps {
    * so the palette title reflects what is being chosen for.
    */
   titleLabel?: string;
-  /** Icon paired with `titleLabel`. Defaults to no icon when omitted. */
-  titleIcon?: React.ComponentType<Record<string, unknown>> | IconSvgElement;
+  /** Static glyph paired with `titleLabel`. Defaults to no icon when omitted. */
+  titleIcon?: IconSvgElement;
   /** Optional placeholder override for contextual picker copy. */
   placeholderLabel?: string;
 }
