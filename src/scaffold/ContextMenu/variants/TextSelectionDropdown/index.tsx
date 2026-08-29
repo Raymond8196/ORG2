@@ -179,9 +179,9 @@ const SessionSelectorPanel: React.FC<SessionSelectorPanelProps> = memo(
             <span className="text-[13px] text-text-1">New Session</span>
           </div>
 
-          {/* Divider */}
+          {/* Compact group separator */}
           {sessions.length > 0 && (
-            <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+            <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
           )}
 
           {/* Existing sessions */}

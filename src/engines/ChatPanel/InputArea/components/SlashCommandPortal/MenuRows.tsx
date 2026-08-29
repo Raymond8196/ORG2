@@ -214,13 +214,13 @@ export const SlashItemRow: React.FC<SlashItemRowProps> = React.memo(
 
 SlashItemRow.displayName = "SlashItemRow";
 
-// ── DividerRow ────────────────────────────────────────────────────────────────
+// ── MenuGroupSeparatorRow ────────────────────────────────────────────────────
 
-export const DividerRow: React.FC = () => (
-  <div className="mx-2 my-1 h-px bg-border-1" />
+export const MenuGroupSeparatorRow: React.FC = () => (
+  <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
 );
 
-DividerRow.displayName = "DividerRow";
+MenuGroupSeparatorRow.displayName = "MenuGroupSeparatorRow";
 // ── Re-export AgentExecMode for callers that need it ──────────────────────────
 
 export type { AgentExecMode };

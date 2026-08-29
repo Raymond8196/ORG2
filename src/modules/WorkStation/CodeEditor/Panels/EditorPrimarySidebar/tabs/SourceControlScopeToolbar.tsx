@@ -309,7 +309,7 @@ export function SourceControlScopeToolbar({
             {showMainScope ? (
               <div
                 aria-hidden="true"
-                className={DROPDOWN_CLASSES.menuSeparatorInset}
+                className={DROPDOWN_CLASSES.menuGroupSeparator}
               />
             ) : null}
             {showMainScope ? (

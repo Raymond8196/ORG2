@@ -197,7 +197,7 @@ export const SourceControlMoreMenu: React.FC<SourceControlMoreMenuProps> = memo(
                       />
                       {t(SOURCE_CONTROL_MENU_KEYS.fetch)}
                     </div>
-                    <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+                    <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
                     <div
                       className={`${DROPDOWN_CLASSES.item} ${PRIMARY_SIDEBAR_HOVER.row}`}
                       onClick={() => handleItemClick(onSync)}

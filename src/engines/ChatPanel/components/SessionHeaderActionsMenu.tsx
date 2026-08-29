@@ -411,7 +411,7 @@ export const SessionHeaderActionsMenu: React.FC<
                     {t("chat.importExport.exportAction")}
                   </span>
                 </button>
-                <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+                <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
                 <div
                   className={`${DROPDOWN_CLASSES.item} w-full justify-between text-left`}
                 >

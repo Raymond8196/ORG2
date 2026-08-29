@@ -110,7 +110,7 @@ const TerminalNewSessionSplitButtonComponent: React.FC<
             ))}
           {shellProfiles.some((profile) => profile.category === "repl") && (
             <>
-              <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+              <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
               {shellProfiles
                 .filter((profile) => profile.category === "repl")
                 .map((profile) => (

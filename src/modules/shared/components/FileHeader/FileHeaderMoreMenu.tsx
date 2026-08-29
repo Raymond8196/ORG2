@@ -238,7 +238,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
             {t("common:workstation.discardChanges")}
           </DropdownItem>
 
-          <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+          <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
 
           <DropdownItem
             icon={
@@ -327,7 +327,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
             {t("common:actions.refresh")}
           </DropdownItem>
 
-          <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+          <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
 
           {renderToggleRow({
             label: t("settings:editor.lineNumbers"),
@@ -364,7 +364,7 @@ export const FileHeaderMoreMenu: React.FC<FileHeaderMoreMenuProps> = ({
             onChange: onGitBlameChange,
           })}
 
-          <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+          <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
 
           <DropdownItem
             icon={

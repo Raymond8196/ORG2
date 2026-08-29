@@ -388,7 +388,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                     />
                     <span>{t("cloud.signIn")}</span>
                   </button>
-                  <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+                  <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
                 </>
               )}
               <button
@@ -414,7 +414,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   variant={KEYBOARD_SHORTCUT_VARIANT.dropdown}
                 />
               </button>
-              <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+              <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
               {devModeEnabled && (
                 <button
                   type="button"
@@ -451,7 +451,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                 />
                 <span>{t("sidebar.settingsMenu.tutorials")}</span>
               </button>
-              <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+              <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
               <button
                 type="button"
                 className={`${DROPDOWN_CLASSES.menuActionItem} ${activeSubmenu === "presence" ? DROPDOWN_CLASSES.itemActive : ""} justify-between`}
@@ -535,7 +535,7 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   className={MENU_ARROW_CLASS_NAME}
                 />
               </button>
-              <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+              <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
               <button
                 type="button"
                 className={`${DROPDOWN_CLASSES.menuActionItem} justify-between`}

@@ -273,7 +273,9 @@ export const SidebarRamMonitorPanel: React.FC<SidebarRamMonitorPanelProps> = ({
                 )}
               />
 
-              <div className="my-2 border-t border-border-2" />
+              <div
+                className={`${DROPDOWN_CLASSES.menuGroupSeparator} !my-0.5`}
+              />
               <MemoryStatRow
                 label={tSettings("monitor.memoryBreakdown")}
                 value={null}
