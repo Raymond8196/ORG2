@@ -147,22 +147,6 @@
   },
   "membership": {
     "you": "You",
-    "tierStatus": "{{tier}} Status",
-    "qualifyingSessions": "Qualifying Sessions",
-    "qualifyingExplainer": "Based on your activity in the last 90 days",
-    "zeroSessionsHint": "Start a session to begin earning tier progress. Each session over $1.00 counts toward your membership tier.",
-    "benefitsAndTiers": "Benefits & Tiers",
-    "howItWorks": "How it works",
-    "howStep1": "Completed sessions in the last 90 days count toward tier progress",
-    "howStep2": "Accumulate qualifying sessions to unlock higher tiers with better pricing and perks",
-    "howStep3": "Tiers are based on lifetime qualifying sessions — they never reset",
-    "benefitsOf": "Benefits of {{tier}}",
-    "nextTier": "Next Tier — {{count}} sessions to go",
-    "nextTierCredits": "Next Tier — {{amount}} to go",
-    "backToOverview": "Back to Wallet Overview",
-    "windowCredits": "credits (last 90 days)",
-    "limitReached": "Monthly limit reached",
-    "sessionsRemaining": "{{count}} sessions remaining this month",
     "unavailable": "Membership data unavailable"
   },
   "market": {
@@ -413,23 +397,7 @@
   },
   "usageHistory": {
     "title": "Usage History",
-    "allModels": "All Models",
-    "uses": "uses",
-    "trends": "Trends",
-    "noTransactions": "No transactions found.",
-    "roundDetail": "Round {{index}}",
-    "inputTokens": "Input",
-    "outputTokens": "Output",
-    "cacheWriteTokens": "Cache write {{count}}",
-    "cacheReadTokens": "Cache read {{count}}",
-    "noRoundData": "No per-round data available",
-    "colDate": "Date",
-    "colAgent": "Agent",
-    "colTokens": "Tokens",
-    "colSource": "Source",
-    "colName": "Name",
-    "colModel": "Model",
-    "memberMe": "Me"
+    "inputTokens": "Input"
   },
   "earnings": {
     "creditEarnings": "Credit Earnings",
@@ -522,16 +490,7 @@
     }
   },
   "marketModelSelector": {
-    "regional": "Regional",
-    "regionalPricing": "Regional pricing",
     "global": "Global",
-    "globalPricing": "Global pricing",
-    "goldRequired": "Gold+ membership required to select global pricing",
-    "selectAgent": "Select agent",
-    "selectModel": "Select model",
-    "selectTier": "Select tier",
-    "allTaken": "All taken",
-    "officialPriceRange": "{{min}}% – {{max}}% of official price",
     "tiers": {
       "vip": {
         "label": "VIP",
@@ -554,11 +513,6 @@
   "orgiiOrchestrator": {
     "name": "ORGII Pool",
     "description": "Managed model pool with flat credit pricing",
-    "recommended": "Recommended",
-    "directAgents": "Direct Agents",
-    "agentDesc": "Auto-routes to optimal models with flat credit pricing",
-    "creditRange": "{{min}} – {{max}} credits/MTok",
-    "plusMore": "+ {{count}} more",
     "turbo": {
       "name": "Turbo",
       "description": "Fast models for autocomplete and quick edits"
@@ -574,82 +528,26 @@
   },
   "modelConfig": {
     "title": "Model Config",
-    "yourModels": "Models",
-    "proMaxProxyDisabled": "Not available for proxy listings",
-    "noModels": "No models detected for this account",
-    "publishOptions": "Publish Options",
-    "directListing": "Direct Listing",
-    "directListingDesc": "Your prices, your listing. Full control over pricing per model.",
-    "joinPool": "Join ORGII Pool",
-    "joinPoolDesc": "Flat pricing, more traffic. Opt in models to the shared pool.",
-    "pricing": "Pricing",
-    "pricingHint": "Set input/output prices per 1M tokens for each enabled model",
-    "poolModels": "Pool Models",
-    "poolModelsHint": "Select which models to contribute to the ORGII shared pool",
-    "publish": "Publish",
-    "publishingTitle": "Publishing",
-    "poolOnlyTitle": "{{count}} model(s) available via ORGII Pool only",
-    "poolOnlyDesc": "These premium models cannot be direct-listed from a proxy account. Opt them into the ORGII Pool to earn from every request routed to you.",
-    "poolOnlyBadge": "Pool only",
-    "allModelsPoolOnly": "All your models are premium tier. They can only be sold through the ORGII Pool — enable it below to start earning.",
-    "poolOptInDesc": "Earn more by contributing models to the shared pool",
-    "poolBenefits": "The ORGII Pool routes traffic from all consumers to the best available provider. You get automatic demand without setting prices — flat-rate payouts per request, zero marketing effort. Most providers see 2-3x more usage through the pool."
+    "publish": "Publish"
   },
   "providerOnboarding": {
-    "providerProfile": "Provider Profile",
-    "becomeProvider": "Become a Provider",
-    "checkingExisting": "Checking existing provider...",
-    "linkExpired": "Your link expired. Generating new link...",
-    "providerNotCreated": "Provider not created. Please try again.",
-    "failedToVerify": "Failed to verify provider. Please refresh.",
-    "providerIdMissing": "Provider ID is missing. Please complete registration first.",
-    "noUrlReturned": "No URL returned from API",
-    "providerIdNotFound": "Provider ID not found",
-    "noUpdateLink": "No update link returned",
     "form": {
-      "providerName": "Provider Name",
       "email": "Email",
-      "websiteUrl": "Website URL",
-      "providerNamePlaceholder": "Enter provider name",
-      "nameRequired": "Name is required",
-      "emailRequired": "Email is required",
-      "invalidEmail": "Invalid email format",
-      "invalidUrl": "Invalid URL format (must start with http:// or https://)",
-      "quickFill": "Quick Fill",
-      "stepIndicator": "Step {{step}}/2",
-      "editDetails": "Edit your provider details",
-      "registerAsProvider": "Register as a provider",
       "submitting": "Submitting...",
       "continue": "Continue"
     },
-    "providerInformation": "Provider Information",
     "stripe": {
       "starting": "Starting...",
-      "startSetup": "Start Stripe Setup",
-      "processingCompletion": "Processing completion...",
-      "verifyingSetup": "Verifying your Stripe account setup",
-      "loadingOnboarding": "Loading Stripe onboarding...",
-      "onboardingComplete": "Stripe onboarding complete",
-      "completeFormAbove": "Complete the form above to finish Stripe setup",
-      "connectStripeAccount": "Connect Stripe Account",
       "complete": "Complete",
       "inProgress": "In Progress",
       "pending": "Pending"
     },
     "complete": {
       "title": "Registration Complete!",
-      "description": "Your provider account is set up and Stripe onboarding is complete. You can now create listings and start earning.",
-      "createFirstListing": "Create Your First Listing",
-      "viewAccount": "View Account"
+      "description": "Your provider account is set up and Stripe onboarding is complete. You can now create listings and start earning."
     },
     "account": {
-      "title": "Provider Account",
-      "loadingInfo": "Loading account information...",
-      "unableToLoad": "Unable to load provider information",
-      "viewEarnings": "View Earnings",
-      "createListing": "Create Listing",
-      "browseMarketplace": "Browse Marketplace",
-      "completeStripeSetup": "Complete Stripe Setup"
+      "title": "Provider Account"
     },
     "status": {
       "title": "Account Status",
@@ -660,29 +558,17 @@
       "pending": "Pending",
       "payouts": "Payouts",
       "enabled": "Enabled",
-      "disabled": "Disabled",
-      "charges": "Charges",
-      "payoutsDisabled": "Payouts Disabled",
-      "chargesDisabled": "Charges Disabled",
-      "payoutsDisabledDesc": "To receive payments, add your bank account and complete identity verification in your Stripe Dashboard.",
-      "chargesDisabledDesc": "Complete your account setup in Stripe to accept payments."
+      "disabled": "Disabled"
     },
     "info": {
       "title": "Provider Information",
       "name": "Name",
-      "email": "Email",
-      "website": "Website"
+      "email": "Email"
     },
     "payment": {
       "title": "Payment Settings",
       "description": "Add your bank account, set up payout schedule, and complete tax information in your Stripe Dashboard.",
-      "completeVerification": "Complete Verification",
-      "verificationDesc": "Complete identity verification and add bank account to enable payouts.",
-      "fullyVerified": "Your account is fully verified!",
-      "payoutsSentTo": "Payouts and tax documents will be sent to:",
-      "loading": "Loading...",
-      "manageStripeAccount": "Manage Stripe Account",
-      "manageDesc": "Update bank account, view payouts, and manage your payment settings."
+      "loading": "Loading..."
     },
     "dashboard": {
       "title": "Stripe Dashboard",

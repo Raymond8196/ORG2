@@ -147,22 +147,6 @@
   },
   "membership": {
     "you": "Вы",
-    "tierStatus": "Статус {{tier}}",
-    "qualifyingSessions": "Квалификационные сессии",
-    "qualifyingExplainer": "На основе вашей активности за последние 90 дней",
-    "zeroSessionsHint": "Запустите сессию, чтобы начать зарабатывать прогресс уровня. Каждая сессия стоимостью более $1.00 учитывается в вашем уровне членства.",
-    "benefitsAndTiers": "Преимущества и Уровни",
-    "howItWorks": "Как это работает",
-    "howStep1": "Завершённые сессии за последние 90 дней учитываются для прогресса уровня",
-    "howStep2": "Накапливайте квалификационные сессии для разблокировки более высоких уровней с лучшими ценами и привилегиями",
-    "howStep3": "Уровни основаны на пожизненном количестве квалификационных сессий — они никогда не сбрасываются",
-    "benefitsOf": "Преимущества {{tier}}",
-    "nextTier": "Следующий уровень — осталось {{count}} сессий",
-    "nextTierCredits": "Следующий уровень — осталось {{amount}}",
-    "backToOverview": "Вернуться к Обзору Кошелька",
-    "windowCredits": "кредитов (за 90 дней)",
-    "limitReached": "Месячный лимит достигнут",
-    "sessionsRemaining": "Осталось {{count}} сессий в этом месяце",
     "unavailable": "Данные о членстве недоступны"
   },
   "market": {
@@ -413,23 +397,7 @@
   },
   "usageHistory": {
     "title": "Аналитика",
-    "allModels": "Все модели",
-    "uses": "использований",
-    "trends": "Тренды",
-    "noTransactions": "Транзакции не найдены.",
-    "roundDetail": "Round {{index}}",
-    "inputTokens": "Input",
-    "outputTokens": "Output",
-    "cacheWriteTokens": "Cache write {{count}}",
-    "cacheReadTokens": "Cache read {{count}}",
-    "noRoundData": "Данные по раундам недоступны",
-    "colDate": "Дата",
-    "colAgent": "Agent",
-    "colTokens": "Token",
-    "colSource": "Источник",
-    "colName": "Название",
-    "colModel": "Модель",
-    "memberMe": "Я"
+    "inputTokens": "Input"
   },
   "earnings": {
     "creditEarnings": "Доходы в Credits",
@@ -522,16 +490,7 @@
     }
   },
   "marketModelSelector": {
-    "regional": "Региональный",
-    "regionalPricing": "Региональные цены",
     "global": "Глобальный",
-    "globalPricing": "Глобальные цены",
-    "goldRequired": "Для выбора глобальных цен требуется членство Gold+",
-    "selectAgent": "Выбрать Agent",
-    "selectModel": "Выбрать модель",
-    "selectTier": "Выбрать уровень",
-    "allTaken": "Все занято",
-    "officialPriceRange": "{{min}}% – {{max}}% от официальной цены",
     "tiers": {
       "vip": {
         "label": "VIP",
@@ -554,11 +513,6 @@
   "orgiiOrchestrator": {
     "name": "ORGII Pool",
     "description": "Управляемый пул моделей с фиксированными ценами в кредитах",
-    "recommended": "Рекомендуемый",
-    "directAgents": "Прямой Agent",
-    "agentDesc": "Автоматическая маршрутизация к оптимальным моделям с фиксированной ценой в кредитах",
-    "creditRange": "{{min}} – {{max}} credits/MTok",
-    "plusMore": "+ ещё {{count}}",
     "turbo": {
       "name": "Turbo",
       "description": "Быстрые модели для автодополнения и быстрых правок"
@@ -574,82 +528,26 @@
   },
   "modelConfig": {
     "title": "Настройка моделей",
-    "yourModels": "Модели",
-    "proMaxProxyDisabled": "Недоступно для прокси-листингов",
-    "noModels": "Модели для этого аккаунта не обнаружены",
-    "publishOptions": "Варианты публикации",
-    "directListing": "Прямой листинг",
-    "directListingDesc": "Ваши цены, ваш листинг. Полный контроль над ценами для каждой модели.",
-    "joinPool": "Присоединиться к ORGII Pool",
-    "joinPoolDesc": "Единая цена, больше трафика. Добавьте модели в общий пул.",
-    "pricing": "Ценообразование",
-    "pricingHint": "Установите цены ввода/вывода за 1M Token для каждой включённой модели",
-    "poolModels": "Модели пула",
-    "poolModelsHint": "Выберите модели для вклада в общий пул ORGII",
-    "publish": "Опубликовать",
-    "publishingTitle": "Публикация",
-    "poolOnlyTitle": "{{count}} модель(ей) доступно только через ORGII Pool",
-    "poolOnlyDesc": "Эти премиум-модели нельзя разместить напрямую с прокси-аккаунта. Подключите их к ORGII Pool, чтобы зарабатывать на каждом маршрутизированном запросе.",
-    "poolOnlyBadge": "Только Pool",
-    "allModelsPoolOnly": "Все ваши модели премиум-уровня. Их можно продавать только через ORGII Pool — включите его ниже, чтобы начать зарабатывать.",
-    "poolOptInDesc": "Зарабатывайте больше, предоставляя модели в общий пул",
-    "poolBenefits": "ORGII Pool направляет трафик от всех потребителей к лучшему доступному провайдеру. Вы получаете автоматический спрос без установки цен — фиксированная оплата за запрос, без маркетинговых усилий. Большинство провайдеров получают в 2-3 раза больше использования через пул."
+    "publish": "Опубликовать"
   },
   "providerOnboarding": {
-    "providerProfile": "Профиль провайдера",
-    "becomeProvider": "Стать провайдером",
-    "checkingExisting": "Проверка существующего провайдера...",
-    "linkExpired": "Ссылка истекла. Генерация новой ссылки...",
-    "providerNotCreated": "Провайдер не создан. Попробуйте снова.",
-    "failedToVerify": "Не удалось проверить провайдера. Обновите страницу.",
-    "providerIdMissing": "ID провайдера отсутствует. Сначала завершите регистрацию.",
-    "noUrlReturned": "API не вернул URL",
-    "providerIdNotFound": "ID провайдера не найден",
-    "noUpdateLink": "Ссылка обновления не возвращена",
     "form": {
-      "providerName": "Название провайдера",
       "email": "Email",
-      "websiteUrl": "URL веб-сайта",
-      "providerNamePlaceholder": "Введите название провайдера",
-      "nameRequired": "Имя обязательно",
-      "emailRequired": "Email обязателен",
-      "invalidEmail": "Неверный формат email",
-      "invalidUrl": "Неверный формат URL (должен начинаться с http:// или https://)",
-      "quickFill": "Быстрое заполнение",
-      "stepIndicator": "Шаг {{step}}/2",
-      "editDetails": "Редактировать данные провайдера",
-      "registerAsProvider": "Зарегистрироваться как провайдер",
       "submitting": "Отправка...",
       "continue": "Продолжить"
     },
-    "providerInformation": "Информация о провайдере",
     "stripe": {
       "starting": "Запуск...",
-      "startSetup": "Начать настройку Stripe",
-      "processingCompletion": "Обработка завершения...",
-      "verifyingSetup": "Проверка настройки вашего аккаунта Stripe",
-      "loadingOnboarding": "Загрузка онбординга Stripe...",
-      "onboardingComplete": "Онбординг Stripe завершён",
-      "completeFormAbove": "Заполните форму выше, чтобы завершить настройку Stripe",
-      "connectStripeAccount": "Подключить аккаунт Stripe",
       "complete": "Завершено",
       "inProgress": "В процессе",
       "pending": "В ожидании"
     },
     "complete": {
       "title": "Регистрация завершена!",
-      "description": "Ваш аккаунт провайдера настроен, онбординг Stripe завершён. Теперь вы можете создавать листинги и зарабатывать.",
-      "createFirstListing": "Создать первый листинг",
-      "viewAccount": "Просмотр аккаунта"
+      "description": "Ваш аккаунт провайдера настроен, онбординг Stripe завершён. Теперь вы можете создавать листинги и зарабатывать."
     },
     "account": {
-      "title": "Аккаунт провайдера",
-      "loadingInfo": "Загрузка информации об аккаунте...",
-      "unableToLoad": "Не удалось загрузить информацию о провайдере",
-      "viewEarnings": "Просмотр доходов",
-      "createListing": "Создать листинг",
-      "browseMarketplace": "Обзор маркетплейса",
-      "completeStripeSetup": "Завершить настройку Stripe"
+      "title": "Аккаунт провайдера"
     },
     "status": {
       "title": "Статус аккаунта",
@@ -660,29 +558,17 @@
       "pending": "В ожидании",
       "payouts": "Выплаты",
       "enabled": "Включено",
-      "disabled": "Отключено",
-      "charges": "Списания",
-      "payoutsDisabled": "Выплаты отключены",
-      "chargesDisabled": "Списания отключены",
-      "payoutsDisabledDesc": "Чтобы получать выплаты, добавьте банковский счёт и завершите верификацию личности в Stripe Dashboard.",
-      "chargesDisabledDesc": "Завершите настройку аккаунта в Stripe, чтобы принимать платежи."
+      "disabled": "Отключено"
     },
     "info": {
       "title": "Информация о провайдере",
       "name": "Имя",
-      "email": "Email",
-      "website": "Веб-сайт"
+      "email": "Email"
     },
     "payment": {
       "title": "Настройки платежей",
       "description": "Добавьте банковский счёт, настройте расписание выплат и заполните налоговую информацию в Stripe Dashboard.",
-      "completeVerification": "Завершить верификацию",
-      "verificationDesc": "Завершите верификацию личности и добавьте банковский счёт для включения выплат.",
-      "fullyVerified": "Ваш аккаунт полностью верифицирован!",
-      "payoutsSentTo": "Выплаты и налоговые документы будут отправлены на:",
-      "loading": "Загрузка...",
-      "manageStripeAccount": "Управление аккаунтом Stripe",
-      "manageDesc": "Обновление банковского счёта, просмотр выплат и управление настройками платежей."
+      "loading": "Загрузка..."
     },
     "dashboard": {
       "title": "Stripe Dashboard",

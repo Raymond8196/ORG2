@@ -52,11 +52,7 @@
     "terminals": "終端機"
   },
   "trajectoryPanel": {
-    "title": "軌跡",
-    "viewUi": "UI",
-    "viewJson": "JSON",
-    "emptyTitle": "暫無事件",
-    "emptySubtitle": "事件將在此顯示"
+    "title": "軌跡"
   },
   "routes": {
     "session": "聊天",
@@ -277,8 +273,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "我的狀態",
-      "about": "關於我"
+      "status": "我的狀態"
     }
   },
   "launchpad": {

@@ -147,22 +147,6 @@
   },
   "membership": {
     "you": "Vous",
-    "tierStatus": "Statut {{tier}}",
-    "qualifyingSessions": "Sessions Qualifiantes",
-    "qualifyingExplainer": "Basé sur votre activité des 90 derniers jours",
-    "zeroSessionsHint": "Lancez une session pour commencer à gagner en progression de niveau. Chaque session de plus de 1,00 $ compte pour votre niveau d'adhésion.",
-    "benefitsAndTiers": "Avantages et Niveaux",
-    "howItWorks": "Comment ça marche",
-    "howStep1": "Les sessions complétées dans les 90 derniers jours comptent pour la progression de niveau",
-    "howStep2": "Accumulez des sessions qualifiantes pour débloquer des niveaux supérieurs avec de meilleurs tarifs et avantages",
-    "howStep3": "Les niveaux sont basés sur les sessions qualifiantes à vie — ils ne sont jamais réinitialisés",
-    "benefitsOf": "Avantages de {{tier}}",
-    "nextTier": "Niveau Suivant — {{count}} sessions restantes",
-    "nextTierCredits": "Niveau Suivant — {{amount}} restants",
-    "backToOverview": "Retour à l'Aperçu du Portefeuille",
-    "windowCredits": "crédits (90 derniers jours)",
-    "limitReached": "Limite mensuelle atteinte",
-    "sessionsRemaining": "{{count}} sessions restantes ce mois",
     "unavailable": "Données d'adhésion indisponibles"
   },
   "market": {
@@ -413,23 +397,7 @@
   },
   "usageHistory": {
     "title": "Analytiques",
-    "allModels": "Tous les modèles",
-    "uses": "utilisations",
-    "trends": "Tendances",
-    "noTransactions": "Aucune transaction trouvée.",
-    "roundDetail": "Round {{index}}",
-    "inputTokens": "Input",
-    "outputTokens": "Output",
-    "cacheWriteTokens": "Cache write {{count}}",
-    "cacheReadTokens": "Cache read {{count}}",
-    "noRoundData": "Aucune donnée par round disponible",
-    "colDate": "Date",
-    "colAgent": "Agent",
-    "colTokens": "Token",
-    "colSource": "Source",
-    "colName": "Nom",
-    "colModel": "Modèle",
-    "memberMe": "Moi"
+    "inputTokens": "Input"
   },
   "earnings": {
     "creditEarnings": "Revenus en Credits",
@@ -522,16 +490,7 @@
     }
   },
   "marketModelSelector": {
-    "regional": "Régional",
-    "regionalPricing": "Tarification régionale",
     "global": "Global",
-    "globalPricing": "Tarification globale",
-    "goldRequired": "Abonnement Gold+ requis pour sélectionner la tarification globale",
-    "selectAgent": "Sélectionner l'agent",
-    "selectModel": "Sélectionner le modèle",
-    "selectTier": "Sélectionner le niveau",
-    "allTaken": "Tout pris",
-    "officialPriceRange": "{{min}}% – {{max}}% du prix officiel",
     "tiers": {
       "vip": {
         "label": "VIP",
@@ -554,11 +513,6 @@
   "orgiiOrchestrator": {
     "name": "ORGII Pool",
     "description": "Pool de modèles géré avec tarification en crédits",
-    "recommended": "Recommandé",
-    "directAgents": "Agent direct",
-    "agentDesc": "Achemine automatiquement vers les modèles optimaux avec une tarification fixe en crédits",
-    "creditRange": "{{min}} – {{max}} credits/MTok",
-    "plusMore": "+ {{count}} de plus",
     "turbo": {
       "name": "Turbo",
       "description": "Modèles rapides pour l'autocomplétion et les modifications rapides"
@@ -574,82 +528,26 @@
   },
   "modelConfig": {
     "title": "Configuration des modèles",
-    "yourModels": "Modèles",
-    "proMaxProxyDisabled": "Non disponible pour les listages proxy",
-    "noModels": "Aucun modèle détecté pour ce compte",
-    "publishOptions": "Options de publication",
-    "directListing": "Listage direct",
-    "directListingDesc": "Vos prix, votre listage. Contrôle total sur la tarification par modèle.",
-    "joinPool": "Rejoindre le ORGII Pool",
-    "joinPoolDesc": "Tarification fixe, plus de trafic. Contribuez vos modèles au pool partagé.",
-    "pricing": "Tarification",
-    "pricingHint": "Définissez les prix d'entrée/sortie par 1M Token pour chaque modèle activé",
-    "poolModels": "Modèles du pool",
-    "poolModelsHint": "Sélectionnez les modèles à contribuer au pool partagé ORGII",
-    "publish": "Publier",
-    "publishingTitle": "Publication",
-    "poolOnlyTitle": "{{count}} modèle(s) disponible(s) uniquement via ORGII Pool",
-    "poolOnlyDesc": "Ces modèles premium ne peuvent pas être listés directement depuis un compte proxy. Optez pour le ORGII Pool pour gagner à chaque requête routée vers vous.",
-    "poolOnlyBadge": "Pool uniquement",
-    "allModelsPoolOnly": "Tous vos modèles sont de niveau premium. Ils ne peuvent être vendus que via le ORGII Pool — activez-le ci-dessous pour commencer à gagner.",
-    "poolOptInDesc": "Gagnez plus en contribuant vos modèles au pool partagé",
-    "poolBenefits": "Le ORGII Pool achemine le trafic de tous les consommateurs vers le meilleur fournisseur disponible. Vous obtenez une demande automatique sans fixer de prix — paiements forfaitaires par requête, aucun effort marketing. La plupart des fournisseurs voient 2 à 3 fois plus d'utilisation via le pool."
+    "publish": "Publier"
   },
   "providerOnboarding": {
-    "providerProfile": "Profil du fournisseur",
-    "becomeProvider": "Devenir fournisseur",
-    "checkingExisting": "Vérification du fournisseur existant...",
-    "linkExpired": "Votre lien a expiré. Génération d'un nouveau lien...",
-    "providerNotCreated": "Fournisseur non créé. Veuillez réessayer.",
-    "failedToVerify": "Échec de la vérification du fournisseur. Veuillez actualiser.",
-    "providerIdMissing": "ID du fournisseur manquant. Veuillez d'abord compléter l'inscription.",
-    "noUrlReturned": "Aucune URL retournée par l'API",
-    "providerIdNotFound": "ID du fournisseur introuvable",
-    "noUpdateLink": "Aucun lien de mise à jour retourné",
     "form": {
-      "providerName": "Nom du fournisseur",
       "email": "E-mail",
-      "websiteUrl": "URL du site web",
-      "providerNamePlaceholder": "Entrez le nom du fournisseur",
-      "nameRequired": "Le nom est obligatoire",
-      "emailRequired": "L'e-mail est obligatoire",
-      "invalidEmail": "Format d'e-mail invalide",
-      "invalidUrl": "Format d'URL invalide (doit commencer par http:// ou https://)",
-      "quickFill": "Remplissage rapide",
-      "stepIndicator": "Étape {{step}}/2",
-      "editDetails": "Modifier les détails de votre fournisseur",
-      "registerAsProvider": "S'inscrire en tant que fournisseur",
       "submitting": "Envoi en cours...",
       "continue": "Continuer"
     },
-    "providerInformation": "Informations du fournisseur",
     "stripe": {
       "starting": "Démarrage...",
-      "startSetup": "Démarrer la configuration Stripe",
-      "processingCompletion": "Traitement de la finalisation...",
-      "verifyingSetup": "Vérification de la configuration de votre compte Stripe",
-      "loadingOnboarding": "Chargement de l'onboarding Stripe...",
-      "onboardingComplete": "Onboarding Stripe terminé",
-      "completeFormAbove": "Complétez le formulaire ci-dessus pour terminer la configuration Stripe",
-      "connectStripeAccount": "Connecter le compte Stripe",
       "complete": "Terminé",
       "inProgress": "En cours",
       "pending": "En attente"
     },
     "complete": {
       "title": "Inscription terminée !",
-      "description": "Votre compte fournisseur est configuré et l'onboarding Stripe est terminé. Vous pouvez maintenant créer des annonces et commencer à gagner.",
-      "createFirstListing": "Créer votre première annonce",
-      "viewAccount": "Voir le compte"
+      "description": "Votre compte fournisseur est configuré et l'onboarding Stripe est terminé. Vous pouvez maintenant créer des annonces et commencer à gagner."
     },
     "account": {
-      "title": "Compte fournisseur",
-      "loadingInfo": "Chargement des informations du compte...",
-      "unableToLoad": "Impossible de charger les informations du fournisseur",
-      "viewEarnings": "Voir les revenus",
-      "createListing": "Créer une annonce",
-      "browseMarketplace": "Parcourir le marketplace",
-      "completeStripeSetup": "Terminer la configuration Stripe"
+      "title": "Compte fournisseur"
     },
     "status": {
       "title": "État du compte",
@@ -660,29 +558,17 @@
       "pending": "En attente",
       "payouts": "Paiements",
       "enabled": "Activé",
-      "disabled": "Désactivé",
-      "charges": "Charges",
-      "payoutsDisabled": "Paiements désactivés",
-      "chargesDisabled": "Charges désactivées",
-      "payoutsDisabledDesc": "Pour recevoir des paiements, ajoutez votre compte bancaire et complétez la vérification d'identité dans votre Stripe Dashboard.",
-      "chargesDisabledDesc": "Complétez la configuration de votre compte dans Stripe pour accepter les paiements."
+      "disabled": "Désactivé"
     },
     "info": {
       "title": "Informations du fournisseur",
       "name": "Nom",
-      "email": "E-mail",
-      "website": "Site web"
+      "email": "E-mail"
     },
     "payment": {
       "title": "Paramètres de paiement",
       "description": "Ajoutez votre compte bancaire, configurez le calendrier des paiements et complétez les informations fiscales dans votre Stripe Dashboard.",
-      "completeVerification": "Terminer la vérification",
-      "verificationDesc": "Complétez la vérification d'identité et ajoutez le compte bancaire pour activer les paiements.",
-      "fullyVerified": "Votre compte est entièrement vérifié !",
-      "payoutsSentTo": "Les paiements et documents fiscaux seront envoyés à :",
-      "loading": "Chargement...",
-      "manageStripeAccount": "Gérer le compte Stripe",
-      "manageDesc": "Mettre à jour le compte bancaire, consulter les paiements et gérer les paramètres de paiement."
+      "loading": "Chargement..."
     },
     "dashboard": {
       "title": "Stripe Dashboard",

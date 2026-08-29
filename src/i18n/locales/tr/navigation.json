@@ -52,11 +52,7 @@
     "terminals": "Terminaller"
   },
   "trajectoryPanel": {
-    "title": "Yörünge",
-    "emptyTitle": "Henüz olay yok",
-    "emptySubtitle": "Olaylar oluştukça burada görünür",
-    "viewUi": "UI",
-    "viewJson": "JSON"
+    "title": "Yörünge"
   },
   "routes": {
     "session": "Sohbet",
@@ -185,8 +181,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "Durumum",
-      "about": "Hakkımda"
+      "status": "Durumum"
     }
   },
   "launchpad": {

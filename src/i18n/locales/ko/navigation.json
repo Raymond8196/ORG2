@@ -52,11 +52,7 @@
     "terminals": "터미널"
   },
   "trajectoryPanel": {
-    "title": "트래젝터리",
-    "viewUi": "UI",
-    "viewJson": "JSON",
-    "emptyTitle": "아직 이벤트가 없습니다",
-    "emptySubtitle": "이벤트가 발생하면 여기에 표시됩니다"
+    "title": "트래젝터리"
   },
   "routes": {
     "session": "채팅",
@@ -185,8 +181,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "내 상태",
-      "about": "내 소개"
+      "status": "내 상태"
     }
   },
   "launchpad": {

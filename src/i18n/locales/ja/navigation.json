@@ -52,11 +52,7 @@
     "terminals": "ターミナル"
   },
   "trajectoryPanel": {
-    "title": "トラジェクトリ",
-    "emptyTitle": "イベントはまだありません",
-    "emptySubtitle": "発生したイベントがここに表示されます",
-    "viewUi": "UI",
-    "viewJson": "JSON"
+    "title": "トラジェクトリ"
   },
   "routes": {
     "session": "チャット",
@@ -185,8 +181,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "自分のステータス",
-      "about": "自分について"
+      "status": "自分のステータス"
     }
   },
   "launchpad": {

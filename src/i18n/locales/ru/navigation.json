@@ -52,11 +52,7 @@
     "terminals": "Терминалы"
   },
   "trajectoryPanel": {
-    "title": "Траектория",
-    "viewUi": "UI",
-    "viewJson": "JSON",
-    "emptyTitle": "Пока нет событий",
-    "emptySubtitle": "События появятся здесь по мере их возникновения"
+    "title": "Траектория"
   },
   "routes": {
     "session": "Чат",
@@ -185,8 +181,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "Мой статус",
-      "about": "Обо мне"
+      "status": "Мой статус"
     }
   },
   "launchpad": {
