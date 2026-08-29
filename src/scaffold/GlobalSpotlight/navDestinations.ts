@@ -186,21 +186,15 @@ const SETTINGS: NavDestination[] = [
  * Flat, ordered registry of all spotlight navigation destinations.
  * Order within the array determines display order inside a group.
  */
-const OSS_SPOTLIGHT_ACTIONS = ACTIONS.filter(
-  (destination) => !destination.path.startsWith("/orgii/app/market")
-);
-
 const OSS_PAGE_DESTINATIONS = PAGES.filter(
-  (destination) =>
-    destination.path !== "/orgii/app/login" &&
-    !destination.path.startsWith("/orgii/app/market")
+  (destination) => destination.path !== "/orgii/app/login"
 );
 
 export const NAV_DESTINATIONS: NavDestination[] = [
   ...OSS_PAGE_DESTINATIONS,
   ...SETTINGS,
   ...INTEGRATIONS,
-  ...OSS_SPOTLIGHT_ACTIONS,
+  ...ACTIONS,
 ];
 
 /**

@@ -21,12 +21,15 @@ describe("Workbench route ownership", () => {
   it("keeps standalone app routes outside the Workbench shell", () => {
     expect(isWorkbenchPath(ROUTES.auth.login.path)).toBe(false);
     expect(isWorkbenchPath(ROUTES.app.selectRepo.path)).toBe(false);
-    expect(isWorkbenchPath(ROUTES.app.market.tokenMarket.path)).toBe(false);
     expect(isWorkbenchPath("/orgii/workstation-old")).toBe(false);
     expect(isWorkbenchPath("/orgii/app/settings-preview")).toBe(false);
   });
 
   it("does not expose a Home route", () => {
     expect("home" in ROUTES.app).toBe(false);
+  });
+
+  it("does not expose market routes (marketplace moved to the cloud)", () => {
+    expect("market" in ROUTES.app).toBe(false);
   });
 });

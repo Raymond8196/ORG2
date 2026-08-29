@@ -18,9 +18,7 @@ import {
   CodeIcon as Code,
   CursorMagicSelection04Icon as ComputerUse,
   ContentWritingIcon as ContentWriting,
-  CreditCardIcon as CreditCard,
   DatabaseIcon as Database,
-  File02Icon as FileText,
   FolderGitTwoIcon as FolderGit2,
   FolderOpenIcon as FolderOpen,
   LegalHammerIcon as Hammer,
@@ -29,9 +27,7 @@ import {
   McpServerIcon,
   HierarchyCircle01Icon as Network,
   PackageIcon as Package,
-  PackageDeliveredIcon as PackageCheck,
   PaintBrush01Icon as Paintbrush,
-  RocketIcon as Rocket,
   RulerDimensionLineIcon as RulerDimensionLine,
   Settings02Icon as Settings2,
   Settings01Icon as SettingsIcon,
@@ -41,7 +37,6 @@ import {
   ToolboxIcon as Toolbox,
   UnplugIcon as Unplug,
   UserRoundCogIcon as UserRoundCog,
-  Wallet01Icon as Wallet,
 } from "@src/icons";
 
 // ============================================================================
@@ -174,13 +169,6 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
 
   // economy
   market: { labelKey: "navigation:labels.economy", icon: BadgeCent },
-  tokens: { labelKey: "navigation:routes.tokenMarket", icon: CreditCard },
-  services: { labelKey: "navigation:routes.serviceMarket", icon: PackageCheck },
-  "agent-apps": { labelKey: "navigation:routes.agentMarket", icon: Sparkles },
-  "agent-studio": { labelKey: "navigation:routes.agentStudio", icon: Rocket },
-  wallet: { labelKey: "navigation:labels.wallet", icon: Wallet },
-  earnings: { labelKey: "navigation:labels.earnings", icon: FileText },
-  boost: { labelKey: "navigation:labels.boost", icon: Sparkles },
   profile: { labelKey: "navigation:routes.myProfile", icon: Sparkles },
 };
 

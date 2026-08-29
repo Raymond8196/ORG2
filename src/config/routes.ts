@@ -19,7 +19,6 @@ import { ICON_NAME_MAP } from "./iconMapping";
 import {
   APP_AGENT_ORGS_ROUTE,
   APP_IDEA_ROUTES,
-  APP_MARKET_ROUTES,
   APP_SELECT_REPO_ROUTE,
   APP_SETTINGS_ROUTE,
   AUTH_ROUTES,
@@ -34,7 +33,6 @@ export type { RouteLabelContext, RouteInfo };
 export {
   APP_AGENT_ORGS_ROUTE,
   APP_IDEA_ROUTES,
-  APP_MARKET_ROUTES,
   APP_SELECT_REPO_ROUTE,
   APP_SETTINGS_ROUTE,
   AUTH_ROUTES,
@@ -54,7 +52,6 @@ export const ROUTES = {
     agentOrgs: APP_AGENT_ORGS_ROUTE,
     settings: APP_SETTINGS_ROUTE,
     ideas: APP_IDEA_ROUTES,
-    market: APP_MARKET_ROUTES,
   },
 } as const;
 
