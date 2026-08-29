@@ -46,7 +46,6 @@ import HoverAnimatedIcon, {
 } from "../components/HoverAnimatedIcon";
 import NavigationMenu from "../components/NavigationMenu";
 import type { NavigationMenuItem } from "../components/NavigationMenu/config";
-import { SidebarRamMonitorButton } from "../connectors/SidebarRamMonitorButton";
 import { SidebarSearchShortcutTooltip } from "../connectors/WorkstationSidebarConnector/sidebarTabs";
 
 interface SettingsRootSectionConfig {
@@ -183,13 +182,10 @@ const SettingsSidebar: React.FC = () => {
       <SettingsRootBody devModeEnabled={devModeEnabled} />
       <SidebarBottomBar
         rightActions={
-          <>
-            {devModeEnabled && <SidebarRamMonitorButton />}
-            <SettingsFooterBackButton
-              label={t("sidebar.bottomBar.settings")}
-              onClick={handleBack}
-            />
-          </>
+          <SettingsFooterBackButton
+            label={t("sidebar.bottomBar.settings")}
+            onClick={handleBack}
+          />
         }
       />
     </SidebarBase>
