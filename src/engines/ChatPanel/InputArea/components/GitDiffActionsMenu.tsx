@@ -107,7 +107,7 @@ const GitDiffActionsMenu: React.FC<GitDiffActionsMenuProps> = ({
           </DropdownItem>
         </DropdownItemGroup>
 
-        <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+        <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
 
         <DropdownItemGroup
           label={t("creator.diffMenu.review", { defaultValue: "Review" })}

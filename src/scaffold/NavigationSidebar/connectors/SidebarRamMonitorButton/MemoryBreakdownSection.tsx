@@ -1,6 +1,7 @@
 import React from "react";
 
 import Button from "@src/components/Button";
+import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { ArrowDown01Icon, ArrowUp01Icon, HugeiconsIcon } from "@src/icons";
 
 import { MemoryStatRow } from "./MemoryStatRow";
@@ -30,7 +31,7 @@ export const MemoryBreakdownSection: React.FC<MemoryBreakdownSectionProps> = ({
       return (
         <React.Fragment key={row.key}>
           {row.key === "webViewEstimatesGroup" && (
-            <div className="my-2 border-t border-border-2" />
+            <div className={`${DROPDOWN_CLASSES.menuGroupSeparator} !my-0.5`} />
           )}
           <MemoryStatRow
             label={

@@ -330,7 +330,10 @@ const WorkItemContextMenu: React.FC<WorkItemContextMenuProps> = ({
         {items.map((item) => {
           if (item.divider) {
             return (
-              <div key={item.id} className="work-item-context-menu__divider" />
+              <div
+                key={item.id}
+                className={DROPDOWN_CLASSES.menuGroupSeparator}
+              />
             );
           }
 

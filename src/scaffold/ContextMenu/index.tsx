@@ -325,7 +325,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
                   </React.Fragment>
                 ))}
               </div>
-              <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+              <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
             </>
           )}
 

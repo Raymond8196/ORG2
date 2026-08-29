@@ -203,7 +203,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                     </DropdownItem>
                   );
                 })}
-                <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+                <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
                 <DropdownItem
                   selected={includeExternal}
                   onClick={handleToggleIncludeExternal}
@@ -212,7 +212,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                 </DropdownItem>
                 {hasExtraActions && (
                   <>
-                    <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+                    <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
                     {onRefreshSessions && (
                       <DropdownItem
                         dataTestId="sidebar-refresh-sessions"
@@ -297,7 +297,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                     {/* Last section, on its own: unlike every item above —
                         which acts on this list in place — it leaves the menu
                         for Runtime → Scanning. The trailing arrow says so. */}
-                    <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+                    <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
                     <DropdownItem
                       dataTestId="sidebar-configure-external-sources"
                       icon={

@@ -110,7 +110,7 @@ const CompactPlusDropdown: React.FC<CompactPlusDropdownProps> = ({
           return (
             <div
               key={item.id}
-              className={DROPDOWN_CLASSES.menuSeparatorInset}
+              className={DROPDOWN_CLASSES.menuGroupSeparator}
             />
           );
         }

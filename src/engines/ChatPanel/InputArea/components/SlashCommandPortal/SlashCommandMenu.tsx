@@ -26,9 +26,9 @@ import { useMouseMoved } from "@src/hooks/ui/useMouseMoved";
 import { useFloatingPortalPosition } from "../useFloatingPortalPosition";
 import FlyoutSubmenu from "./FlyoutSubmenu";
 import {
-  DividerRow,
   FlyoutTriggerRow,
   ImageRow,
+  MenuGroupSeparatorRow,
   ModeRow,
   SectionHeaderRow,
   SlashItemRow,
@@ -308,7 +308,7 @@ const SlashCommandMenu: React.FC<SlashCommandPortalProps> = ({
         >
           {entries.map((entry, mapIdx) => {
             if (entry.kind === "divider") {
-              return <DividerRow key={`divider-${mapIdx}`} />;
+              return <MenuGroupSeparatorRow key={`divider-${mapIdx}`} />;
             }
 
             if (entry.kind === "header") {

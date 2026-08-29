@@ -306,7 +306,9 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
                               {groupChatLabel}
                             </span>
                           </button>
-                          <div className="my-1 h-px bg-border-1" />
+                          <div
+                            className={DROPDOWN_CLASSES.menuGroupSeparator}
+                          />
                         </>
                       )}
                       {switchableMembers.map((member) => {

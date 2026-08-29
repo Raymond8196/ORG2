@@ -254,7 +254,7 @@ export const PrLevelActions: React.FC<PrLevelActionsProps> = ({
             >
               {localizedActionLabel(t, presentation.autoMergeAction.label)}
             </DropdownItem>
-            <div className={DROPDOWN_CLASSES.menuSeparatorInset} />
+            <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
           </>
         ) : null}
         {presentation.status !== "draft"
