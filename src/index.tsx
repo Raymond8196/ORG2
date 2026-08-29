@@ -104,6 +104,16 @@ const showEmergencyError = (
     splash.style.display = "none";
   }
 
+  // This UI owns the screen from here. Cancel the pre-bundle watchdog so it
+  // cannot re-create its own overlay on top of this panel once the splash has
+  // already been dismissed by first paint.
+  const splashDone = (
+    window as unknown as { __ORGII_SPLASH_DONE__?: () => void }
+  ).__ORGII_SPLASH_DONE__;
+  if (typeof splashDone === "function") {
+    splashDone();
+  }
+
   const rootElement = document.getElementById("root");
   if (!rootElement) return;
   rootElement.innerHTML = `
