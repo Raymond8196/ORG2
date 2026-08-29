@@ -31,9 +31,15 @@ export const SpotlightPinnedActionSection: React.FC<
 
   if (items.length === 0) return null;
 
+  /** Column-major grid: reserve a second row only once the first one is full,
+   *  otherwise a single pinned action (e.g. manage mode's "Done") leaves an
+   *  equal-height empty track underneath it. */
+  const needsSecondRow = items.length > 2;
   const layoutClassName =
     layout === "twoColumn"
-      ? "grid grid-flow-col grid-rows-2 grid-cols-2 gap-x-2 gap-y-0"
+      ? `grid grid-flow-col grid-cols-2 gap-x-2 gap-y-0 ${
+          needsSecondRow ? "grid-rows-2" : "grid-rows-1"
+        }`
       : "flex flex-col";
 
   return (
