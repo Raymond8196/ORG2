@@ -10,8 +10,10 @@ import {
   CloudIcon,
   CodeIcon,
   Delete02Icon,
+  Download02Icon,
   FolderAddIcon,
   FolderClosedIcon,
+  FolderImportIcon,
   FolderLibraryIcon,
   FolderOpenIcon,
   FolderSearchIcon,
@@ -24,7 +26,6 @@ import {
   LaptopMinimalIcon,
   Layers01Icon,
   Layout01Icon,
-  Link02Icon,
   LockIcon,
   Message01Icon,
   Pen01Icon,
@@ -33,7 +34,6 @@ import {
   Search01Icon,
   Settings01Icon,
   SparklesIcon,
-  SquareArrowRight01Icon,
   SquareArrowUpRight02Icon,
   Tick01Icon,
   WorkHistoryIcon,
@@ -53,7 +53,7 @@ export type {
 
 export const ICONS = {
   // Actions
-  addWorkspace: SquareArrowRight01Icon,
+  addWorkspace: FolderImportIcon,
 
   // Shared UI
   repo: CodeIcon,
@@ -70,8 +70,8 @@ export const ICONS = {
 
   // Add repo
   newRepo: FolderAddIcon,
-  cloneRepo: LockIcon,
-  cloneRepoUrl: Link02Icon,
+  cloneRepo: Download02Icon,
+  cloneRepoUrl: Download02Icon,
   importRepo: FolderSymlinkIcon,
 
   // Navigation / Pages

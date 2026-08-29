@@ -22,10 +22,9 @@ import { createLogger } from "@src/hooks/logger";
 import { useFilteredItems } from "@src/hooks/search";
 import {
   Delete02Icon,
-  GitBranchIcon,
   GitBranchMinusIcon,
+  GitBranchPlusIcon,
   HugeiconsIcon,
-  SplitIcon,
   Tick01Icon,
 } from "@src/icons";
 
@@ -326,7 +325,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
         {
           id: "pinned-branch-create-new",
           label: t("selectors.branch.actions.createNew", "New Branch"),
-          icon: GitBranchIcon,
+          icon: GitBranchPlusIcon,
           type: "action",
           data: { showDisclosureChevron: true },
           action: () => setActiveMode("add"),
@@ -334,7 +333,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
         {
           id: "pinned-branch-create-from",
           label: t("selectors.branch.actions.createFrom", "New Branch From"),
-          icon: SplitIcon,
+          icon: GitBranchPlusIcon,
           type: "action",
           data: { showDisclosureChevron: true },
           action: () => {

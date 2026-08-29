@@ -206,6 +206,7 @@ export { default as FolderClosedIcon } from "@hugeicons/core-free-icons/FolderCl
 export { default as FolderCodeIcon } from "@hugeicons/core-free-icons/FolderCodeIcon";
 export { default as FolderCogIcon } from "@hugeicons/core-free-icons/FolderCogIcon";
 export { default as FolderGitTwoIcon } from "@hugeicons/core-free-icons/FolderGitTwoIcon";
+export { default as FolderImportIcon } from "@hugeicons/core-free-icons/FolderImportIcon";
 export { default as FolderInputIcon } from "@hugeicons/core-free-icons/FolderInputIcon";
 export { default as FolderKanbanIcon } from "@hugeicons/core-free-icons/FolderKanbanIcon";
 export { default as FolderLibraryIcon } from "@hugeicons/core-free-icons/FolderLibraryIcon";
@@ -225,6 +226,7 @@ export { default as GalleryThumbnailsIcon } from "@hugeicons/core-free-icons/Gal
 export { default as GaugeIcon } from "@hugeicons/core-free-icons/GaugeIcon";
 export { default as GitBranchIcon } from "@hugeicons/core-free-icons/GitBranchIcon";
 export { default as GitBranchMinusIcon } from "@hugeicons/core-free-icons/GitBranchMinusIcon";
+export { default as GitBranchPlusIcon } from "@hugeicons/core-free-icons/GitBranchPlusIcon";
 export { default as GitCommitHorizontalIcon } from "@hugeicons/core-free-icons/GitCommitHorizontalIcon";
 export { default as GitCommitIcon } from "@hugeicons/core-free-icons/GitCommitIcon";
 export { default as GitCommitVerticalIcon } from "@hugeicons/core-free-icons/GitCommitVerticalIcon";
