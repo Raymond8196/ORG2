@@ -19,7 +19,6 @@ import {
   BubbleChatIcon,
   Cancel01Icon,
   HugeiconsIcon,
-  PanelLeftCloseIcon,
   PanelRightCloseIcon,
   PanelRightIcon,
 } from "@src/icons";
@@ -33,6 +32,7 @@ import {
   toggleChatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
 import { chatPanelPositionAtom } from "@src/store/ui/workStationAtom";
+import type { ChatPanelPosition } from "@src/store/ui/workStationLayout/chatPositionAtoms";
 import { workstationProjectTabBarAtom } from "@src/store/workstation";
 import type { WorkstationTabHost } from "@src/store/workstation/tabHost";
 
@@ -46,6 +46,42 @@ export interface UseWorkstationTrailingSlotOptions {
 export interface UseWorkstationTrailingSlotReturn {
   trailingSlot: ReactNode;
   handleToggleChatPanel: () => void;
+}
+
+export function WorkstationMaximizeChatIcon({
+  chatPanelPosition,
+}: {
+  chatPanelPosition: ChatPanelPosition;
+}): ReactNode {
+  if (chatPanelPosition === "right") {
+    return (
+      <HugeiconsIcon
+        icon={Cancel01Icon}
+        data-icon="x"
+        size={HEADER_ICON_SIZE.md}
+        strokeWidth={1.75}
+      />
+    );
+  }
+
+  return (
+    <span className="relative flex h-4 w-4 items-center justify-center">
+      <HugeiconsIcon
+        icon={PanelRightIcon}
+        data-icon="panel-right"
+        size={HEADER_ICON_SIZE.md}
+        strokeWidth={2}
+        className="absolute transition-opacity duration-150 group-hover:opacity-0"
+      />
+      <HugeiconsIcon
+        icon={PanelRightCloseIcon}
+        data-icon="panel-right-close"
+        size={HEADER_ICON_SIZE.md}
+        strokeWidth={2}
+        className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+      />
+    </span>
+  );
 }
 
 export function useWorkstationTrailingSlot({
@@ -123,43 +159,9 @@ export function useWorkstationTrailingSlot({
           title={hideWorkstationLabel}
           shortcutId="maximize_chat"
           onClick={handleToggleChatPanelMaximized}
-          className="group"
+          className={chatPanelPosition === "left" ? "group" : undefined}
         >
-          {chatPanelPosition === "left" ? (
-            <span className="relative flex h-4 w-4 items-center justify-center">
-              <HugeiconsIcon
-                icon={PanelRightIcon}
-                data-icon="panel-right"
-                size={HEADER_ICON_SIZE.md}
-                strokeWidth={2}
-                className="absolute transition-opacity duration-150 group-hover:opacity-0"
-              />
-              <HugeiconsIcon
-                icon={PanelRightCloseIcon}
-                data-icon="panel-right-close"
-                size={HEADER_ICON_SIZE.md}
-                strokeWidth={2}
-                className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-              />
-            </span>
-          ) : (
-            <span className="relative flex h-4 w-4 items-center justify-center">
-              <HugeiconsIcon
-                icon={Cancel01Icon}
-                data-icon="x"
-                size={HEADER_ICON_SIZE.md}
-                strokeWidth={1.75}
-                className="absolute transition-opacity duration-150 group-hover:opacity-0"
-              />
-              <HugeiconsIcon
-                icon={PanelLeftCloseIcon}
-                data-icon="panel-left-close"
-                size={HEADER_ICON_SIZE.md}
-                strokeWidth={2}
-                className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-              />
-            </span>
-          )}
+          <WorkstationMaximizeChatIcon chatPanelPosition={chatPanelPosition} />
         </TabBarTrailingIconButton>
       ) : null;
 
