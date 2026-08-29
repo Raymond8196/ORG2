@@ -17,6 +17,7 @@
  * <PersonAvatar name="Ada Lovelace" src={avatarUrl} size={28} />
  * <PersonAvatar name="Agent" fallback="✦" size={24} />
  * <PersonAvatar name={person.name} color={person.color} size={18} />
+ * <PersonAvatar name="Ada Lovelace" size={20} boxSize={24} />
  * ```
  */
 import React, { memo, useMemo } from "react";
@@ -30,6 +31,13 @@ export interface PersonAvatarProps {
   src?: string;
   /** Diameter in pixels. @default 24 */
   size?: number;
+  /**
+   * Centres the avatar in a square of this size without scaling it. Use it to
+   * hold one leading column across rows whose glyphs want different diameters
+   * — a 20px avatar and a 16px brand mark both boxed at 24 line their labels
+   * up, where sizing each of them to 24 would not.
+   */
+  boxSize?: number;
   /**
    * Identity colour the domain already assigns this person (Project Manager
    * members carry one, and group headers and status dots render it). When set
@@ -55,6 +63,7 @@ const PersonAvatar: React.FC<PersonAvatarProps> = ({
   name,
   src,
   size = 24,
+  boxSize,
   color,
   fallback,
 }) => {
@@ -69,7 +78,7 @@ const PersonAvatar: React.FC<PersonAvatarProps> = ({
     [color]
   );
 
-  return (
+  const avatar = (
     <Avatar
       size={size}
       src={src}
@@ -80,6 +89,17 @@ const PersonAvatar: React.FC<PersonAvatarProps> = ({
     >
       {fallback ?? personAvatarInitial(name)}
     </Avatar>
+  );
+
+  if (boxSize == null) return avatar;
+
+  return (
+    <span
+      className="flex shrink-0 items-center justify-center"
+      style={{ width: boxSize, height: boxSize }}
+    >
+      {avatar}
+    </span>
   );
 };
 

@@ -316,7 +316,8 @@ function TeamRuntimeToday({
                   data-testid={`team-runtime-member-usage-${member.userId}`}
                 >
                   <PersonAvatar
-                    size={28}
+                    size={20}
+                    boxSize={24}
                     name={displayName}
                     src={member.avatarUrl ?? undefined}
                   />
@@ -359,12 +360,8 @@ function TeamRuntimeToday({
                   className="flex items-center justify-between gap-3 border-b border-border-1 px-4 py-3 last:border-b-0"
                   data-testid={`team-runtime-source-${source.bucket}`}
                 >
-                  <span className="flex min-w-0 items-center gap-2 text-sm text-text-2">
-                    <BucketIcon
-                      bucket={source.bucket}
-                      size={16}
-                      className="shrink-0"
-                    />
+                  <span className="flex min-w-0 items-center gap-3 text-sm text-text-2">
+                    <BucketIcon bucket={source.bucket} size={16} boxSize={24} />
                     <span className="truncate">
                       {tUsage(bucketLabelKey(source.bucket))}
                     </span>
@@ -396,7 +393,8 @@ function TeamRuntimeToday({
                   data-testid={`team-runtime-recent-session-${session.id}`}
                 >
                   <PersonAvatar
-                    size={28}
+                    size={20}
+                    boxSize={24}
                     name={session.ownerDisplayName ?? ""}
                     src={session.ownerAvatarUrl}
                   />
