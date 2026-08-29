@@ -645,6 +645,8 @@ describe("Agent Org pause, resume, and sidebar rendered UI", () => {
           await browser
             .$('[data-testid="sidebar-session-filter-button"]')
             .click();
+          // Grouping lives in the menu's second level; the row opens it.
+          await browser.$('[data-testid="sidebar-group-by-trigger"]').click();
           await browser.$('[data-testid="sidebar-group-by-byAgent"]').click();
           await browser
             .$('[data-testid="sidebar-session-filter-button"]')

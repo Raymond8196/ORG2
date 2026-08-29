@@ -11,6 +11,10 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
 import {
+  clampSubmenuTop,
+  getSubmenuAnchor,
+} from "@src/components/Dropdown/submenuLayout";
+import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
   DROPDOWN_PANEL,
@@ -57,8 +61,6 @@ import {
   type SubmenuPosition,
 } from "./SidebarSettingsMenuSubmenus";
 
-const SUBMENU_WIDTH_PX = 220;
-const SUBMENU_GAP_PX = DROPDOWN_PANEL.submenuGap;
 const MENU_ICON_CLASS_NAME = "shrink-0 text-text-2";
 const MENU_ARROW_CLASS_NAME = "text-text-3";
 type SettingsUtilityPanel = "ram";
@@ -80,25 +82,15 @@ function getSubmenuPosition(
   parentPanel: HTMLElement | null,
   opensUpward: boolean
 ): SubmenuPosition {
-  const rect = trigger.getBoundingClientRect();
-  const parentRect = parentPanel?.getBoundingClientRect();
-  const { width: vpWidth, height: viewportHeight } = getViewportSize();
-  const rightSideLeft = rect.right + SUBMENU_GAP_PX;
-  const left =
-    rightSideLeft + SUBMENU_WIDTH_PX > vpWidth
-      ? rect.left - SUBMENU_WIDTH_PX - SUBMENU_GAP_PX
-      : rightSideLeft;
-  return {
-    left,
+  const { width: viewportWidth, height: viewportHeight } = getViewportSize();
+  return getSubmenuAnchor({
+    triggerRect: trigger.getBoundingClientRect(),
+    parentRect: parentPanel?.getBoundingClientRect() ?? null,
+    submenuWidth: DROPDOWN_WIDTHS.panelWidth,
+    viewportWidth,
+    viewportHeight,
     opensUpward,
-    parentTop: parentRect?.top ?? DROPDOWN_PANEL.viewportPadding,
-    parentBottom:
-      parentRect?.bottom ?? viewportHeight - DROPDOWN_PANEL.viewportPadding,
-    top: Math.max(
-      DROPDOWN_PANEL.viewportPadding,
-      rect.top - DROPDOWN_PANEL.padding
-    ),
-  };
+  });
 }
 
 const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
@@ -130,32 +122,11 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
     const { height: submenuHeight } =
       submenuPanelRef.current.getBoundingClientRect();
     const { height: viewportHeight } = getViewportSize();
-    const viewportTop = DROPDOWN_PANEL.viewportPadding;
-    const viewportBottom = viewportHeight - DROPDOWN_PANEL.viewportPadding;
-    const boundaryTop = Math.max(viewportTop, submenuPosition.parentTop);
-    const boundaryBottom = Math.min(
-      viewportBottom,
-      submenuPosition.parentBottom
-    );
-    const boundaryHeight = boundaryBottom - boundaryTop;
-    const boundaryAlignedTop = submenuPosition.opensUpward
-      ? boundaryBottom - submenuHeight
-      : boundaryTop;
-    const parentClampedTop =
-      submenuHeight > boundaryHeight
-        ? boundaryAlignedTop
-        : Math.min(
-            Math.max(submenuPosition.top, boundaryTop),
-            boundaryBottom - submenuHeight
-          );
-    const viewportMaxTop = Math.max(
-      DROPDOWN_PANEL.viewportPadding,
-      viewportHeight - submenuHeight - DROPDOWN_PANEL.viewportPadding
-    );
-    const clampedTop = Math.max(
-      viewportTop,
-      Math.min(parentClampedTop, viewportMaxTop)
-    );
+    const clampedTop = clampSubmenuTop({
+      anchor: submenuPosition,
+      submenuHeight,
+      viewportHeight,
+    });
 
     if (clampedTop === submenuPosition.top) return;
     setSubmenuPosition((current) =>
