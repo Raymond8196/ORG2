@@ -50,7 +50,12 @@ describe("UserChatItem shared sender presentation", () => {
     expect(markup).toContain('data-testid="shared-message-sender-avatar"');
     expect(markup).toContain('title="Ada Lovelace"');
     expect(markup).toContain('src="https://example.com/ada.png"');
-    expect(markup).toContain("background-color:var(--color-fill-2)");
+    // Same 28px circle the shared PersonAvatar draws everywhere else, rather
+    // than a locally styled one-off.
+    expect(markup).toContain("width:28px;height:28px");
+    expect(markup).toContain(
+      "inline-flex shrink-0 overflow-hidden rounded-full"
+    );
   });
 
   it("does not show a remote sender avatar for a local message", () => {

@@ -1,7 +1,7 @@
 import React from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { HugeiconsIcon, Login01Icon } from "@src/icons";
 
 interface SidebarAccountButtonProps {
@@ -40,9 +40,7 @@ const SidebarAccountButton: React.FC<SidebarAccountButtonProps> = React.memo(
         <span className="flex min-w-0 flex-1 items-center gap-3">
           {signedIn ? (
             <span className="inline-flex h-[14px] w-[14px] shrink-0 items-center justify-center overflow-visible">
-              <Avatar size={20} src={avatarUrl} gradientSeed={identity}>
-                {identity.slice(0, 1).toLocaleUpperCase()}
-              </Avatar>
+              <PersonAvatar size={20} src={avatarUrl} name={identity} />
             </span>
           ) : (
             <HugeiconsIcon

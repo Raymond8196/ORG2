@@ -11,12 +11,12 @@ import React, {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
 import {
   CHAT_BUBBLE_TOOLBAR_BUTTON_CLASS,
   ChatBubbleCopyButton,
 } from "@src/components/ChatBubble";
 import ExpandOverlay from "@src/components/ExpandOverlay";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { REPO_SETUP_PROMPT_MARKER } from "@src/config/repoSetupMarker";
 import type { OptimizedChatItem } from "@src/engines/ChatPanel/ChatHistory/chatItemPipeline/types";
 import { useSessionCommentsContext } from "@src/features/Org2Cloud/SessionComments/SessionCommentsContext";
@@ -33,7 +33,6 @@ import {
   SparklesIcon,
   Undo02Icon,
 } from "@src/icons";
-import { createCollabAvatarIdentity } from "@src/store/collaboration/protocol";
 import {
   formatSmartDateTime,
   toIntlLocaleTag,
@@ -432,7 +431,6 @@ const UserChatItem = ({
     : senderStamp?.displayName.trim() ||
       sharedConversationSender?.displayName.trim() ||
       "Shared user";
-  const senderAvatar = createCollabAvatarIdentity(senderName);
 
   const containerClass = `${DISPLAY_CONTAINER_BASE} ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
 
@@ -635,13 +633,11 @@ const UserChatItem = ({
                 />
               </span>
             ) : (
-              <Avatar
+              <PersonAvatar
                 size={28}
+                name={senderName}
                 src={sharedConversationSender?.avatarUrl}
-                style={{ backgroundColor: "var(--color-fill-2)" }}
-              >
-                {senderAvatar.initials}
-              </Avatar>
+              />
             )}
           </span>
           <div className="flex min-w-0 flex-col items-start">
