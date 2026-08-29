@@ -1661,20 +1661,84 @@ describe("openOrReplaceSessionInChatPanelTabAtom", () => {
     expect(store.get(activeSessionIdAtom)).toBe("session-b");
   });
 
-  it("does not replace a non-session tab", async () => {
-    const { chatPanelTabsAtom, openOrReplaceSessionInChatPanelTabAtom, store } =
-      await loadChatPanelTabAtoms();
+  it("consumes the active Launchpad tab instead of stacking behind it", async () => {
+    const {
+      activeSessionIdAtom,
+      chatPanelStartPageOpenAtom,
+      chatPanelTabsAtom,
+      openOrReplaceSessionInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
 
     const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
     const sessionTabId = store.set(openOrReplaceSessionInChatPanelTabAtom, {
       sessionId: "session-a",
       sessionName: "Session A",
+      repoPath: "/repos/a",
     });
 
     expect(sessionTabId).not.toBe(launchpadTabId);
+    expect(store.get(chatPanelTabsAtom)).toMatchObject({
+      activeTabId: sessionTabId,
+      tabs: [
+        {
+          id: sessionTabId,
+          type: "session",
+          title: "Session A",
+          sessionId: "session-a",
+        },
+      ],
+    });
+    expect(store.get(chatPanelStartPageOpenAtom)).toBe(false);
+    expect(store.get(activeSessionIdAtom)).toBe("session-a");
+  });
+
+  it("replaces the Launchpad in place, keeping sibling tab order", async () => {
+    const {
+      chatPanelTabsAtom,
+      openOrFocusChatPanelStartPageTabAtom,
+      openOrReplaceSessionInChatPanelTabAtom,
+      openSessionInNewChatTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+
+    const launchpadTabId = store.get(chatPanelTabsAtom).activeTabId;
+    const trailingTabId = store.set(openSessionInNewChatTabAtom, {
+      sessionId: "session-a",
+      sessionName: "Session A",
+    });
+    store.set(openOrFocusChatPanelStartPageTabAtom, {});
+    expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
+
+    const sessionTabId = store.set(openOrReplaceSessionInChatPanelTabAtom, {
+      sessionId: "session-b",
+      sessionName: "Session B",
+    });
+
+    expect(store.get(chatPanelTabsAtom).tabs).toMatchObject([
+      { id: sessionTabId, type: "session", sessionId: "session-b" },
+      { id: trailingTabId, type: "session", sessionId: "session-a" },
+    ]);
+  });
+
+  it("does not replace a tab that owns its own surface", async () => {
+    const {
+      chatPanelTabsAtom,
+      openOrReplaceSessionInChatPanelTabAtom,
+      openRuntimeInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+
+    const runtimeTabId = store.set(openRuntimeInChatPanelTabAtom, "Runtime");
+    const sessionTabId = store.set(openOrReplaceSessionInChatPanelTabAtom, {
+      sessionId: "session-a",
+      sessionName: "Session A",
+    });
+
+    expect(sessionTabId).not.toBe(runtimeTabId);
     expect(store.get(chatPanelTabsAtom).tabs).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ id: launchpadTabId, type: "start-page" }),
+        expect.objectContaining({ id: runtimeTabId, type: "runtime" }),
         expect.objectContaining({
           id: sessionTabId,
           type: "session",

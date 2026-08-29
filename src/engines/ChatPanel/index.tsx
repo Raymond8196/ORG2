@@ -28,6 +28,8 @@ import { allAgentDefsAtom } from "@src/modules/MainApp/AgentOrgs/store/builtInAg
 import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewContainerTokens";
 import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
+  chatPanelTabCountAtom,
+  closeAndDestroyChatPanelTabAtom,
   closeOrganizationChatPanelTabAtom,
   closeProjectOrgChatPanelTabsAtom,
   closeRevokedCloudChannelChatPanelTabsAtom,
@@ -92,7 +94,9 @@ import {
 } from "./focusedChatWorkstationLayout";
 import { FocusedChatWorkstationMinimapPortalContext } from "./focusedChatWorkstationMinimapPortal";
 import {
-  CHAT_PANEL_HEADER_STACK_HEIGHT_PX,
+  resolveChatPanelChromeTopInsetPx,
+  shouldCollapseChatPanelTabRow,
+  shouldOfferCollapsedTabClose,
   shouldOverlayChatSessionHeaders,
 } from "./header/chatPanelHeaderLayout";
 import { useAiWorkItemCreator } from "./hooks/useAiWorkItemCreator";
@@ -293,6 +297,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       kanbanTitle: t("sessions:simulator.tabs.kanban"),
       showSessionSurface,
     });
+    const tabCount = useAtomValue(chatPanelTabCountAtom);
+    const closeChatPanelTab = useSetAtom(closeAndDestroyChatPanelTabAtom);
+    const handleCloseActiveTab = useCallback(() => {
+      if (!activeTab) return;
+      void closeChatPanelTab(activeTab.id);
+    }, [activeTab, closeChatPanelTab]);
     const isStandaloneToolTabActive =
       activeTab?.type === "work-management" || activeTab?.type === "runtime";
     const stationAvailable = isChatPanelTabStationAvailable(
@@ -573,6 +583,14 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       standaloneToolTabActive: isStandaloneToolTabActive,
       humanSessionActive,
     });
+    const tabRowCollapsed = shouldCollapseChatPanelTabRow({
+      chatMaximized: isChatFocus,
+      tabCount,
+    });
+    const chromeTopInsetPx = resolveChatPanelChromeTopInsetPx(
+      overlayChatHeaders,
+      tabRowCollapsed
+    );
 
     const headerSection = (
       <ChatPanelHeader
@@ -623,6 +641,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleTuiModeToggle={handleTuiModeToggle}
         tabStrip={tabStrip}
         tabStripPlus={tabStripPlus}
+        tabRowCollapsed={tabRowCollapsed}
+        onCloseActiveTab={handleCloseActiveTab}
+        canCloseActiveTab={shouldOfferCollapsedTabClose(activeTab?.type)}
         sessionHeaderExtras={
           <>
             <SessionViewersIndicator sessionId={currentSessionId ?? null} />
@@ -676,16 +697,12 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         showPanelContent={contentState.showPanelContent}
         showSessionContent={contentState.showSessionContent}
         sessionViewMode={sessionView.mode}
-        chromeTopInset={
-          overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
-        }
+        chromeTopInset={chromeTopInsetPx}
         alternateSessionView={
           <SessionAlternateSurface
             sessionId={currentSessionId ?? null}
             view={sessionView}
-            topInset={
-              overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
-            }
+            topInset={chromeTopInsetPx}
           />
         }
       />
@@ -712,9 +729,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
                 conversationMinimapHostRef={focusedWorkstationMinimapHostRef}
                 session={currentSession}
                 sessionId={currentSessionId}
-                topInset={
-                  overlayChatHeaders ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX : 0
-                }
+                topInset={chromeTopInsetPx}
               />
             ) : reserveFocusedWorkstationPlaceholder ? (
               <div

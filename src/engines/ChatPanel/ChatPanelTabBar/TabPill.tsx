@@ -49,9 +49,9 @@ import {
 } from "@src/store/ui/chatPanelAtom";
 import { WORK_MANAGEMENT_SECTION } from "@src/store/workstation";
 
-import { resolveChatPanelTabDisplayTitle } from "../chatPanelTabDisplay";
 import SessionIdentityIcon from "../components/SessionIdentityIcon";
 import { CHAT_PANEL_HEADER_NO_DRAG_STYLE } from "../header";
+import { useChatPanelTabDisplayTitle } from "../hooks/useChatPanelTabDisplayTitle";
 import { TabPillHoverCard } from "./TabPillHoverCard";
 
 // ─── Constants ────────────────────────────────────────────────────────────────
@@ -122,30 +122,7 @@ export const TabPill = memo(function TabPill({
       : undefined;
   const agentStatus = terminalSession?.agentStatus;
 
-  const defaultDisplayTitle = resolveChatPanelTabDisplayTitle(tab, session, {
-    newSession: t("sessions:chat.startPage.newSession.title"),
-    runtime: t("sessions:chat.startPage.tabs.runtime"),
-    organization: t("navigation:collaboration.manageOrg"),
-    teamInbox: t("navigation:labels.inbox"),
-    channelFallback: t("navigation:cloud.channels.title"),
-    workManagement: {
-      kanban: t("sessions:simulator.tabs.kanban"),
-      work: t("navigation:labels.workItems"),
-    },
-    sessionFallback: t("chat.defaultTitle"),
-  });
-  const displayTitle =
-    tab.type !== "start-page"
-      ? defaultDisplayTitle
-      : createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT
-        ? t("sessions:creator.createTarget.project")
-        : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
-          ? t("sessions:creator.createTarget.workItem")
-          : createTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT
-            ? t("projects:githubIssuesImport.createTarget")
-            : createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
-              ? t("navigation:collaboration.addOrg")
-              : defaultDisplayTitle;
+  const displayTitle = useChatPanelTabDisplayTitle(tab);
 
   const iconColorClass = isActive ? "text-text-1" : "text-text-2";
   const isGitHubIssueTab =

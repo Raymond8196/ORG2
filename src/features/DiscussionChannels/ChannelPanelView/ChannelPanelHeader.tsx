@@ -43,7 +43,7 @@ const ChannelPanelHeader: React.FC<ChannelPanelHeaderProps> = ({
 
   return (
     <div
-      className="flex h-10 shrink-0 items-center gap-2 border-b border-border-2 pr-2"
+      className="flex h-9 shrink-0 items-center gap-2 border-b border-border-2 pr-2"
       data-testid="channel-panel-header"
     >
       <PublishedHeaderSlotsView

@@ -93,8 +93,8 @@ describe("resolveFocusedChatWorkstationRailInsetStyle", () => {
         CHAT_PANEL_HEADER_STACK_HEIGHT_PX
       )
     ).toEqual({
-      marginTop: "84px",
-      height: "calc(100% - 84px)",
+      marginTop: `${CHAT_PANEL_HEADER_STACK_HEIGHT_PX}px`,
+      height: `calc(100% - ${CHAT_PANEL_HEADER_STACK_HEIGHT_PX}px)`,
     });
   });
 
