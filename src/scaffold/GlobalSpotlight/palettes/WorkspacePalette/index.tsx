@@ -18,6 +18,7 @@ import Message from "@src/components/Message";
 import { HugeiconsIcon } from "@src/icons";
 import { cachedReposAtom } from "@src/store/repo";
 import { addWorkspaceInitialStageAtom } from "@src/store/ui/overlayAtom";
+import { spotlightShowPathAtom } from "@src/store/ui/spotlightShowPathAtom";
 import {
   isMultiRootWorkspaceAtom,
   setWorkspaceFoldersAtom,
@@ -26,6 +27,7 @@ import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAc
 
 import {
   SPOTLIGHT_FOOTER_ACTIVE_CHIP,
+  SpotlightFooterToggle,
   SpotlightPinnedActionSection,
 } from "../../components";
 import { ICONS } from "../../config";
@@ -37,7 +39,7 @@ import {
   useSharedRepoList,
 } from "../../hooks";
 import { usePathSegment } from "../../hooks/usePathSegment";
-import { PaletteBody, SpotlightShell } from "../../shell";
+import { PaletteBody, ShellFooterAction, SpotlightShell } from "../../shell";
 import type { RepoItem, SpotlightItem } from "../../types";
 import { AddWorkspaceModalShell } from "../AddWorkspaceModalShell";
 import { REPO_PALETTE_CONFIG } from "../config";
@@ -77,6 +79,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
   const [initialAddStageAtom, setInitialAddStageAtom] = useAtom(
     addWorkspaceInitialStageAtom
   );
+  const [showPath, setShowPath] = useAtom(spotlightShowPathAtom);
   const effectiveInitialStage = initialAddStageProp ?? initialAddStageAtom;
 
   // ============ LOCAL STATE ============
@@ -457,6 +460,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
       searchQuery,
       paletteText,
       orgScopeFilter: repoFilter ?? null,
+      showPath,
       onRepoAction: (repo) => {
         if (isManageMode) {
           toggleSelection(repo.id);
@@ -492,6 +496,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
     searchQuery,
     sectionedAddItems,
     selectedIds,
+    showPath,
     toggleSelection,
     workspaceItems,
   ]);
@@ -638,6 +643,19 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
   };
 
   // ============ RENDER: MAIN VIEW ============
+  // Portals next to the shell's keyboard-hint footer (and renders nothing
+  // when the palette is embedded without a shell). The add menu lists
+  // sources rather than repos, so it gets no path toggle.
+  const showPathToggle = addMenuKind ? null : (
+    <ShellFooterAction placement="inline">
+      <SpotlightFooterToggle
+        label={t("selectors.spotlightFooter.showPath", "Show path")}
+        checked={showPath}
+        onCheckedChange={setShowPath}
+      />
+    </ShellFooterAction>
+  );
+
   const body = (
     <PaletteBody
       kernel={kernel}
@@ -655,7 +673,14 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
     />
   );
 
-  if (asBody) return body;
+  const palette = (
+    <>
+      {body}
+      {showPathToggle}
+    </>
+  );
+
+  if (asBody) return palette;
 
   return (
     <SpotlightShell
@@ -664,7 +689,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
       hasActiveAction={!addMenuKind && pinnedActionItems.length > 0}
       activeActionChip={SPOTLIGHT_FOOTER_ACTIVE_CHIP.switchSection}
     >
-      {body}
+      {palette}
     </SpotlightShell>
   );
 };

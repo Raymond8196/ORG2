@@ -1705,6 +1705,7 @@
       "select": "Auswählen",
       "switchColumn": "Spalte wechseln",
       "switchSection": "Abschnitt wechseln",
+      "showPath": "Pfad anzeigen",
       "compatibleKeys": "Kompatibel",
       "planSupport": "Plan",
       "byokSupport": "Keys",

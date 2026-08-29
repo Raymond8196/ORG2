@@ -29,6 +29,7 @@ import {
 } from "@src/icons";
 
 import { ICONS } from "../../config";
+import { useRefreshSpin } from "../../shared";
 import type { SpotlightItem } from "../../types";
 import {
   BRANCH_PALETTE_CONFIG,
@@ -42,7 +43,6 @@ import { useBranchItems } from "./useBranchItems";
 import { useWorktreeMap } from "./useWorktreeMap";
 
 const log = createLogger("useBranchPalette");
-const REFRESH_SPIN_MIN_MS = 900;
 
 export function useBranchPalette(options: UseBranchPaletteOptions) {
   const { t } = useTranslation();
@@ -69,7 +69,6 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
   const [searchQuery, setSearchQueryState] = useState("");
   const [activeMode, setActiveMode] = useState<BranchPaletteMode>("checkout");
   const [isCreatingBranch, setIsCreatingBranch] = useState(false);
-  const [isRefreshSpinning, setIsRefreshSpinning] = useState(false);
   const [selectedStartPoint, setSelectedStartPoint] = useState<string | null>(
     null
   );
@@ -100,17 +99,10 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
     githubRepoFullName,
   });
 
-  const handleRefreshBranches = useCallback(async () => {
-    setIsRefreshSpinning(true);
-    const startedAt = Date.now();
-    try {
-      await refreshBranches();
-    } finally {
-      const elapsed = Date.now() - startedAt;
-      const remaining = Math.max(0, REFRESH_SPIN_MIN_MS - elapsed);
-      window.setTimeout(() => setIsRefreshSpinning(false), remaining);
-    }
-  }, [refreshBranches]);
+  const { triggerRefresh: handleRefreshBranches, RefreshIcon } = useRefreshSpin(
+    ICONS.refresh,
+    refreshBranches
+  );
 
   // ============ FETCH WORKTREES (local repos only) ============
   const worktreeMap = useWorktreeMap({
@@ -355,14 +347,6 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
       });
     }
 
-    const RefreshIcon = (props: { size?: number; className?: string }) =>
-      createElement(HugeiconsIcon, {
-        icon: ICONS.refresh,
-        ...props,
-        className:
-          `${props.className ?? ""} ${isRefreshSpinning ? "spotlight-refresh-spin" : ""}`.trim(),
-      });
-
     actions.push({
       id: "pinned-branch-refresh",
       label: t("selectors.branch.actions.refresh", "Refresh"),
@@ -371,11 +355,12 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
       data: {
         disabled: isLoading,
       },
-      action: () => void handleRefreshBranches(),
+      action: handleRefreshBranches,
     });
 
     return actions;
   }, [
+    RefreshIcon,
     activeMode,
     effectiveShowRemoveMode,
     isLoading,
@@ -383,7 +368,6 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
     handleDeleteSelectedBranches,
     onDeleteBranch,
     handleRefreshBranches,
-    isRefreshSpinning,
     selectedBranchCount,
     t,
   ]);

@@ -1719,6 +1719,7 @@
       "select": "選擇",
       "switchColumn": "切換欄",
       "switchSection": "切換分區",
+      "showPath": "顯示路徑",
       "compatibleKeys": "相容",
       "planSupport": "Plan",
       "byokSupport": "Keys",

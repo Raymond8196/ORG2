@@ -1704,6 +1704,7 @@
       "select": "選択",
       "switchColumn": "列を切り替え",
       "switchSection": "セクションを切り替え",
+      "showPath": "パスを表示",
       "compatibleKeys": "互換性あり",
       "planSupport": "Plan",
       "byokSupport": "Keys",

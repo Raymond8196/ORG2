@@ -61,6 +61,8 @@ interface BuildSectionedWorkspaceItemsArgs {
    * data flag (set by useWorkspacePaletteWorkspace).
    */
   orgScopeFilter?: ((repo: RepoItem) => boolean) | null;
+  /** Renders each repo row's filesystem path under its name (footer toggle). */
+  showPath?: boolean;
   onRepoAction: (repo: RepoItem) => void;
   onLeadingRepoAction: (repo: RepoItem) => void;
   toggleSelection: (id: string) => void;
@@ -83,6 +85,7 @@ export function buildSectionedWorkspaceItems({
   searchQuery,
   paletteText,
   orgScopeFilter = null,
+  showPath = false,
   onRepoAction,
   onLeadingRepoAction,
   toggleSelection,
@@ -113,6 +116,7 @@ export function buildSectionedWorkspaceItems({
 
   const repoItemOptions = {
     currentRepoId: isMultiRoot ? undefined : currentRepoId,
+    showPath,
     onAction: onRepoAction,
     manageAction: isManageMode ? renderRepoTrashAction : undefined,
     getSelectionState: isManageMode
@@ -135,6 +139,7 @@ export function buildSectionedWorkspaceItems({
     leadingRepos.length > 0 && !isManageMode
       ? buildRepoSpotlightItems([...leadingRepos], {
           currentRepoId,
+          showPath,
           onAction: onLeadingRepoAction,
         })
       : [];
@@ -143,6 +148,7 @@ export function buildSectionedWorkspaceItems({
     externalRecentRepos.length > 0 && !isManageMode
       ? buildRepoSpotlightItems([...externalRecentRepos], {
           currentRepoId,
+          showPath,
           onAction: onLeadingRepoAction,
         })
       : [];

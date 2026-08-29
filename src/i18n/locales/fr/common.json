@@ -1705,6 +1705,7 @@
       "select": "Sélectionner",
       "switchColumn": "Changer de colonne",
       "switchSection": "Changer de section",
+      "showPath": "Afficher le chemin",
       "compatibleKeys": "Compatible",
       "planSupport": "Plan",
       "byokSupport": "Keys",
