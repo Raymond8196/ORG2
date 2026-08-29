@@ -84,6 +84,12 @@ export interface MarkdownTextareaEditorProps {
   onChange: (markdown: string, plainText: string) => void;
   placeholder?: string;
   minHeight?: number | string;
+  /**
+   * Rows the autosize floor reserves. The floor is applied as an explicit
+   * height, so it wins over `minHeight` whenever it is taller — a composer
+   * that wants `minHeight` to govern passes a smaller value.
+   */
+  minRows?: number;
   maxHeight?: number | string;
   maxLength?: number;
   disabled?: boolean;
@@ -155,6 +161,7 @@ const MarkdownTextareaEditor = forwardRef<
     onChange,
     placeholder,
     minHeight = 72,
+    minRows = 3,
     maxHeight = 240,
     maxLength,
     disabled = false,
@@ -563,8 +570,8 @@ const MarkdownTextareaEditor = forwardRef<
             placeholder={placeholder}
             size="small"
             appearance="bare"
-            autoSize={{ minRows: 3, maxRows: 10 }}
-            rows={3}
+            autoSize={{ minRows, maxRows: 10 }}
+            rows={minRows}
             maxLength={maxLength}
             disabled={!canWrite}
             autoFocus={autoFocus}

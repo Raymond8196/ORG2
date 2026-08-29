@@ -2148,7 +2148,6 @@
     },
     "createTarget": {
       "agentSession": "Сессия Agent",
-      "manageAgents": "Управлять Agents / Skills",
       "project": "Создать проект",
       "parallelRun": "Параллельный запуск",
       "workItem": "Создать Work Item"
@@ -2193,6 +2192,9 @@
     "launchpadQuestion": "Что вы хотите создать с помощью",
     "launchpadQuestionSuffix": "?",
     "manualLaunchpadQuestion": "Что вы хотите создать?",
+    "planLaunchpadQuestion": "Что вы хотите запланировать с помощью",
+    "planLaunchpadQuestionSuffix": "?",
+    "manualPlanLaunchpadQuestion": "Что вы хотите запланировать?",
     "start": "Начать",
     "assign": "Назначить",
     "send": "Отправить",

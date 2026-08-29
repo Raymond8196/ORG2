@@ -2104,7 +2104,6 @@
     },
     "createTarget": {
       "agentSession": "Agent 세션",
-      "manageAgents": "Agents / Skills 관리",
       "project": "프로젝트 만들기",
       "parallelRun": "병렬 실행",
       "workItem": "Work Item 만들기"
@@ -2149,6 +2148,9 @@
     "launchpadQuestion": "",
     "launchpadQuestionSuffix": "와 함께 무엇을 만들고 싶으신가요?",
     "manualLaunchpadQuestion": "무엇을 만들고 싶으신가요?",
+    "planLaunchpadQuestion": "",
+    "planLaunchpadQuestionSuffix": "와 함께 무엇을 계획하고 싶으신가요?",
+    "manualPlanLaunchpadQuestion": "무엇을 계획하고 싶으신가요?",
     "start": "시작",
     "assign": "할당",
     "send": "보내기",

@@ -9,7 +9,6 @@ import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessi
 import {
   type LaunchpadAction,
   LaunchpadActionCard,
-  LaunchpadActionGrid,
 } from "@src/features/SessionCreator/components/LaunchpadActionGrid";
 import {
   Download01Icon,
@@ -32,7 +31,6 @@ interface ChatPanelStartPageProps {
   createTarget: ChatPanelCreateTarget;
   createTargetOptions: SelectOption[];
   moreLauncher?: (
-    suggestionPills: React.ReactNode,
     manualMiddleContent: React.ReactNode,
     creatorModeControl?: React.ReactNode
   ) => React.ReactNode;
@@ -47,7 +45,6 @@ interface ChatPanelStartPageProps {
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
   workItemAgentMode: boolean;
   workItemLauncher?: (
-    suggestionPills: React.ReactNode,
     manualMiddleContent: React.ReactNode,
     creatorModeControl: React.ReactNode
   ) => React.ReactNode;
@@ -176,26 +173,21 @@ export function ChatPanelStartPage({
       : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
         ? "work-item"
         : "more";
-  const showSuggestionCards =
-    createTarget !== CHAT_PANEL_CREATE_TARGET.PROJECT &&
-    createTarget !== CHAT_PANEL_CREATE_TARGET.WORK_ITEM;
   const suggestionCards = utilityActions.map((action) => (
     <LaunchpadActionCard key={action.id} action={action} presentation="card" />
   ));
-  const suggestionPills = showSuggestionCards ? (
-    <LaunchpadActionGrid className="mx-auto w-full" presentation="card">
-      {suggestionCards}
-    </LaunchpadActionGrid>
-  ) : null;
   const manualMiddleContent = (
     <div
       className="flex w-full flex-col items-center justify-center gap-4"
       data-testid="chat-panel-start-page-manual-middle-content"
     >
       <h1 className="text-center text-[18px] font-normal leading-relaxed tracking-tight text-text-1 sm:text-[20px]">
-        {t("creator.manualLaunchpadQuestion")}
+        {t(
+          activeView === "work-item"
+            ? "creator.manualPlanLaunchpadQuestion"
+            : "creator.manualLaunchpadQuestion"
+        )}
       </h1>
-      {showSuggestionCards ? suggestionPills : null}
     </div>
   );
   const workItemModeControl = (
@@ -216,23 +208,15 @@ export function ChatPanelStartPage({
   );
   const sessionLauncherContent = sessionLauncher?.(suggestionCards);
   const workItemLauncherContent = workItemLauncher?.(
-    suggestionPills,
     manualMiddleContent,
     workItemModeControl
   );
   const moreLauncherContent = moreLauncher?.(
-    suggestionPills,
     manualMiddleContent,
     createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT
       ? projectModeControl
       : undefined
   );
-  const showUtilityActionsFooter =
-    activeView === "more" &&
-    createTarget !== CHAT_PANEL_CREATE_TARGET.PROJECT &&
-    // A parallel run renders a full launcher with its own composer dock;
-    // a second row of action cards under it has nowhere to sit.
-    createTarget !== CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN;
   const handleViewChange = useCallback(
     (key: string) => {
       if (key === "session") {
@@ -356,18 +340,6 @@ export function ChatPanelStartPage({
           </CreatorContentLayout>
         )}
       </div>
-      {showUtilityActionsFooter && (
-        <div
-          className={`shrink-0 px-4 pb-5 pt-2 ${DETAIL_PANEL_TOKENS.headerWidth}`}
-          data-testid="chat-panel-start-page-utility-actions"
-        >
-          <LaunchpadActionGrid className="w-full">
-            {utilityActions.map((action) => (
-              <LaunchpadActionCard key={action.id} action={action} />
-            ))}
-          </LaunchpadActionGrid>
-        </div>
-      )}
       {isImportSessionDialogOpen && (
         <ImportSharedSessionDialog
           visible

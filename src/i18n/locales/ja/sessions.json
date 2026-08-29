@@ -2104,7 +2104,6 @@
     },
     "createTarget": {
       "agentSession": "Agent セッション",
-      "manageAgents": "Agents / Skills を管理",
       "project": "プロジェクトを作成",
       "parallelRun": "並列実行",
       "workItem": "Work Item を作成"
@@ -2149,6 +2148,9 @@
     "launchpadQuestion": "",
     "launchpadQuestionSuffix": "で何を作りますか？",
     "manualLaunchpadQuestion": "何を作りますか？",
+    "planLaunchpadQuestion": "",
+    "planLaunchpadQuestionSuffix": "で何を計画しますか？",
+    "manualPlanLaunchpadQuestion": "何を計画しますか？",
     "start": "開始",
     "assign": "割り当て",
     "send": "送信",

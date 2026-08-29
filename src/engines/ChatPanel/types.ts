@@ -65,6 +65,8 @@ export interface ChatPanelProps {
     className?: string;
     variant?: "default" | "fullScreen";
     layout?: "default" | "launchpad";
+    /** Wording of the launchpad question: what the composer produces. */
+    launchpadIntent?: "build" | "plan";
     centerFullScreenContent?: boolean;
     composerHeaderContent?: ReactNode;
     heroFooterSlot?: ReactNode;

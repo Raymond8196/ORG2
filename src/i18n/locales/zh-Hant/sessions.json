@@ -2119,7 +2119,6 @@
     },
     "createTarget": {
       "agentSession": "Agent 會話",
-      "manageAgents": "管理 Agent / Skills",
       "project": "建立專案",
       "parallelRun": "平行執行",
       "workItem": "建立 Work Item"
@@ -2164,6 +2163,9 @@
     "launchpadQuestion": "你想使用",
     "launchpadQuestionSuffix": "建構什麼？",
     "manualLaunchpadQuestion": "你想建構什麼？",
+    "planLaunchpadQuestion": "你想使用",
+    "planLaunchpadQuestionSuffix": "規劃什麼？",
+    "manualPlanLaunchpadQuestion": "你想規劃什麼？",
     "start": "開始",
     "assign": "分配",
     "send": "發送",

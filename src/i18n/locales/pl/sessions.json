@@ -2158,7 +2158,6 @@
     },
     "createTarget": {
       "agentSession": "Sesja Agent",
-      "manageAgents": "Zarządzaj Agents / Skills",
       "project": "Utwórz projekt",
       "parallelRun": "Uruchomienie równoległe",
       "workItem": "Utwórz Work Item"
@@ -2203,6 +2202,9 @@
     "launchpadQuestion": "Co chcesz zbudować za pomocą",
     "launchpadQuestionSuffix": "?",
     "manualLaunchpadQuestion": "Co chcesz zbudować?",
+    "planLaunchpadQuestion": "Co chcesz zaplanować za pomocą",
+    "planLaunchpadQuestionSuffix": "?",
+    "manualPlanLaunchpadQuestion": "Co chcesz zaplanować?",
     "start": "Start",
     "assign": "Przypisz",
     "send": "Wyślij",

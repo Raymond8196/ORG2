@@ -2120,7 +2120,6 @@
     },
     "createTarget": {
       "agentSession": "Sessão de Agent",
-      "manageAgents": "Gerenciar Agents / Skills",
       "project": "Criar projeto",
       "parallelRun": "Execução paralela",
       "workItem": "Criar Work Item"
@@ -2165,6 +2164,9 @@
     "launchpadQuestion": "O que você quer criar com",
     "launchpadQuestionSuffix": "?",
     "manualLaunchpadQuestion": "O que você quer criar?",
+    "planLaunchpadQuestion": "O que você quer planejar com",
+    "planLaunchpadQuestionSuffix": "?",
+    "manualPlanLaunchpadQuestion": "O que você quer planejar?",
     "start": "Iniciar",
     "assign": "Atribuir",
     "send": "Enviar",
