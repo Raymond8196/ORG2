@@ -136,6 +136,89 @@ Note that the repo's own `npm run check:unused-exports` does **not** find these.
 
 **To restore:** reverse the `git mv` for the file in question. No other edits are needed.
 
+## Orphaned modules sweep — archived 2026-08-29
+
+The second mechanical sweep of this kind (see **Orphaned modules sweep —
+archived 2026-07-27** above for the first). Not a feature removal: **259 files
+that no file in the repo imports**, found by rebuilding the `src/` import graph
+and diffing it against the file list. The set regrew mostly from the Benchmark
+(2026-08-16) and LSP/Output (2026-08-25) archivals, which severed entry points
+without sweeping everything they orphaned.
+
+The graph resolved the `@src` / `@api` / `@common` / `@page` / `@assets`
+aliases, lazy `import(/* webpackChunkName */ …)`, `new Worker(new URL(…))`,
+`vi.mock`, and source paths referenced as plain strings from root configs
+(vitest `setupFiles`, webpack entry). Roots were `src/index.tsx`, every
+`*.test.ts` under `src/`, and every `src/` path named from `scripts/`,
+`tests/`, `tools/`, or a root config.
+
+**What moved here (259 files, 20,192 LOC).** Largest clusters:
+
+- `src/modules/MainApp/Inbox` — 11 files, 1,780 LOC
+- `src/modules/MainApp/Integrations` — 21 files, 1,220 LOC
+- `src/modules/WorkStation/CodeEditor` — 9 files, 1,091 LOC
+- `src/features/CodeViewer` — 7 files, 1,074 LOC
+- `src/engines/Simulator/components` — 6 files, 949 LOC
+- `src/modules/ProjectManager/Panels` — 4 files, 679 LOC
+- `src/hooks/theme` — 5 files, 675 LOC
+- `src/modules/MainApp/AgentOrgs` — 9 files, 618 LOC
+- `src/scaffold/WizardSystem/shared` — 4 files, 598 LOC
+- `src/engines/ChatPanel/ChatItems` — 5 files, 591 LOC
+- `src/components/DatePicker` — 2 files, 587 LOC
+- `src/engines/TerminalCore/components` — 3 files, 450 LOC
+- `src/features/CodeViewer/hooks` — 1 file, 422 LOC
+- `src/components/TreePanelSidebar` — 2 files, 406 LOC
+- `src/features/CodeViewer/components` — 3 files, 398 LOC
+- `src/scaffold/WizardSystem/variants` — 8 files, 386 LOC
+- `src/components/DevPassport` — 5 files, 374 LOC
+- `src/engines/ChatPanel/InputArea` — 4 files, 336 LOC
+- `src/features/SessionCreator/components` — 4 files, 301 LOC
+- `src/modules/WorkStation/Chat` — 3 files, 300 LOC
+- `src/components/Breadcrumb` — 1 file, 284 LOC
+- `src/util/ui/theme` — 1 file, 274 LOC
+
+**Also moved:** seven `.scss`/`.css` files that only the archived components
+imported (`DatePicker/index.scss`, `DevPassport/{devpassport,styles}.css`,
+`AskUserChatItem/index.scss`, `CodeViewer/{EditableCodeViewer,ModernSplitDiff}.scss`,
+`GitDiffContent/ImageDiffView.scss`).
+
+**No shared files were edited.** Nothing imported these modules, so severing
+them required no changes to live code — this archival is a pure `git mv`, the
+same as the 2026-07-27 sweep. 41 directories left empty by the move were
+removed.
+
+### The one that was not merely unused: `src/lib/dndKit/`
+
+`src/lib/dndKit.ts` (a file) and `src/lib/dndKit/` (a directory with its own
+`index.ts`) both defined `getUiScaleFromCssVar`, `scaleAwareModifier`, and
+`useWebViewSensors`. Node and webpack resolve `@src/lib/dndKit` to the **file**,
+so all eight live importers — `KanbanBoard`, `DragTable`, `QueuedMessages`,
+`useSelectionExtension`, `terminalHandlers`, `KanbanColumn`,
+`useTextSelectionDropdown` — have always gotten `dndKit.ts`, and the directory
+never loaded. Editing the directory copy would have changed nothing at runtime.
+The directory is archived; `src/lib/dndKit.ts` stays and is now the only copy.
+
+The other 13 file/directory shadowing pairs under `src/` were checked and are
+fine: each has importers reaching into the directory, so only the shadowed
+barrel is unreachable.
+
+**Deliberately left live:**
+
+- `src/styles/_common.scss` and
+  `.../FilePreviewContent/CsvTableView/index.scss` — both are unreferenced, but
+  _already_ were before this sweep and neither belongs to an archived module.
+  `CsvTableView/index.tsx` is live and simply never imports its own stylesheet,
+  unlike every sibling preview; that reads as a missing import rather than a
+  dead file, so it needs a fix, not an archival.
+- Barrel files (`index.ts` / `exports.ts`) that nothing imports but which
+  re-export live modules — same judgement call as the 2026-07-27 sweep.
+
+**Verification:** `tsc --noEmit` clean; full vitest suite green (1268 files /
+9999 tests). Both run with every file below already moved out of `src/`.
+
+**To restore:** reverse the `git mv` for the file in question. No other edits
+are needed.
+
 ---
 
 ## SWE-bench "Benchmark (Beta)" UI — archived 2026-08-16
