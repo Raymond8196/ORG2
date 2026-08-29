@@ -1117,7 +1117,11 @@
       "stopProcess": "Parar processo",
       "searchPlaceholder": "Pesquisar portas…",
       "noSearchResults": "Nenhuma porta correspondente",
-      "openAddress": "Abrir {{address}}"
+      "openAddress": "Abrir {{address}}",
+      "rescan": "Verificar novamente",
+      "rescanning": "A verificar…",
+      "rescanTooltip": "Procurar novamente portas em escuta",
+      "lastScannedAt": "Última verificação às {{time}}"
     },
     "noLanguageServicesActive": "Nenhum serviço de linguagem ativo",
     "linesSelected": "{{count}} linhas selecionadas",

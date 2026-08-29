@@ -1121,7 +1121,11 @@
       "stopProcess": "Zatrzymaj proces",
       "searchPlaceholder": "Szukaj portów…",
       "noSearchResults": "Brak pasujących portów",
-      "openAddress": "Otwórz {{address}}"
+      "openAddress": "Otwórz {{address}}",
+      "rescan": "Skanuj ponownie",
+      "rescanning": "Skanowanie…",
+      "rescanTooltip": "Ponownie wyszukaj nasłuchujące porty",
+      "lastScannedAt": "Ostatnie skanowanie o {{time}}"
     },
     "noLanguageServicesActive": "Brak aktywnych usług językowych",
     "linesSelected": "Zaznaczono {{count}} linii",

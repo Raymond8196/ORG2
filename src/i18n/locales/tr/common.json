@@ -1118,7 +1118,11 @@
       "stopProcess": "Süreci durdur",
       "searchPlaceholder": "Port ara…",
       "noSearchResults": "Eşleşen port yok",
-      "openAddress": "{{address}} adresini aç"
+      "openAddress": "{{address}} adresini aç",
+      "rescan": "Yeniden tara",
+      "rescanning": "Taranıyor…",
+      "rescanTooltip": "Dinlenen bağlantı noktalarını yeniden tara",
+      "lastScannedAt": "Son tarama: {{time}}"
     },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",

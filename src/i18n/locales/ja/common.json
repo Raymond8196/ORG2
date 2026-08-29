@@ -1116,7 +1116,11 @@
       "stopProcess": "プロセスを停止",
       "searchPlaceholder": "ポートを検索…",
       "noSearchResults": "一致するポートがありません",
-      "openAddress": "{{address}} を開く"
+      "openAddress": "{{address}} を開く",
+      "rescan": "再スキャン",
+      "rescanning": "スキャン中…",
+      "rescanTooltip": "待ち受けポートを再検出します",
+      "lastScannedAt": "最終スキャン {{time}}"
     },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",

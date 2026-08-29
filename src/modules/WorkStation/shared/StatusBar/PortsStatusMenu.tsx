@@ -14,13 +14,17 @@ import {
   DROPDOWN_PANEL,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import { REFRESH_ICON_TOKENS } from "@src/components/RefreshIcon/tokens";
+import { resolveTimeZoneForIntl } from "@src/config/timezone";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import { createLogger } from "@src/hooks/logger";
 import {
+  ArrowRight01Icon,
   Copy01Icon,
   HugeiconsIcon,
   InternetIcon,
   Loading03Icon,
+  Refresh04Icon,
   ServerStack03Icon,
   StopIcon,
 } from "@src/icons";
@@ -33,13 +37,17 @@ import {
   workspacePortCountAtom,
   workspacePortProbesAtom,
   workspacePortsAtom,
+  workspacePortsLastScanStartedAtAtom,
+  workspacePortsRefreshingAtom,
 } from "@src/store/workstation/codeEditor/workspacePortsAtom";
 import { requestNewBrowserSessionAtom } from "@src/store/workstation/workstationTabBarAtoms";
 import { copyText } from "@src/util/data/clipboard";
+import { toIntlLocaleTag } from "@src/util/data/formatters/date";
 import { classNames } from "@src/util/ui/classNames";
 
 import { StatusBarButton, StatusBarLabel } from "./StatusBarBase";
 import { StatusBarTooltip } from "./StatusBarTooltip";
+import { useWorkspacePortScanSync } from "./useWorkspacePortScanSync";
 import {
   refreshWorkspacePortScan,
   stopWorkspacePort,
@@ -194,18 +202,72 @@ function sectionLabelWithCount(label: string, count: number): string {
   return `${label} · ${count}`;
 }
 
+interface PortSectionHeaderProps {
+  label: string;
+  count: number;
+  expanded: boolean;
+  onToggle: () => void;
+}
+
+/** Collapsible section header: chevron points right when collapsed, down when open. */
+const PortSectionHeader: React.FC<PortSectionHeaderProps> = memo(
+  ({ label, count, expanded, onToggle }) => (
+    <button
+      type="button"
+      className={classNames(
+        DROPDOWN_CLASSES.sectionLabel,
+        "flex w-full cursor-pointer items-center gap-1 text-left hover:text-text-2"
+      )}
+      onClick={onToggle}
+      aria-expanded={expanded}
+      data-dropdown-keyboard-skip="true"
+    >
+      <HugeiconsIcon
+        icon={ArrowRight01Icon}
+        data-icon="chevron-right"
+        size={12}
+        className={classNames(
+          "shrink-0 transition-transform duration-150",
+          expanded ? "rotate-90" : ""
+        )}
+        aria-hidden
+      />
+      <span className="truncate">{sectionLabelWithCount(label, count)}</span>
+    </button>
+  )
+);
+PortSectionHeader.displayName = "PortSectionHeader";
+
+/** Clock time of the last scan, in the user's language and timezone preference. */
+function formatScanClockTime(timestamp: number, language: string): string {
+  try {
+    return new Date(timestamp).toLocaleTimeString(toIntlLocaleTag(language), {
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: resolveTimeZoneForIntl(),
+    });
+  } catch {
+    return "";
+  }
+}
+
 export const PortsStatusMenu: React.FC = memo(() => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const ports = useAtomValue(workspacePortsAtom);
   const workspaceCount = useAtomValue(workspacePortCountAtom);
   const externalCount = useAtomValue(externalPortCountAtom);
   const folders = useAtomValue(workspacePortProbesAtom);
+  const refreshing = useAtomValue(workspacePortsRefreshingAtom);
+  const lastScanStartedAt = useAtomValue(workspacePortsLastScanStartedAtAtom);
   const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
   const [stoppingPortId, setStoppingPortId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [workspaceExpanded, setWorkspaceExpanded] = useState(true);
   const [externalExpanded, setExternalExpanded] = useState(
     () => workspaceCount === 0 && externalCount > 0
   );
+
+  useWorkspacePortScanSync();
 
   const {
     isOpen,
@@ -243,12 +305,27 @@ export const PortsStatusMenu: React.FC = memo(() => {
     }
   }, [isOpen]);
 
+  const runScan = useCallback(() => {
+    refreshWorkspacePortScan({ folders, force: true }).catch(() => {
+      // refreshWorkspacePortScan already logged the failure; swallow here so a
+      // failed scan never surfaces as an unhandled rejection.
+    });
+  }, [folders]);
+
+  const toggleWorkspaceSection = useCallback(() => {
+    setWorkspaceExpanded((value) => !value);
+  }, []);
+
+  const toggleExternalSection = useCallback(() => {
+    setExternalExpanded((value) => !value);
+  }, []);
+
   const handleToggle = useCallback(() => {
     if (!isOpen) {
-      void refreshWorkspacePortScan({ folders, force: true });
+      runScan();
     }
     toggle();
-  }, [folders, isOpen, toggle]);
+  }, [isOpen, runScan, toggle]);
 
   const handleOpen = useCallback(
     (port: WorkspacePort) => {
@@ -289,6 +366,20 @@ export const PortsStatusMenu: React.FC = memo(() => {
   );
 
   const hasAnyMatches = workspaceGroups.length > 0 || externalPorts.length > 0;
+
+  const workspacePortMatches = useMemo(
+    () =>
+      workspaceGroups.reduce((total, group) => total + group.ports.length, 0),
+    [workspaceGroups]
+  );
+
+  const workspaceOpen = workspaceExpanded || isSearching;
+  const externalOpen = externalExpanded || isSearching;
+
+  const lastScanLabel =
+    lastScanStartedAt > 0 && !refreshing
+      ? formatScanClockTime(lastScanStartedAt, i18n.language)
+      : "";
 
   return (
     <div ref={triggerRef} className="flex h-full">
@@ -356,39 +447,41 @@ export const PortsStatusMenu: React.FC = memo(() => {
                       )}
                     </>
                   ) : (
-                    workspaceGroups.map((group) => (
-                      <React.Fragment key={group.folderId}>
-                        {group.ports.map((port) => (
-                          <PortRow
-                            key={port.id}
-                            port={port}
-                            onOpen={handleOpen}
-                            onCopy={handleCopy}
-                            onStop={handleStop}
-                            stopping={stoppingPortId === port.id}
-                          />
+                    <>
+                      <PortSectionHeader
+                        label={t("workstation.ports.workspaceSection")}
+                        count={workspacePortMatches}
+                        expanded={workspaceOpen}
+                        onToggle={toggleWorkspaceSection}
+                      />
+                      {workspaceOpen &&
+                        workspaceGroups.map((group) => (
+                          <React.Fragment key={group.folderId}>
+                            {group.ports.map((port) => (
+                              <PortRow
+                                key={port.id}
+                                port={port}
+                                onOpen={handleOpen}
+                                onCopy={handleCopy}
+                                onStop={handleStop}
+                                stopping={stoppingPortId === port.id}
+                              />
+                            ))}
+                          </React.Fragment>
                         ))}
-                      </React.Fragment>
-                    ))
+                    </>
                   )}
 
                   {externalPorts.length > 0 && (
                     <>
                       <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
-                      <button
-                        type="button"
-                        className={classNames(
-                          DROPDOWN_CLASSES.sectionLabel,
-                          "w-full cursor-pointer text-left"
-                        )}
-                        onClick={() => setExternalExpanded((value) => !value)}
-                      >
-                        {sectionLabelWithCount(
-                          t("workstation.ports.externalSection"),
-                          externalPorts.length
-                        )}
-                      </button>
-                      {(externalExpanded || isSearching) &&
+                      <PortSectionHeader
+                        label={t("workstation.ports.externalSection")}
+                        count={externalPorts.length}
+                        expanded={externalOpen}
+                        onToggle={toggleExternalSection}
+                      />
+                      {externalOpen &&
                         externalPorts.map((port) => (
                           <PortRow
                             key={port.id}
@@ -403,6 +496,43 @@ export const PortsStatusMenu: React.FC = memo(() => {
                     </>
                   )}
                 </>
+              )}
+            </div>
+
+            <div className={DROPDOWN_CLASSES.footerContainer}>
+              <button
+                type="button"
+                className={classNames(
+                  DROPDOWN_CLASSES.menuActionItem,
+                  "min-w-0 flex-1 disabled:cursor-default disabled:text-text-3"
+                )}
+                onClick={runScan}
+                disabled={refreshing}
+                title={t("workstation.ports.rescanTooltip")}
+                data-testid="ports-menu-rescan"
+              >
+                <HugeiconsIcon
+                  icon={Refresh04Icon}
+                  data-icon="refresh-cw"
+                  size={MENU_ICON_SIZE}
+                  className={refreshing ? REFRESH_ICON_TOKENS.spin : undefined}
+                  aria-hidden
+                />
+                <span className="truncate">
+                  {refreshing
+                    ? t("workstation.ports.rescanning")
+                    : t("workstation.ports.rescan")}
+                </span>
+              </button>
+              {lastScanLabel && (
+                <span
+                  className="shrink-0 text-[11px] tabular-nums text-text-3"
+                  title={t("workstation.ports.lastScannedAt", {
+                    time: lastScanLabel,
+                  })}
+                >
+                  {lastScanLabel}
+                </span>
               )}
             </div>
           </div>,

@@ -978,7 +978,11 @@
       "stopProcess": "停止进程",
       "searchPlaceholder": "搜索端口…",
       "noSearchResults": "没有匹配的端口",
-      "openAddress": "打开 {{address}}"
+      "openAddress": "打开 {{address}}",
+      "rescan": "重新扫描",
+      "rescanning": "扫描中…",
+      "rescanTooltip": "重新扫描正在监听的端口",
+      "lastScannedAt": "上次扫描于 {{time}}"
     },
     "ci": {
       "openPullRequest": "在 GitHub 中打开 Pull Request",

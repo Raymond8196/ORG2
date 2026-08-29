@@ -1129,7 +1129,11 @@
       "stopProcess": "停止程序",
       "searchPlaceholder": "搜尋連接埠…",
       "noSearchResults": "沒有符合的連接埠",
-      "openAddress": "開啟 {{address}}"
+      "openAddress": "開啟 {{address}}",
+      "rescan": "重新掃描",
+      "rescanning": "掃描中…",
+      "rescanTooltip": "重新掃描正在監聽的連接埠",
+      "lastScannedAt": "上次掃描於 {{time}}"
     },
     "noLanguageServicesActive": "沒有活躍的 Language Service",
     "linesSelected": "已選擇 {{count}} 行",

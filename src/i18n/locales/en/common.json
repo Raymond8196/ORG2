@@ -990,7 +990,11 @@
       "stopProcess": "Stop Process",
       "searchPlaceholder": "Search ports…",
       "noSearchResults": "No matching ports",
-      "openAddress": "Open {{address}}"
+      "openAddress": "Open {{address}}",
+      "rescan": "Rescan",
+      "rescanning": "Scanning…",
+      "rescanTooltip": "Scan for listening ports again",
+      "lastScannedAt": "Last scanned at {{time}}"
     },
     "ci": {
       "openPullRequest": "Open pull request on GitHub",
