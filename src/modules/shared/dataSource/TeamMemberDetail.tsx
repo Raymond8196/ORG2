@@ -19,9 +19,9 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import ModelIcon, { type IconProvider } from "@src/components/ModelIcon";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { Placeholder } from "@src/components/Placeholder";
 import ProgressBar from "@src/components/ProgressBar";
 import Select from "@src/components/Select";
@@ -245,9 +245,11 @@ export default function TeamMemberDetail({
       </div>
 
       <div className="flex items-center gap-3">
-        <Avatar size={40} src={entry.avatarUrl ?? undefined}>
-          {displayName.slice(0, 1).toUpperCase()}
-        </Avatar>
+        <PersonAvatar
+          size={40}
+          name={displayName}
+          src={entry.avatarUrl ?? undefined}
+        />
         <div className="min-w-0">
           <div className="truncate text-base font-semibold text-text-1">
             {displayName}

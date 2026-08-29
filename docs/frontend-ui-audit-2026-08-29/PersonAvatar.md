@@ -1,8 +1,9 @@
 # PersonAvatar UI audit
 
-Scope: the new shared `PersonAvatar` primitive and the conversation-surface
-avatar sites migrated onto it, plus the sidebar Inbox unread badge that moved
-from the row's trailing slot to the label's trailing edge.
+Scope: the new shared `PersonAvatar` primitive and every people-avatar site
+migrated onto it — the conversation surface first, then a full-repo sweep —
+plus the sidebar Inbox unread badge that moved from the row's trailing slot to
+the label's trailing edge.
 
 ## D1 — Raw HTML vs Design System
 
@@ -44,18 +45,35 @@ Removed by this change: the file-local `AVATAR_COLORS` palette in
 
 ## D5 — Repeated Visual / Structural Patterns
 
-| Line                            | Element                      | Verdict  | Reason                                                                                                                                                                                                                                                         | Suggested change                                                                                                                                                                                                   |
-| ------------------------------- | ---------------------------- | -------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| 5 sites (this change)           | Person avatar                | abstract | 5 occurrences, 4 mutually inconsistent treatments. Seam landed.                                                                                                                                                                                                | `src/components/PersonAvatar` — done.                                                                                                                                                                              |
-| 40 sites / 24 files             | Bare `<Avatar>` for a person | watch    | Outside the conversation surface, `<Avatar>` is still called directly with hand-derived initials and no `gradientSeed` — GitHub PR/issue panels, Project Manager, Channels, Kanban. Not all are people (some are repos/orgs), so a blind sweep would be wrong. | **Sweep candidate — not taken.** Needs a per-site people-vs-entity pass before migrating. Hotspots: `PrSidebar.tsx` (4), `AssigneePropertyField.tsx` (4), `PeopleTeamsLabelsFields.tsx` (3), `HistoryTab.tsx` (3). |
-| `NavigationMenuItem.labelBadge` | Label-adjacent count slot    | watch    | First consumer. `useProjectsWorkItemMenuItems/menuRows.tsx:361` and `cloudSessionsSection.rowItemBuilder.tsx:244` still use `trailingElement` for row-edge content, which is the correct slot for them.                                                        | Revisit if a second count badge appears.                                                                                                                                                                           |
+| Line                              | Element                  | Verdict          | Reason                                                                                                                                                                                                                               | Suggested change                                                                                    |
+| --------------------------------- | ------------------------ | ---------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------------- |
+| 50 sites / 32 files               | Person avatar            | abstract         | Was 4 mutually inconsistent treatments in the conversation alone, plus ~30 more sites calling `Avatar` directly with hand-derived initials and no identity seed, plus 4 hand-rolled `rounded-full` divs that never touched `Avatar`. | `src/components/PersonAvatar` — landed, and the sweep is complete.                                  |
+| `AvatarChip/index.tsx:80`         | `AvatarChip` avatar      | fix (done)       | The chip rendered a bare `Avatar` with a caller-supplied `avatarFallback` node, so each caller derived its own initial.                                                                                                              | `avatarFallback` replaced by `avatarName`; the chip renders `PersonAvatar`. Both consumers updated. |
+| `SidebarGuideButton.tsx:283`      | Setup-guide scope avatar | keep with reason | Not a person — `scopeLabel` is the active cloud org, or "Local workspace". A name-seeded identity gradient would assert a person who does not exist.                                                                                 | None.                                                                                               |
+| `TeamInboxList.tsx:380`           | PR author avatar         | keep with reason | Uses `hideOnError`: the contract is "render the photo or render nothing", the exact inverse of `PersonAvatar`, which always shows an identity.                                                                                       | None.                                                                                               |
+| `LaunchpadDashboardTiles.tsx:208` | Workspace tile initial   | keep with reason | Not a person — the initial is `repo.name`.                                                                                                                                                                                           | None.                                                                                               |
 
-Verdict totals: **5 fix (all applied)**, **9 keep with reason**, **1 abstract**, **2 watch**.
+Verdict totals: **44 fix (all applied)**, **12 keep with reason**, **1 abstract**, **0 watch**.
 
-## Sweep candidate not taken
+## What the sweep decided, per site class
 
-40 direct `<Avatar>` call sites across 24 files still bypass `PersonAvatar`.
-Migrating them is a config-level decision, not a silent per-site edit: several
-render non-human entities (repositories, organizations, agents) where a
-name-seeded identity gradient would be actively misleading. Raised here for the
-user to decide.
+The sweep was not mechanical — three classes needed a call:
+
+- **Domain identity colour (19 sites, Project Manager).** Members carry a
+  persisted `color` that group headers and status dots already render.
+  Dropping it for a name-seeded gradient would have made the avatar disagree
+  with the rest of that surface, so `PersonAvatar` grew a `color` prop instead.
+  It suppresses the gradient rather than sitting behind it: `bg-gradient-to-br`
+  paints a `background-image`, which an inline `background-color` cannot
+  override, so the two cannot coexist.
+- **Entities that merely look like people (3 sites).** Held out — an identity
+  gradient on an org, a repo, or an absent photo asserts something false.
+- **Everything else (28 sites).** Straight migration; each dropped its local
+  `charAt(0).toUpperCase()` / `slice(0, 1)` initial derivation.
+
+## Prop uniformity
+
+Every one of the 50 call sites passes the same shape: `name` always, plus
+`size`, and `src` / `color` / `fallback` only where the data exists. No site
+passes children, an inline `style`, or a pre-derived initial — those were the
+knobs that let the treatments drift apart in the first place.

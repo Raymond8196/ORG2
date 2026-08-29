@@ -17,6 +17,7 @@ import { useTranslation } from "react-i18next";
 import type { LinkedEmail, MemberEntry } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
 import { useRefreshSpin } from "@src/hooks/ui";
 import {
@@ -77,18 +78,12 @@ const MemberRowItem: React.FC<{
   const [editing, setEditing] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const avatar = member.avatar ? (
-    <img
-      src={member.avatar}
-      alt={member.name}
-      className={`h-7 w-7 flex-shrink-0 rounded-full ${variant === "inactive" ? "opacity-40 grayscale" : ""}`}
-    />
-  ) : (
-    <div
-      className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-fill-3 text-[11px] font-medium text-text-2 ${variant === "inactive" ? "opacity-40" : ""}`}
+  const avatar = (
+    <span
+      className={`inline-flex flex-shrink-0 ${variant === "inactive" ? "opacity-40 grayscale" : ""}`}
     >
-      {member.name.charAt(0).toUpperCase()}
-    </div>
+      <PersonAvatar name={member.name} src={member.avatar} size={28} />
+    </span>
   );
 
   const handleStartEdit = useCallback(() => {

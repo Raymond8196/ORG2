@@ -3,8 +3,8 @@ import React, { useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import { WORK_ITEM_HISTORY_ACTION } from "@src/api/http/project/types";
-import Avatar from "@src/components/Avatar";
 import { projectMarkdownSessionReferences } from "@src/components/MarkDown/sessionReferenceProjection";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import {
   Add01Icon,
@@ -157,20 +157,12 @@ function SingleTimelineEntry({
         header={
           <TimelineCardHeader
             avatar={
-              <Avatar
+              <PersonAvatar
                 size={18}
+                name={entry.userName}
                 src={actorVisual.avatar}
-                style={
-                  actorVisual.color
-                    ? {
-                        backgroundColor: actorVisual.color,
-                        color: "var(--color-text-white)",
-                      }
-                    : undefined
-                }
-              >
-                {entry.userName.charAt(0).toUpperCase()}
-              </Avatar>
+                color={actorVisual.color}
+              />
             }
             actor={entry.userName}
             action={t(

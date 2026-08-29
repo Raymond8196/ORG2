@@ -8,7 +8,7 @@
  */
 import React from "react";
 
-import Avatar from "@src/components/Avatar";
+import PersonAvatar from "@src/components/PersonAvatar";
 
 export interface GitHubFlowHeaderActor {
   login: string;
@@ -71,9 +71,11 @@ export function GitHubFlowHeader({
             title={actor?.login}
           >
             {actor ? (
-              <Avatar size={16} src={actor.avatarUrl}>
-                {actor.login.charAt(0).toUpperCase()}
-              </Avatar>
+              <PersonAvatar
+                size={16}
+                name={actor.login}
+                src={actor.avatarUrl}
+              />
             ) : null}
             <span className="max-w-[160px] truncate font-medium text-text-1">
               {actor?.login ?? unknownActorLabel}

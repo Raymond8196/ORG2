@@ -10,6 +10,7 @@ import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 
 import Message from "@src/components/Message";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
   discussionSeenCountsAtom,
@@ -194,9 +195,9 @@ export function useCloudSessionRowItemBuilder({
                 title={t("cloud.sidebar.viewerTooltip", {
                   name: viewer.displayName,
                 })}
-                className="inline-flex size-3.5 items-center justify-center rounded-full bg-success-6 text-[8px] font-semibold leading-none text-white ring-1 ring-bg-1"
+                className="inline-flex rounded-full ring-1 ring-bg-1"
               >
-                {(viewer.displayName || "?").slice(0, 1).toUpperCase()}
+                <PersonAvatar name={viewer.displayName} size={14} />
               </span>
             ))}
             {overflowViewers.length > 0 && (

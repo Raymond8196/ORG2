@@ -20,10 +20,10 @@ import type {
   GitHubReviewComment,
   PrReviewEvent,
 } from "@src/api/tauri/github";
-import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import ComposerSurface from "@src/components/ComposerSurface";
 import { projectMarkdownSessionReferences } from "@src/components/MarkDown/sessionReferenceProjection";
+import PersonAvatar from "@src/components/PersonAvatar";
 import Radio from "@src/components/Radio";
 import type { RadioValue } from "@src/components/Radio";
 import Textarea from "@src/components/Textarea";
@@ -360,7 +360,13 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                     copyBody={body}
                     header={
                       <TimelineCardHeader
-                        avatar={<Avatar size={18} src={author.avatarUrl} />}
+                        avatar={
+                          <PersonAvatar
+                            size={18}
+                            name={author.login || identity.title}
+                            src={author.avatarUrl}
+                          />
+                        }
                         actor={author.login || identity.title}
                         action={t(
                           "git.pr.activity.opened",
@@ -407,8 +413,9 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                             header={
                               <TimelineCardHeader
                                 avatar={
-                                  <Avatar
+                                  <PersonAvatar
                                     size={18}
+                                    name={comment.user.login}
                                     src={comment.user.avatar_url}
                                   />
                                 }
@@ -450,8 +457,9 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                           header={
                             <TimelineCardHeader
                               avatar={
-                                <Avatar
+                                <PersonAvatar
                                   size={18}
+                                  name={review.user.login}
                                   src={review.user.avatar_url}
                                 />
                               }

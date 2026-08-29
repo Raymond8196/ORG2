@@ -13,8 +13,8 @@ import { useTranslation } from "react-i18next";
 import type { GitCommitPerson } from "@src/api/http/git/types";
 import type { GitHubChecksSummary } from "@src/api/tauri/github";
 import AnyIcon from "@src/components/AnyIcon";
-import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { Placeholder } from "@src/components/Placeholder";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { useCopyCheck } from "@src/hooks/ui";
@@ -186,7 +186,6 @@ function PrCommitCard({
   const { copied, handleCopy } = useCopyCheck(copySha);
   const commitChecks = readCommitChecks(checks, commit.sha);
   const relativeTime = formatRelativeTime(commit.author.date, "long");
-  const actorInitial = commit.actor.login.trim().charAt(0).toUpperCase();
 
   return (
     <article className="group flex min-w-0 items-center overflow-hidden rounded-xl border border-border-1 bg-primary-container transition-colors hover:border-border-2">
@@ -210,9 +209,11 @@ function PrCommitCard({
           </span>
         ) : null}
         <span className="mt-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] text-text-3">
-          <Avatar size={18} src={commit.actor.avatarUrl}>
-            {actorInitial}
-          </Avatar>
+          <PersonAvatar
+            size={18}
+            name={commit.actor.login}
+            src={commit.actor.avatarUrl}
+          />
           <span className="font-medium text-text-2">{commit.actor.login}</span>
           <span>{t("git.pr.commits.committed", "committed")}</span>
           {commit.author.date ? (

@@ -1,7 +1,7 @@
 import { useState } from "react";
 
-import Avatar from "@src/components/Avatar";
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
 import { Option } from "@src/components/PropertyField/PropertyFieldEditable";
 import { HugeiconsIcon, UserCircleIcon } from "@src/icons";
@@ -78,9 +78,11 @@ export function WorkManagementAssigneeCell({
     currentOptions.map((option) => option.label).join(", ") || noneLabel;
   const firstAssignee = currentOptions[0];
   const triggerIcon = firstAssignee ? (
-    <Avatar size={24} src={firstAssignee.avatar}>
-      {firstAssignee.label.charAt(0).toUpperCase()}
-    </Avatar>
+    <PersonAvatar
+      size={24}
+      name={firstAssignee.label}
+      src={firstAssignee.avatar}
+    />
   ) : (
     <HugeiconsIcon
       icon={UserCircleIcon}
@@ -175,9 +177,11 @@ export function WorkManagementAssigneeCell({
                   }
                   dataTestId={`${dataTestId}-option-${option.id}`}
                 >
-                  <Avatar size={DROPDOWN_ITEM.iconSize} src={option.avatar}>
-                    {option.label.charAt(0).toUpperCase()}
-                  </Avatar>
+                  <PersonAvatar
+                    size={DROPDOWN_ITEM.iconSize}
+                    name={option.label}
+                    src={option.avatar}
+                  />
                   <span className="flex-1 truncate">{option.label}</span>
                 </Option>
               ))}

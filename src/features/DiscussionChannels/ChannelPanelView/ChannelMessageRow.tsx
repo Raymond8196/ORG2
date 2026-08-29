@@ -25,9 +25,9 @@ import { useSetAtom, useStore } from "jotai";
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import MarkDown from "@src/components/MarkDown";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { LocalSessionReferenceCard } from "@src/components/SessionReferenceCard";
 import Textarea from "@src/components/Textarea";
 import Tooltip from "@src/components/Tooltip";
@@ -259,9 +259,11 @@ const ChannelMessageRow: React.FC<ChannelMessageRowProps> = ({
     >
       <div className="w-7 shrink-0">
         {grouped ? null : (
-          <Avatar size={28} src={message.authorAvatarUrl}>
-            {displayAuthor.slice(0, 1).toUpperCase()}
-          </Avatar>
+          <PersonAvatar
+            size={28}
+            name={displayAuthor}
+            src={message.authorAvatarUrl}
+          />
         )}
       </div>
       <div className="relative flex min-w-0 flex-1 flex-col gap-0.5">

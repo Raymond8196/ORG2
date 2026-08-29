@@ -10,7 +10,7 @@
 import { type ReactNode, Suspense, lazy, memo, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
+import PersonAvatar from "@src/components/PersonAvatar";
 import Select from "@src/components/Select";
 import type {
   MemberRuntimeListEntry,
@@ -315,9 +315,11 @@ function TeamRuntimeToday({
                   }`}
                   data-testid={`team-runtime-member-usage-${member.userId}`}
                 >
-                  <Avatar size={28} src={member.avatarUrl ?? undefined}>
-                    {displayName.slice(0, 1).toUpperCase()}
-                  </Avatar>
+                  <PersonAvatar
+                    size={28}
+                    name={displayName}
+                    src={member.avatarUrl ?? undefined}
+                  />
                   <span className="min-w-0 flex-1 truncate text-sm text-text-2">
                     {displayName}
                   </span>
@@ -393,11 +395,11 @@ function TeamRuntimeToday({
                   className="flex w-full items-center gap-3 border-b border-border-1 px-4 py-3 text-left transition-colors last:border-b-0 hover:bg-fill-1"
                   data-testid={`team-runtime-recent-session-${session.id}`}
                 >
-                  <Avatar size={28} src={session.ownerAvatarUrl}>
-                    {(session.ownerDisplayName || "?")
-                      .slice(0, 1)
-                      .toUpperCase()}
-                  </Avatar>
+                  <PersonAvatar
+                    size={28}
+                    name={session.ownerDisplayName ?? ""}
+                    src={session.ownerAvatarUrl}
+                  />
                   <div className="min-w-0 flex-1">
                     <div className="truncate text-sm font-medium text-text-1">
                       {session.title || session.sourceSessionId}

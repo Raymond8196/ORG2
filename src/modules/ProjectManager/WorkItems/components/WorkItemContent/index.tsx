@@ -2,7 +2,7 @@ import { useAtomValue } from "jotai";
 import React, { useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
+import PersonAvatar from "@src/components/PersonAvatar";
 import TabPill from "@src/components/TabPill";
 import { useWorkItemImageInsert } from "@src/hooks/project";
 import { HugeiconsIcon, Pen01Icon, RepeatIcon } from "@src/icons";
@@ -303,20 +303,12 @@ const WorkItemContent: React.FC<WorkItemContentProps> = ({
           header={
             <TimelineCardHeader
               avatar={
-                <Avatar
+                <PersonAvatar
                   size={18}
+                  name={creatorName}
                   src={workItem.createdBy?.avatar}
-                  style={
-                    workItem.createdBy?.color
-                      ? {
-                          backgroundColor: workItem.createdBy.color,
-                          color: "var(--color-text-white)",
-                        }
-                      : undefined
-                  }
-                >
-                  {creatorName.charAt(0).toUpperCase()}
-                </Avatar>
+                  color={workItem.createdBy?.color}
+                />
               }
               actor={creatorName}
               action={

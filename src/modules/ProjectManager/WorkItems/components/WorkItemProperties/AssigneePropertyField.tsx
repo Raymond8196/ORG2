@@ -1,10 +1,10 @@
 import { useState } from "react";
 
-import Avatar from "@src/components/Avatar";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
 } from "@src/components/Dropdown/tokens";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
 import {
   type FieldRowVariant,
@@ -111,17 +111,12 @@ function renderAssigneeIcon(workItem: WorkItemExtended) {
     );
   }
   return (
-    <Avatar
+    <PersonAvatar
       size={DROPDOWN_ITEM.iconSize}
+      name={workItem.assignee.name}
       src={getAssigneeAvatarSrc(workItem)}
-      style={{
-        backgroundColor: workItem.assignee.color || "var(--color-fill-3)",
-        color: "var(--color-text-white)",
-        fontSize: "11px",
-      }}
-    >
-      {workItem.assignee.name.charAt(0).toUpperCase()}
-    </Avatar>
+      color={workItem.assignee.color}
+    />
   );
 }
 
@@ -137,9 +132,11 @@ function renderExternalAssigneeIcon(
       />
     );
   return (
-    <Avatar size={DROPDOWN_ITEM.iconSize} src={option.avatar}>
-      {option.label.charAt(0).toUpperCase()}
-    </Avatar>
+    <PersonAvatar
+      size={DROPDOWN_ITEM.iconSize}
+      name={option.label}
+      src={option.avatar}
+    />
   );
 }
 
@@ -275,9 +272,11 @@ export function AssigneePropertyField({
                     }
                     dataTestId={`work-item-property-assignee-${workItem.session_id}-option-${option.id}`}
                   >
-                    <Avatar size={DROPDOWN_ITEM.iconSize} src={option.avatar}>
-                      {option.label.charAt(0).toUpperCase()}
-                    </Avatar>
+                    <PersonAvatar
+                      size={DROPDOWN_ITEM.iconSize}
+                      name={option.label}
+                      src={option.avatar}
+                    />
                     <span className="flex-1 truncate">{option.label}</span>
                   </Option>
                 ))}
@@ -347,17 +346,12 @@ export function AssigneePropertyField({
                 label={person.name}
                 onClick={() => select(person)}
               >
-                <Avatar
+                <PersonAvatar
                   size={DROPDOWN_ITEM.iconSize}
+                  name={person.name}
                   src={person.avatar}
-                  style={{
-                    backgroundColor: person.color || "var(--color-fill-3)",
-                    color: "var(--color-text-white)",
-                    fontSize: "11px",
-                  }}
-                >
-                  {person.name.charAt(0).toUpperCase()}
-                </Avatar>
+                  color={person.color}
+                />
                 <span className="flex-1 truncate">{person.name}</span>
               </Option>
             ))}

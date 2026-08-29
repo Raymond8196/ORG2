@@ -4,11 +4,11 @@
  */
 import React from "react";
 
-import Avatar from "@src/components/Avatar";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
 } from "@src/components/Dropdown/tokens";
+import PersonAvatar from "@src/components/PersonAvatar";
 import {
   FieldRow,
   type FieldRowVariant,
@@ -88,17 +88,12 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
         <FieldRow
           icon={
             project.lead ? (
-              <Avatar
+              <PersonAvatar
                 size={DROPDOWN_ITEM.iconSize}
+                name={project.lead.name}
                 src={project.lead.avatar}
-                style={{
-                  backgroundColor: project.lead.color || "var(--color-fill-3)",
-                  color: "var(--color-text-white)",
-                  fontSize: "11px",
-                }}
-              >
-                {project.lead.name.charAt(0).toUpperCase()}
-              </Avatar>
+                color={project.lead.color}
+              />
             ) : (
               <HugeiconsIcon
                 icon={UserIcon}
@@ -150,18 +145,12 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                       label={person.name}
                       onClick={() => handleLeadChange(person)}
                     >
-                      <Avatar
+                      <PersonAvatar
                         size={DROPDOWN_ITEM.iconSize}
+                        name={person.name}
                         src={person.avatar}
-                        style={{
-                          backgroundColor:
-                            person.color || "var(--color-fill-3)",
-                          color: "var(--color-text-white)",
-                          fontSize: "11px",
-                        }}
-                      >
-                        {person.name.charAt(0).toUpperCase()}
-                      </Avatar>
+                        color={person.color}
+                      />
                       <span className="flex-1 truncate">{person.name}</span>
                     </Option>
                   ))}
@@ -227,17 +216,12 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                     label={person.name}
                     onClick={() => handleMemberToggle(person)}
                   >
-                    <Avatar
+                    <PersonAvatar
                       size={DROPDOWN_ITEM.iconSize}
+                      name={person.name}
                       src={person.avatar}
-                      style={{
-                        backgroundColor: person.color || "var(--color-fill-3)",
-                        color: "var(--color-text-white)",
-                        fontSize: "11px",
-                      }}
-                    >
-                      {person.name.charAt(0).toUpperCase()}
-                    </Avatar>
+                      color={person.color}
+                    />
                     <span className="flex-1 truncate">{person.name}</span>
                   </Option>
                 );

@@ -11,6 +11,7 @@ import { useTranslation } from "react-i18next";
 
 import type { MemberEntry } from "@src/api/http/project";
 import Button from "@src/components/Button";
+import PersonAvatar from "@src/components/PersonAvatar";
 import Switch from "@src/components/Switch";
 import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
 import {
@@ -112,19 +113,15 @@ const MembersSection: React.FC<MembersSectionProps> = ({
               const isAssigned = projectMemberIds.has(member.id);
               return (
                 <div key={member.id} className="flex items-center gap-2 py-2">
-                  {member.avatar ? (
-                    <img
+                  <span
+                    className={`inline-flex flex-shrink-0 ${!isAssigned ? "opacity-40 grayscale" : ""}`}
+                  >
+                    <PersonAvatar
+                      name={member.name}
                       src={member.avatar}
-                      alt={member.name}
-                      className={`h-7 w-7 flex-shrink-0 rounded-full ${!isAssigned ? "opacity-40 grayscale" : ""}`}
+                      size={28}
                     />
-                  ) : (
-                    <div
-                      className={`flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-fill-3 text-[11px] font-medium text-text-2 ${!isAssigned ? "opacity-40" : ""}`}
-                    >
-                      {member.name.charAt(0).toUpperCase()}
-                    </div>
-                  )}
+                  </span>
                   <div className="min-w-0 flex-1">
                     <div
                       className={`text-[14px] font-semibold ${isAssigned ? "text-text-1" : "text-text-3"}`}

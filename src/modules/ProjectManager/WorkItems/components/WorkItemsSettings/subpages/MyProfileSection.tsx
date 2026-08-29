@@ -16,6 +16,7 @@ import { useTranslation } from "react-i18next";
 import type { LinkedEmail, MemberEntry } from "@src/api/http/project";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { createLogger } from "@src/hooks/logger";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
 import {
@@ -106,17 +107,9 @@ const SuggestedMatchRow: React.FC<{
 
   return (
     <div className="flex items-center gap-2 py-2">
-      {member.avatar ? (
-        <img
-          src={member.avatar}
-          alt={member.name}
-          className="h-7 w-7 flex-shrink-0 rounded-full opacity-60"
-        />
-      ) : (
-        <div className="flex h-7 w-7 flex-shrink-0 items-center justify-center rounded-full bg-fill-3 text-[11px] font-medium text-text-2 opacity-60">
-          {member.name.charAt(0).toUpperCase()}
-        </div>
-      )}
+      <span className="inline-flex flex-shrink-0 opacity-60">
+        <PersonAvatar name={member.name} src={member.avatar} size={28} />
+      </span>
       <div className="min-w-0 flex-1">
         <div className="text-[14px] text-text-1">{member.email}</div>
         <div className={SECTION_DESCRIPTION_CLASSES}>

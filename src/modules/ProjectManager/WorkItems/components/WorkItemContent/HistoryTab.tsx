@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
-import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import ComposerShell from "@src/components/ComposerShell";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import {
@@ -154,17 +154,12 @@ const DiscussionThreads: React.FC<DiscussionThreadsProps> = ({
                     data-testid={`work-item-discussion-comment-${comment.id}`}
                   >
                     <div className="mb-2 flex items-center gap-2">
-                      <Avatar
+                      <PersonAvatar
                         size={22}
+                        name={author.name}
                         src={author.avatar}
-                        style={{
-                          backgroundColor:
-                            author.color || "var(--color-fill-3)",
-                          color: "var(--color-text-white)",
-                        }}
-                      >
-                        {author.name.charAt(0).toUpperCase()}
-                      </Avatar>
+                        color={author.color}
+                      />
                       <span className="min-w-0 flex-1 truncate text-sm font-medium text-text-1">
                         {author.name}
                       </span>
@@ -375,16 +370,12 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
 
   const composer = isThread ? (
     <div className="flex items-start gap-2.5">
-      <Avatar
+      <PersonAvatar
         size={28}
+        name={currentUser.name}
         src={currentUser.avatar}
-        style={{
-          backgroundColor: currentUser.color || "var(--color-fill-3)",
-          color: "var(--color-text-white)",
-        }}
-      >
-        {currentUser.name.charAt(0).toUpperCase()}
-      </Avatar>
+        color={currentUser.color}
+      />
       <div className="flex min-w-0 flex-1 flex-col gap-1.5">
         {replyToCommentId ? (
           <div
@@ -580,16 +571,12 @@ const HistoryTab: React.FC<HistoryTabProps> = ({
       >
         <div className="flex items-center gap-3">
           {subscriptionControl}
-          <Avatar
+          <PersonAvatar
             size={24}
+            name={currentUser.name}
             src={currentUser.avatar}
-            style={{
-              backgroundColor: currentUser.color || "var(--color-fill-3)",
-              color: "var(--color-text-white)",
-            }}
-          >
-            {currentUser.name.charAt(0).toUpperCase()}
-          </Avatar>
+            color={currentUser.color}
+          />
         </div>
       </div>
 

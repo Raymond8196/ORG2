@@ -154,6 +154,7 @@ export const NewIssueForm: React.FC<NewIssueFormProps> = memo(
                     variant="selectable"
                     selected={isSelected}
                     avatarSize={14}
+                    avatarName={user.login}
                     avatarSrc={user.avatar_url}
                     label={user.login}
                     className={TYPOGRAPHY.secondary}

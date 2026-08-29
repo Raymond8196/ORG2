@@ -14,8 +14,8 @@ import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { GitHubReviewComment } from "@src/api/tauri/github";
-import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
+import PersonAvatar from "@src/components/PersonAvatar";
 import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import {
   ArrowDown01Icon,
@@ -124,7 +124,11 @@ function ReviewThread({
       <div className="flex flex-col gap-3 px-3 py-3">
         {thread.comments.map((comment) => (
           <div key={comment.id} className="flex min-w-0 gap-2">
-            <Avatar size={18} src={comment.user.avatar_url} />
+            <PersonAvatar
+              size={18}
+              name={comment.user.login}
+              src={comment.user.avatar_url}
+            />
             <div className="min-w-0 flex-1">
               <div className="mb-0.5 truncate text-[11px] text-text-3">
                 <span className="font-medium text-text-1">
