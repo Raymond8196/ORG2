@@ -147,22 +147,6 @@
   },
   "membership": {
     "you": "你",
-    "tierStatus": "{{tier}} 狀態",
-    "qualifyingSessions": "合格會話",
-    "qualifyingExplainer": "基於您近 90 天的活動",
-    "zeroSessionsHint": "開始一個會話以獲得等級進度。每個超過 $1.00 的會話都會計入您的會員等級。",
-    "benefitsAndTiers": "權益與等級",
-    "howItWorks": "如何運作",
-    "howStep1": "近 90 天內完成的 session 計入等級進度",
-    "howStep2": "累積合格會話以解鎖更高等級，享受更好的定價和福利",
-    "howStep3": "等級基於終身合格會話數 — 永不重置",
-    "benefitsOf": "{{tier}} 的權益",
-    "nextTier": "下一等級 — 還需 {{count}} 個會話",
-    "nextTierCredits": "下一等級 — 還需 {{amount}}",
-    "backToOverview": "返回錢包概覽",
-    "windowCredits": "credits（近 90 天）",
-    "limitReached": "本月額度已用完",
-    "sessionsRemaining": "本月還剩 {{count}} 次",
     "unavailable": "會員數據不可用"
   },
   "market": {
@@ -413,23 +397,7 @@
   },
   "usageHistory": {
     "title": "數據分析",
-    "allModels": "所有模型",
-    "uses": "次使用",
-    "trends": "趨勢",
-    "noTransactions": "未找到交易記錄",
-    "roundDetail": "Round {{index}}",
-    "inputTokens": "輸入",
-    "outputTokens": "輸出",
-    "cacheWriteTokens": "Cache write {{count}}",
-    "cacheReadTokens": "Cache read {{count}}",
-    "noRoundData": "無 Round 級別數據",
-    "colDate": "日期",
-    "colAgent": "Agent",
-    "colTokens": "Token",
-    "colSource": "來源",
-    "colName": "名稱",
-    "colModel": "模型",
-    "memberMe": "我"
+    "inputTokens": "輸入"
   },
   "earnings": {
     "creditEarnings": "Credit 收益",
@@ -522,16 +490,7 @@
     }
   },
   "marketModelSelector": {
-    "regional": "區域",
-    "regionalPricing": "區域定價",
     "global": "全球",
-    "globalPricing": "全球定價",
-    "goldRequired": "需要 Gold+ 會員才能選擇全球定價",
-    "selectAgent": "選擇 Agent",
-    "selectModel": "選擇模型",
-    "selectTier": "選擇等級",
-    "allTaken": "已全部佔用",
-    "officialPriceRange": "官方價格的 {{min}}% – {{max}}%",
     "tiers": {
       "vip": {
         "label": "VIP",
@@ -554,11 +513,6 @@
   "orgiiOrchestrator": {
     "name": "ORGII Pool",
     "description": "統一 Credit 定價的託管模型池",
-    "recommended": "推薦",
-    "directAgents": "直連 Agent",
-    "agentDesc": "自動路由到最優模型，統一 Credit 定價",
-    "creditRange": "{{min}} – {{max}} credits/MTok",
-    "plusMore": "+ {{count}} 個更多",
     "turbo": {
       "name": "Turbo",
       "description": "適用於自動補全和快速編輯的快速模型"
@@ -574,82 +528,26 @@
   },
   "modelConfig": {
     "title": "模型配置",
-    "yourModels": "模型",
-    "proMaxProxyDisabled": "代理列表不可使用",
-    "noModels": "未檢測到此賬戶的模型",
-    "publishOptions": "發佈選項",
-    "directListing": "直接列表",
-    "directListingDesc": "自定價格，自主控制每個模型的定價。",
-    "joinPool": "加入 ORGII 共享池",
-    "joinPoolDesc": "統一定價，更多流量。將模型加入共享池。",
-    "pricing": "定價",
-    "pricingHint": "爲每個啓用的模型設置每 1M Token 的輸入/輸出價格",
-    "poolModels": "共享池模型",
-    "poolModelsHint": "選擇要貢獻到 ORGII 共享池的模型",
-    "publish": "發佈",
-    "publishingTitle": "發佈設置",
-    "poolOnlyTitle": "{{count}} 個模型僅可通過 ORGII Pool 出售",
-    "poolOnlyDesc": "這些高端模型無法通過代理賬戶直接上架。將它們加入 ORGII Pool，每次請求路由到你時即可獲得收益。",
-    "poolOnlyBadge": "僅限 Pool",
-    "allModelsPoolOnly": "你的所有模型都屬於高端層級，只能通過 ORGII Pool 出售 — 在下方啓用即可開始賺取收益。",
-    "poolOptInDesc": "將模型貢獻到共享池，賺取更多收益",
-    "poolBenefits": "ORGII Pool 將所有消費者的流量路由到最佳可用提供者。你無需定價即可獲得自動需求 — 按請求固定費率結算，零推廣成本。大多數提供者通過 Pool 獲得 2-3 倍的使用量。"
+    "publish": "發佈"
   },
   "providerOnboarding": {
-    "providerProfile": "Provider Profile",
-    "becomeProvider": "成爲 Provider",
-    "checkingExisting": "正在檢查現有 Provider...",
-    "linkExpired": "鏈接已過期，正在生成新鏈接...",
-    "providerNotCreated": "Provider 未創建，請重試。",
-    "failedToVerify": "驗證 Provider 失敗，請刷新。",
-    "providerIdMissing": "缺少 Provider ID，請先完成註冊。",
-    "noUrlReturned": "API 未返回 URL",
-    "providerIdNotFound": "未找到 Provider ID",
-    "noUpdateLink": "未返回更新鏈接",
     "form": {
-      "providerName": "Provider Name",
       "email": "Email",
-      "websiteUrl": "網站 URL",
-      "providerNamePlaceholder": "輸入 Provider 名稱",
-      "nameRequired": "名稱爲必填項",
-      "emailRequired": "Email 爲必填項",
-      "invalidEmail": "Email 格式無效",
-      "invalidUrl": "URL 格式無效（必須以 http:// 或 https:// 開頭）",
-      "quickFill": "快速填充",
-      "stepIndicator": "步驟 {{step}}/2",
-      "editDetails": "編輯 Provider 詳情",
-      "registerAsProvider": "註冊爲 Provider",
       "submitting": "提交中...",
       "continue": "繼續"
     },
-    "providerInformation": "Provider Information",
     "stripe": {
       "starting": "啓動中...",
-      "startSetup": "開始 Stripe 設置",
-      "processingCompletion": "處理完成中...",
-      "verifyingSetup": "正在驗證您的 Stripe 賬戶設置",
-      "loadingOnboarding": "正在加載 Stripe 入駐...",
-      "onboardingComplete": "Stripe 入駐已完成",
-      "completeFormAbove": "完成上方表單以完成 Stripe 設置",
-      "connectStripeAccount": "連接 Stripe 賬戶",
       "complete": "已完成",
       "inProgress": "進行中",
       "pending": "待處理"
     },
     "complete": {
       "title": "註冊完成！",
-      "description": "您的 Provider 賬戶已設置，Stripe 入駐已完成。您現在可以創建列表並開始賺取收入。",
-      "createFirstListing": "創建您的第一個列表",
-      "viewAccount": "查看賬戶"
+      "description": "您的 Provider 賬戶已設置，Stripe 入駐已完成。您現在可以創建列表並開始賺取收入。"
     },
     "account": {
-      "title": "Provider Account",
-      "loadingInfo": "正在加載賬戶信息...",
-      "unableToLoad": "無法加載 Provider 信息",
-      "viewEarnings": "查看收益",
-      "createListing": "創建列表",
-      "browseMarketplace": "瀏覽市場",
-      "completeStripeSetup": "完成 Stripe 設置"
+      "title": "Provider Account"
     },
     "status": {
       "title": "賬戶狀態",
@@ -660,29 +558,17 @@
       "pending": "待處理",
       "payouts": "付款",
       "enabled": "已啓用",
-      "disabled": "已禁用",
-      "charges": "收款",
-      "payoutsDisabled": "付款已禁用",
-      "chargesDisabled": "收款已禁用",
-      "payoutsDisabledDesc": "要接收付款，請在 Stripe Dashboard 中添加銀行賬戶並完成身份驗證。",
-      "chargesDisabledDesc": "在 Stripe 中完成賬戶設置以接受付款。"
+      "disabled": "已禁用"
     },
     "info": {
       "title": "Provider Information",
       "name": "名稱",
-      "email": "Email",
-      "website": "網站"
+      "email": "Email"
     },
     "payment": {
       "title": "支付設置",
       "description": "在 Stripe Dashboard 中添加銀行賬戶、設置付款計劃並完成稅務信息。",
-      "completeVerification": "完成驗證",
-      "verificationDesc": "完成身份驗證並添加銀行賬戶以啓用付款。",
-      "fullyVerified": "您的賬戶已完全驗證！",
-      "payoutsSentTo": "付款和稅務文件將發送至：",
-      "loading": "加載中...",
-      "manageStripeAccount": "管理 Stripe 賬戶",
-      "manageDesc": "更新銀行賬戶、查看付款並管理支付設置。"
+      "loading": "加載中..."
     },
     "dashboard": {
       "title": "Stripe Dashboard",

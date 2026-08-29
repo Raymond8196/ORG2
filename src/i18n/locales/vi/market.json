@@ -147,22 +147,6 @@
   },
   "membership": {
     "you": "Bạn",
-    "tierStatus": "Trạng thái {{tier}}",
-    "qualifyingSessions": "Phiên Đủ điều kiện",
-    "qualifyingExplainer": "Dựa trên hoạt động 90 ngày gần đây của bạn",
-    "zeroSessionsHint": "Bắt đầu một phiên để bắt đầu tích lũy tiến trình cấp bậc. Mỗi phiên trên $1.00 được tính vào cấp bậc thành viên của bạn.",
-    "benefitsAndTiers": "Quyền lợi & Cấp bậc",
-    "howItWorks": "Cách hoạt động",
-    "howStep1": "Các phiên hoàn thành trong 90 ngày qua được tính vào tiến trình cấp bậc",
-    "howStep2": "Tích lũy phiên đủ điều kiện để mở khóa cấp bậc cao hơn với giá tốt hơn và nhiều quyền lợi hơn",
-    "howStep3": "Cấp bậc dựa trên tổng số phiên đủ điều kiện trọn đời — không bao giờ bị đặt lại",
-    "benefitsOf": "Quyền lợi của {{tier}}",
-    "nextTier": "Cấp bậc tiếp theo — còn {{count}} phiên nữa",
-    "nextTierCredits": "Cấp bậc tiếp theo — còn {{amount}} nữa",
-    "backToOverview": "Quay lại Tổng quan Ví",
-    "windowCredits": "credits (90 ngày qua)",
-    "limitReached": "Đã đạt giới hạn tháng",
-    "sessionsRemaining": "Còn {{count}} phiên trong tháng",
     "unavailable": "Dữ liệu thành viên không khả dụng"
   },
   "market": {
@@ -413,23 +397,7 @@
   },
   "usageHistory": {
     "title": "Phân tích",
-    "allModels": "Tất cả mô hình",
-    "uses": "lượt dùng",
-    "trends": "Xu hướng",
-    "noTransactions": "Không tìm thấy giao dịch.",
-    "roundDetail": "Round {{index}}",
-    "inputTokens": "Input",
-    "outputTokens": "Output",
-    "cacheWriteTokens": "Cache write {{count}}",
-    "cacheReadTokens": "Cache read {{count}}",
-    "noRoundData": "Không có dữ liệu theo round",
-    "colDate": "Ngày",
-    "colAgent": "Agent",
-    "colTokens": "Token",
-    "colSource": "Nguồn",
-    "colName": "Tên",
-    "colModel": "Mô hình",
-    "memberMe": "Tôi"
+    "inputTokens": "Input"
   },
   "earnings": {
     "creditEarnings": "Thu nhập Credit",
@@ -522,16 +490,7 @@
     }
   },
   "marketModelSelector": {
-    "regional": "Khu vực",
-    "regionalPricing": "Giá khu vực",
     "global": "Toàn cầu",
-    "globalPricing": "Giá toàn cầu",
-    "goldRequired": "Cần tư cách thành viên Gold+ để chọn giá toàn cầu",
-    "selectAgent": "Chọn Agent",
-    "selectModel": "Chọn mô hình",
-    "selectTier": "Chọn cấp độ",
-    "allTaken": "Đã hết",
-    "officialPriceRange": "{{min}}% – {{max}}% giá chính thức",
     "tiers": {
       "vip": {
         "label": "VIP",
@@ -554,11 +513,6 @@
   "orgiiOrchestrator": {
     "name": "ORGII Pool",
     "description": "Nhóm mô hình được quản lý với giá Credit cố định",
-    "recommended": "Đề xuất",
-    "directAgents": "Agent trực tiếp",
-    "agentDesc": "Tự động định tuyến đến mô hình tối ưu với giá Credit cố định",
-    "creditRange": "{{min}} – {{max}} credits/MTok",
-    "plusMore": "+ {{count}} nữa",
     "turbo": {
       "name": "Turbo",
       "description": "Mô hình nhanh cho tự động hoàn thành và chỉnh sửa nhanh"
@@ -574,82 +528,26 @@
   },
   "modelConfig": {
     "title": "Cấu hình mô hình",
-    "yourModels": "Mô hình",
-    "proMaxProxyDisabled": "Không khả dụng cho danh sách proxy",
-    "noModels": "Không phát hiện mô hình nào cho tài khoản này",
-    "publishOptions": "Tùy chọn xuất bản",
-    "directListing": "Danh sách trực tiếp",
-    "directListingDesc": "Giá của bạn, danh sách của bạn. Toàn quyền kiểm soát giá theo từng mô hình.",
-    "joinPool": "Tham gia ORGII Pool",
-    "joinPoolDesc": "Giá cố định, nhiều lưu lượng hơn. Đưa mô hình vào pool chung.",
-    "pricing": "Định giá",
-    "pricingHint": "Đặt giá đầu vào/đầu ra cho mỗi 1M Token cho từng mô hình đã bật",
-    "poolModels": "Mô hình pool",
-    "poolModelsHint": "Chọn mô hình để đóng góp vào pool chung ORGII",
-    "publish": "Xuất bản",
-    "publishingTitle": "Xuất bản",
-    "poolOnlyTitle": "{{count}} mô hình chỉ có thể bán qua ORGII Pool",
-    "poolOnlyDesc": "Các mô hình cao cấp này không thể được liệt kê trực tiếp từ tài khoản proxy. Tham gia ORGII Pool để kiếm thu nhập từ mỗi yêu cầu được chuyển đến bạn.",
-    "poolOnlyBadge": "Chỉ Pool",
-    "allModelsPoolOnly": "Tất cả mô hình của bạn đều thuộc hạng cao cấp. Chúng chỉ có thể được bán qua ORGII Pool — bật tính năng bên dưới để bắt đầu kiếm tiền.",
-    "poolOptInDesc": "Kiếm thêm bằng cách đóng góp mô hình vào pool chung",
-    "poolBenefits": "ORGII Pool chuyển hướng lưu lượng từ tất cả người dùng đến nhà cung cấp tốt nhất hiện có. Bạn nhận được nhu cầu tự động mà không cần đặt giá — thanh toán cố định theo yêu cầu, không cần nỗ lực tiếp thị. Hầu hết nhà cung cấp thấy lượng sử dụng tăng 2-3 lần qua pool."
+    "publish": "Xuất bản"
   },
   "providerOnboarding": {
     "account": {
-      "loadingInfo": "Đang tải thông tin tài khoản...",
-      "unableToLoad": "Không thể tải thông tin Provider",
-      "title": "Provider Account",
-      "viewEarnings": "View Earnings",
-      "createListing": "Create Listing",
-      "browseMarketplace": "Browse Marketplace",
-      "completeStripeSetup": "Complete Stripe Setup"
+      "title": "Provider Account"
     },
-    "providerProfile": "Provider Profile",
-    "becomeProvider": "Become a Provider",
-    "checkingExisting": "Checking existing provider...",
-    "linkExpired": "Your link expired. Generating new link...",
-    "providerNotCreated": "Provider not created. Please try again.",
-    "failedToVerify": "Failed to verify provider. Please refresh.",
-    "providerIdMissing": "Provider ID is missing. Please complete registration first.",
-    "noUrlReturned": "No URL returned from API",
-    "providerIdNotFound": "Provider ID not found",
-    "noUpdateLink": "No update link returned",
     "form": {
-      "providerName": "Provider Name",
       "email": "Email",
-      "websiteUrl": "Website URL",
-      "providerNamePlaceholder": "Enter provider name",
-      "nameRequired": "Name is required",
-      "emailRequired": "Email is required",
-      "invalidEmail": "Invalid email format",
-      "invalidUrl": "Invalid URL format (must start with http:// or https://)",
-      "quickFill": "Quick Fill",
-      "stepIndicator": "Step {{step}}/2",
-      "editDetails": "Edit your provider details",
-      "registerAsProvider": "Register as a provider",
       "submitting": "Submitting...",
       "continue": "Continue"
     },
-    "providerInformation": "Provider Information",
     "stripe": {
       "starting": "Starting...",
-      "startSetup": "Start Stripe Setup",
-      "processingCompletion": "Processing completion...",
-      "verifyingSetup": "Verifying your Stripe account setup",
-      "loadingOnboarding": "Loading Stripe onboarding...",
-      "onboardingComplete": "Stripe onboarding complete",
-      "completeFormAbove": "Complete the form above to finish Stripe setup",
-      "connectStripeAccount": "Connect Stripe Account",
       "complete": "Complete",
       "inProgress": "In Progress",
       "pending": "Pending"
     },
     "complete": {
       "title": "Registration Complete!",
-      "description": "Your provider account is set up and Stripe onboarding is complete. You can now create listings and start earning.",
-      "createFirstListing": "Create Your First Listing",
-      "viewAccount": "View Account"
+      "description": "Your provider account is set up and Stripe onboarding is complete. You can now create listings and start earning."
     },
     "status": {
       "title": "Account Status",
@@ -660,29 +558,17 @@
       "pending": "Pending",
       "payouts": "Payouts",
       "enabled": "Enabled",
-      "disabled": "Disabled",
-      "charges": "Charges",
-      "payoutsDisabled": "Payouts Disabled",
-      "chargesDisabled": "Charges Disabled",
-      "payoutsDisabledDesc": "To receive payments, add your bank account and complete identity verification in your Stripe Dashboard.",
-      "chargesDisabledDesc": "Complete your account setup in Stripe to accept payments."
+      "disabled": "Disabled"
     },
     "info": {
       "title": "Provider Information",
       "name": "Name",
-      "email": "Email",
-      "website": "Website"
+      "email": "Email"
     },
     "payment": {
       "title": "Payment Settings",
       "description": "Add your bank account, set up payout schedule, and complete tax information in your Stripe Dashboard.",
-      "completeVerification": "Complete Verification",
-      "verificationDesc": "Complete identity verification and add bank account to enable payouts.",
-      "fullyVerified": "Your account is fully verified!",
-      "payoutsSentTo": "Payouts and tax documents will be sent to:",
-      "loading": "Loading...",
-      "manageStripeAccount": "Manage Stripe Account",
-      "manageDesc": "Update bank account, view payouts, and manage your payment settings."
+      "loading": "Loading..."
     },
     "dashboard": {
       "title": "Stripe Dashboard",

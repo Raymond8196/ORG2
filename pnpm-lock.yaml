@@ -61,9 +61,6 @@ importers:
       '@codemirror/legacy-modes':
         specifier: ^6.5.3
         version: 6.5.3
-      '@codemirror/lint':
-        specifier: ^6.9.2
-        version: 6.9.5
       '@codemirror/merge':
         specifier: ^6.11.2
         version: 6.12.1
@@ -232,9 +229,6 @@ importers:
       mermaid:
         specifier: ^10.9.5
         version: 10.9.5
-      nanoid:
-        specifier: ^5.1.11
-        version: 5.1.11
       papaparse:
         specifier: ^5.5.3
         version: 5.5.3
@@ -5429,6 +5423,7 @@ packages:
 
   libsql@0.5.22:
     resolution: {integrity: sha512-NscWthMQt7fpU8lqd7LXMvT9pi+KhhmTHAJWUB/Lj6MWa0MKFv0F2V4C6WKKpjCVZl0VwcDz4nOI3CyaT1DDiA==}
+    cpu: [x64, arm64, wasm32, arm]
     os: [darwin, linux, win32]
 
   lie@3.3.0:
@@ -6026,11 +6021,6 @@ packages:
   nanoid@3.3.12:
     resolution: {integrity: sha512-ZB9RH/39qpq5Vu6Y+NmUaFhQR6pp+M2Xt76XBnEwDaGcVAqhlvxrl3B2bKS5D3NH3QR76v3aSrKaF/Kiy7lEtQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
-    hasBin: true
-
-  nanoid@5.1.11:
-    resolution: {integrity: sha512-v+KEsUv2ps74PaSKv0gHTxTCgMXOIfBEbaqa6w6ISIGC7ZsvHN4N9oJ8d4cmf0n5oTzQz2SLmThbQWhjd/8eKg==}
-    engines: {node: ^18 || >=20}
     hasBin: true
 
   natural-compare@1.4.0:
@@ -14770,8 +14760,6 @@ snapshots:
   nanoid@3.3.11: {}
 
   nanoid@3.3.12: {}
-
-  nanoid@5.1.11: {}
 
   natural-compare@1.4.0: {}
 

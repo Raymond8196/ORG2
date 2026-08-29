@@ -147,22 +147,6 @@
   },
   "membership": {
     "you": "あなた",
-    "tierStatus": "{{tier}} ステータス",
-    "qualifyingSessions": "対象セッション",
-    "qualifyingExplainer": "過去90日間のアクティビティに基づく",
-    "zeroSessionsHint": "セッションを開始してティア進捗を獲得しましょう。$1.00 を超える各セッションがメンバーシップティアにカウントされます。",
-    "benefitsAndTiers": "特典とティア",
-    "howItWorks": "仕組み",
-    "howStep1": "過去90日間に完了したセッションがティア進捗にカウントされます",
-    "howStep2": "対象セッションを蓄積して、より良い価格と特典のある上位ティアをアンロック",
-    "howStep3": "ティアは生涯の対象セッション数に基づきます — リセットされません",
-    "benefitsOf": "{{tier}} の特典",
-    "nextTier": "次のティア — あと {{count}} 回のセッション",
-    "nextTierCredits": "次のティア — あと {{amount}}",
-    "backToOverview": "ウォレット概要に戻る",
-    "windowCredits": "credits（過去90日間）",
-    "limitReached": "月間上限に達しました",
-    "sessionsRemaining": "今月残り {{count}} 回",
     "unavailable": "メンバーシップデータを利用できません"
   },
   "market": {
@@ -413,23 +397,7 @@
   },
   "usageHistory": {
     "title": "分析",
-    "allModels": "すべてのモデル",
-    "uses": "回使用",
-    "trends": "トレンド",
-    "noTransactions": "取引が見つかりません。",
-    "roundDetail": "Round {{index}}",
-    "inputTokens": "Input",
-    "outputTokens": "Output",
-    "cacheWriteTokens": "Cache write {{count}}",
-    "cacheReadTokens": "Cache read {{count}}",
-    "noRoundData": "Round 別のデータなし",
-    "colDate": "日付",
-    "colAgent": "Agent",
-    "colTokens": "Token",
-    "colSource": "ソース",
-    "colName": "名前",
-    "colModel": "モデル",
-    "memberMe": "自分"
+    "inputTokens": "Input"
   },
   "earnings": {
     "creditEarnings": "Credit 収益",
@@ -522,16 +490,7 @@
     }
   },
   "marketModelSelector": {
-    "regional": "リージョン",
-    "regionalPricing": "リージョン料金",
     "global": "グローバル",
-    "globalPricing": "グローバル料金",
-    "goldRequired": "グローバル料金を選択するには Gold+ メンバーシップが必要です",
-    "selectAgent": "Agent を選択",
-    "selectModel": "モデルを選択",
-    "selectTier": "ティアを選択",
-    "allTaken": "すべて使用中",
-    "officialPriceRange": "公式価格の {{min}}% – {{max}}%",
     "tiers": {
       "vip": {
         "label": "VIP",
@@ -554,11 +513,6 @@
   "orgiiOrchestrator": {
     "name": "ORGII Pool",
     "description": "Credit 定額料金のマネージドモデルプール",
-    "recommended": "おすすめ",
-    "directAgents": "直接 Agent",
-    "agentDesc": "最適なモデルに自動ルーティング、定額 Credit 料金",
-    "creditRange": "{{min}} – {{max}} credits/MTok",
-    "plusMore": "+ {{count}} 件以上",
     "turbo": {
       "name": "Turbo",
       "description": "オートコンプリートやクイック編集向けの高速モデル"
@@ -574,82 +528,26 @@
   },
   "modelConfig": {
     "title": "モデル設定",
-    "yourModels": "モデル",
-    "proMaxProxyDisabled": "プロキシリスティングでは利用できません",
-    "noModels": "このアカウントではモデルが検出されませんでした",
-    "publishOptions": "公開オプション",
-    "directListing": "直接リスティング",
-    "directListingDesc": "自分の価格、自分のリスティング。モデルごとの価格を完全にコントロール。",
-    "joinPool": "ORGII Pool に参加",
-    "joinPoolDesc": "定額価格、より多くのトラフィック。共有プールにモデルを追加。",
-    "pricing": "価格設定",
-    "pricingHint": "有効な各モデルの 1M Token あたりの入出力価格を設定",
-    "poolModels": "プールモデル",
-    "poolModelsHint": "ORGII 共有プールに貢献するモデルを選択",
-    "publish": "公開",
-    "publishingTitle": "公開設定",
-    "poolOnlyTitle": "{{count}} 個のモデルは ORGII Pool 経由でのみ販売可能",
-    "poolOnlyDesc": "これらのプレミアムモデルはプロキシアカウントから直接出品できません。ORGII Pool にオプトインすると、リクエストがルーティングされるたびに収益を得られます。",
-    "poolOnlyBadge": "Pool 限定",
-    "allModelsPoolOnly": "すべてのモデルがプレミアム層です。ORGII Pool 経由でのみ販売可能です — 下で有効にして収益を開始しましょう。",
-    "poolOptInDesc": "共有プールにモデルを提供してより多く稼ぐ",
-    "poolBenefits": "ORGII Pool はすべての消費者のトラフィックを最適なプロバイダーにルーティングします。価格設定なしで自動的に需要を獲得 — リクエストごとの定額報酬、マーケティング不要。ほとんどのプロバイダーは Pool 経由で 2〜3 倍の利用量を得ています。"
+    "publish": "公開"
   },
   "providerOnboarding": {
-    "providerProfile": "Provider Profile",
-    "becomeProvider": "Providerになる",
-    "checkingExisting": "既存のProviderを確認中...",
-    "linkExpired": "リンクの有効期限が切れました。新しいリンクを生成中...",
-    "providerNotCreated": "Providerが作成されていません。もう一度お試しください。",
-    "failedToVerify": "Providerの確認に失敗しました。ページを更新してください。",
-    "providerIdMissing": "Provider IDがありません。先に登録を完了してください。",
-    "noUrlReturned": "APIからURLが返されませんでした",
-    "providerIdNotFound": "Provider IDが見つかりません",
-    "noUpdateLink": "更新リンクが返されませんでした",
     "form": {
-      "providerName": "Provider名",
       "email": "Email",
-      "websiteUrl": "ウェブサイトURL",
-      "providerNamePlaceholder": "Provider名を入力",
-      "nameRequired": "名前は必須です",
-      "emailRequired": "Emailは必須です",
-      "invalidEmail": "無効なEmail形式",
-      "invalidUrl": "無効なURL形式（http:// または https:// で始まる必要があります）",
-      "quickFill": "クイック入力",
-      "stepIndicator": "ステップ {{step}}/2",
-      "editDetails": "Provider詳細を編集",
-      "registerAsProvider": "Providerとして登録",
       "submitting": "送信中...",
       "continue": "続ける"
     },
-    "providerInformation": "Provider情報",
     "stripe": {
       "starting": "開始中...",
-      "startSetup": "Stripeセットアップを開始",
-      "processingCompletion": "完了処理中...",
-      "verifyingSetup": "Stripeアカウント設定を確認中",
-      "loadingOnboarding": "Stripeオンボーディングを読み込み中...",
-      "onboardingComplete": "Stripeオンボーディング完了",
-      "completeFormAbove": "上のフォームを完了してStripeセットアップを終了してください",
-      "connectStripeAccount": "Stripeアカウントを接続",
       "complete": "完了",
       "inProgress": "進行中",
       "pending": "保留中"
     },
     "complete": {
       "title": "登録完了！",
-      "description": "Providerアカウントが設定され、Stripeオンボーディングが完了しました。リスティングを作成して収益を開始できます。",
-      "createFirstListing": "最初のリスティングを作成",
-      "viewAccount": "アカウントを表示"
+      "description": "Providerアカウントが設定され、Stripeオンボーディングが完了しました。リスティングを作成して収益を開始できます。"
     },
     "account": {
-      "title": "Providerアカウント",
-      "loadingInfo": "アカウント情報を読み込み中...",
-      "unableToLoad": "Provider情報を読み込めません",
-      "viewEarnings": "収益を表示",
-      "createListing": "リスティングを作成",
-      "browseMarketplace": "マーケットプレイスを閲覧",
-      "completeStripeSetup": "Stripeセットアップを完了"
+      "title": "Providerアカウント"
     },
     "status": {
       "title": "アカウントステータス",
@@ -660,29 +558,17 @@
       "pending": "保留中",
       "payouts": "支払い",
       "enabled": "有効",
-      "disabled": "無効",
-      "charges": "課金",
-      "payoutsDisabled": "支払い無効",
-      "chargesDisabled": "課金無効",
-      "payoutsDisabledDesc": "支払いを受け取るには、Stripe Dashboardで銀行口座を追加し、本人確認を完了してください。",
-      "chargesDisabledDesc": "Stripeでアカウント設定を完了して支払いを受け付けられるようにしてください。"
+      "disabled": "無効"
     },
     "info": {
       "title": "Provider情報",
       "name": "名前",
-      "email": "Email",
-      "website": "ウェブサイト"
+      "email": "Email"
     },
     "payment": {
       "title": "支払い設定",
       "description": "Stripe Dashboardで銀行口座を追加し、支払いスケジュールを設定し、税務情報を完了してください。",
-      "completeVerification": "本人確認を完了",
-      "verificationDesc": "本人確認を完了し、銀行口座を追加して支払いを有効にしてください。",
-      "fullyVerified": "アカウントの本人確認が完了しています！",
-      "payoutsSentTo": "支払いと税務書類は以下に送信されます：",
-      "loading": "読み込み中...",
-      "manageStripeAccount": "Stripeアカウントを管理",
-      "manageDesc": "銀行口座の更新、支払いの確認、支払い設定の管理。"
+      "loading": "読み込み中..."
     },
     "dashboard": {
       "title": "Stripe Dashboard",

@@ -52,11 +52,7 @@
     "terminals": "Terminal"
   },
   "trajectoryPanel": {
-    "title": "Quỹ đạo",
-    "viewUi": "UI",
-    "viewJson": "JSON",
-    "emptyTitle": "Chưa có sự kiện",
-    "emptySubtitle": "Sự kiện sẽ hiển thị tại đây khi xảy ra"
+    "title": "Quỹ đạo"
   },
   "routes": {
     "session": "Trò chuyện",
@@ -185,8 +181,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "Trạng thái của tôi",
-      "about": "Về tôi"
+      "status": "Trạng thái của tôi"
     }
   },
   "launchpad": {

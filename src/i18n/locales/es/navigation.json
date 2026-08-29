@@ -52,11 +52,7 @@
     "terminals": "Terminales"
   },
   "trajectoryPanel": {
-    "title": "Trayectoria",
-    "viewUi": "UI",
-    "viewJson": "JSON",
-    "emptyTitle": "Aún no hay eventos",
-    "emptySubtitle": "Los eventos aparecerán aquí cuando ocurran"
+    "title": "Trayectoria"
   },
   "routes": {
     "session": "Chat",
@@ -187,8 +183,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "Mi estado",
-      "about": "Sobre mí"
+      "status": "Mi estado"
     }
   },
   "launchpad": {

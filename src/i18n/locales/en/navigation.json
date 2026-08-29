@@ -81,11 +81,7 @@
     }
   },
   "trajectoryPanel": {
-    "title": "Trajectory",
-    "viewUi": "UI",
-    "viewJson": "JSON",
-    "emptyTitle": "No events yet",
-    "emptySubtitle": "Events will appear here as they occur"
+    "title": "Trajectory"
   },
   "routes": {
     "session": "Chat",
@@ -296,8 +292,7 @@
   },
   "myRole": {
     "tabs": {
-      "status": "My status",
-      "about": "About me"
+      "status": "My status"
     }
   },
   "launchpad": {
