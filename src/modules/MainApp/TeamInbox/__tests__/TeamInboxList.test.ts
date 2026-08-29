@@ -123,6 +123,28 @@ describe("TeamInboxList pagination", () => {
     expect(markup).not.toContain("teamInbox.search.");
   });
 
+  it("does not render unread count bubbles on inbox filters", () => {
+    const markup = renderToStaticMarkup(
+      createElement(TeamInboxList, {
+        filter: "all",
+        items: [],
+        selectedItemId: null,
+        totalUnread: 6,
+        unreadCounts: { all: 6, mentions: 2, assigned: 4 },
+        query: "",
+        loading: false,
+        onQueryChange: vi.fn(),
+        onFilterChange: vi.fn(),
+        onSelectItem: vi.fn(),
+      })
+    );
+
+    expect(markup).not.toContain("rounded-full bg-primary-6");
+    expect(markup).not.toContain(">6</span>");
+    expect(markup).not.toContain(">2</span>");
+    expect(markup).not.toContain(">4</span>");
+  });
+
   it("shows one reusable progress line below search while loading", () => {
     const markup = renderEmptyList("", true);
 

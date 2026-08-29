@@ -168,18 +168,6 @@ function TeamInboxListSection({
   );
 }
 
-function FilterUnreadBadge({ count }: { count: number }): React.ReactNode {
-  if (count <= 0) return null;
-  return (
-    <span
-      aria-hidden
-      className="pointer-events-none absolute -right-1 -top-1 z-10 min-w-4 rounded-full bg-primary-6 px-1 text-center text-xs font-semibold leading-4 text-white"
-    >
-      {count > 99 ? "99+" : count}
-    </span>
-  );
-}
-
 const TeamInboxList: React.FC<TeamInboxListProps> = ({
   filter,
   items,
@@ -517,32 +505,30 @@ const TeamInboxList: React.FC<TeamInboxListProps> = ({
                   })}`
                 : filterTab.label;
             return (
-              <span key={filterTab.key} className="relative inline-flex">
-                <Button
-                  htmlType="button"
-                  variant="tertiary"
-                  size="small"
-                  icon={
-                    <span
-                      className={
-                        filterTab.key === "all" && isActive
-                          ? "text-primary-6"
-                          : filterTab.iconClassName
-                      }
-                    >
-                      {filterTab.icon}
-                    </span>
-                  }
-                  iconOnly
-                  className={`h-7 w-7 ${isActive ? "!bg-fill-2 !text-text-1" : ""}`}
-                  aria-label={unreadLabel}
-                  aria-pressed={isActive}
-                  title={unreadLabel}
-                  data-testid={`team-inbox-filter-${filterTab.key}`}
-                  onClick={() => onFilterChange(filterTab.key)}
-                />
-                <FilterUnreadBadge count={filterTab.unreadCount} />
-              </span>
+              <Button
+                key={filterTab.key}
+                htmlType="button"
+                variant="tertiary"
+                size="small"
+                icon={
+                  <span
+                    className={
+                      filterTab.key === "all" && isActive
+                        ? "text-primary-6"
+                        : filterTab.iconClassName
+                    }
+                  >
+                    {filterTab.icon}
+                  </span>
+                }
+                iconOnly
+                className={`h-7 w-7 ${isActive ? "!bg-fill-2 !text-text-1" : ""}`}
+                aria-label={unreadLabel}
+                aria-pressed={isActive}
+                title={unreadLabel}
+                data-testid={`team-inbox-filter-${filterTab.key}`}
+                onClick={() => onFilterChange(filterTab.key)}
+              />
             );
           })}
         </div>
