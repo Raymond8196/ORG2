@@ -2,15 +2,15 @@
  * Builds one `NavigationMenuItem` row for a Team Sessions fork thread
  * (`cloudSessionsSection.tsx`): icon/title/relative-time, the unresolved
  * comments badge, live-viewer chips, and the row's hover actions (Fork,
- * overflow menu with copy-url/remove). Split out because it is the single
+ * pin, and the canonical Team Conversation menu). Split out because it is the single
  * largest piece of that section's row-construction logic.
  */
 import type { TFunction } from "i18next";
 import { useAtomValue } from "jotai";
 import { useCallback } from "react";
 
-import Message from "@src/components/Message";
 import PersonAvatar from "@src/components/PersonAvatar";
+import { dismissHoverCard } from "@src/components/SessionHoverCard/singletonStore";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import {
   discussionSeenCountsAtom,
@@ -43,8 +43,10 @@ import {
 } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import type { RemoteTeammateSessionMetadata } from "@src/store/collaboration/types";
-import { copyText } from "@src/util/data/clipboard";
-import { popupNativeMenu } from "@src/util/platform/tauri/nativeMenuPopup";
+import {
+  type NativeMenuItemOptions,
+  popupNativeMenu,
+} from "@src/util/platform/tauri/nativeMenuPopup";
 import { resolveSessionDisplayMetadata } from "@src/util/session/sessionDisplayMetadata";
 import { formatRelativeTime } from "@src/util/time/formatRelativeTime";
 
@@ -94,7 +96,9 @@ interface UseCloudSessionRowItemBuilderParams {
   t: TFunction;
   tCommon: TFunction;
   runFork: (row: RemoteTeammateSessionMetadata) => void;
-  hideRemoteSession: (row: RemoteTeammateSessionMetadata) => void;
+  buildNativeMenuItems: (
+    row: RemoteTeammateSessionMetadata
+  ) => NativeMenuItemOptions[];
   /** Per-row in-flight replay/fork registry — busy rows render a spinner. */
   busySessionRows: ReadonlyMap<string, CloudSessionBusyEntry>;
   /** Viewer-local pin keys (`<orgId>|<rowId>`); never a property of the shared row. */
@@ -114,7 +118,7 @@ export function useCloudSessionRowItemBuilder({
   t,
   tCommon,
   runFork,
-  hideRemoteSession,
+  buildNativeMenuItems,
   busySessionRows,
   pinnedRemoteSessionIds,
   toggleRemoteSessionPin,
@@ -302,35 +306,10 @@ export function useCloudSessionRowItemBuilder({
             icon: MoreHorizontalIcon,
             label: tCommon("actions.more"),
             onClick: () => {
+              dismissHoverCard();
               void popupNativeMenu({
                 source: "cloud-session-row",
-                buildItems: () => [
-                  {
-                    text: t("cloud.sidebar.copyUrl"),
-                    action: () => {
-                      void copyText(buildCloudSessionReference(row))
-                        .then(() => {
-                          Message.success(tCommon("actions.copied", "Copied"));
-                        })
-                        .catch(() => {
-                          Message.error(
-                            tCommon("actions.copyFailed", "Copy failed")
-                          );
-                        });
-                    },
-                  },
-                  {
-                    text: isPinned
-                      ? tCommon("sessions:chat.unpinSession", "Unpin")
-                      : tCommon("sessions:chat.pinSession", "Pin"),
-                    action: () => toggleRemoteSessionPin(row.orgId, row.id),
-                  },
-                  { item: "Separator" as const },
-                  {
-                    text: tCommon("actions.remove", "Remove"),
-                    action: () => hideRemoteSession(row),
-                  },
-                ],
+                buildItems: () => buildNativeMenuItems(row),
               });
             },
           },
@@ -340,7 +319,7 @@ export function useCloudSessionRowItemBuilder({
     },
     [
       busySessionRows,
-      hideRemoteSession,
+      buildNativeMenuItems,
       pinnedRemoteSessionIds,
       toggleRemoteSessionPin,
       presenceMap,
