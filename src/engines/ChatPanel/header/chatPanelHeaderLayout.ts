@@ -65,16 +65,27 @@ export function shouldCollapseChatPanelTabRow({
 }
 
 /**
- * Whether the collapsed row offers a close control.
- *
- * Closing the pane's last tab reseeds a fresh Launchpad, so on the Launchpad
- * itself the control could only ever replace the page with a copy of itself.
- * Every other surface is genuinely closable.
+ * Controls the folded header must never drag the window out from under.
  */
-export function shouldOfferCollapsedTabClose(
-  activeTabType: string | null | undefined
+const HEADER_INTERACTIVE_SELECTOR =
+  'button,a,input,select,textarea,[role="button"],[role="menuitem"],[role="tab"],[contenteditable="true"]';
+
+/**
+ * Whether a mousedown on the folded header should start a window drag.
+ *
+ * Tauri matches `data-tauri-drag-region` on the event target alone and never
+ * walks ancestors, so only the exact element under the cursor counts. In this
+ * row that element is never the one carrying the attribute: the content slot
+ * stretches over the whole row, and the session breadcrumb inside it is a
+ * `container-type: inline-size` element, which cannot be shrunk to its content
+ * to free the space up — containment makes it contribute zero width, so it
+ * collapses and takes the title with it. The folded row therefore drives the
+ * drag itself and steps aside only for things the user can actually click.
+ */
+export function shouldStartHeaderDragFromTarget(
+  target: Element | null
 ): boolean {
-  return Boolean(activeTabType) && activeTabType !== "start-page";
+  return Boolean(target) && !target?.closest(HEADER_INTERACTIVE_SELECTOR);
 }
 
 /** Floating-chrome height the transcript scrolls beneath. */

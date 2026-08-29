@@ -29,7 +29,6 @@ import { getChatPanelBackgroundStyle } from "@src/modules/shared/layouts/viewCon
 import { installAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import {
   chatPanelTabCountAtom,
-  closeAndDestroyChatPanelTabAtom,
   closeOrganizationChatPanelTabAtom,
   closeProjectOrgChatPanelTabsAtom,
   closeRevokedCloudChannelChatPanelTabsAtom,
@@ -96,7 +95,6 @@ import { FocusedChatWorkstationMinimapPortalContext } from "./focusedChatWorksta
 import {
   resolveChatPanelChromeTopInsetPx,
   shouldCollapseChatPanelTabRow,
-  shouldOfferCollapsedTabClose,
   shouldOverlayChatSessionHeaders,
 } from "./header/chatPanelHeaderLayout";
 import { useAiWorkItemCreator } from "./hooks/useAiWorkItemCreator";
@@ -298,11 +296,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       showSessionSurface,
     });
     const tabCount = useAtomValue(chatPanelTabCountAtom);
-    const closeChatPanelTab = useSetAtom(closeAndDestroyChatPanelTabAtom);
-    const handleCloseActiveTab = useCallback(() => {
-      if (!activeTab) return;
-      void closeChatPanelTab(activeTab.id);
-    }, [activeTab, closeChatPanelTab]);
     const isStandaloneToolTabActive =
       activeTab?.type === "work-management" || activeTab?.type === "runtime";
     const stationAvailable = isChatPanelTabStationAvailable(
@@ -642,8 +635,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         tabStrip={tabStrip}
         tabStripPlus={tabStripPlus}
         tabRowCollapsed={tabRowCollapsed}
-        onCloseActiveTab={handleCloseActiveTab}
-        canCloseActiveTab={shouldOfferCollapsedTabClose(activeTab?.type)}
         sessionHeaderExtras={
           <>
             <SessionViewersIndicator sessionId={currentSessionId ?? null} />

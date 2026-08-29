@@ -47,33 +47,6 @@ describe("ChatPanelPublishedHeader", () => {
     expect(markup).not.toContain("border-b border-border-2");
   });
 
-  it("stretches content over the row when a tab bar above owns dragging", () => {
-    const markup = renderToStaticMarkup(
-      React.createElement(ChatPanelPublishedHeader, {
-        windowsHost: false,
-        slots: { content: React.createElement("span", null, "Content") },
-      })
-    );
-
-    expect(markup).toContain("flex min-w-0 flex-1 items-center");
-    expect(markup).not.toContain('data-testid="published-header-drag-filler"');
-  });
-
-  it("hands the space after content to the window when it is the only chrome", () => {
-    const markup = renderToStaticMarkup(
-      React.createElement(ChatPanelPublishedHeader, {
-        windowsHost: false,
-        dragFiller: true,
-        slots: { content: React.createElement("span", null, "Content") },
-      })
-    );
-
-    // The filler is draggable; content no longer swallows the row.
-    expect(markup).toContain('data-testid="published-header-drag-filler"');
-    expect(markup).toContain("-webkit-app-region:drag");
-    expect(markup).toContain("Content");
-  });
-
   it("does not add an empty row when no pane has published controls", () => {
     expect(
       renderToStaticMarkup(

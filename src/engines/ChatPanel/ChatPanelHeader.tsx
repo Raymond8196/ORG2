@@ -11,7 +11,6 @@ import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { getCollapsedSidebarChromeOffset } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import {
   ArrowExpand01Icon,
-  Cancel01Icon,
   ComputerVideoIcon,
   HugeiconsIcon,
   PanelRightIcon,
@@ -37,6 +36,7 @@ import {
   CHAT_PANEL_HEADER_STACK_HEIGHT_PX,
   CHAT_PANEL_HEADER_TOP_PADDING_PX,
   CHAT_PANEL_TAB_HEADER_HEIGHT_PX,
+  shouldStartHeaderDragFromTarget,
 } from "./header/chatPanelHeaderLayout";
 import type { ChatPanelRegionNotice } from "./types";
 
@@ -93,10 +93,6 @@ interface ChatPanelHeaderProps {
    * tab controls the folded row would have carried.
    */
   tabRowCollapsed: boolean;
-  /** Close the pane's only tab from the collapsed row. */
-  onCloseActiveTab: () => void;
-  /** Whether that close control is offered at all — see the layout rule. */
-  canCloseActiveTab: boolean;
   /** Session-scoped extras (fork button / provenance chip), leading the toolbar */
   sessionHeaderExtras?: React.ReactNode;
   /** Canonical session-name breadcrumb rendered in the published 40px row. */
@@ -149,8 +145,6 @@ export function ChatPanelHeader({
   tabStrip,
   tabStripPlus,
   tabRowCollapsed,
-  onCloseActiveTab,
-  canCloseActiveTab,
   sessionHeaderExtras,
   sessionHeaderContent,
   overlayPublishedHeader = false,
@@ -318,9 +312,9 @@ export function ChatPanelHeader({
     </div>
   );
 
-  // The folded tab row's controls, rehomed on the published row. Close stays
-  // outermost so it keeps the far-right position it held on the pill, and is
-  // dropped entirely on the Launchpad, which cannot be closed away.
+  // The folded tab row's controls, rehomed on the published row. No close
+  // control: closing the pane's last tab only reseeds another one, so it
+  // earned no place in the row it would have crowded.
   const collapsedTabControls = (
     <div
       className="flex h-7 flex-shrink-0 items-center gap-px"
@@ -329,23 +323,6 @@ export function ChatPanelHeader({
     >
       {tabStripPlus}
       {chatFocusToggleButton}
-      {canCloseActiveTab && (
-        <span className="inline-flex">
-          <TabBarTrailingIconButton
-            title={t("common:actions.close")}
-            tooltipPosition="bottom-end"
-            nativeTitle={false}
-            onClick={onCloseActiveTab}
-          >
-            <HugeiconsIcon
-              icon={Cancel01Icon}
-              data-icon="x"
-              size={HEADER_ICON_SIZE.md}
-              strokeWidth={1.75}
-            />
-          </TabBarTrailingIconButton>
-        </span>
-      )}
     </div>
   );
 
@@ -398,11 +375,28 @@ export function ChatPanelHeader({
   // controls clear of the content — the tab row's job until it folds away.
   // Padding the wrapper rather than the row keeps the row's 40px content band
   // intact, and makes it the positioning context the sidebar button centers in.
+  // The window API is pulled in on interaction so it stays out of the boot graph.
+  const handleCollapsedHeaderMouseDown = (
+    event: React.MouseEvent<HTMLDivElement>
+  ) => {
+    if (windowsHost || event.button !== 0) return;
+    if (!shouldStartHeaderDragFromTarget(event.target as Element | null)) {
+      return;
+    }
+    const maximize = event.detail === 2;
+    event.preventDefault();
+    void import("@src/util/platform/ipcRenderer").then(
+      ({ maxWindow, startWindowDrag }) =>
+        maximize ? maxWindow() : startWindowDrag()
+    );
+  };
+
   const publishedHeaderRow = tabRowCollapsed ? (
     <div
-      className={`workspace-header header-tab-group relative z-40 flex flex-shrink-0 flex-col`}
+      className="workspace-header header-tab-group relative z-40 flex flex-shrink-0 flex-col"
       data-testid="chat-panel-collapsed-header"
       data-tauri-drag-region={windowsHost ? undefined : true}
+      onMouseDown={handleCollapsedHeaderMouseDown}
       style={
         {
           paddingTop: CHAT_PANEL_HEADER_TOP_PADDING_PX,
@@ -421,7 +415,6 @@ export function ChatPanelHeader({
             ? getCollapsedSidebarChromeOffset()
             : undefined
         }
-        dragFiller
       />
     </div>
   ) : (
