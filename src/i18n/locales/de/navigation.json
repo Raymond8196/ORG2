@@ -445,7 +445,6 @@
     "signedInAs": "Angemeldet als {{name}}",
     "signedInToast": "Bei ORG2 Cloud angemeldet",
     "sessionExpired": "Deine ORG2-Cloud-Sitzung ist abgelaufen. Melde dich erneut an, um fortzufahren.",
-    "recommendedBadge": "Empfohlen",
     "recommendedDesc": "Verwaltetes Session-Sharing, Replay-Speicher, Team-Berechtigungen und sichere Share-Links. Kein Supabase-Setup nötig. ORG2 übernimmt Auth, Datenbank-Migrationen, RLS-Richtlinien, Abrechnung, Aufbewahrung, Kontingente und Backend-Upgrades für dich",
     "customEndpoint": {
       "title": "Eigenes ORG2 Cloud-Backend",
@@ -952,6 +951,7 @@
       "on": "An",
       "off": "Aus",
       "memberNote": "Von einem Admin aktiviert — geeignete Sitzungen werden im Hintergrund hochgeladen, ohne dass du diese Organisation öffnen musst."
-    }
+    },
+    "userName": "Benutzername"
   }
 }

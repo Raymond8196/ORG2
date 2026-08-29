@@ -443,7 +443,6 @@
     "signedInAs": "{{name}} olarak giriş yapıldı",
     "signedInToast": "Signed in to ORG2 Cloud",
     "sessionExpired": "ORG2 Cloud oturumunuzun süresi doldu. Devam etmek için yeniden giriş yapın.",
-    "recommendedBadge": "Recommended",
     "recommendedDesc": "Managed session sharing, replay storage, team permissions, and secure share links. No Supabase setup required. ORG2 manages Auth, database migrations, RLS policies, billing, retention, quota, and backend upgrades for you",
     "customEndpoint": {
       "title": "Özel ORG2 Cloud arka ucu",
@@ -950,6 +949,7 @@
       "on": "Açık",
       "off": "Kapalı",
       "memberNote": "Bir yönetici etkinleştirdi — bu organizasyonu açmanız gerekmeden uygun oturumlar arka planda yüklenir."
-    }
+    },
+    "userName": "Kullanıcı adı"
   }
 }

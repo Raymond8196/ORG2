@@ -443,7 +443,6 @@
     "signedInAs": "Zalogowano jako {{name}}",
     "signedInToast": "Signed in to ORG2 Cloud",
     "sessionExpired": "Sesja ORG2 Cloud wygasła. Zaloguj się ponownie, aby kontynuować.",
-    "recommendedBadge": "Recommended",
     "recommendedDesc": "Managed session sharing, replay storage, team permissions, and secure share links. No Supabase setup required. ORG2 manages Auth, database migrations, RLS policies, billing, retention, quota, and backend upgrades for you",
     "customEndpoint": {
       "title": "Własny backend ORG2 Cloud",
@@ -950,6 +949,7 @@
       "on": "Włączone",
       "off": "Wyłączone",
       "memberNote": "Włączone przez administratora — kwalifikujące się sesje są przesyłane w tle bez otwierania tej organizacji."
-    }
+    },
+    "userName": "Nazwa użytkownika"
   }
 }

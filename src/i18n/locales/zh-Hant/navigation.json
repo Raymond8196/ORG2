@@ -534,7 +534,6 @@
     "signOut": "登出",
     "signedInToast": "已登入 ORG2 雲端",
     "sessionExpired": "ORG2 雲端登入已過期，請重新登入後繼續。",
-    "recommendedBadge": "推薦",
     "recommendedDesc": "託管式工作階段共享、重播儲存、團隊權限與安全分享連結，無需自行架設 Supabase。ORG2 為你管理 Auth、資料庫遷移、RLS 政策、計費、資料保留、配額與後端升級",
     "customEndpoint": {
       "title": "自訂 ORG2 Cloud 後端",
@@ -1042,6 +1041,7 @@
       "on": "開啟",
       "off": "關閉",
       "memberNote": "由管理員開啟——無需開啟該組織，符合條件的會話也會在背景上傳。"
-    }
+    },
+    "userName": "使用者名稱"
   }
 }

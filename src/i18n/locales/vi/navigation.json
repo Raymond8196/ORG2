@@ -443,7 +443,6 @@
     "signedInAs": "Đã đăng nhập: {{name}}",
     "signedInToast": "Đã đăng nhập ORG2 Cloud",
     "sessionExpired": "Phiên ORG2 Cloud đã hết hạn. Hãy đăng nhập lại để tiếp tục.",
-    "recommendedBadge": "Khuyên dùng",
     "recommendedDesc": "Chia sẻ phiên được quản lý, lưu trữ phát lại, phân quyền nhóm và liên kết chia sẻ an toàn. Không cần cài đặt Supabase. ORG2 quản lý giúp bạn Auth, di trú cơ sở dữ liệu, chính sách RLS, thanh toán, thời gian lưu trữ, hạn mức và nâng cấp backend",
     "customEndpoint": {
       "title": "Backend ORG2 Cloud tùy chỉnh",
@@ -950,6 +949,7 @@
       "on": "Bật",
       "off": "Tắt",
       "memberNote": "Do quản trị viên bật — các phiên đủ điều kiện được tải lên trong nền mà không cần mở tổ chức này."
-    }
+    },
+    "userName": "Tên người dùng"
   }
 }

@@ -443,7 +443,6 @@
     "signedInAs": "{{name}} としてログイン中",
     "signedInToast": "ORG2 クラウドにサインインしました",
     "sessionExpired": "ORG2 Cloud のセッションが期限切れです。続行するには再度サインインしてください。",
-    "recommendedBadge": "おすすめ",
     "recommendedDesc": "マネージドなセッション共有、リプレイ保存、チーム権限、安全な共有リンク。Supabase のセットアップは不要です。Auth、データベースマイグレーション、RLS ポリシー、課金、保持期間、クォータ、バックエンドのアップグレードは ORG2 が管理します",
     "customEndpoint": {
       "title": "カスタム ORG2 Cloud バックエンド",
@@ -950,6 +949,7 @@
       "on": "オン",
       "off": "オフ",
       "memberNote": "管理者が有効化 — この組織を開かなくても、対象セッションがバックグラウンドでアップロードされます。"
-    }
+    },
+    "userName": "ユーザー名"
   }
 }
