@@ -199,6 +199,52 @@ describe("SidebarSettingsMenuButton", () => {
     ).toBeNull();
   });
 
+  it("consolidates chat panel and workstation controls under Layout", async () => {
+    const layoutTrigger = document.querySelector<HTMLButtonElement>(
+      '[data-testid="sidebar-settings-layout"]'
+    );
+
+    expect(layoutTrigger?.textContent).toBe("general.layout");
+    expect(
+      document.querySelectorAll('[data-testid="sidebar-settings-layout"]')
+    ).toHaveLength(1);
+
+    await act(async () => {
+      layoutTrigger?.dispatchEvent(
+        new MouseEvent("mouseover", { bubbles: true })
+      );
+    });
+
+    const submenuText = Array.from(
+      document.body.querySelectorAll<HTMLDivElement>("div.fixed")
+    )
+      .map((panel) => panel.textContent)
+      .join(" ");
+
+    expect(submenuText).toContain("layoutSettings.chatPanelLocation");
+    expect(submenuText).toContain("layoutSettings.sidebarPosition");
+    expect(submenuText).toContain("layoutSettings.modelPickerStyle");
+    expect(submenuText).toContain("layoutSettings.paginateChatHistory");
+
+    const segmentedControls = Array.from(
+      document.body.querySelectorAll<HTMLElement>('[role="group"]')
+    );
+    expect(segmentedControls).toHaveLength(3);
+    expect(
+      segmentedControls.every((control) => control.classList.contains("h-6"))
+    ).toBe(true);
+    expect(
+      segmentedControls.map((control) => control.getAttribute("aria-label"))
+    ).toEqual([
+      "layoutSettings.chatPanelLocation",
+      "layoutSettings.sidebarPosition",
+      "layoutSettings.modelPickerStyle",
+    ]);
+    expect(
+      document.body.querySelector('[role="switch"]')?.getAttribute("aria-label")
+    ).toBe("layoutSettings.paginateChatHistory");
+  });
+
   it("aligns a second-level menu with the row that opens it", async () => {
     const presenceTrigger = Array.from(
       document.body.querySelectorAll<HTMLButtonElement>("button")

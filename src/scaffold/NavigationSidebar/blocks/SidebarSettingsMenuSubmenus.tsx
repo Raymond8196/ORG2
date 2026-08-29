@@ -9,13 +9,9 @@ import {
 import type { AppearanceMode } from "@src/config/appearance/globalThemes";
 
 import { PresenceMenuItems } from "./SidebarBottomBar";
-import { SidebarWorkstationSettingsSubmenu } from "./SidebarWorkstationSettingsSubmenu";
+import { SidebarLayoutSettingsSubmenu } from "./SidebarLayoutSettingsSubmenu";
 
-export type SettingsSubmenu =
-  | "presence"
-  | "appearance"
-  | "chatPanelLocation"
-  | "workstation";
+export type SettingsSubmenu = "presence" | "appearance" | "layout";
 
 export interface SubmenuPosition {
   left: number;
@@ -85,15 +81,11 @@ export function SidebarSettingsMenuSubmenus({
     );
   }
 
-  if (
-    activeSubmenu === "chatPanelLocation" ||
-    activeSubmenu === "workstation"
-  ) {
+  if (activeSubmenu === "layout") {
     return createPortal(
-      <SidebarWorkstationSettingsSubmenu
+      <SidebarLayoutSettingsSubmenu
         panelRef={submenuPanelRef}
         position={submenuPosition}
-        mode={activeSubmenu}
         onPointerDown={onSubmenuPointerDown}
         onMouseDown={onSubmenuMouseDown}
       />,

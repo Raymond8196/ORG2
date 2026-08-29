@@ -32,7 +32,7 @@ import {
   chatWidthAtom,
   toggleChatPanelMaximizedAtom,
 } from "@src/store/ui/chatPanelAtom";
-import { workStationChatPositionAtom } from "@src/store/ui/workStationAtom";
+import { chatPanelPositionAtom } from "@src/store/ui/workStationAtom";
 import { workstationProjectTabBarAtom } from "@src/store/workstation";
 import type { WorkstationTabHost } from "@src/store/workstation/tabHost";
 
@@ -56,7 +56,7 @@ export function useWorkstationTrailingSlot({
   const location = useLocation();
   const getStationChatVisible = useAtomValue(activeStationChatVisibleAtom);
   const chatWidth = useAtomValue(chatWidthAtom);
-  const workStationChatPosition = useAtomValue(workStationChatPositionAtom);
+  const chatPanelPosition = useAtomValue(chatPanelPositionAtom);
   const projectTabBar = useAtomValue(workstationProjectTabBarAtom);
   const toggleChatPanelMaximized = useSetAtom(toggleChatPanelMaximizedAtom);
 
@@ -125,7 +125,7 @@ export function useWorkstationTrailingSlot({
           onClick={handleToggleChatPanelMaximized}
           className="group"
         >
-          {workStationChatPosition === "left" ? (
+          {chatPanelPosition === "left" ? (
             <span className="relative flex h-4 w-4 items-center justify-center">
               <HugeiconsIcon
                 icon={PanelRightIcon}
@@ -250,7 +250,7 @@ export function useWorkstationTrailingSlot({
     projectTabBar,
     t,
     visible,
-    workStationChatPosition,
+    chatPanelPosition,
   ]);
 
   return { trailingSlot, handleToggleChatPanel };
