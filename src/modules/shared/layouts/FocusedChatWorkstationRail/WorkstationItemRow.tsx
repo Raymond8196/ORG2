@@ -77,7 +77,7 @@ export function WorkstationItemRow({
           data-icon="arrow-up-right"
           aria-hidden
           className="shrink-0 text-text-2"
-          size={13}
+          size={14}
           strokeWidth={1.75}
         />
       ) : null}

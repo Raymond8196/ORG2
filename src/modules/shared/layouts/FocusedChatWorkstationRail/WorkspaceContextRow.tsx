@@ -40,7 +40,7 @@ export function WorkspaceContextRow({
 }) {
   const className = compact
     ? "flex h-8 min-w-0 items-center gap-2 overflow-hidden rounded-md px-2 text-text-1"
-    : `${WORKSTATION_TRAIL_CONTENT.row} gap-1.5 overflow-hidden px-2 text-text-1`;
+    : `${WORKSTATION_TRAIL_CONTENT.row} ${WORKSTATION_TRAIL_CONTENT.rowHorizontalPadding} gap-1.5 overflow-hidden text-text-1`;
   const content = (
     <>
       <AnyIcon icon={icon} className="shrink-0" size={14} strokeWidth={1.75} />
@@ -57,7 +57,7 @@ export function WorkspaceContextRow({
           data-icon={active ? "chevron-up" : "chevron-down"}
           aria-hidden
           className="shrink-0 text-text-2"
-          size={13}
+          size={14}
           strokeWidth={1.75}
         />
       )}

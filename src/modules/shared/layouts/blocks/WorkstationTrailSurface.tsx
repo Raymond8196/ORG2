@@ -33,6 +33,7 @@ export interface WorkstationTrailHeaderProps {
   actions?: ReactNode;
   collapsed?: boolean;
   title: ReactNode;
+  titleActions?: ReactNode;
 }
 
 /** Exact title row used by the focused-chat Workstation environment trail. */
@@ -40,6 +41,7 @@ export const WorkstationTrailHeader: FC<WorkstationTrailHeaderProps> = ({
   actions,
   collapsed = false,
   title,
+  titleActions,
 }) => (
   <div
     className={`mb-1 flex h-7 shrink-0 items-center ${
@@ -47,9 +49,12 @@ export const WorkstationTrailHeader: FC<WorkstationTrailHeaderProps> = ({
     }`}
   >
     {!collapsed ? (
-      <span className="min-w-0 truncate px-1 text-[11px] font-medium uppercase tracking-wide text-text-3">
-        {title}
-      </span>
+      <div className="flex min-w-0 flex-1 items-center">
+        <span className="min-w-0 truncate px-1 text-[11px] font-medium uppercase tracking-wide text-text-3">
+          {title}
+        </span>
+        {titleActions}
+      </div>
     ) : null}
     {actions}
   </div>

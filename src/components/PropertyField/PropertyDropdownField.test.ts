@@ -21,7 +21,7 @@ describe("PropertyDropdownField", () => {
 
     expect(markup).toContain("h-7");
     expect(markup).toContain("rounded-lg");
-    expect(markup).toContain("gap-1.5 px-2");
+    expect(markup).toContain("gap-1.5 pl-2 pr-1.5");
     expect(markup).not.toContain("min-h-8");
     expect(markup).not.toContain("py-1.5");
   });

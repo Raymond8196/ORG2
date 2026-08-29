@@ -39,6 +39,11 @@ describe("WorkstationTrailSurface", () => {
     const markup = renderToStaticMarkup(
       createElement(WorkstationTrailHeader, {
         title: "Environment",
+        titleActions: createElement(
+          WorkstationTrailIconButton,
+          { "aria-label": "Collapse groups" },
+          "up/down"
+        ),
         actions: createElement(
           WorkstationTrailIconButton,
           { "aria-label": "Collapse" },
@@ -52,6 +57,8 @@ describe("WorkstationTrailSurface", () => {
     expect(markup).toContain("justify-between pl-1");
     expect(markup).toContain("px-1 text-[11px]");
     expect(markup).toContain("uppercase tracking-wide");
+    expect(markup).toContain("Collapse groups");
+    expect(markup).toContain("flex min-w-0 flex-1 items-center");
     expect(markup).toContain("h-[26px] w-[26px]");
     expect(markup).toContain("rounded-lg");
   });

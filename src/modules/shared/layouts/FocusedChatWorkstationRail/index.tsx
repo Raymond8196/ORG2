@@ -71,6 +71,7 @@ import {
   WorkstationTrailIconButton,
   WorkstationTrailSurface,
 } from "../blocks";
+import { WorkstationGroupToggle } from "./WorkstationGroupToggle";
 import { WorkstationSections } from "./WorkstationSections";
 import {
   getStoredRailCollapsed,
@@ -130,6 +131,9 @@ export function FocusedChatWorkstationRail({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(getStoredRailCollapsed);
+  const [collapsedGroupKeys, setCollapsedGroupKeys] = useState<Set<string>>(
+    () => new Set()
+  );
 
   const activeWorkspaceRoot = useAtomValue(activeWorkspaceRootAtom);
   const activeRepoName =
@@ -526,6 +530,17 @@ export function FocusedChatWorkstationRail({
       return next;
     });
   };
+  const toggleGroup = useCallback((groupKey: string) => {
+    setCollapsedGroupKeys((current) => {
+      const next = new Set(current);
+      if (next.has(groupKey)) {
+        next.delete(groupKey);
+      } else {
+        next.add(groupKey);
+      }
+      return next;
+    });
+  }, []);
 
   const compactMenu = compactMenuHost
     ? createPortal(
@@ -587,11 +602,22 @@ export function FocusedChatWorkstationRail({
         <WorkstationTrailSurface
           as="aside"
           aria-label={environmentLabel}
-          className="hidden @[1100px]/focusedchat:flex"
+          className="group/workstation-trail hidden @[1100px]/focusedchat:flex"
         >
           <WorkstationTrailHeader
             title={environmentLabel}
             collapsed={collapsed}
+            titleActions={
+              !collapsed && hasSessionEnvironment ? (
+                <WorkstationGroupToggle
+                  collapseLabel={t("common:actions.collapse")}
+                  collapsed={collapsedGroupKeys.has("session")}
+                  expandLabel={t("common:actions.expand")}
+                  groupKey="session"
+                  onToggle={() => toggleGroup("session")}
+                />
+              ) : null
+            }
             actions={
               <WorkstationTrailIconButton
                 onClick={toggleCollapsed}
@@ -652,7 +678,13 @@ export function FocusedChatWorkstationRail({
             </div>
           ) : (
             <WorkstationTrailBody>
-              <WorkstationSections sections={sections} />
+              <WorkstationSections
+                collapseGroupLabel={t("common:actions.collapse")}
+                collapsedGroupKeys={collapsedGroupKeys}
+                expandGroupLabel={t("common:actions.expand")}
+                onToggleGroup={toggleGroup}
+                sections={sections}
+              />
             </WorkstationTrailBody>
           )}
         </WorkstationTrailSurface>

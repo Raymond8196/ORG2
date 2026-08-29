@@ -82,7 +82,11 @@ export interface FocusedChatSessionContext {
 }
 
 export interface WorkstationSectionsProps {
+  collapseGroupLabel?: string;
+  collapsedGroupKeys?: ReadonlySet<string>;
   compact?: boolean;
+  expandGroupLabel?: string;
   onRequestClose?: () => void;
+  onToggleGroup?: (groupKey: string) => void;
   sections: FocusedChatRailSection[];
 }
