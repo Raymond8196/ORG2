@@ -30,14 +30,12 @@ const noop = () => undefined;
 
 interface RenderOptions {
   tabRowCollapsed: boolean;
-  canCloseActiveTab?: boolean;
   sessionHeaderContent?: ReactNode;
   shouldOffsetHeaderForCollapsedSidebar?: boolean;
 }
 
 function render({
   tabRowCollapsed,
-  canCloseActiveTab = true,
   sessionHeaderContent = createElement("span", { "data-session-name": "true" }),
   shouldOffsetHeaderForCollapsedSidebar = false,
 }: RenderOptions): string {
@@ -86,8 +84,6 @@ function render({
       tabStrip: createElement("nav", { "data-tab-strip": "true" }),
       tabStripPlus: createElement("button", { "data-plus-menu": "true" }),
       tabRowCollapsed,
-      onCloseActiveTab: noop,
-      canCloseActiveTab,
       sessionHeaderContent,
     })
   );
@@ -104,8 +100,6 @@ describe("ChatPanelHeader tab row collapse", () => {
     expect(markup).not.toContain(
       'data-testid="chat-panel-collapsed-tab-controls"'
     );
-    // The tab row above still owns window dragging here.
-    expect(markup).not.toContain('data-testid="published-header-drag-filler"');
     expect(markup).toContain('style="height:80px"');
   });
 
@@ -124,12 +118,11 @@ describe("ChatPanelHeader tab row collapse", () => {
     expect(markup).toContain("group-hover:hidden");
     expect(markup).toContain("hidden group-hover:block");
     expect(markup).not.toContain("transition-opacity");
-    expect(markup).toContain('data-icon="x"');
+    // Close is deliberately not offered in the folded row.
+    expect(markup).not.toContain('data-icon="x"');
     expect(markup).toContain('style="height:44px"');
-    // The maximized pane's only chrome — no rule under it, and it has to
-    // offer the window-drag handle the folded tab row used to provide.
+    // The maximized pane's only chrome — no rule under it.
     expect(markup).not.toContain("border-b border-border-2");
-    expect(markup).toContain('data-testid="published-header-drag-filler"');
     // The window-edge gap the folded 44px row used to hold (its pt-2).
     expect(markup).toContain('data-testid="chat-panel-collapsed-header"');
     expect(markup).toContain("padding-top:8px");
@@ -172,15 +165,5 @@ describe("ChatPanelHeader tab row collapse", () => {
     const withSidebar = render({ tabRowCollapsed: true });
     expect(withSidebar).not.toContain("padding-left:");
     expect(withSidebar).toContain("pl-[15px]");
-  });
-});
-
-describe("collapsed close control", () => {
-  it("is dropped for a surface that cannot be closed away", () => {
-    const markup = render({ tabRowCollapsed: true, canCloseActiveTab: false });
-
-    expect(markup).toContain('data-testid="chat-panel-collapsed-tab-controls"');
-    expect(markup).toContain('data-plus-menu="true"');
-    expect(markup).not.toContain('data-icon="x"');
   });
 });

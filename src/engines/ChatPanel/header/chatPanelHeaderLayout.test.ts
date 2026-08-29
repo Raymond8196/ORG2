@@ -1,3 +1,4 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from "vitest";
 
 import {
@@ -11,8 +12,8 @@ import {
   resolveChatPanelChromeTopInsetPx,
   resolveTranscriptTopPaddingPx,
   shouldCollapseChatPanelTabRow,
-  shouldOfferCollapsedTabClose,
   shouldOverlayChatSessionHeaders,
+  shouldStartHeaderDragFromTarget,
 } from "./chatPanelHeaderLayout";
 
 describe("chat panel header overlay", () => {
@@ -125,19 +126,42 @@ describe("collapsing the tab row into the published header", () => {
   });
 });
 
-describe("collapsed close control", () => {
-  it("is withheld on the Launchpad, which closing would only recreate", () => {
-    expect(shouldOfferCollapsedTabClose("start-page")).toBe(false);
+describe("window drag from the folded header", () => {
+  function build(html: string): HTMLElement {
+    const host = document.createElement("div");
+    host.innerHTML = html;
+    return host;
+  }
+
+  it("drags from the header's own background", () => {
+    const host = build('<div id="bg"><span id="label">Session</span></div>');
+    expect(shouldStartHeaderDragFromTarget(host.querySelector("#bg"))).toBe(
+      true
+    );
+    // Plain text in the row is background too — nothing to click.
+    expect(shouldStartHeaderDragFromTarget(host.querySelector("#label"))).toBe(
+      true
+    );
   });
 
-  it("is offered for every surface the user can actually close away", () => {
-    for (const type of ["session", "terminal", "runtime", "channel"]) {
-      expect(shouldOfferCollapsedTabClose(type)).toBe(true);
+  it("steps aside for anything the user can actually click", () => {
+    for (const html of [
+      '<button id="t">x</button>',
+      '<a id="t" href="#">x</a>',
+      '<div role="button" id="t">x</div>',
+      '<div role="menuitem" id="t">x</div>',
+      '<input id="t" />',
+      '<div contenteditable="true" id="t">x</div>',
+      // ...including when the press lands on a child of the control.
+      '<button><span id="t">x</span></button>',
+    ]) {
+      expect(
+        shouldStartHeaderDragFromTarget(build(html).querySelector("#t"))
+      ).toBe(false);
     }
   });
 
-  it("is withheld when there is no active tab to close", () => {
-    expect(shouldOfferCollapsedTabClose(null)).toBe(false);
-    expect(shouldOfferCollapsedTabClose(undefined)).toBe(false);
+  it("ignores a press with no target", () => {
+    expect(shouldStartHeaderDragFromTarget(null)).toBe(false);
   });
 });
