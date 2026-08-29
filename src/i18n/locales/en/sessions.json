@@ -2187,7 +2187,6 @@
     },
     "createTarget": {
       "agentSession": "Agent session",
-      "manageAgents": "Manage agents / skills",
       "project": "Create project",
       "parallelRun": "Parallel run",
       "workItem": "Create work item"
@@ -2237,6 +2236,9 @@
     "launchpadQuestion": "What do you want to build with",
     "launchpadQuestionSuffix": "?",
     "manualLaunchpadQuestion": "What do you want to build?",
+    "planLaunchpadQuestion": "What do you want to plan with",
+    "planLaunchpadQuestionSuffix": "?",
+    "manualPlanLaunchpadQuestion": "What do you want to plan?",
     "start": "Start",
     "assign": "Assign",
     "send": "Send",

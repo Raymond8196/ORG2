@@ -2105,7 +2105,6 @@
     },
     "createTarget": {
       "agentSession": "Agent oturumu",
-      "manageAgents": "Agents / Skills yönet",
       "project": "Proje oluştur",
       "parallelRun": "Paralel çalıştırma",
       "workItem": "Work Item oluştur"
@@ -2150,6 +2149,9 @@
     "launchpadQuestion": "",
     "launchpadQuestionSuffix": "ile ne oluşturmak istersiniz?",
     "manualLaunchpadQuestion": "Ne oluşturmak istersiniz?",
+    "planLaunchpadQuestion": "",
+    "planLaunchpadQuestionSuffix": "ile ne planlamak istersiniz?",
+    "manualPlanLaunchpadQuestion": "Ne planlamak istersiniz?",
     "start": "Başlat",
     "assign": "Ata",
     "send": "Gönder",

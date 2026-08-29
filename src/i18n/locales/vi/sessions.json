@@ -2102,7 +2102,6 @@
     },
     "createTarget": {
       "agentSession": "Phiên Agent",
-      "manageAgents": "Quản lý Agents / Skills",
       "project": "Tạo dự án",
       "parallelRun": "Chạy song song",
       "workItem": "Tạo Work Item"
@@ -2147,6 +2146,9 @@
     "launchpadQuestion": "Bạn muốn xây dựng gì với",
     "launchpadQuestionSuffix": "?",
     "manualLaunchpadQuestion": "Bạn muốn xây dựng gì?",
+    "planLaunchpadQuestion": "Bạn muốn lên kế hoạch gì với",
+    "planLaunchpadQuestionSuffix": "?",
+    "manualPlanLaunchpadQuestion": "Bạn muốn lên kế hoạch gì?",
     "start": "Bắt đầu",
     "assign": "Gán",
     "send": "Gửi",

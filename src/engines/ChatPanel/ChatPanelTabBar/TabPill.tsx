@@ -145,9 +145,7 @@ export const TabPill = memo(function TabPill({
             ? t("projects:githubIssuesImport.createTarget")
             : createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
               ? t("navigation:collaboration.addOrg")
-              : createTarget === CHAT_PANEL_CREATE_TARGET.MANAGE_AGENTS
-                ? t("sessions:creator.createTarget.manageAgents")
-                : defaultDisplayTitle;
+              : defaultDisplayTitle;
 
   const iconColorClass = isActive ? "text-text-1" : "text-text-2";
   const isGitHubIssueTab =

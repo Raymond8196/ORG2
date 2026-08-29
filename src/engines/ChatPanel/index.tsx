@@ -348,7 +348,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     }, [activeTab, syncActiveTabState]);
 
     const creatorState = useAtomValue(sessionCreatorStateAtom);
-    const setCreatorState = useSetAtom(sessionCreatorStateAtom);
     const bumpProjectListRefresh = useSetAtom(projectListRefreshAtom);
     const allAgentDefs = useAtomValue(allAgentDefsAtom);
 
@@ -422,11 +421,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const { createTargetOptions, handleCreateTargetChange } =
       useChatPanelCreateTarget({
-        allAgentDefs,
         sessionCreatorAvailable: Boolean(SessionCreatorSlot),
         setCollabOrgCreateIntent,
         setCreateTarget,
-        setCreatorState,
         setShowProjectAgentCreator,
         setShowWorkItemAgentCreator,
         setWorkItemCreateDraft,

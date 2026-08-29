@@ -44,7 +44,10 @@ import SessionCreatorOrgMembersPanel from "./SessionCreatorOrgMembersPanel";
 import WorkItemAttachmentControl from "./WorkItemAttachmentControl";
 import { isRepoChromeAboveComposer } from "./repoChromeLayout";
 import type { SessionCreatorAgentHeroContent } from "./resolveSessionCreatorAgentHero";
-import type { SessionCreatorChatPanelHeaderLayout } from "./types";
+import type {
+  SessionCreatorChatPanelHeaderLayout,
+  SessionCreatorLaunchpadIntent,
+} from "./types";
 
 interface CategoryPickerProps {
   anchorRef: React.RefObject<HTMLButtonElement | null>;
@@ -94,6 +97,7 @@ interface SessionCreatorChatPanelViewProps {
   isCliTuiMode: boolean;
   isFullScreenVariant: boolean;
   isLaunchpadLayout: boolean;
+  launchpadIntent: SessionCreatorLaunchpadIntent;
   isLoading: boolean;
   hideSessionSetupControls: boolean;
   isOrgMembersPanelOpen: boolean;
@@ -156,6 +160,7 @@ const SessionCreatorChatPanelView: React.FC<
   isCliTuiMode,
   isFullScreenVariant,
   isLaunchpadLayout,
+  launchpadIntent,
   isLoading,
   hideSessionSetupControls,
   isOrgMembersPanelOpen,
@@ -393,16 +398,24 @@ const SessionCreatorChatPanelView: React.FC<
         />
       </div>
     ) : null;
+  const launchpadQuestionKey =
+    launchpadIntent === "plan"
+      ? "creator.planLaunchpadQuestion"
+      : "creator.launchpadQuestion";
+  const launchpadQuestionSuffixKey =
+    launchpadIntent === "plan"
+      ? "creator.planLaunchpadQuestionSuffix"
+      : "creator.launchpadQuestionSuffix";
   const agentHero = headerLayout !== "compact" && (
     <SessionCreatorAgentHero
       ref={agentHeroRef}
       name={heroContent.name}
       description={heroContent.description}
       avatarIcon={heroIcon}
-      question={isLaunchpadLayout ? t("creator.launchpadQuestion") : undefined}
+      question={isLaunchpadLayout ? t(launchpadQuestionKey) : undefined}
       questionSuffix={
         isLaunchpadLayout
-          ? t("creator.launchpadQuestionSuffix", { defaultValue: "" })
+          ? t(launchpadQuestionSuffixKey, { defaultValue: "" })
           : undefined
       }
       active={isCategorySelectorOpen}

@@ -146,6 +146,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
     availableProjects,
     chatPanelFooter,
     defaultProjectId: projectId,
+    dockedComposer: Boolean(renderAgentComposer),
     onDraftChange,
     onSetUnsaved,
     orgId,
@@ -385,7 +386,7 @@ const CreateWorkItemView: React.FC<CreateWorkItemViewProps> = ({
               headerContent={composerHeaderContent}
               editorContent={inlineFields.descriptionSection}
               pinnedActionsContent={workItemPropertyPills}
-              leadingActions={
+              pills={
                 <MarkdownEditorModeSwitch
                   mode={inlineFields.editorMode}
                   onModeChange={inlineFields.setEditorMode}
