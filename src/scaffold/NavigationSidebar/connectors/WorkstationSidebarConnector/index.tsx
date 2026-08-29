@@ -3,6 +3,7 @@ import React, { useCallback, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import { ROUTES } from "@src/config/routes";
 import { normalizeSidebarGuideProgress } from "@src/config/settingsSchema/sidebarGuideProgress";
 import { createLogger } from "@src/hooks/logger";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
@@ -32,6 +33,7 @@ import {
 import { saveSetupGuideProgressAtom } from "@src/store/settings/setupGuideProgressAtom";
 import {
   CHAT_PANEL_CREATE_TARGET,
+  CHAT_PANEL_SURFACE_KIND,
   CLOUD_ORG_MANAGEMENT_VIEW,
 } from "@src/store/ui/chatPanelAtom";
 import { showGuideHighlightAtom } from "@src/store/ui/guideHighlightAtom";
@@ -285,6 +287,42 @@ export const WorkstationSidebarConnector: React.FC = () => {
     setCollapsedSectionIds,
   });
 
+  const openCloudSessionAtDestination = useCallback(
+    (
+      destination: "new-tab" | "my-station",
+      options: { sessionId: string; title: string }
+    ) => {
+      setStationMode("my-station");
+      setStationChatVisible("my-station", true);
+      if (location.pathname !== ROUTES.workStation.code.path) {
+        navigate(ROUTES.workStation.code.path);
+      }
+
+      if (destination === "new-tab") {
+        navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+        openSessionInNewChatTab({
+          sessionId: options.sessionId,
+          sessionName: options.title,
+        });
+        return;
+      }
+
+      openSessionInWorkstation({
+        sessionId: options.sessionId,
+        title: options.title,
+      });
+    },
+    [
+      location.pathname,
+      navigate,
+      navigateChatPanel,
+      openSessionInNewChatTab,
+      openSessionInWorkstation,
+      setStationChatVisible,
+      setStationMode,
+    ]
+  );
+
   const {
     cloudMenuItems,
     cloudSessionMenuItems,
@@ -292,7 +330,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     selectedCloudMenuItemId,
     handleCloudSessionItemClick,
     resetCloudTeamPagination,
-    handleCloudRemoteItemRemove,
+    buildCloudRemoteItemMenuItems,
     cloudMemberFilterDropdown,
     cloudRemoteRowMap,
     cloudRemoteViewerMap,
@@ -307,6 +345,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     cloudMySessionsVisibleCount,
     revealedCloudOrgId: activeSessionSidebarRevealRequest?.cloudOrgId,
     revealedSidebarItemId: activeSessionSidebarRevealRequest?.sidebarItemId,
+    openSessionAtDestination: openCloudSessionAtDestination,
     handleCloudSessionFilterChange,
     personalHiddenCloudTaggedIds,
     cloudTaggedSessionIds,
@@ -507,7 +546,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleOpenInMyStation,
     handleTogglePin,
     handleToggleSubagentExpansion,
-    handleCloudRemoteItemRemove,
+    buildCloudRemoteItemMenuItems,
     t,
     tCommon,
     activeSessionMoreMenuId,
