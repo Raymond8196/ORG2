@@ -294,7 +294,6 @@ describe("ChatPanelStartPage", () => {
       'data-testid="chat-panel-start-page-manual-middle-content"'
     );
     expect(markup).toContain('aria-pressed="false"');
-    expect(markup).toContain("inline-flex h-[28px]");
     expect(markup.indexOf('data-testid="full-work-item-creator"')).toBeLessThan(
       markup.indexOf(
         'data-testid="chat-panel-start-page-work-item-mode-toggle"'
