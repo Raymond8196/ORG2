@@ -1715,6 +1715,7 @@
       "select": "Выбрать",
       "switchColumn": "Сменить колонку",
       "switchSection": "Сменить раздел",
+      "showPath": "Показывать путь",
       "compatibleKeys": "Совместимые",
       "planSupport": "Plan",
       "byokSupport": "Keys",

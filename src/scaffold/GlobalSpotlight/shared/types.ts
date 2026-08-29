@@ -75,6 +75,10 @@ export interface SpotlightItemData {
     checked: boolean;
     onToggle: (e?: React.MouseEvent) => void;
   };
+  /** Overrides the text a palette's fuzzy filter matches against. Lets a
+   *  row stay searchable by a value it does not render (e.g. a worktree
+   *  path hidden behind the footer's "Show path" toggle). */
+  searchText?: string;
   /** Allow any additional properties */
   [key: string]: unknown;
 }

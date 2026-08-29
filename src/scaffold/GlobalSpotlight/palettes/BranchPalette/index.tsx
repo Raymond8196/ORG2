@@ -9,6 +9,7 @@
  * (`gitApi.getGitBranches`) and share the centralized branch cache to
  * prevent redundant calls.
  */
+import { useAtom } from "jotai";
 import React from "react";
 import { useTranslation } from "react-i18next";
 
@@ -23,13 +24,17 @@ import {
   Tick01Icon,
 } from "@src/icons";
 import type { WorktreeLaunchSource } from "@src/store/session/worktreeLaunchSourceAtom";
+import { spotlightShowPathAtom } from "@src/store/ui/spotlightShowPathAtom";
 import { compactRepoPathForDisplay } from "@src/util/file/repoPathDisplay";
 
 import {
   SPOTLIGHT_FOOTER_ACTIVE_CHIP,
+  SpotlightFooterToggle,
   SpotlightPinnedActionSection,
 } from "../../components";
-import { PaletteBody, SpotlightShell } from "../../shell";
+import { ICONS } from "../../config";
+import { useRefreshSpin } from "../../shared";
+import { PaletteBody, ShellFooterAction, SpotlightShell } from "../../shell";
 import type { SpotlightItem } from "../../types";
 import { useSelectorKernel } from "../core";
 import type {
@@ -38,7 +43,11 @@ import type {
   WorktreePaletteProps,
 } from "./types";
 import { useBranchPalette } from "./useBranchPalette";
-import { refreshWorktreeMap, useWorktreeEntries } from "./useWorktreeMap";
+import {
+  refreshWorktreeMap,
+  revalidateWorktreeMap,
+  useWorktreeEntries,
+} from "./useWorktreeMap";
 
 function normalizeWorktreePath(path: string | undefined): string {
   return (path ?? "").replace(/^file:\/\//, "").replace(/\/+$/, "");
@@ -61,7 +70,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
   const [createModalOpen, setCreateModalOpen] = React.useState(false);
   const [searchQuery, setSearchQuery] = React.useState("");
   const [mode, setMode] = React.useState<WorktreePaletteMode>("switch");
-  const [isRefreshing, setIsRefreshing] = React.useState(false);
+  const [showPath, setShowPath] = useAtom(spotlightShowPathAtom);
   const [removingPaths, setRemovingPaths] = React.useState<Set<string>>(
     () => new Set()
   );
@@ -100,14 +109,41 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
     [onRemoveWorktree, repoId, repoPath]
   );
 
-  const handleRefreshWorktrees = React.useCallback(async () => {
-    setIsRefreshing(true);
-    try {
-      await refreshWorktreeMap(repoId, repoPath);
-    } finally {
-      setIsRefreshing(false);
-    }
-  }, [repoId, repoPath]);
+  // Revalidate rather than refresh: the rows stay on screen while the
+  // refetch runs, so only the icon reports the work. Spin timing is shared
+  // with the branch palette's refresh.
+  const revalidateWorktrees = React.useCallback(
+    () => revalidateWorktreeMap(repoId, repoPath),
+    [repoId, repoPath]
+  );
+  const { triggerRefresh, RefreshIcon } = useRefreshSpin(
+    Refresh04Icon,
+    revalidateWorktrees
+  );
+
+  // Same affordance as the workspace palette's manage mode: a danger-tinted
+  // trash button on the row instead of a "Remove Worktree" text label.
+  const renderWorktreeTrashAction = React.useCallback(
+    (worktreePath: string, isRemoving: boolean): React.ReactNode => (
+      <button
+        type="button"
+        disabled={isRemoving}
+        onClick={(event) => {
+          event.stopPropagation();
+          void handleRemoveWorktree(worktreePath);
+        }}
+        className="flex items-center justify-center rounded-md p-1 text-danger-6 transition-colors hover:bg-danger-6/10 disabled:cursor-not-allowed disabled:opacity-50"
+        title={t("selectors.branch.actions.removeWorktree", "Remove Worktree")}
+        aria-label={t(
+          "selectors.branch.actions.removeWorktree",
+          "Remove Worktree"
+        )}
+      >
+        <HugeiconsIcon icon={ICONS.removeRepo} size={14} />
+      </button>
+    ),
+    [handleRemoveWorktree, t]
+  );
 
   const allItems = React.useMemo<SpotlightItem[]>(
     () =>
@@ -126,10 +162,13 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
               : path.split("/").pop() || path);
           const isSelected = path === normalizedActivePath;
           const isRemoving = removingPaths.has(path);
+          const displayPath = compactRepoPathForDisplay({ path });
           return {
             id: `worktree:${path}`,
             label,
-            desc: compactRepoPathForDisplay({ path }),
+            // The path only renders when the footer's "Show path" pill is
+            // on; it stays searchable either way via `searchText`.
+            desc: showPath ? displayPath : undefined,
             icon: FolderClosedIcon,
             type: "option" as const,
             data: {
@@ -137,12 +176,10 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
               isCurrentSelection: mode === "switch" && isSelected,
               disabled: isRemoving,
               contextMenuCopy: { name: label, path },
-              rightLabel:
+              searchText: `${label} ${displayPath}`,
+              rightContent:
                 mode === "remove"
-                  ? t(
-                      "selectors.branch.actions.removeWorktree",
-                      "Remove Worktree"
-                    )
+                  ? renderWorktreeTrashAction(worktree.path, isRemoving)
                   : undefined,
             },
             action: () => {
@@ -161,6 +198,8 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       onClose,
       onSelect,
       removingPaths,
+      renderWorktreeTrashAction,
+      showPath,
       t,
       worktrees,
     ]
@@ -178,7 +217,8 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
   const { filteredItems } = useFilteredItems({
     items: allItems,
     searchQuery,
-    getSearchText: (item) => `${item.label} ${item.desc ?? ""}`,
+    getSearchText: (item) =>
+      item.data?.searchText ?? `${item.label} ${item.desc ?? ""}`,
   });
   const sectionedItems = React.useMemo<SpotlightItem[]>(() => {
     const header = (id: string, label: string): SpotlightItem => ({
@@ -253,31 +293,22 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
         action: () => setMode("remove"),
       });
     }
-    const RefreshIcon = (props: { size?: number; className?: string }) => (
-      <HugeiconsIcon
-        icon={Refresh04Icon}
-        {...props}
-        className={`${props.className ?? ""} ${isRefreshing ? "spotlight-refresh-spin" : ""}`.trim()}
-      />
-    );
-
     actions.push({
       id: "worktree:refresh",
       label: t("actions.refresh", "Refresh"),
       icon: RefreshIcon,
       type: "action",
-      data: { disabled: isRefreshing },
-      action: () => void handleRefreshWorktrees(),
+      action: triggerRefresh,
     });
     return actions;
   }, [
+    RefreshIcon,
     createAction,
-    handleRefreshWorktrees,
-    isRefreshing,
     mode,
     onCreate,
     onRemoveWorktree,
     t,
+    triggerRefresh,
   ]);
   const selectableItems = React.useMemo<SpotlightItem[]>(
     () => [...sectionedItems, ...pinnedActionItems],
@@ -316,6 +347,10 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
         onItemHover={kernel.setSelectedIndex}
         searchQuery={searchQuery}
         layout="twoColumn"
+        // Switch mode fills two rows (new / remove / refresh); remove mode
+        // shows only "Done". Reserving the taller layout keeps the panel
+        // from resizing when the mode changes.
+        reserveRows={onCreate && onRemoveWorktree ? 2 : 1}
       />
     ) : undefined;
 
@@ -358,15 +393,26 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
         },
       ]}
       onRemoveSegment={handleGoBack}
-      isLoading={isOpen && (worktrees.length === 0 || isRefreshing)}
+      isLoading={isOpen && worktrees.length === 0}
       fixedHeight
       afterListSlot={pinnedActionSection}
     />
   );
 
+  const showPathToggle = (
+    <ShellFooterAction placement="inline">
+      <SpotlightFooterToggle
+        label={t("selectors.spotlightFooter.showPath", "Show path")}
+        checked={showPath}
+        onCheckedChange={setShowPath}
+      />
+    </ShellFooterAction>
+  );
+
   const palette = (
     <>
       {body}
+      {showPathToggle}
       {createModalOpen && (
         <WorktreeSourceModal
           open
@@ -393,11 +439,10 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
       isOpen={isOpen}
       onClose={onClose}
       hasActiveAction={pinnedActionItems.length > 0}
-      activeActionChip={
-        mode === "switch"
-          ? SPOTLIGHT_FOOTER_ACTIVE_CHIP.switchSection
-          : undefined
-      }
+      // Tab switches between the list and the pinned actions in both modes,
+      // so the hint chip stays put instead of swapping to "Back" the moment
+      // remove mode opens.
+      activeActionChip={SPOTLIGHT_FOOTER_ACTIVE_CHIP.switchSection}
     >
       {palette}
     </SpotlightShell>

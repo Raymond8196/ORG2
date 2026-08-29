@@ -48,6 +48,12 @@ export interface SpotlightFooterProps {
    * (Backspace + Return) to match historical drill-in palettes.
    */
   activeActionChip?: SpotlightFooterActiveChip;
+  /**
+   * Palette-owned controls rendered inside the pill after the last hint
+   * (see `ShellFooterAction placement="inline"`). Keep these visually
+   * quiet — the pill is a hint strip, not a toolbar.
+   */
+  trailingSlot?: React.ReactNode;
 }
 
 // ============ COMPONENT ============
@@ -56,6 +62,7 @@ export const SpotlightFooter: React.FC<SpotlightFooterProps> = ({
   hasActiveAction,
   variant = "spotlight",
   activeActionChip = SPOTLIGHT_FOOTER_ACTIVE_CHIP.back,
+  trailingSlot,
 }) => {
   const { t } = useTranslation();
 
@@ -123,6 +130,8 @@ export const SpotlightFooter: React.FC<SpotlightFooterProps> = ({
         />
         <span>{t("actions.close")}</span>
       </span>
+
+      {trailingSlot}
     </div>
   );
 

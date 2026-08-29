@@ -1588,6 +1588,7 @@
       "select": "选择",
       "switchColumn": "切换栏",
       "switchSection": "切换分区",
+      "showPath": "显示路径",
       "compatibleKeys": "兼容",
       "planSupport": "Plan",
       "byokSupport": "Keys",

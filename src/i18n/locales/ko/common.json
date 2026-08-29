@@ -1704,6 +1704,7 @@
       "select": "선택",
       "switchColumn": "열 전환",
       "switchSection": "Switch section",
+      "showPath": "경로 표시",
       "compatibleKeys": "호환",
       "planSupport": "Plan",
       "byokSupport": "Keys",
