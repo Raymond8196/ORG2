@@ -404,6 +404,7 @@ export { default as StopCircleIcon } from "@hugeicons/core-free-icons/StopCircle
 export { default as StopIcon } from "@hugeicons/core-free-icons/StopIcon";
 export { default as Store01Icon } from "@hugeicons/core-free-icons/Store01Icon";
 export { default as Sun01Icon } from "@hugeicons/core-free-icons/Sun01Icon";
+export { default as Sun02Icon } from "@hugeicons/core-free-icons/Sun02Icon";
 export { default as TablePropertiesIcon } from "@hugeicons/core-free-icons/TablePropertiesIcon";
 export { default as Tag01Icon } from "@hugeicons/core-free-icons/Tag01Icon";
 export { default as TagsIcon } from "@hugeicons/core-free-icons/TagsIcon";

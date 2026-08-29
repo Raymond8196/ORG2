@@ -1,4 +1,4 @@
-import { ContentWritingIcon } from "@src/icons";
+import { ContentWritingIcon, Sun02Icon } from "@src/icons";
 
 import {
   SETTINGS_ROUTE_ROOT,
@@ -7,6 +7,7 @@ import {
   filterDevModeIntegrationItems,
   getDevOnlyIntegrationRedirect,
   getPathIcon,
+  getSegmentIcon,
   isIntegrationCategoryAvailable,
   parseCodexReauthIntent,
 } from "./mainAppPaths";
@@ -14,6 +15,12 @@ import {
 describe("My Station Code Editor icon", () => {
   it("uses the writing glyph in path-derived navigation", () => {
     expect(getPathIcon("/orgii/workstation/code")).toBe(ContentWritingIcon);
+  });
+});
+
+describe("Settings sidebar icons", () => {
+  it("uses the sun glyph for Appearance", () => {
+    expect(getSegmentIcon("appearance")).toBe(Sun02Icon);
   });
 });
 
