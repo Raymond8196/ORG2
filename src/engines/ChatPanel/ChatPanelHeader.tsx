@@ -384,7 +384,11 @@ export function ChatPanelHeader({
       : null;
 
   const collapsedSidebarChrome = shouldOffsetHeaderForCollapsedSidebar ? (
-    <div style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}>
+    <div
+      className="z-50"
+      style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
+      data-testid="chat-panel-collapsed-sidebar-chrome"
+    >
       <CollapsedSidebarButton />
     </div>
   ) : null;

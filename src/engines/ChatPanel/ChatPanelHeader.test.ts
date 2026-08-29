@@ -152,6 +152,12 @@ describe("ChatPanelHeader tab row collapse", () => {
     // The 40px row is now the pane's top edge, so it owns the reservation for
     // the host window controls (macOS traffic lights) the tab row used to hold.
     expect(collapsed).toContain('data-collapsed-sidebar="true"');
+    // The published row is z-40 and spans the button's reserved left inset.
+    // Keep the visible button above that transparent drag surface so it owns
+    // the pointer hit instead of starting a window drag.
+    expect(collapsed).toMatch(
+      /class="z-50"[^>]*data-testid="chat-panel-collapsed-sidebar-chrome"/
+    );
     expect(collapsed).toContain(
       `padding-left:${getCollapsedSidebarChromeOffset()}px`
     );
