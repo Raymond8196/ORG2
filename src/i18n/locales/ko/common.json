@@ -1116,7 +1116,11 @@
       "stopProcess": "프로세스 중지",
       "searchPlaceholder": "포트 검색…",
       "noSearchResults": "일치하는 포트 없음",
-      "openAddress": "{{address}} 열기"
+      "openAddress": "{{address}} 열기",
+      "rescan": "다시 검색",
+      "rescanning": "검색 중…",
+      "rescanTooltip": "수신 대기 포트를 다시 검색합니다",
+      "lastScannedAt": "마지막 검색 {{time}}"
     },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",

@@ -1121,7 +1121,11 @@
       "stopProcess": "Остановить процесс",
       "searchPlaceholder": "Поиск портов…",
       "noSearchResults": "Нет подходящих портов",
-      "openAddress": "Открыть {{address}}"
+      "openAddress": "Открыть {{address}}",
+      "rescan": "Пересканировать",
+      "rescanning": "Сканирование…",
+      "rescanTooltip": "Снова найти прослушиваемые порты",
+      "lastScannedAt": "Последнее сканирование в {{time}}"
     },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",

@@ -1116,7 +1116,11 @@
       "stopProcess": "Dừng tiến trình",
       "searchPlaceholder": "Tìm cổng…",
       "noSearchResults": "Không có cổng khớp",
-      "openAddress": "Mở {{address}}"
+      "openAddress": "Mở {{address}}",
+      "rescan": "Quét lại",
+      "rescanning": "Đang quét…",
+      "rescanTooltip": "Tìm lại các cổng đang lắng nghe",
+      "lastScannedAt": "Quét lần cuối lúc {{time}}"
     },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",

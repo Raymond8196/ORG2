@@ -1117,7 +1117,11 @@
       "stopProcess": "Detener proceso",
       "searchPlaceholder": "Buscar puertos…",
       "noSearchResults": "No hay puertos coincidentes",
-      "openAddress": "Abrir {{address}}"
+      "openAddress": "Abrir {{address}}",
+      "rescan": "Volver a escanear",
+      "rescanning": "Escaneando…",
+      "rescanTooltip": "Buscar de nuevo puertos en escucha",
+      "lastScannedAt": "Último escaneo a las {{time}}"
     },
     "noLanguageServicesActive": "No language services active",
     "linesSelected": "{{count}} lines selected",
