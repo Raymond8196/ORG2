@@ -44,7 +44,7 @@ export default function DetailTabStrip<Key extends string>({
       className={`flex shrink-0 items-end gap-px ${
         isHeaderVariant
           ? "h-10 min-w-0"
-          : "border-b border-border-2 bg-bg-2 px-3"
+          : "border-b border-border-2 bg-bg-2 pl-3 pr-[7px]"
       } ${className}`.trim()}
     >
       {tabs.map((tab) => {
