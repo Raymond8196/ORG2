@@ -67,13 +67,16 @@ export function buildTeamInboxMenuItem({
     icon: InboxIcon,
     iconName: "inbox",
     dataTestId: "sidebar-team-inbox",
-    trailingElement:
+    // The count reads as part of the label, so it rides the text's trailing
+    // edge rather than the row's — a right-aligned badge floated far from
+    // "Inbox" and looked like an unrelated row control.
+    labelBadge:
       teamInboxUnreadCount > 0 ? (
         <span
           aria-label={
             teamInboxUnreadAriaLabel ?? `${teamInboxUnreadCount} unread`
           }
-          className="min-w-5 rounded-full bg-primary-6 px-1.5 text-center text-xs font-medium text-white"
+          className="inline-flex h-3.5 min-w-3.5 shrink-0 items-center justify-center rounded-full bg-primary-6 px-1 text-[9px] font-medium leading-none text-white"
         >
           {teamInboxUnreadCount > 99 ? "99+" : teamInboxUnreadCount}
         </span>

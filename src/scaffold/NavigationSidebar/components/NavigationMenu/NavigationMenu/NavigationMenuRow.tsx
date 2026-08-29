@@ -179,8 +179,11 @@ export const NavigationMenuParentRow = React.forwardRef<
                 item.disclosureFollowsLabel ? "" : "flex-1"
               }`}
             >
-              <span className="truncate text-[13px] leading-4 text-text-1">
-                {item.label}
+              <span className="flex min-w-0 items-center gap-1">
+                <span className="truncate text-[13px] leading-4 text-text-1">
+                  {item.label}
+                </span>
+                {item.labelBadge}
               </span>
               {item.subtitle && (
                 <span className="flex min-w-0 items-center gap-1 truncate text-[11px] leading-3 text-text-3">
@@ -399,20 +402,23 @@ export const NavigationMenuLeafRow = React.forwardRef<
           })}
           {!collapsed && (
             <div className="flex min-w-0 flex-1 flex-col gap-0">
-              <span
-                className={`min-w-0 truncate text-[13px] leading-4 ${
-                  item.disabled
-                    ? isSecondaryTone
-                      ? "text-text-2"
-                      : "text-text-3"
-                    : isSelected
-                      ? "text-text-1"
-                      : isSecondaryTone
+              <span className="flex min-w-0 items-center gap-1">
+                <span
+                  className={`min-w-0 truncate text-[13px] leading-4 ${
+                    item.disabled
+                      ? isSecondaryTone
                         ? "text-text-2"
-                        : "text-text-1"
-                }`}
-              >
-                {item.label}
+                        : "text-text-3"
+                      : isSelected
+                        ? "text-text-1"
+                        : isSecondaryTone
+                          ? "text-text-2"
+                          : "text-text-1"
+                  }`}
+                >
+                  {item.label}
+                </span>
+                {item.labelBadge}
               </span>
               {item.subtitle && (
                 <span className="flex min-w-0 items-center gap-1 truncate text-[11px] leading-3 text-text-3">

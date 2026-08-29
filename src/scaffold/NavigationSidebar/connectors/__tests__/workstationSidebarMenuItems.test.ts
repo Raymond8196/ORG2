@@ -61,7 +61,7 @@ describe("buildPinnedMenuItems", () => {
       teamInboxUnreadAriaLabel: "3 no leídos",
     });
 
-    const badge = items[3]?.trailingElement as React.ReactElement<{
+    const badge = items[3]?.labelBadge as React.ReactElement<{
       "aria-label"?: string;
     }>;
     expect(badge?.props["aria-label"]).toBe("3 no leídos");
@@ -78,7 +78,7 @@ describe("buildPinnedMenuItems", () => {
       teamInboxUnreadCount: 5,
     });
 
-    const badge = items[3]?.trailingElement as React.ReactElement<{
+    const badge = items[3]?.labelBadge as React.ReactElement<{
       "aria-label"?: string;
     }>;
     expect(badge?.props["aria-label"]).toBe("5 unread");

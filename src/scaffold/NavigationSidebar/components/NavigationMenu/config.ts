@@ -45,6 +45,12 @@ export interface NavigationMenuItem {
   iconElement?: ReactNode;
   /** Optional hover/focus action that replaces the leading icon in-place. */
   iconAction?: NavigationMenuIconAction;
+  /**
+   * Small element pinned to the label's trailing edge — it tracks the text,
+   * not the row. Use for a counter that reads as part of the label (an unread
+   * count); `trailingElement` right-aligns to the row edge instead.
+   */
+  labelBadge?: ReactNode;
   /** Optional element rendered at the far right edge of the row. */
   trailingElement?: ReactNode;
   /**

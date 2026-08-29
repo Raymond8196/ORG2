@@ -244,4 +244,53 @@ describe("NavigationMenuRow", () => {
     expect(clippingLayer).toContain("-mr-0.5");
     expect(markup).not.toContain('class="-mr-0.5');
   });
+  it("keeps a label badge beside the label text, not at the row edge", () => {
+    const markup = renderToStaticMarkup(
+      createElement(NavigationMenuLeafRow, {
+        item: {
+          ...baseItem,
+          label: "Inbox",
+          labelBadge: createElement("span", { "data-testid": "badge" }, "7"),
+        },
+        isChild: false,
+        isSelected: false,
+        collapsed: false,
+        t: (key: string) => key,
+        renderIcon: () => null,
+        onMenuItemClick: vi.fn(),
+        onRowMouseEnter: vi.fn(),
+        onRowActionClick: vi.fn(),
+      })
+    );
+
+    // The badge is the label span's immediate sibling inside the leading
+    // column. Routed through the trailing accessory slot instead, it would
+    // float to the row's right edge — which is what this row must not do.
+    expect(markup).toMatch(/Inbox<\/span><span data-testid="badge">7</);
+  });
+
+  it("renders a label badge on parent rows too", () => {
+    const markup = renderToStaticMarkup(
+      createElement(NavigationMenuParentRow, {
+        item: {
+          ...baseItem,
+          label: "Inbox",
+          labelBadge: createElement("span", { "data-testid": "badge" }, "7"),
+          children: [{ ...baseItem, id: "child", key: "child" }],
+        },
+        isChild: false,
+        isOpen: false,
+        submenuSelected: false,
+        collapsed: false,
+        t: (key: string) => key,
+        renderIcon: () => null,
+        renderMenuItem: () => createElement("div"),
+        onRowMouseEnter: vi.fn(),
+        onRowActionClick: vi.fn(),
+        onToggleSubmenu: vi.fn(),
+      })
+    );
+
+    expect(markup).toMatch(/Inbox<\/span><span data-testid="badge">7</);
+  });
 });
