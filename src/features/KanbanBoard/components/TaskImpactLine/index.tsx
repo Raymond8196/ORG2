@@ -3,7 +3,7 @@ import React from "react";
 import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import {
   CircleSlashIcon,
-  DiffIcon,
+  FileDiffIcon,
   GitCommitIcon,
   HugeiconsIcon,
 } from "@src/icons";
@@ -53,8 +53,8 @@ const TaskImpactLine: React.FC<TaskImpactLineProps> = ({
         <span className="task-impact-line__dot" />
         <span className="task-impact-line__item">
           <HugeiconsIcon
-            icon={DiffIcon}
-            data-icon="diff"
+            icon={FileDiffIcon}
+            data-icon="file-diff"
             size={12}
             strokeWidth={1.75}
           />

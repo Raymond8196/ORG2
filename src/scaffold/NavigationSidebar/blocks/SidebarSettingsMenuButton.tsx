@@ -31,6 +31,7 @@ import { useAppNavigation } from "@src/hooks/navigation";
 import {
   ArrowRight01Icon,
   CircleIcon,
+  ContrastIcon,
   Cursor02Icon,
   GaugeIcon,
   HelpCircleIcon,
@@ -38,7 +39,6 @@ import {
   Layout01Icon,
   Login01Icon,
   Settings01Icon,
-  Sun01Icon,
 } from "@src/icons";
 import { useAppearanceState } from "@src/modules/MainApp/Settings/sections/useAppearanceState";
 import { openAgentControlSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
@@ -492,8 +492,8 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
               >
                 <span className="flex min-w-0 items-center gap-2">
                   <HugeiconsIcon
-                    icon={Sun01Icon}
-                    data-icon="sun"
+                    icon={ContrastIcon}
+                    data-icon="contrast"
                     size={DROPDOWN_ITEM.iconSize}
                     className={MENU_ICON_CLASS_NAME}
                   />

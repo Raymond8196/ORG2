@@ -1,14 +1,19 @@
 /**
  * TimelineSection Configuration
  */
-import { DiffIcon, GitCommitIcon, PinIcon, Refresh04Icon } from "@src/icons";
+import {
+  FileDiffIcon,
+  GitCommitIcon,
+  PinIcon,
+  Refresh04Icon,
+} from "@src/icons";
 
 // Icon configuration
 export const TIMELINE_ICONS = {
   commit: GitCommitIcon,
   pin: PinIcon,
   refresh: Refresh04Icon,
-  openDiff: DiffIcon,
+  openDiff: FileDiffIcon,
 } as const;
 
 // Constants

@@ -7,11 +7,11 @@ import {
   Infinity01Icon,
   BubbleChatIcon,
   CodeIcon,
+  FileDiffIcon,
   type IconSvgElement,
   InternetIcon,
   Layout01Icon,
   ListTodoIcon,
-  WorkflowCircle05Icon,
 } from "@src/icons";
 
 export interface DockApp {
@@ -26,7 +26,7 @@ export interface DockApp {
  * it from the rest of the apps (mirrors the trailing divider before the
  * Background Tasks "infinity" pill). */
 export const DOCK_APP_SEGMENTS: DockApp[][] = [
-  [{ id: "DIFF", name: "Diff", icon: WorkflowCircle05Icon }],
+  [{ id: "DIFF", name: "Diff", icon: FileDiffIcon }],
   [
     { id: "CHANNELS", name: "Communication", icon: BubbleChatIcon },
     { id: "CODE_EDITOR", name: "Code Editor", icon: CodeIcon },

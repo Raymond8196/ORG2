@@ -17,7 +17,7 @@ import {
   ArrowLeftRightIcon,
   ClipboardListIcon,
   ComputerTerminal01Icon,
-  DiffIcon,
+  FileDiffIcon,
   GitCommitHorizontalIcon,
   HelpCircleIcon,
   HugeiconsIcon,
@@ -104,7 +104,7 @@ export function createFileInlineSection({
 
   return {
     key: "files",
-    icon: React.createElement(HugeiconsIcon, { icon: DiffIcon, size: 13 }),
+    icon: React.createElement(HugeiconsIcon, { icon: FileDiffIcon, size: 13 }),
     count: fileChangeStats.count,
     content: React.createElement(
       "span",

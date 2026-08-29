@@ -17,7 +17,7 @@ import { createLogger } from "@src/hooks/logger";
 import {
   ArrowRight01Icon,
   CornerDownRightIcon,
-  DiffIcon,
+  FileDiffIcon,
   HugeiconsIcon,
   InformationCircleIcon,
   LockIcon,
@@ -500,7 +500,11 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
                     title={`${data.gitStatus.uncommittedFiles} file${data.gitStatus.uncommittedFiles !== 1 ? "s" : ""} uncommitted`}
                   >
                     {data.gitStatus.uncommittedFiles}
-                    <HugeiconsIcon icon={DiffIcon} data-icon="diff" size={12} />
+                    <HugeiconsIcon
+                      icon={FileDiffIcon}
+                      data-icon="file-diff"
+                      size={12}
+                    />
                   </span>
                 )}
 

@@ -22,7 +22,7 @@ import { useResolvedModelLabel } from "@src/hooks/models";
 import { useValidatedLastPair } from "@src/hooks/models/useValidatedLastPair";
 import {
   Clock01Icon,
-  DiffIcon,
+  FileDiffIcon,
   FingerPrintIcon,
   FloppyDiskIcon,
   GitCommitVerticalIcon,
@@ -689,8 +689,8 @@ export const SessionHoverCardContent: React.FC<SessionHoverCardContentProps> =
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={DiffIcon}
-                data-icon="diff"
+                icon={FileDiffIcon}
+                data-icon="file-diff"
                 size={13}
                 strokeWidth={1.75}
               />

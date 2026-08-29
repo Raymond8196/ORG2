@@ -1,4 +1,4 @@
-import { ContentWritingIcon, Sun02Icon } from "@src/icons";
+import { ContentWritingIcon, ContrastIcon } from "@src/icons";
 
 import {
   SETTINGS_ROUTE_ROOT,
@@ -19,8 +19,8 @@ describe("My Station Code Editor icon", () => {
 });
 
 describe("Settings sidebar icons", () => {
-  it("uses the sun glyph for Appearance", () => {
-    expect(getSegmentIcon("appearance")).toBe(Sun02Icon);
+  it("uses the contrast glyph for Appearance", () => {
+    expect(getSegmentIcon("appearance")).toBe(ContrastIcon);
   });
 });
 
