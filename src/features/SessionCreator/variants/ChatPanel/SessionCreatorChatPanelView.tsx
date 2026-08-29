@@ -438,7 +438,7 @@ const SessionCreatorChatPanelView: React.FC<
   );
   const launchpadMiddleContent = isLaunchpadLayout ? (
     <div
-      className="session-creator-chat-panel-launchpad-middle absolute inset-x-0 flex -translate-y-1/2 flex-col items-center gap-4"
+      className="session-creator-chat-panel-launchpad-middle absolute inset-x-0 flex -translate-y-1/2 flex-col items-center gap-2"
       style={CREATOR_MIDDLE_POSITION_STYLE}
     >
       {/* Multi-runner owns the whole middle slot: with N runners listed below
