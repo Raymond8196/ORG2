@@ -219,6 +219,73 @@ barrel is unreachable.
 **To restore:** reverse the `git mv` for the file in question. No other edits
 are needed.
 
+## Test-only modules — archived 2026-08-29
+
+A companion pass to the sweep above, asking a different question: not "what does
+nothing import?" but **"what does nothing but its own test import?"** Rebuilding
+the graph from _production_ roots only (`src/index.tsx` and `src/` paths named
+from `scripts/`, `tests/`, `tools/`, or a root config — no test roots) leaves
+modules the app never loads and only the suite keeps alive. A passing test is
+not evidence a module is wanted.
+
+**26 modules + the 21 tests that were their only consumer (8,081 LOC).**
+
+Whole units:
+
+- `src/components/DevPassport/` — `PassportBook`, `Stamp`, `types` + its test.
+  The rest of the feature (`PassportDisplay`, `PassportDossier`, the barrel, two
+  stylesheets) went in the sweep above; this completes it.
+- `src/api/realtime/websocket/` — `client.ts`, `types.ts`, `WSProvider.tsx` +
+  `WSProvider.test.ts`; `config.ts` went in the sweep above.
+- hosted-key activity sync — `useHostedKeyActivitySync.ts`,
+  `hostedKeyEventUtils.ts`, `src/api/http/session/hostedKey.ts` + two tests.
+- `src/api/tauri/diff/` and `src/util/diff/index.ts` — see the duplicates note
+  below.
+
+Individually: `util/data/converters/eventPayload.ts`,
+`util/ui/dom/isNativeElement.ts`, `SessionCore/utils/{waitForSnapshotChange,
+sessionGenerationGuard}.ts`, `components/{FloatingScrollNav,TrafficLights}/`,
+`ChatPanel/navigation/chatPanelSurfaceReducer.ts`,
+`Simulator/utils/eventSegments.ts`, `Org2Cloud/cloudWorkItemLock.ts`,
+`MainApp/Settings/settingsRouteModel.ts`,
+`SpreadsheetEditor/clipboardUtils.ts`, `shared/pr/types.ts`,
+`CodeReviewBlocks/ReviewSeverityIcon.tsx`,
+`TerminalCore/terminalSessionSidebarLayout.ts`, `util/ui/theme/luminance.ts`
+— each with its one test.
+
+### More duplicate implementations, same shape as `dndKit`
+
+Three of these were not merely unused but _shadowed by a second live copy_:
+
+- `src/util/diff/index.ts` exported `parseUnifiedDiff`; the live parser is
+  `src/engines/ChatPanel/blocks/CodeBlock/diffParser.ts`, which defines its own.
+- `SpreadsheetEditor/clipboardUtils.ts` exported `parseClipboardText` and
+  `stringifyRangeAsTsv`; `WorkStation/shared/TableSurface/hooks/useTableClipboard.ts`
+  defines both itself.
+- `src/api/tauri/diff/index.ts` was the pre-RPC diff client;
+  `api/tauri/rpc/procedures/diff.ts` is the live path and does not import it.
+
+### Deliberately kept — test infrastructure
+
+These are prod-unreachable _by design_ and must stay:
+
+- `src/test/staticImportGraph.ts` (4 test consumers), `src/test/reactSmokeHarness.ts` (14)
+- `src/features/Org2Cloud/org2CloudSyncEngine.testUtils.ts` (11)
+- `src/config/settingsSchema/assertSettingsUiParity.ts` — a schema-parity
+  invariant guard whose whole purpose is to be asserted from a test
+
+### Also kept
+
+`src/api/realtime/websocket/schemas.ts` + its test — imported by
+`src/api/tauri/rpc/schemas/cli.ts`, so the directory is not fully dead.
+
+**Verification:** `tsc --noEmit` clean; full vitest suite green. Re-running the
+orphan graph afterwards found **no further cascade** — the only unreached files
+left in `src/` are the eleven ambient `.d.ts` declarations, which tsconfig
+`include` consumes rather than any import.
+
+**To restore:** reverse the `git mv` for the module _and_ its test together.
+
 ---
 
 ## SWE-bench "Benchmark (Beta)" UI — archived 2026-08-16
