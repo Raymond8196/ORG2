@@ -9,7 +9,6 @@ import { type RenderableIcon } from "@src/components/AnyIcon";
 import {
   Activity01Icon as Activity,
   HierarchyCircle01Icon as AgentTeams,
-  BadgeCentIcon as BadgeCent,
   FirstBracketIcon as Braces,
   CalendarArrowUpIcon as CalendarArrowUp,
   InternetIcon as Chromium,
@@ -166,10 +165,6 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
     labelKey: "navigation:routes.selectProject",
     icon: FolderOpen,
   },
-
-  // economy
-  market: { labelKey: "navigation:labels.economy", icon: BadgeCent },
-  profile: { labelKey: "navigation:routes.myProfile", icon: Sparkles },
 };
 
 // ============================================================================
