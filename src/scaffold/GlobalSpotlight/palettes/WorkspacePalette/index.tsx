@@ -15,7 +15,7 @@ import { useTranslation } from "react-i18next";
 
 import { repoApi } from "@src/api/tauri/repo";
 import Message from "@src/components/Message";
-import { HugeiconsIcon, Search01Icon } from "@src/icons";
+import { HugeiconsIcon } from "@src/icons";
 import { cachedReposAtom } from "@src/store/repo";
 import { addWorkspaceInitialStageAtom } from "@src/store/ui/overlayAtom";
 import {
@@ -335,7 +335,6 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
     {
       labelOverride: paletteText.switchPathLabel,
       templateOverride: paletteText.switchPathTemplate,
-      iconOverride: isManageMode ? Search01Icon : undefined,
     }
   );
 
@@ -630,6 +629,11 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
       return;
     }
 
+    if (isManageMode) {
+      toggleManageMode();
+      return;
+    }
+
     handleGoBack();
   };
 
@@ -644,7 +648,7 @@ export const WorkspacePalette: React.FC<WorkspacePaletteProps> = ({
       path={addMenuKind ? addPathSegment : switchPathSegment}
       onRemoveSegment={handleRemovePathSegment}
       isLoading={repoLoading}
-      hideActionClose={hideActionClose}
+      hideActionClose={hideActionClose && !addMenuKind && !isManageMode}
       containerHeight={350}
       topSlot={addMenuKind ? undefined : topSlot}
       afterListSlot={pinnedActionSection}

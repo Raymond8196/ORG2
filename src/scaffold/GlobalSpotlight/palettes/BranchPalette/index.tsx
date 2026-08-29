@@ -505,7 +505,7 @@ export const BranchPalette: React.FC<BranchPaletteProps> = ({
       path={getPath()}
       onRemoveSegment={handleRemovePathSegment}
       isLoading={isLoading || isCreatingBranch}
-      hideActionClose={hideActionClose}
+      hideActionClose={hideActionClose && activeMode === "checkout"}
       containerHeight={350}
       fixedHeight
       contentOverride={activeMode === "add" ? <></> : undefined}
