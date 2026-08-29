@@ -1,5 +1,5 @@
 /**
- * Navigation destination group data arrays (INTEGRATIONS, MARKET, ACTIONS).
+ * Navigation destination group data arrays (INTEGRATIONS, ACTIONS).
  * Extracted from navDestinations.ts to keep that file under the config line limit.
  * PAGES and SETTINGS stay in navDestinations.ts since they are smaller.
  */
@@ -14,7 +14,6 @@ import {
   getPathIcon,
   getSegmentIcon,
 } from "@src/config/mainAppPaths";
-import { ROUTES } from "@src/config/routes";
 
 import type {
   NavDestination,
@@ -214,36 +213,6 @@ export const INTEGRATIONS: NavDestination[] = [
 ];
 
 // ============================================================================
-// MARKET
-// ============================================================================
-
-export const MARKET: NavDestination[] = [
-  dest("nav-market-tokens", ROUTES.app.market.tokenMarket.path, "market", {
-    keywords: ["tokens", "marketplace", "llm", "buy tokens", "sell tokens"],
-  }),
-  dest("nav-market-agent-apps", ROUTES.app.market.agentApps.path, "market", {
-    keywords: ["agent market", "agent apps", "agents marketplace"],
-  }),
-  dest("nav-market-services", ROUTES.app.market.serviceMarket.path, "market", {
-    keywords: ["services", "tasks", "marketplace"],
-  }),
-  dest("nav-market-wallet", ROUTES.app.market.wallet.path, "market", {
-    keywords: ["wallet", "balance", "transactions", "credits"],
-  }),
-  dest(
-    "nav-market-agent-studio",
-    ROUTES.app.market.agentStudio.path,
-    "market",
-    {
-      keywords: ["publish", "agent studio", "studio"],
-    }
-  ),
-  dest("nav-market-earnings", ROUTES.app.market.earnings.path, "market", {
-    keywords: ["earnings", "payouts", "provider"],
-  }),
-];
-
-// ============================================================================
 // ACTIONS (wizard entry points)
 // ============================================================================
 
@@ -353,21 +322,6 @@ export const ACTIONS: NavDestination[] = [
       labelKey: "integrations:agentOrgs.addOrg",
       overrideIcon: getSegmentIcon("org") ?? undefined,
       keywords: ["team", "team member", "hierarchy", "add team"],
-    }
-  ),
-  wizardDest(
-    "action-add-listing",
-    ROUTES.app.market.tokenMarket.path,
-    WIZARD_IDS.LISTING_ADD,
-    {
-      labelKey: "market:market.listing.addListing",
-      keywords: [
-        "listing",
-        "publish",
-        "sell tokens",
-        "provider listing",
-        "marketplace listing",
-      ],
     }
   ),
 ];

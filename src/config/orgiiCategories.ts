@@ -58,14 +58,6 @@ export function getBadgeClass(categoryIndex: number): string {
   return BADGE_STYLES[categoryIndex % BADGE_STYLES.length];
 }
 
-/**
- * Get the i18n label key for a category.
- * Maps category id to `orgiiOrchestrator.{id}.name`.
- */
-export function getCategoryLabelKey(categoryId: string): string {
-  return `orgiiOrchestrator.${categoryId}.name`;
-}
-
 // ─── Display helpers ─────────────────────────────────────────────────────────
 
 /** @see formatModelNameFull — display normalization preserving trailing dates */
