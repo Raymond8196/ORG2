@@ -2,6 +2,7 @@ import React from "react";
 import { createPortal } from "react-dom";
 
 import DropdownSelectedCheck from "@src/components/Dropdown/DropdownSelectedCheck";
+import type { SubmenuAnchor } from "@src/components/Dropdown/submenuLayout";
 import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
@@ -13,13 +14,8 @@ import { SidebarLayoutSettingsSubmenu } from "./SidebarLayoutSettingsSubmenu";
 
 export type SettingsSubmenu = "presence" | "appearance" | "layout";
 
-export interface SubmenuPosition {
-  left: number;
-  opensUpward: boolean;
-  parentBottom: number;
-  parentTop: number;
-  top: number;
-}
+/** Placement of a settings submenu, computed by the shared submenu geometry. */
+export type SubmenuPosition = SubmenuAnchor;
 
 interface AppearanceOption {
   value: AppearanceMode;
