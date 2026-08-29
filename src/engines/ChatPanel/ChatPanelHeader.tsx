@@ -11,6 +11,7 @@ import type { DropdownEnginePosition } from "@src/hooks/dropdown";
 import { getCollapsedSidebarChromeOffset } from "@src/hooks/ui/sidebar/useCollapsedSidebarChromeOffset";
 import {
   ArrowExpand01Icon,
+  Cancel01Icon,
   ComputerVideoIcon,
   HugeiconsIcon,
   PanelRightIcon,
@@ -26,12 +27,15 @@ import { SessionHeaderActionsMenu } from "./components/SessionHeaderActionsMenu"
 import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
+  ChatPanelCollapsedTabHeading,
   ChatPanelPublishedHeader,
   chatPanelHeaderSlotsAtom,
 } from "./header";
 import {
+  CHAT_PANEL_COLLAPSED_HEADER_HEIGHT_PX,
   CHAT_PANEL_GLASS_SURFACE_CLASS,
   CHAT_PANEL_HEADER_STACK_HEIGHT_PX,
+  CHAT_PANEL_HEADER_TOP_PADDING_PX,
   CHAT_PANEL_TAB_HEADER_HEIGHT_PX,
 } from "./header/chatPanelHeaderLayout";
 import type { ChatPanelRegionNotice } from "./types";
@@ -84,6 +88,15 @@ interface ChatPanelHeaderProps {
   tabStrip: React.ReactNode;
   /** When provided, rendered before the ... button (tab-strip + menu replacement) */
   tabStripPlus?: React.ReactNode;
+  /**
+   * Fold the 44px tab row into the published 40px row, which then hosts the
+   * tab controls the folded row would have carried.
+   */
+  tabRowCollapsed: boolean;
+  /** Close the pane's only tab from the collapsed row. */
+  onCloseActiveTab: () => void;
+  /** Whether that close control is offered at all — see the layout rule. */
+  canCloseActiveTab: boolean;
   /** Session-scoped extras (fork button / provenance chip), leading the toolbar */
   sessionHeaderExtras?: React.ReactNode;
   /** Canonical session-name breadcrumb rendered in the published 40px row. */
@@ -135,6 +148,9 @@ export function ChatPanelHeader({
   handleTuiModeToggle,
   tabStrip,
   tabStripPlus,
+  tabRowCollapsed,
+  onCloseActiveTab,
+  canCloseActiveTab,
   sessionHeaderExtras,
   sessionHeaderContent,
   overlayPublishedHeader = false,
@@ -245,22 +261,52 @@ export function ChatPanelHeader({
         )}
       </div>
     ) : null;
-  const effectivePublishedHeaderSlots =
-    publishedHeaderSlots || sessionHeaderContent || sessionPublishedActions
-      ? {
-          leading: publishedHeaderSlots?.leading,
-          content: publishedHeaderSlots?.content ?? sessionHeaderContent,
-          joinWithFollowingRow:
-            publishedHeaderSlots?.joinWithFollowingRow ?? false,
-          trailing:
-            publishedHeaderSlots?.trailing || sessionPublishedActions ? (
-              <div className="flex shrink-0 items-center gap-px">
-                {publishedHeaderSlots?.trailing}
-                {sessionPublishedActions}
-              </div>
-            ) : null,
-        }
-      : null;
+  const chatFocusToggleButton = (
+    <span className="inline-flex">
+      <TabBarTrailingIconButton
+        title={isChatFocus ? shrinkToWorkstationLabel : chatFocusLabel}
+        shortcutId={stationAvailable ? "maximize_chat" : undefined}
+        tooltipPosition="bottom-end"
+        nativeTitle={false}
+        onClick={stationAvailable ? handleChatFocusToggle : undefined}
+        disabled={!stationAvailable}
+        className="group"
+      >
+        {isChatFocus ? (
+          // Swapped with `hidden`, never cross-faded. Both glyphs draw the
+          // same rounded-rect outline from different path strings (opposite
+          // winding, different start point); fading one through the other
+          // rasterizes that identical outline twice at slightly different
+          // anti-aliasing, which reads as the icon shaking. Only ever
+          // painting one keeps the hover to what actually differs — the
+          // chevron `PanelRightOpenIcon` adds.
+          <span className="flex h-4 w-4 items-center justify-center">
+            <HugeiconsIcon
+              icon={PanelRightIcon}
+              data-icon="panel-right"
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={1.75}
+              className="group-hover:hidden"
+            />
+            <HugeiconsIcon
+              icon={PanelRightOpenIcon}
+              data-icon="panel-right-open"
+              size={HEADER_ICON_SIZE.md}
+              strokeWidth={1.75}
+              className="hidden group-hover:block"
+            />
+          </span>
+        ) : (
+          <HugeiconsIcon
+            icon={ArrowExpand01Icon}
+            data-icon="maximize-2"
+            size={HEADER_ICON_SIZE.md}
+            strokeWidth={1.75}
+          />
+        )}
+      </TabBarTrailingIconButton>
+    </span>
+  );
 
   const tabBarToolbar = (
     <div
@@ -268,44 +314,116 @@ export function ChatPanelHeader({
       style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
     >
       {tabStripPlus}
-      <span className="inline-flex">
-        <TabBarTrailingIconButton
-          title={isChatFocus ? shrinkToWorkstationLabel : chatFocusLabel}
-          shortcutId={stationAvailable ? "maximize_chat" : undefined}
-          tooltipPosition="bottom-end"
-          nativeTitle={false}
-          onClick={stationAvailable ? handleChatFocusToggle : undefined}
-          disabled={!stationAvailable}
-          className="group"
-        >
-          {isChatFocus ? (
-            <span className="relative flex h-4 w-4 items-center justify-center">
-              <HugeiconsIcon
-                icon={PanelRightIcon}
-                data-icon="panel-right"
-                size={HEADER_ICON_SIZE.md}
-                strokeWidth={1.75}
-                className="absolute transition-opacity duration-150 group-hover:opacity-0"
-              />
-              <HugeiconsIcon
-                icon={PanelRightOpenIcon}
-                data-icon="panel-right-open"
-                size={HEADER_ICON_SIZE.md}
-                strokeWidth={1.75}
-                className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
-              />
-            </span>
-          ) : (
+      {chatFocusToggleButton}
+    </div>
+  );
+
+  // The folded tab row's controls, rehomed on the published row. Close stays
+  // outermost so it keeps the far-right position it held on the pill, and is
+  // dropped entirely on the Launchpad, which cannot be closed away.
+  const collapsedTabControls = (
+    <div
+      className="flex h-7 flex-shrink-0 items-center gap-px"
+      style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}
+      data-testid="chat-panel-collapsed-tab-controls"
+    >
+      {tabStripPlus}
+      {chatFocusToggleButton}
+      {canCloseActiveTab && (
+        <span className="inline-flex">
+          <TabBarTrailingIconButton
+            title={t("common:actions.close")}
+            tooltipPosition="bottom-end"
+            nativeTitle={false}
+            onClick={onCloseActiveTab}
+          >
             <HugeiconsIcon
-              icon={ArrowExpand01Icon}
-              data-icon="maximize-2"
+              icon={Cancel01Icon}
+              data-icon="x"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}
             />
-          )}
-        </TabBarTrailingIconButton>
-      </span>
+          </TabBarTrailingIconButton>
+        </span>
+      )}
     </div>
+  );
+
+  const publishedContent =
+    publishedHeaderSlots?.content ?? sessionHeaderContent;
+  // While collapsed this row is the pane's only chrome, so it renders even for
+  // a surface that publishes nothing — otherwise folding the tab row would
+  // strip the new-tab, close, and restore controls with it.
+  const effectivePublishedHeaderSlots =
+    tabRowCollapsed ||
+    publishedHeaderSlots ||
+    sessionHeaderContent ||
+    sessionPublishedActions
+      ? {
+          leading: publishedHeaderSlots?.leading,
+          content:
+            publishedContent ??
+            (tabRowCollapsed ? <ChatPanelCollapsedTabHeading /> : undefined),
+          // Collapsed, this row stands in for the borderless tab row and is
+          // the maximized pane's only chrome — a rule under it would be a
+          // line the pane never had. Uncollapsed, the publisher decides.
+          joinWithFollowingRow:
+            tabRowCollapsed ||
+            (publishedHeaderSlots?.joinWithFollowingRow ?? false),
+          trailing:
+            publishedHeaderSlots?.trailing ||
+            sessionPublishedActions ||
+            tabRowCollapsed ? (
+              <div className="flex shrink-0 items-center gap-px">
+                {publishedHeaderSlots?.trailing}
+                {sessionPublishedActions}
+                {tabRowCollapsed ? collapsedTabControls : null}
+              </div>
+            ) : null,
+        }
+      : null;
+
+  const collapsedSidebarChrome = shouldOffsetHeaderForCollapsedSidebar ? (
+    <div style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}>
+      <CollapsedSidebarButton />
+    </div>
+  ) : null;
+
+  // Whichever row sits at the pane's top edge owns the window-edge gap, the
+  // collapsed-sidebar button, and the inset that keeps the host window's own
+  // controls clear of the content — the tab row's job until it folds away.
+  // Padding the wrapper rather than the row keeps the row's 40px content band
+  // intact, and makes it the positioning context the sidebar button centers in.
+  const publishedHeaderRow = tabRowCollapsed ? (
+    <div
+      className={`workspace-header header-tab-group relative z-40 flex flex-shrink-0 flex-col`}
+      data-testid="chat-panel-collapsed-header"
+      data-tauri-drag-region={windowsHost ? undefined : true}
+      style={
+        {
+          paddingTop: CHAT_PANEL_HEADER_TOP_PADDING_PX,
+          ...(windowsHost
+            ? CHAT_PANEL_HEADER_NO_DRAG_STYLE
+            : CHAT_PANEL_HEADER_DRAG_STYLE),
+        } as React.CSSProperties
+      }
+    >
+      {collapsedSidebarChrome}
+      <ChatPanelPublishedHeader
+        slots={effectivePublishedHeaderSlots}
+        windowsHost={windowsHost}
+        leadingInsetPx={
+          shouldOffsetHeaderForCollapsedSidebar
+            ? getCollapsedSidebarChromeOffset()
+            : undefined
+        }
+      />
+    </div>
+  ) : (
+    <ChatPanelPublishedHeader
+      slots={effectivePublishedHeaderSlots}
+      windowsHost={windowsHost}
+    />
   );
 
   return (
@@ -315,53 +433,51 @@ export function ChatPanelHeader({
         data-testid="chat-panel-header-glass"
         aria-hidden
         style={{
-          height: effectivePublishedHeaderSlots
-            ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX
-            : CHAT_PANEL_TAB_HEADER_HEIGHT_PX,
+          height: tabRowCollapsed
+            ? CHAT_PANEL_COLLAPSED_HEADER_HEIGHT_PX
+            : effectivePublishedHeaderSlots
+              ? CHAT_PANEL_HEADER_STACK_HEIGHT_PX
+              : CHAT_PANEL_TAB_HEADER_HEIGHT_PX,
         }}
       />
       {/* pl-1 (4px) + separator slot (5px) + pill px-2.5 (10px) = 19px, so the
           first tab's icon lines up with the published header's icon below
           (HEADER_CONTENT_LEFT_PADDING_CLASS 15px + breadcrumb px-1 4px). */}
-      <div
-        className={`workspace-header header-tab-group z-40 flex h-11 min-h-11 items-center gap-1.5 pl-1 pr-[7px] pt-2 ${
-          overlayPublishedHeader
-            ? "absolute left-0 right-0 top-0"
-            : "relative flex-shrink-0"
-        }`}
-        data-testid="chat-panel-header"
-        data-tauri-drag-region={windowsHost ? undefined : true}
-        style={
-          {
-            paddingLeft: shouldOffsetHeaderForCollapsedSidebar
-              ? getCollapsedSidebarChromeOffset()
-              : undefined,
-            ...(windowsHost
-              ? CHAT_PANEL_HEADER_NO_DRAG_STYLE
-              : CHAT_PANEL_HEADER_DRAG_STYLE),
-          } as React.CSSProperties
-        }
-      >
-        {shouldOffsetHeaderForCollapsedSidebar ? (
-          <div style={CHAT_PANEL_HEADER_NO_DRAG_STYLE}>
-            <CollapsedSidebarButton />
-          </div>
-        ) : null}
-        {tabStrip}
-        {tabBarToolbar}
-      </div>
+      {tabRowCollapsed ? null : (
+        <div
+          className={`workspace-header header-tab-group z-40 flex h-11 min-h-11 items-center gap-1.5 pl-1 pr-[7px] pt-2 ${
+            overlayPublishedHeader
+              ? "absolute left-0 right-0 top-0"
+              : "relative flex-shrink-0"
+          }`}
+          data-testid="chat-panel-header"
+          data-tauri-drag-region={windowsHost ? undefined : true}
+          style={
+            {
+              paddingLeft: shouldOffsetHeaderForCollapsedSidebar
+                ? getCollapsedSidebarChromeOffset()
+                : undefined,
+              ...(windowsHost
+                ? CHAT_PANEL_HEADER_NO_DRAG_STYLE
+                : CHAT_PANEL_HEADER_DRAG_STYLE),
+            } as React.CSSProperties
+          }
+        >
+          {collapsedSidebarChrome}
+          {tabStrip}
+          {tabBarToolbar}
+        </div>
+      )}
       {overlayPublishedHeader && effectivePublishedHeaderSlots ? (
-        <div className="absolute left-0 right-0 top-11 z-40">
-          <ChatPanelPublishedHeader
-            slots={effectivePublishedHeaderSlots}
-            windowsHost={windowsHost}
-          />
+        <div
+          className={`absolute left-0 right-0 z-40 ${
+            tabRowCollapsed ? "top-0" : "top-11"
+          }`}
+        >
+          {publishedHeaderRow}
         </div>
       ) : (
-        <ChatPanelPublishedHeader
-          slots={effectivePublishedHeaderSlots}
-          windowsHost={windowsHost}
-        />
+        publishedHeaderRow
       )}
     </>
   );
