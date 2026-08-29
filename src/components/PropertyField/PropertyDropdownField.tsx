@@ -10,7 +10,7 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
-import { useDropdownEngine } from "@src/hooks/dropdown";
+import { getDropdownPanelStyle, useDropdownEngine } from "@src/hooks/dropdown";
 import { ArrowDown01Icon, HugeiconsIcon } from "@src/icons";
 
 import { usePropertyDropdownDirection } from "./PropertyDropdownDirection";
@@ -337,15 +337,10 @@ export function PropertyDropdownField<T extends string>({
             ref={dropdownRef}
             data-property-dropdown
             className={`fixed flex flex-col ${matchTriggerWidth ? "" : DROPDOWN_WIDTHS.wideMenuClass} ${DROPDOWN_CLASSES.panelAnimated}`}
-            style={{
-              top: dropdownPosition.top,
-              left:
-                dropdownPosition.right === undefined
-                  ? dropdownPosition.left
-                  : undefined,
-              right: dropdownPosition.right,
-              width: matchTriggerWidth ? dropdownPosition.width : undefined,
-            }}
+            style={getDropdownPanelStyle(dropdownPosition, {
+              widthMode: matchTriggerWidth ? "match" : "none",
+              constrainHeight: false,
+            })}
           >
             {dropdownContent()}
           </div>,
