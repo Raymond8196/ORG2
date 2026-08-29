@@ -104,6 +104,8 @@ describe("ChatPanelHeader tab row collapse", () => {
     expect(markup).not.toContain(
       'data-testid="chat-panel-collapsed-tab-controls"'
     );
+    // The tab row above still owns window dragging here.
+    expect(markup).not.toContain('data-testid="published-header-drag-filler"');
     expect(markup).toContain('style="height:80px"');
   });
 
@@ -124,8 +126,10 @@ describe("ChatPanelHeader tab row collapse", () => {
     expect(markup).not.toContain("transition-opacity");
     expect(markup).toContain('data-icon="x"');
     expect(markup).toContain('style="height:44px"');
-    // The maximized pane's only chrome — no rule under it.
+    // The maximized pane's only chrome — no rule under it, and it has to
+    // offer the window-drag handle the folded tab row used to provide.
     expect(markup).not.toContain("border-b border-border-2");
+    expect(markup).toContain('data-testid="published-header-drag-filler"');
     // The window-edge gap the folded 44px row used to hold (its pt-2).
     expect(markup).toContain('data-testid="chat-panel-collapsed-header"');
     expect(markup).toContain("padding-top:8px");

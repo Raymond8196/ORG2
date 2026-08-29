@@ -17,11 +17,16 @@ interface ChatPanelPublishedHeaderProps {
    * set, and is only passed once this row inherited the pane's top edge.
    */
   leadingInsetPx?: number;
+  /**
+   * Offer the space after the title as a window-drag handle. Set once this row
+   * is the pane's only chrome and no tab bar above it owns dragging.
+   */
+  dragFiller?: boolean;
 }
 
 /** Chat-pane counterpart of My Station's shared 36px published header. */
 export const ChatPanelPublishedHeader: React.FC<ChatPanelPublishedHeaderProps> =
-  memo(({ slots, windowsHost, leadingInsetPx }) => {
+  memo(({ slots, windowsHost, leadingInsetPx, dragFiller }) => {
     if (!slots) return null;
 
     return (
@@ -41,6 +46,7 @@ export const ChatPanelPublishedHeader: React.FC<ChatPanelPublishedHeaderProps> =
         <PublishedHeaderSlotsView
           slots={slots}
           paddingLeftClassName={leadingInsetPx === undefined ? undefined : ""}
+          dragFiller={dragFiller}
         />
       </div>
     );

@@ -421,6 +421,7 @@ export function ChatPanelHeader({
             ? getCollapsedSidebarChromeOffset()
             : undefined
         }
+        dragFiller
       />
     </div>
   ) : (
