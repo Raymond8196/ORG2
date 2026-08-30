@@ -2,8 +2,8 @@
 
 const fs = require("node:fs");
 
-// Keep this list deliberately narrow. Rust may be skipped only when every
-// changed file is known to be consumed exclusively by frontend tooling.
+// Keep the skip rules deliberately narrow. Rust may be skipped only when
+// every changed file is frontend-only or documentation with no Rust inputs.
 const FRONTEND_ONLY_PREFIXES = Object.freeze([
   "assets/",
   "build/",
@@ -24,6 +24,16 @@ const FRONTEND_ONLY_ROOT_FILES = new Set([
   "webpack.config.js",
 ]);
 
+const DOCUMENTATION_ROOT_FILES = new Set([
+  "AGENTS.md",
+  "CLAUDE.md",
+  "CODE_OF_CONDUCT.md",
+  "CONTRIBUTING.md",
+  "PR_RULES.md",
+  "README.md",
+  "SECURITY.md",
+]);
+
 function isFrontendOnlyPath(filePath) {
   return (
     FRONTEND_ONLY_ROOT_FILES.has(filePath) ||
@@ -31,11 +41,26 @@ function isFrontendOnlyPath(filePath) {
   );
 }
 
+function isDocumentationOnlyPath(filePath) {
+  // The PM protocol directory contains schemas and fixtures read by Rust
+  // conformance tests. Keep the entire contract in Rust scope, including
+  // its Markdown docs; do not exempt arbitrary files under docs/.
+  return (
+    DOCUMENTATION_ROOT_FILES.has(filePath) ||
+    (filePath.startsWith("docs/") &&
+      filePath.endsWith(".md") &&
+      !filePath.startsWith("docs/orgtrack-pm-protocol/"))
+  );
+}
+
 function requiresRust(filePaths) {
   // Fail closed when diff discovery yields nothing unexpectedly.
   return (
     filePaths.length === 0 ||
-    filePaths.some((filePath) => !isFrontendOnlyPath(filePath))
+    filePaths.some(
+      (filePath) =>
+        !isFrontendOnlyPath(filePath) && !isDocumentationOnlyPath(filePath)
+    )
   );
 }
 

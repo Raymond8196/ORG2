@@ -1,8 +1,9 @@
 # CI — runs on every pull request to develop / release / master.
 #
 # Frontend starts immediately. A lightweight scope job decides whether the
-# Rust job is relevant; pure frontend diffs keep the required Rust check but
-# mark it skipped/successful without allocating a macOS runner.
+# Rust job is relevant; frontend and ordinary Markdown documentation diffs
+# keep the required Rust check but mark it skipped/successful without
+# allocating a macOS runner.
 #
 # Within the frontend job, lint covers only the files the pull request changed
 # (see scripts/ci/select-lint-targets.cjs). Typecheck and the unit suite stay

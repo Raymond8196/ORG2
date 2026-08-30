@@ -33,10 +33,44 @@ test("frontend configs, assets, and repository tests skip Rust", () => {
   );
 });
 
+test("frontend changes with supporting Markdown docs skip Rust", () => {
+  assert.equal(
+    requiresRust([
+      "src/icons.ts",
+      "src/config/segmentRegistry.ts",
+      "docs/hugeicons-migration/icon-mapping.md",
+    ]),
+    false
+  );
+});
+
+test("ordinary Markdown documentation alone skips Rust", () => {
+  for (const filePath of [
+    "AGENTS.md",
+    "CLAUDE.md",
+    "CODE_OF_CONDUCT.md",
+    "CONTRIBUTING.md",
+    "PR_RULES.md",
+    "README.md",
+    "SECURITY.md",
+    "docs/frontend-ui-audit-2026-08-31/Icons.md",
+    "docs/development/build notes.md",
+  ]) {
+    assert.equal(requiresRust([filePath]), false, filePath);
+  }
+});
+
 test("Rust and mixed changes run Rust", () => {
   assert.equal(requiresRust(["src-tauri/src/lib.rs"]), true);
   assert.equal(
     requiresRust(["src/components/Button.tsx", "src-tauri/Cargo.lock"]),
+    true
+  );
+  assert.equal(
+    requiresRust([
+      "docs/hugeicons-migration/icon-mapping.md",
+      "src-tauri/src/lib.rs",
+    ]),
     true
   );
 });
@@ -47,17 +81,36 @@ test("workflow, script, and protocol changes run Rust conservatively", () => {
   assert.equal(requiresRust(["docs/orgtrack-pm-protocol/README.md"]), true);
 });
 
+test("Rust contracts and non-Markdown documentation inputs stay in Rust scope", () => {
+  for (const filePath of [
+    "docs/orgtrack-pm-protocol/decisions.md",
+    "docs/orgtrack-pm-protocol/schemas/common.schema.json",
+    "docs/orgtrack-pm-protocol/fixtures/routine-spec.json",
+    "docs/examples/Cargo.lock",
+    "docs/examples/main.rs",
+    "docs/fixtures/example.json",
+    "src-tauri/README.md",
+  ]) {
+    assert.equal(requiresRust([filePath]), true, filePath);
+  }
+});
+
 test("empty or unknown diffs fail closed", () => {
   assert.equal(requiresRust([]), true);
-  assert.equal(requiresRust(["README.md"]), true);
+  assert.equal(requiresRust(["unknown.md"]), true);
+  assert.equal(requiresRust(["README.md.backup"]), true);
+  assert.equal(requiresRust(["docs/notes.md.backup"]), true);
   assert.equal(isFrontendOnlyPath("package.json.backup"), false);
 });
 
 test("NUL-delimited paths preserve whitespace and drive the CLI", () => {
-  const input = Buffer.from("src/a file.ts\0public/index.html\0");
+  const input = Buffer.from(
+    "src/a file.ts\0public/index.html\0docs/build notes.md\0"
+  );
   assert.deepEqual(parseNullDelimitedPaths(input), [
     "src/a file.ts",
     "public/index.html",
+    "docs/build notes.md",
   ]);
 
   const result = spawnSync(
