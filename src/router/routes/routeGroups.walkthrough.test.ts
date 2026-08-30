@@ -34,6 +34,7 @@ vi.mock("@src/router/lazy/pages", () => {
     ProviderEarnings: Placeholder,
     PublicProfilePage: Placeholder,
     SelectRepoPage: Placeholder,
+    SessionWindowPage: Placeholder,
   };
 });
 
