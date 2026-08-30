@@ -49,74 +49,10 @@ pub fn merge_json(base: &mut serde_json::Value, partial: &serde_json::Value) {
     }
 }
 
-/// Atomic-write a `HashMap<String, String>` as JSON with restricted permissions.
-///
-/// Used for sensitive key-value stores (auth tokens, GitHub tokens, extension secrets).
-/// Writes to a `.tmp` file first, sets restrictive permissions, then renames.
-pub fn save_json_store(
-    path: &Path,
-    store: &std::collections::HashMap<String, String>,
-    context_label: &str,
-) -> Result<(), String> {
-    if let Some(parent) = path.parent() {
-        std::fs::create_dir_all(parent)
-            .map_err(|err| format!("Failed to create {context_label} dir: {err}"))?;
-    }
-    let contents = serde_json::to_string_pretty(store)
-        .map_err(|err| format!("Failed to serialize {context_label}: {err}"))?;
-
-    let tmp_path = path.with_extension("json.tmp");
-    std::fs::write(&tmp_path, &contents)
-        .map_err(|err| format!("Failed to write {context_label} temp file: {err}"))?;
-
-    app_paths::set_sensitive_file_permissions(&tmp_path).ok();
-
-    std::fs::rename(&tmp_path, path)
-        .map_err(|err| format!("Failed to rename {context_label} file: {err}"))
-}
-
-/// Load a `HashMap<String, String>` from a JSON file, returning empty map if missing.
-///
-/// `load_json_store` is called for sensitive auth-token / secret stores
-/// (GitHub tokens, extension secrets, etc.). A corrupt or unreadable
-/// existing file silently turning into an empty map would mean the very
-/// next `save_json_store` call overwrites the corrupt file with `{}`,
-/// permanently destroying every other token in the store while the user
-/// is just re-saving one new entry. Warn separately on FS read failure
-/// and JSON parse failure so the operator notices before the next save
-/// wipes the file.
-pub fn load_json_store(path: &Path) -> std::collections::HashMap<String, String> {
-    if !path.exists() {
-        return std::collections::HashMap::new();
-    }
-    match std::fs::read_to_string(path) {
-        Ok(contents) => match serde_json::from_str(&contents) {
-            Ok(map) => map,
-            Err(err) => {
-                tracing::warn!(
-                    path = %path.display(),
-                    error = %err,
-                    "load_json_store: JSON parse failed on existing file; returning empty map (next save will OVERWRITE this file)"
-                );
-                std::collections::HashMap::new()
-            }
-        },
-        Err(err) => {
-            tracing::warn!(
-                path = %path.display(),
-                error = %err,
-                "load_json_store: read failed on existing file; returning empty map (next save will OVERWRITE this file)"
-            );
-            std::collections::HashMap::new()
-        }
-    }
-}
-
 #[cfg(test)]
 mod tests {
     use super::*;
     use serde_json::json;
-    use std::collections::HashMap;
 
     #[test]
     fn read_json_file_returns_empty_object_when_missing() {
@@ -201,61 +137,5 @@ mod tests {
         let mut object_base = json!({"key": "value"});
         merge_json(&mut object_base, &json!(null));
         assert_eq!(object_base, json!({"key": "value"}));
-    }
-
-    #[test]
-    fn save_and_load_json_store_round_trip_atomically() {
-        let dir = tempfile::tempdir().expect("temp dir");
-        let path = dir.path().join("secrets").join("tokens.json");
-        let store = HashMap::from([
-            ("github".to_string(), "gh-token".to_string()),
-            ("openai".to_string(), "sk-token".to_string()),
-        ]);
-
-        save_json_store(&path, &store, "token store").expect("save store");
-
-        assert_eq!(load_json_store(&path), store);
-        assert!(!path.with_extension("json.tmp").exists());
-
-        #[cfg(unix)]
-        {
-            use std::os::unix::fs::PermissionsExt;
-            let mode = std::fs::metadata(&path)
-                .expect("store metadata")
-                .permissions()
-                .mode()
-                & 0o777;
-            assert_eq!(mode, 0o600);
-        }
-    }
-
-    #[test]
-    fn load_json_store_returns_empty_for_missing_invalid_and_unreadable_paths() {
-        let dir = tempfile::tempdir().expect("temp dir");
-        let missing = dir.path().join("missing.json");
-        assert!(load_json_store(&missing).is_empty());
-
-        let invalid = dir.path().join("invalid.json");
-        std::fs::write(&invalid, "[]").expect("write invalid map fixture");
-        assert!(load_json_store(&invalid).is_empty());
-
-        assert!(load_json_store(dir.path()).is_empty());
-    }
-
-    #[test]
-    fn save_json_store_reports_parent_creation_failures_without_temp_artifacts() {
-        let dir = tempfile::tempdir().expect("temp dir");
-        let blocker = dir.path().join("not-a-directory");
-        std::fs::write(&blocker, "file").expect("write blocker");
-        let path = blocker.join("tokens.json");
-
-        let error = save_json_store(&path, &HashMap::new(), "token store")
-            .expect_err("file cannot be used as parent directory");
-
-        assert!(
-            error.starts_with("Failed to create token store dir:"),
-            "{error}"
-        );
-        assert!(!path.with_extension("json.tmp").exists());
     }
 }

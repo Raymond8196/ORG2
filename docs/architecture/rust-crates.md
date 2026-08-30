@@ -1,6 +1,6 @@
 # Rust Crates Architecture
 
-> Last updated: 2026-06-12
+> Last updated: 2026-08-31
 
 All Rust code lives under `src-tauri/`. The workspace is declared in
 `src-tauri/Cargo.toml` and contains the root application crate (`src-tauri/src/`)
@@ -45,7 +45,6 @@ graph TD
     app["src-tauri/src\n(app binary)"]
 
     %% ── Foundation deps ─────────────────────────────────────────────────────
-    app_utils --> app_paths
     shared_state --> app_paths
     settings --> app_paths
     database --> app_paths
@@ -114,7 +113,7 @@ graph TD
 | -------------- | -------------- | ----------------------------------------------------------------------------------------------- |
 | `types`        | `core_types`   | Shared domain types and traits used across the entire workspace. No business logic.             |
 | `app-paths`    | `app_paths`    | Resolves platform-specific filesystem paths (`~/.orgii/`, app data dir, log dir).               |
-| `app-utils`    | `app_utils`    | Small cross-cutting utilities (error helpers, async utilities, OS detection).                   |
+| `app-utils`    | `app_utils`    | JSON file read/write/merge helpers, Serde defaults, and opt-in test fixtures; no workspace dependencies. |
 | `app-platform` | `app_platform` | macOS / Windows platform-specific integrations (NSApp, DWM, tray, power events).                |
 | `app-window`   | `app_window`   | Native window decoration helpers (traffic lights, rounded corners, vibrancy).                   |
 | `settings`     | `settings`     | User and workspace settings CRUD backed by JSON files.                                          |
