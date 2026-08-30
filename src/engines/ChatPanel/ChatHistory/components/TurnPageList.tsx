@@ -10,7 +10,7 @@ import { useTranslation } from "react-i18next";
 
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailingIconButton";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import {
   Cancel01Icon,
   ClockArrowDownIcon,
@@ -110,7 +110,7 @@ const TurnPageList: React.FC<TurnPageListProps> = memo(
         style={bottomInset > 0 ? { bottom: bottomInset } : { bottom: 0 }}
       >
         <div
-          className={`mx-auto h-full w-full px-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          className={`mx-auto h-full w-full px-2 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
         >
           <div
             className={`${DROPDOWN_CLASSES.panel} flex h-full flex-col !overflow-hidden p-1`}

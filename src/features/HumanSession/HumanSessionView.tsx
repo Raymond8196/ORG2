@@ -12,7 +12,7 @@ import ComposerInput, {
   type ComposerInputRef,
 } from "@src/components/ComposerInput";
 import { COMPOSER_BOTTOM_DOCK_PADDING_CLASS } from "@src/config/composerStackTokens";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import InputArea from "@src/engines/ChatPanel/InputArea";
 import {
   hasPillSyntax,
@@ -231,7 +231,7 @@ const HumanSessionView: React.FC<HumanSessionViewProps> = ({ sessionId }) => {
         className="scrollbar-overlay min-h-0 flex-1 overflow-y-auto px-2"
       >
         <main
-          className={`mx-auto min-h-full w-full px-2 pb-36 pt-6 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          className={`mx-auto min-h-full w-full px-2 pb-36 pt-6 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
         >
           {shouldVirtualize ? (
             <div
@@ -276,7 +276,7 @@ const HumanSessionView: React.FC<HumanSessionViewProps> = ({ sessionId }) => {
           className="pointer-events-none absolute inset-x-0 bottom-0 top-[-28px] bg-gradient-to-t from-chat-pane via-chat-pane/90 to-transparent"
         />
         <div
-          className={`relative z-10 flex w-full flex-col gap-1.5 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          className={`relative z-10 flex w-full flex-col gap-1.5 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
         >
           {error && (
             <div role="alert" className="px-2 text-xs text-danger-6">
