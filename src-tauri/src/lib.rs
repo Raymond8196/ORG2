@@ -712,11 +712,6 @@ pub fn run() {
             app.manage(lsp_manager);
             tracing::info!("[LSP] LSP manager initialized");
 
-            // Initialize Component Index state (for DOM-to-source mapping)
-            app.manage(ui_indexer::UiIndexState::new());
-            tracing::info!("[UiIndexer] Component index state initialized");
-
-
             let agent_browser_config = match settings::file_io::read_settings() {
                 Ok(settings_value) => shared_state::AgentBrowserConfig::from_settings(&settings_value),
                 Err(err) => {
@@ -1205,6 +1200,14 @@ pub fn run() {
         // tray/dock entry points can reopen it. Debug Linux/Windows exits normally
         // so dev runs do not leave hidden app processes behind.
         .on_window_event(|_window, _event| {
+            // A destroyed window may never run its JS cleanup (crash, direct
+            // programmatic close of a detached session window). Drop its
+            // sleep-inhibitor holder so the process-wide assertion is
+            // refcounted correctly — neither leaked until process exit nor
+            // still attributed to a dead window.
+            if let tauri::WindowEvent::Destroyed = _event {
+                system_services::power::release_sleep_inhibitor_for_window_label(_window.label());
+            }
             if let tauri::WindowEvent::CloseRequested { api: _api, .. } = _event {
                 // Only hide the "main" window — let auxiliary windows close normally
                 if _window.label() == "main" {

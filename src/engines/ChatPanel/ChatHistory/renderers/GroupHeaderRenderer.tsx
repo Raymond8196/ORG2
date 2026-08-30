@@ -16,6 +16,7 @@ import type { OptimizedChatItem } from "../chatItemPipeline/types";
 import { CHAT_FOOTER_SPACER } from "../config/chatFooterSpacer";
 import {
   type ChatGroupMeta,
+  isTailTurnIdleCollapsible,
   isTurnCollapseEligible,
 } from "../hooks/useChatGroups";
 
@@ -83,6 +84,8 @@ function sameGroupHeaderProps(
     previous.hideCollapseTimeRange === next.hideCollapseTimeRange &&
     previous.suppressRoundGap === next.suppressRoundGap &&
     previous.collapseTailWhenIdle === next.collapseTailWhenIdle &&
+    previous.tailTurnComplete === next.tailTurnComplete &&
+    previous.tailTurnStale === next.tailTurnStale &&
     previous.hideUserMessage === next.hideUserMessage &&
     previous.defaultTurnCollapsed === next.defaultTurnCollapsed &&
     previous.renderPart === next.renderPart &&
@@ -110,8 +113,19 @@ export interface GroupHeaderRendererProps {
   hideCollapseTimeRange?: boolean;
   /** Suppresses the inter-round top gap for headers rendered outside the list. */
   suppressRoundGap?: boolean;
-  /** Allows the latest turn to show the collapse bar after the session idles. */
+  /** Allows the latest turn to AUTO-collapse after the session idles. */
   collapseTailWhenIdle?: boolean;
+  /**
+   * The tail round has ended — its "Agent worked for X" bar renders
+   * immediately (no idle wait, no size threshold) while its default collapse
+   * state still follows the idle rule.
+   */
+  tailTurnComplete?: boolean;
+  /**
+   * The session's last event is older than the stale window — the tail turn
+   * defaults to collapsed like a historical turn.
+   */
+  tailTurnStale?: boolean;
   /**
    * Skip rendering the per-turn user-message card. The `TurnCollapsePinBar`
    * ("Agent worked for X") still renders. Subagent cells use this so each
@@ -150,6 +164,8 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
     hideCollapseTimeRange = false,
     suppressRoundGap = false,
     collapseTailWhenIdle = false,
+    tailTurnComplete = false,
+    tailTurnStale = false,
     hideUserMessage = false,
     defaultTurnCollapsed = false,
     renderPart = "all",
@@ -214,15 +230,26 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
     if (!header) return <div />;
 
     // Show the "Agent worked for …" pin bar on collapse-eligible turns.
-    // The latest turn joins after the session has idled long enough.
+    // The latest turn joins as soon as its round ends (`tailTurnComplete`).
     const showCollapseBar = isTurnCollapseEligible(
       meta,
       collapseGroupIndex,
       collapseGroupCount,
       {
         collapseTailWhenIdle,
+        tailTurnComplete,
+        tailTurnStale,
       }
     );
+    // Mirror projectChatGroups: a completed tail turn renders its bar
+    // immediately but stays expanded until the idle rule folds it or the
+    // session goes stale.
+    const isTailGroup = collapseGroupIndex === collapseGroupCount - 1;
+    const turnDefaultCollapsed =
+      defaultTurnCollapsed &&
+      (!isTailGroup ||
+        tailTurnStale ||
+        (meta ? isTailTurnIdleCollapsible(meta, collapseTailWhenIdle) : false));
 
     const showUserPart = renderPart !== "collapse" && !hideUserMessage;
     const showCollapsePart = renderPart !== "user" && showCollapseBar && turnId;
@@ -256,7 +283,7 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
             endMs={meta?.endMs ?? null}
             showTimeRange={!hideCollapseTimeRange}
             labelVariant={collapseLabelVariant}
-            defaultCollapsed={defaultTurnCollapsed}
+            defaultCollapsed={turnDefaultCollapsed}
             turnCollapseInteractionAtRef={turnCollapseInteractionAtRef}
             onExpand={
               canExpandUnloadedTurn ? handleExpandUnloadedTurn : undefined

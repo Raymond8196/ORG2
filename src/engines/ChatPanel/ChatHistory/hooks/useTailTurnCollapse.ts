@@ -9,6 +9,13 @@ import { isAgentOrgInboxTranscriptEvent } from "../GroupChatView/groupChatUtils"
 
 export const TAIL_TURN_COLLAPSE_IDLE_MS = 60_000;
 
+/**
+ * A session whose last event is older than this is treated as finished: its
+ * tail turn DEFAULTS to collapsed (no size threshold), matching historical
+ * turns. Explicit per-turn overrides still win.
+ */
+export const TAIL_TURN_STALE_MS = 10 * 60_000;
+
 export function findTailTurnId(
   chatHistory: SessionEvent[],
   groupChat: GroupChatContextValue | null
@@ -97,4 +104,67 @@ export function useTailTurnCollapse({
     tailIdleKey !== null &&
     tailIdleReadyKey === tailIdleKey
   );
+}
+
+interface UseTailTurnStaleOptions {
+  activeId: string | null;
+  chatHistory: SessionEvent[];
+  disableTailCollapse: boolean;
+}
+
+/**
+ * How long until the tail turn goes stale, floored at zero.
+ *
+ * A session reopened long after its last event is already past the window,
+ * which would otherwise be a synchronous state write from the effect body
+ * (cascading render). Clamping to zero routes that case through the same
+ * timer as a live session — one macrotask later instead of the same commit.
+ */
+export function resolveTailTurnStaleDelayMs(
+  lastEventMs: number,
+  nowMs: number
+): number {
+  return Math.max(lastEventMs + TAIL_TURN_STALE_MS - nowMs, 0);
+}
+
+/**
+ * True once the session's newest event is older than `TAIL_TURN_STALE_MS`.
+ * Live sessions arm a timer for the remaining window, and any new event
+ * re-arms it; already-stale sessions arm a zero-delay one. Wall-clock based
+ * on the event's own timestamp, no exclusions.
+ */
+export function useTailTurnStale({
+  activeId,
+  chatHistory,
+  disableTailCollapse,
+}: UseTailTurnStaleOptions): boolean {
+  const [staleReadyKey, setStaleReadyKey] = useState<string | null>(null);
+  const lastEventMs = useMemo(() => {
+    for (let index = chatHistory.length - 1; index >= 0; index--) {
+      const iso = chatHistory[index]?.createdAt;
+      if (!iso) continue;
+      const ms = Date.parse(iso);
+      if (Number.isFinite(ms)) return ms;
+    }
+    return null;
+  }, [chatHistory]);
+  const staleKey =
+    !disableTailCollapse && activeId && lastEventMs !== null
+      ? `${activeId}:${lastEventMs}`
+      : null;
+
+  useEffect(() => {
+    if (!staleKey || lastEventMs === null) return;
+
+    const timeoutId = window.setTimeout(
+      () => {
+        setStaleReadyKey(staleKey);
+      },
+      resolveTailTurnStaleDelayMs(lastEventMs, Date.now())
+    );
+
+    return () => window.clearTimeout(timeoutId);
+  }, [staleKey, lastEventMs]);
+
+  return staleKey !== null && staleReadyKey === staleKey;
 }

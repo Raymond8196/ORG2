@@ -15,6 +15,8 @@ interface PinnedTurnHeaderProps {
   meta: ChatGroupMeta | undefined;
   collapseLabelVariant?: GroupHeaderRendererProps["collapseLabelVariant"];
   collapseTailWhenIdle: boolean;
+  tailTurnComplete: boolean;
+  tailTurnStale: boolean;
   hideUserMessage: boolean;
   defaultTurnCollapsed: boolean;
   turnCollapseInteractionAtRef: React.MutableRefObject<number>;
@@ -64,6 +66,8 @@ function samePinnedTurnHeaderProps(
     previous.sourceGroupCount === next.sourceGroupCount &&
     previous.collapseLabelVariant === next.collapseLabelVariant &&
     previous.collapseTailWhenIdle === next.collapseTailWhenIdle &&
+    previous.tailTurnComplete === next.tailTurnComplete &&
+    previous.tailTurnStale === next.tailTurnStale &&
     previous.hideUserMessage === next.hideUserMessage &&
     previous.defaultTurnCollapsed === next.defaultTurnCollapsed &&
     previous.turnCollapseInteractionAtRef ===
@@ -83,6 +87,8 @@ const PinnedTurnHeaderComponent: React.FC<PinnedTurnHeaderProps> = ({
   meta,
   collapseLabelVariant = "agent",
   collapseTailWhenIdle,
+  tailTurnComplete,
+  tailTurnStale,
   hideUserMessage,
   defaultTurnCollapsed,
   turnCollapseInteractionAtRef,
@@ -102,6 +108,8 @@ const PinnedTurnHeaderComponent: React.FC<PinnedTurnHeaderProps> = ({
         groupCount={1}
         collapseLabelVariant={collapseLabelVariant}
         collapseTailWhenIdle={collapseTailWhenIdle}
+        tailTurnComplete={tailTurnComplete}
+        tailTurnStale={tailTurnStale}
         hideUserMessage={hideUserMessage}
         defaultTurnCollapsed={defaultTurnCollapsed}
         suppressRoundGap

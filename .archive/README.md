@@ -2,6 +2,47 @@
 
 Code parked out of the live build but kept in-tree (and in git history). Excluded from `tsconfig.json` (`exclude: [".archive"]`), so nothing here is type-checked or bundled. Paths mirror their original `src/` location, so restoring is a reverse `git mv`.
 
+## Browser component UI index — archived 2026-08-30
+
+The repository-wide React/Vue/Svelte component index used by Browser
+WebDevTools was retired. Its `UiIndexState` retained a parsed index for every
+repository in an in-process `RwLock<HashMap<...>>`, while the frontend added
+status/build/clear state and AST lookup branches to source navigation. Browser
+source navigation now uses direct framework/debug metadata when available and
+bounded filename/content search otherwise.
+
+**What moved here:**
+
+- `src-tauri/crates/ui-indexer/` — the component parsers, index state, lookup
+  commands, types, and tests
+- `src/modules/WorkStation/Browser/hooks/useSourceNavigation.ts` — the original
+  indexed source-navigation implementation retained as a historical snapshot
+- `src/modules/WorkStation/Browser/hooks/sourceNavigation/{types,componentScorer}.ts`
+  — index contracts and result scoring
+- `src/modules/WorkStation/Browser/Panels/BrowserSecondaryPanel/components/WebDevTools/hooks/uiIndexControls.ts`
+  — the retired status/build/clear IPC boundary extracted from the shared hook
+
+**What deliberately stayed live:**
+
+- Browser WebDevTools Design and CSS panels, computed-style editing, and DOM
+  inspection
+- direct source paths supplied by code-inspector attributes or framework debug
+  metadata
+- on-demand filename and regex content search for components
+- the `scan_global_tokens` CSS-variable scanner, moved to the active `browser`
+  crate because the Design token UI still consumes it
+
+**Shared files edited in place:** the Tauri workspace/command/state wiring and
+the WebDevTools source tab had their component-index branches removed. The
+source tab still opens direct locations and offers on-demand search when only a
+component name is known.
+
+**To restore:** reverse the Rust/frontend moves, restore the archived
+`useSourceNavigation` and types snapshots, move `scan_global_tokens` back (or
+keep the browser-owned implementation and omit the archived duplicate), then
+restore the Tauri command registrations, managed `UiIndexState`, and WebDevTools
+build/clear controls.
+
 ## Browser "design tokens" tab (`token-category`) — archived 2026-07-14
 
 The My Station browser primary sidebar was reduced to a **Sessions-only** variant (History and Design pills removed, pill header hidden — see `BrowserPrimarySidebar`'s `sessionsOnly` prop). The **Design** pill was the _only_ entry point for the "color / design tokens" viewer (`onOpenColorTokens` → `createColorTokensTab` → a `token-category` tab rendered by `TokenManagerPanel`). With that entry point gone, the whole `token-category` tab type became unreachable, so it was archived.

@@ -10,6 +10,7 @@ import {
   FlowAwarenessTestPage,
   LoginPage,
   SelectRepoPage,
+  SessionWindowPage,
 } from "@src/router/lazy/pages";
 import ComingSoonRoutePage from "@src/router/routes/ComingSoonRoutePage";
 import { WorkStationRoutePlaceholder } from "@src/router/routes/placeholders";
@@ -102,6 +103,13 @@ export const appStandaloneRouteGroup: RouteObject[] = [
     ),
   },
   { path: "app/select-repo", element: lazy(<SelectRepoPage />, false) },
+  // Detached session window route — loaded by `open_session_window` (Rust)
+  // with the label `app-window-session-<id>`. Keep the path in sync with
+  // that command and `getSessionWindowPath`.
+  {
+    path: "app/session/:sessionId",
+    element: lazy(<SessionWindowPage />, false),
+  },
   { path: "marketplace/callback", element: lazy(<AuthCallback />) },
 ];
 

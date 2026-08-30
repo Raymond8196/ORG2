@@ -44,6 +44,35 @@
     </script>
     <script nonce="orgii-codemirror-style">
       // ---------------------------------------------------------------------
+      // Secondary-window preflight (runs before the JS bundle).
+      //
+      // Detached session windows (any Tauri window whose label is not "main")
+      // boot straight into their content: no splash mark, no status line. The
+      // #splash overlay element itself stays mounted so the startup watchdog
+      // still has a host for its error panel if the bundle never comes up.
+      // Tauri injects __TAURI_INTERNALS__ before page scripts, so the label
+      // is readable synchronously; outside Tauri this is a no-op.
+      // ---------------------------------------------------------------------
+      (function () {
+        try {
+          var internals = window.__TAURI_INTERNALS__;
+          var label =
+            internals && internals.metadata && internals.metadata.currentWindow
+              ? internals.metadata.currentWindow.label
+              : "main";
+          if (label !== "main") {
+            document.documentElement.setAttribute(
+              "data-orgii-secondary-window",
+              ""
+            );
+          }
+        } catch (e) {
+          // Non-Tauri or unexpected internals shape: keep main-window behavior.
+        }
+      })();
+    </script>
+    <script nonce="orgii-codemirror-style">
+      // ---------------------------------------------------------------------
       // Splash palette preflight (runs before the JS bundle).
       //
       // The splash paints no plate of its own — it shows the same background
@@ -434,6 +463,15 @@
         background: transparent;
         border-radius: var(--border-radius-window);
         z-index: 99999;
+      }
+      /*
+       * Secondary windows (detached sessions) skip the splash mark: the
+       * overlay stays for the watchdog's error panel, but nothing is drawn
+       * on the happy path. See the secondary-window preflight script.
+       */
+      html[data-orgii-secondary-window] #splash-logo,
+      html[data-orgii-secondary-window] #splash-text {
+        display: none;
       }
       /*
        * Glyph only — same geometry as <AppMark>, without its circular plate,

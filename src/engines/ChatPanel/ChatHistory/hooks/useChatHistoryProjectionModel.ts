@@ -22,7 +22,11 @@ import { useChatProjection } from "../projection/useChatProjection";
 import { formatAssistantTurnCopyContent } from "../turnCopyContent";
 import type { ChatGroupsProjectionOptions } from "./useChatGroupsProjection";
 import { useChatTurnPagination } from "./useChatTurnPagination";
-import { useTailTurnCollapse } from "./useTailTurnCollapse";
+import {
+  resolveTailTurnAgentWorking,
+  useTailTurnCollapse,
+  useTailTurnStale,
+} from "./useTailTurnCollapse";
 import {
   useTurnPageNavigation,
   useTurnPageSelectionState,
@@ -92,6 +96,23 @@ export function useChatHistoryProjectionModel({
     isCursorIde,
     sessionStatus,
   });
+  // The "Agent worked for X" bar shows on the tail turn as soon as its round
+  // ends — no idle wait, no size threshold. Auto-collapse still waits for
+  // `collapseTailWhenIdle`. Surfaces that opt out of tail collapse entirely
+  // (subagent cells) keep their unchanged layout.
+  const tailTurnComplete =
+    !disableTailCollapse &&
+    !resolveTailTurnAgentWorking({ activeId, isAgentWorking, sessionStatus });
+  // Once the last session event is older than TAIL_TURN_STALE_MS the session
+  // most likely finished, so the tail turn DEFAULTS to collapsed like any
+  // historical turn. Gated on tailTurnComplete so a hung-but-working agent
+  // never folds its own in-flight round.
+  const tailTurnStaleByClock = useTailTurnStale({
+    activeId,
+    chatHistory,
+    disableTailCollapse,
+  });
+  const tailTurnStale = tailTurnComplete && tailTurnStaleByClock;
 
   const projectionSource = resolveChatHistoryProjectionSource({
     activeSessionId: activeId,
@@ -105,6 +126,8 @@ export function useChatHistoryProjectionModel({
       collapseOverrides: turnCollapseOverrides,
       isAgentWorking,
       collapseTailWhenIdle,
+      tailTurnComplete,
+      tailTurnStale,
       forceCollapseAllTurns,
       defaultTurnCollapsed: DEFAULT_TURN_COLLAPSED,
       allTurnsCollapsed:
@@ -121,6 +144,8 @@ export function useChatHistoryProjectionModel({
     [
       collapseAllCommand,
       collapseTailWhenIdle,
+      tailTurnComplete,
+      tailTurnStale,
       forceCollapseAllTurns,
       groupChat,
       isAgentWorking,
@@ -301,6 +326,8 @@ export function useChatHistoryProjectionModel({
   return {
     activeProjectionHistory,
     collapseTailWhenIdle,
+    tailTurnComplete,
+    tailTurnStale,
     defaultTurnCollapsed: DEFAULT_TURN_COLLAPSED,
     displayTurnIds,
     flatItems,

@@ -49,6 +49,18 @@ export interface ChatGroupsProjectionOptions {
   collapseOverrides?: ReadonlyMap<string, boolean>;
   isAgentWorking?: boolean;
   collapseTailWhenIdle?: boolean;
+  /**
+   * The tail round has ended (agent no longer working). Shows the tail's
+   * collapse bar immediately — wall-clock start→end, no idle wait, no
+   * item-count threshold — without changing its default collapse state.
+   */
+  tailTurnComplete?: boolean;
+  /**
+   * The session's last event is older than the stale window (most likely
+   * finished): the tail turn DEFAULTS to collapsed like a historical turn,
+   * with no size threshold. Explicit overrides still win.
+   */
+  tailTurnStale?: boolean;
   forceCollapseAllTurns?: boolean;
   disableTurnCollapse?: boolean;
   allTurnsCollapsed?: boolean;
@@ -185,12 +197,29 @@ function parseEpochMs(iso: string | undefined): number | null {
 
 const TURN_COLLAPSE_ITEM_COUNT_THRESHOLD = 10;
 
+/**
+ * Idle rule for AUTO-collapsing the tail turn: only after the session idles,
+ * and only for turns large enough that folding them reads as a relief. The
+ * bar's visibility no longer waits for this (`isTurnCollapseEligible` accepts
+ * `tailTurnComplete`); the tail's DEFAULT collapse state still does.
+ */
+export function isTailTurnIdleCollapsible(
+  meta: ChatGroupMeta,
+  collapseTailWhenIdle: boolean
+): boolean {
+  if (!collapseTailWhenIdle) return false;
+  if (meta.unloadedTurn) return true;
+  return meta.itemCount + 1 > TURN_COLLAPSE_ITEM_COUNT_THRESHOLD;
+}
+
 export function isTurnCollapseEligible(
   meta: ChatGroupMeta | undefined,
   groupIndex: number,
   groupCount: number,
   options: {
     collapseTailWhenIdle?: boolean;
+    tailTurnComplete?: boolean;
+    tailTurnStale?: boolean;
     forceCollapseAllTurns?: boolean;
   } = {}
 ): boolean {
@@ -204,9 +233,13 @@ export function isTurnCollapseEligible(
   if (meta.unloadedTurn ? bodyItemCount < 1 : bodyItemCount <= 1) return false;
   if (options.forceCollapseAllTurns === true) return true;
   if (groupIndex < groupCount - 1) return true;
-  if (options.collapseTailWhenIdle !== true) return false;
-  if (meta.unloadedTurn) return true;
-  return meta.itemCount + 1 > TURN_COLLAPSE_ITEM_COUNT_THRESHOLD;
+  // A completed (or stale — stale implies finished) tail round shows its bar
+  // right away; whether it defaults to collapsed is decided separately in
+  // projectChatGroups.
+  if (options.tailTurnComplete === true || options.tailTurnStale === true) {
+    return true;
+  }
+  return isTailTurnIdleCollapsible(meta, options.collapseTailWhenIdle === true);
 }
 
 /** Pure grouping/collapse projection. It has no React, Jotai, or DOM dependency. */
@@ -218,6 +251,8 @@ export function projectChatGroups(
     collapseOverrides,
     isAgentWorking = false,
     collapseTailWhenIdle = false,
+    tailTurnComplete = false,
+    tailTurnStale = false,
     forceCollapseAllTurns = false,
     disableTurnCollapse = false,
     allTurnsCollapsed,
@@ -290,14 +325,28 @@ export function projectChatGroups(
       !disableTurnCollapse &&
       isTurnCollapseEligible(meta, groupIndex, groups.length, {
         collapseTailWhenIdle,
+        tailTurnComplete,
+        tailTurnStale,
         forceCollapseAllTurns,
       });
     const override =
       meta.turnId && collapseOverrides
         ? collapseOverrides.get(meta.turnId)
         : undefined;
+    // A completed tail turn is collapse-ELIGIBLE (bar renders, manual toggles
+    // and collapse-all work) before it is collapse-DEFAULTED: it only folds on
+    // its own under the idle rule, or once the whole session goes stale
+    // (last event older than TAIL_TURN_STALE_MS — most likely finished), so
+    // finishing a round never hides its content abruptly.
+    const isTailGroup = groupIndex === groups.length - 1;
+    const groupDefaultCollapsed =
+      defaultTurnCollapsed &&
+      (!isTailGroup ||
+        forceCollapseAllTurns ||
+        tailTurnStale ||
+        isTailTurnIdleCollapsible(meta, collapseTailWhenIdle));
     const isCollapsed =
-      eligible && (override ?? allTurnsCollapsed ?? defaultTurnCollapsed);
+      eligible && (override ?? allTurnsCollapsed ?? groupDefaultCollapsed);
 
     if (!isCollapsed) {
       const keepStructuralPlaceholder = meta.unloadedTurn !== null;

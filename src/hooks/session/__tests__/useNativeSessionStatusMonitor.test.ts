@@ -27,6 +27,10 @@ import {
 } from "vitest";
 
 import { resetTurnLifecycleForTests } from "@src/engines/SessionCore/control/turnLifecycle";
+import {
+  deliverSessionTerminalNotification,
+  shouldDeliverSessionTerminalNotification,
+} from "@src/hooks/session/sessionTerminalNotifications";
 import { sessionsAtom } from "@src/store/session/sessionAtom/atoms";
 import type { SessionStatus } from "@src/types/session/session";
 import {
@@ -72,8 +76,12 @@ const reactActEnvironment = globalThis as typeof globalThis & {
   IS_REACT_ACT_ENVIRONMENT?: boolean;
 };
 
+/** Hook options for the next `Probe` mount; reset to the main-window
+ *  default (deliver notifications) before each test. */
+let probeOptions: Parameters<typeof useNativeSessionStatusMonitor>[0];
+
 function Probe(): null {
-  useNativeSessionStatusMonitor();
+  useNativeSessionStatusMonitor(probeOptions);
   return null;
 }
 
@@ -120,6 +128,7 @@ describe("useNativeSessionStatusMonitor session-list status", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     listeners.handlers.clear();
+    probeOptions = undefined;
     resetTurnLifecycleForTests();
     createInstrumentedStore();
     seedSessionRow();
@@ -169,5 +178,48 @@ describe("useNativeSessionStatusMonitor session-list status", () => {
     emitStatus("waiting_for_user");
 
     expectRowStatus("waiting_for_user");
+  });
+
+  it("notifications:false skips delivery but still applies status and rename", async () => {
+    // Prove the boundary would deliver: under the default (main-window)
+    // mount this exact predicate triggers a native notification…
+    vi.mocked(shouldDeliverSessionTerminalNotification).mockReturnValueOnce(
+      true
+    );
+    emitStatus("failed");
+    expect(deliverSessionTerminalNotification).toHaveBeenCalledTimes(1);
+
+    // …then remount notification-free, the way the detached session window
+    // (`SessionWindowBridges`) mounts this hook.
+    act(() => {
+      root.unmount();
+    });
+    listeners.handlers.clear();
+    vi.mocked(deliverSessionTerminalNotification).mockClear();
+    probeOptions = { notifications: false };
+    root = createRoot(container);
+    act(() => {
+      root.render(createElement(Probe));
+    });
+
+    // "failed" → "completed" is a completed boundary, so the default mount
+    // would have delivered here too — the option is what suppresses it.
+    emitStatus("completed");
+    const renameHandler = listeners.handlers.get("session-renamed");
+    expect(renameHandler).toBeDefined();
+    await act(async () => {
+      renameHandler?.({ payload: { sessionId: SESSION_ID, name: "Renamed" } });
+      // The rename handler resolves dynamic imports before writing; a
+      // macrotask lets those microtasks drain.
+      await new Promise((resolve) => setTimeout(resolve, 0));
+    });
+
+    expect(deliverSessionTerminalNotification).not.toHaveBeenCalled();
+    expectRowStatus("completed");
+    expect(
+      getInstrumentedStore()
+        .get(sessionsAtom)
+        .map((session) => session.name)
+    ).toEqual(["Renamed"]);
   });
 });

@@ -1,4 +1,4 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue, useSetAtom } from "jotai";
 import React from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
@@ -30,8 +30,10 @@ import {
   Refresh04Icon,
   Search01Icon,
   Share02Icon,
+  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { sessionByIdAtom, upsertSession } from "@src/store/session";
+import { openSessionInNewWindowAtom } from "@src/store/session/sessionTabPlacementAtom";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 import { isAgentSession } from "@src/util/session/sessionDispatch";
 
@@ -63,6 +65,10 @@ export interface SessionHeaderActionsMenuProps {
   moveTarget: "chat-panel" | "workstation";
   paginationEnabled: boolean;
   showCloudShareSettings: boolean;
+  /** Off in the detached session window, whose only surface is the session. */
+  showMoveSession?: boolean;
+  /** Off in the detached session window — it already is that window. */
+  showOpenInNewWindow?: boolean;
   showTranscriptActions?: boolean;
   tokenUsageVisible: boolean;
   turnMetadataVisible: boolean;
@@ -99,6 +105,8 @@ export const SessionHeaderActionsMenu: React.FC<
   moveTarget,
   paginationEnabled,
   showCloudShareSettings,
+  showMoveSession = true,
+  showOpenInNewWindow = true,
   showTranscriptActions = true,
   tokenUsageVisible,
   turnMetadataVisible,
@@ -137,6 +145,29 @@ export const SessionHeaderActionsMenu: React.FC<
       Message.error(err instanceof Error ? err.message : String(err));
     }
   }, [currentSessionId, toggleHeaderActionsMenu, currentSession, t]);
+
+  // Open in new window — detach the session into its own OS window and drop
+  // this window's tab(s) for it. Self-contained like Track-as-Project: the
+  // atom talks to the backend and both tab owners, so neither host has to
+  // wire a handler through.
+  const openSessionInNewWindow = useSetAtom(openSessionInNewWindowAtom);
+  const handleOpenInNewWindow = React.useCallback(async () => {
+    if (!currentSessionId) return;
+    toggleHeaderActionsMenu();
+    try {
+      await openSessionInNewWindow({
+        sessionId: currentSessionId,
+        title: currentSession?.name,
+      });
+    } catch (err) {
+      Message.error(err instanceof Error ? err.message : String(err));
+    }
+  }, [
+    currentSessionId,
+    currentSession,
+    openSessionInNewWindow,
+    toggleHeaderActionsMenu,
+  ]);
 
   // Copy URL — the non-secret `orgii://cloud/session/ref` reference, same
   // action as the sidebar row menus. Hidden until the session has been
@@ -221,42 +252,63 @@ export const SessionHeaderActionsMenu: React.FC<
                 {t("common:actions.reload")}
               </span>
             </button>
-            <button
-              type="button"
-              className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
-              onClick={handleMoveSession}
-              disabled={!currentSessionId}
-              data-testid={
-                moveToWorkstation
-                  ? "move-session-to-workstation"
-                  : "move-session-to-chat-panel"
-              }
-            >
-              {moveToWorkstation ? (
+            {showMoveSession && (
+              <button
+                type="button"
+                className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
+                onClick={handleMoveSession}
+                disabled={!currentSessionId}
+                data-testid={
+                  moveToWorkstation
+                    ? "move-session-to-workstation"
+                    : "move-session-to-chat-panel"
+                }
+              >
+                {moveToWorkstation ? (
+                  <HugeiconsIcon
+                    icon={PanelLeftIcon}
+                    data-icon="panel-left"
+                    size={DROPDOWN_ITEM.iconSize}
+                    strokeWidth={1.75}
+                  />
+                ) : (
+                  <HugeiconsIcon
+                    icon={PanelRightIcon}
+                    data-icon="panel-right"
+                    size={DROPDOWN_ITEM.iconSize}
+                    strokeWidth={1.75}
+                  />
+                )}
+                <span className="flex-1 truncate">
+                  {moveToWorkstation
+                    ? t("chat.moveToWorkstation", {
+                        defaultValue: "Move to My Station",
+                      })
+                    : t("chat.moveToChatPanel", {
+                        defaultValue: "Move to Chat Panel",
+                      })}
+                </span>
+              </button>
+            )}
+            {showOpenInNewWindow && (
+              <button
+                type="button"
+                className={`${DROPDOWN_CLASSES.item} ${DROPDOWN_CLASSES.itemHover} w-full text-left disabled:cursor-not-allowed disabled:opacity-50`}
+                onClick={handleOpenInNewWindow}
+                disabled={!currentSessionId}
+                data-testid="open-session-in-new-window"
+              >
                 <HugeiconsIcon
-                  icon={PanelLeftIcon}
-                  data-icon="panel-left"
+                  icon={SquareArrowUpRight02Icon}
+                  data-icon="square-arrow-out-up-right"
                   size={DROPDOWN_ITEM.iconSize}
                   strokeWidth={1.75}
                 />
-              ) : (
-                <HugeiconsIcon
-                  icon={PanelRightIcon}
-                  data-icon="panel-right"
-                  size={DROPDOWN_ITEM.iconSize}
-                  strokeWidth={1.75}
-                />
-              )}
-              <span className="flex-1 truncate">
-                {moveToWorkstation
-                  ? t("chat.moveToWorkstation", {
-                      defaultValue: "Move to My Station",
-                    })
-                  : t("chat.moveToChatPanel", {
-                      defaultValue: "Move to Chat Panel",
-                    })}
-              </span>
-            </button>
+                <span className="flex-1 truncate">
+                  {t("common:actions.openInNewWindow")}
+                </span>
+              </button>
+            )}
             {showTranscriptActions && (
               <>
                 <button

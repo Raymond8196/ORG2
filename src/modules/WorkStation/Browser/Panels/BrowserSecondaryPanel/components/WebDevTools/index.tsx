@@ -29,7 +29,6 @@ import {
   HugeiconsIcon,
   ListChevronsDownUpIcon,
   Loading03Icon,
-  MinusSignCircleIcon,
   Refresh04Icon,
 } from "@src/icons";
 import {
@@ -141,16 +140,10 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
       handleStyleChange,
       handleStyleEditsUndo,
       handleStyleEditsSend,
-      enrichedSourceLocation,
-      componentDefinition,
-      componentUsages,
-      isLookingUp,
-      isIndexBuilt,
+      sourceLocation,
       openFileAtLine,
       searchForComponent,
       canSearchForComponent,
-      handleBuildIndex,
-      handleClearIndex,
     } = useWebDevToolsElementsPanel({
       isOpen,
       activeTab,
@@ -336,7 +329,7 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                         { key: "css", label: t("tabs.css") },
                         {
                           key: "source",
-                          label: enrichedSourceLocation?.path
+                          label: sourceLocation?.path
                             ? `${t("tabs.source")} •`
                             : t("tabs.source"),
                         },
@@ -350,22 +343,6 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           size={SPINNER_TOKENS.small}
                           className="animate-spin text-text-3"
                         />
-                      )}
-                      {componentsSubTab === "source" && isIndexBuilt && (
-                        <ToolbarTooltip label={t("tooltips.clearUiIndex")}>
-                          <button
-                            type="button"
-                            onClick={handleClearIndex}
-                            className={HEADER_BUTTON.danger}
-                            aria-label={t("tooltips.clearUiIndex")}
-                          >
-                            <HugeiconsIcon
-                              icon={MinusSignCircleIcon}
-                              data-icon="circle-minus"
-                              size={HEADER_ICON_SIZE.sm}
-                            />
-                          </button>
-                        </ToolbarTooltip>
                       )}
                       <ToolbarTooltip
                         label={
@@ -407,20 +384,6 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                           )}
                         </button>
                       </ToolbarTooltip>
-                      {componentsSubTab === "source" &&
-                        repoPath &&
-                        !isIndexBuilt && (
-                          <ToolbarTooltip label={t("workstation.buildUiIndex")}>
-                            <button
-                              type="button"
-                              onClick={handleBuildIndex}
-                              className="rounded bg-primary-6 px-3 py-0.5 text-[10px] font-medium text-white hover:bg-primary-5"
-                              aria-label={t("workstation.buildUiIndex")}
-                            >
-                              Index
-                            </button>
-                          </ToolbarTooltip>
-                        )}
                     </div>
                   </div>
                   <div className="flex min-h-0 flex-1 flex-col overflow-hidden">
@@ -445,21 +408,18 @@ const WebDevTools: React.FC<WebDevToolsProps> = memo(
                       )}
                       {componentsSubTab === "source" && (
                         <SourcePanel
-                          sourceLocation={enrichedSourceLocation}
+                          key={
+                            sourceLocation?.path ??
+                            sourceLocation?.componentName ??
+                            sourceLocation?.searchHint ??
+                            "no-source"
+                          }
+                          sourceLocation={sourceLocation}
                           onOpenFile={openFileAtLine}
                           onSearchComponent={searchForComponent}
                           canSearchComponent={canSearchForComponent(
-                            enrichedSourceLocation
+                            sourceLocation
                           )}
-                          definition={componentDefinition}
-                          usages={componentUsages}
-                          isLoading={isLookingUp}
-                          onBuildIndex={
-                            !isIndexBuilt && repoPath
-                              ? handleBuildIndex
-                              : undefined
-                          }
-                          isIndexBuilt={isIndexBuilt}
                           collapseAllKey={collapseAllKey}
                           expandAllKey={expandAllKey}
                         />
