@@ -55,6 +55,7 @@ import {
   type SessionTabTransfer,
 } from "@src/shared/dnd/sessionTabDrag";
 import { useSessionTabDropTarget } from "@src/shared/dnd/useSessionTabDropTarget";
+import { useTabInsertionIndicator } from "@src/shared/dnd/useTabInsertionIndicator";
 import { openTeamInboxInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabOpenAtoms";
 import {
   canMoveWorkstationPrTabToChatPanel,
@@ -226,6 +227,7 @@ export const TabBar: React.FC<TabBarProps> = memo(
     const tabGitInfoMap = useTabGitInfoMap(tabs, repoPath, gitStatusMap);
 
     const tabsContainerRef = useRef<HTMLDivElement>(null);
+    const tabBandRef = useRef<HTMLDivElement>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const moveSessionTab = useSetAtom(moveSessionTabAtom);
     const moveWorkstationPrTabToChatPanel = useSetAtom(
@@ -279,10 +281,10 @@ export const TabBar: React.FC<TabBarProps> = memo(
       handleDragEnd,
       handleDragCancel,
     } = useTabDrag({
-      paneId,
       tabs,
       onTabReorder,
     });
+    useTabInsertionIndicator({ containerRef: tabBandRef, draggingTabId });
 
     const [contextMenu, setContextMenu] = useState<{
       position: { x: number; y: number };
@@ -388,12 +390,6 @@ export const TabBar: React.FC<TabBarProps> = memo(
           } as React.CSSProperties
         }
       >
-        {isSessionDragOver ? (
-          <div
-            className={`${SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS} inset-1`}
-            aria-hidden
-          />
-        ) : null}
         <div className="mt-2 flex h-9 min-w-0 flex-1 items-center">
           {shouldOffsetLeftChrome ? <CollapsedSidebarButton /> : null}
           {leadingSlot ? (
@@ -407,69 +403,82 @@ export const TabBar: React.FC<TabBarProps> = memo(
           ) : null}
 
           <div
-            ref={tabsContainerRef}
-            className="relative flex h-full min-w-0 max-w-full shrink items-center overflow-x-auto overflow-y-hidden scrollbar-hide"
-            style={{ scrollBehavior: "smooth" } as React.CSSProperties}
+            ref={tabBandRef}
+            className="relative flex h-8 min-w-0 flex-1 items-center"
           >
-            {tabRowPrefix ? (
-              <NoDragRegion className="flex h-full shrink-0 items-center gap-1">
-                {tabRowPrefix}
-              </NoDragRegion>
+            {isSessionDragOver ? (
+              <div
+                // Fill the tab band and empty space, excluding header buttons.
+                className={`${SESSION_TAB_DROP_TARGET_HIGHLIGHT_CLASS} inset-0`}
+                aria-hidden
+              />
             ) : null}
-            {tabRowPrefix && hasTabs ? (
-              <span className={TAB_STRIP_SECTION_RULE_CLASS} aria-hidden />
-            ) : null}
-            {hasTabs ? (
-              <DndContext
-                sensors={sensors}
-                collisionDetection={closestCenter}
-                onDragStart={handleDragStart}
-                onDragMove={handleDragMove}
-                onDragEnd={handleDragEnd}
-                onDragCancel={handleDragCancel}
-              >
-                <SortableTabList
-                  tabs={tabs}
-                  tabIds={tabIds}
-                  activeTabId={activeTabId}
-                  tabGitInfoMap={tabGitInfoMap}
-                  hideInactiveTabLabels={
-                    collapseInactiveTabLabelsOnOverflow && hideInactiveTabLabels
-                  }
-                  onTabClick={handleTabClick}
-                  onCloseClick={handleCloseClick}
-                  onContextMenu={handleContextMenu}
-                />
+            <div
+              ref={tabsContainerRef}
+              className="relative flex h-full min-w-0 max-w-full shrink items-center overflow-x-auto overflow-y-hidden scrollbar-hide"
+              style={{ scrollBehavior: "smooth" } as React.CSSProperties}
+            >
+              {tabRowPrefix ? (
+                <NoDragRegion className="flex h-full shrink-0 items-center gap-1">
+                  {tabRowPrefix}
+                </NoDragRegion>
+              ) : null}
+              {tabRowPrefix && hasTabs ? (
+                <span className={TAB_STRIP_SECTION_RULE_CLASS} aria-hidden />
+              ) : null}
+              {hasTabs ? (
+                <DndContext
+                  sensors={sensors}
+                  collisionDetection={closestCenter}
+                  onDragStart={handleDragStart}
+                  onDragMove={handleDragMove}
+                  onDragEnd={handleDragEnd}
+                  onDragCancel={handleDragCancel}
+                >
+                  <SortableTabList
+                    tabs={tabs}
+                    tabIds={tabIds}
+                    activeTabId={activeTabId}
+                    tabGitInfoMap={tabGitInfoMap}
+                    hideInactiveTabLabels={
+                      collapseInactiveTabLabelsOnOverflow &&
+                      hideInactiveTabLabels
+                    }
+                    onTabClick={handleTabClick}
+                    onCloseClick={handleCloseClick}
+                    onContextMenu={handleContextMenu}
+                  />
 
-                {createPortal(
-                  <DragOverlay dropAnimation={null}>
-                    {draggingTab && (
-                      <div
-                        className={TAB_PILL_DRAG_OVERLAY_CLASS}
-                        style={{ zIndex: 9999 }}
-                      >
-                        <FileTypeIcon
-                          fileName={draggingTab.title}
-                          size="small"
-                        />
-                        <span className="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap text-[13px]">
-                          {draggingTab.title}
-                        </span>
-                      </div>
-                    )}
-                  </DragOverlay>,
-                  document.body
-                )}
-              </DndContext>
-            ) : null}
+                  {createPortal(
+                    <DragOverlay dropAnimation={null}>
+                      {draggingTab && (
+                        <div
+                          className={TAB_PILL_DRAG_OVERLAY_CLASS}
+                          style={{ zIndex: 9999 }}
+                        >
+                          <FileTypeIcon
+                            fileName={draggingTab.title}
+                            size="small"
+                          />
+                          <span className="max-w-[150px] overflow-hidden text-ellipsis whitespace-nowrap text-[13px]">
+                            {draggingTab.title}
+                          </span>
+                        </div>
+                      )}
+                    </DragOverlay>,
+                    document.body
+                  )}
+                </DndContext>
+              ) : null}
+            </div>
+
+            <div
+              className="h-8 min-w-px flex-1"
+              data-tauri-drag-region
+              style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
+              aria-hidden
+            />
           </div>
-
-          <div
-            className="h-8 min-w-px flex-1"
-            data-tauri-drag-region
-            style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
-            aria-hidden
-          />
 
           <NoDragRegion>
             <TabBarControls

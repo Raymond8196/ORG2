@@ -33,7 +33,13 @@ import {
   horizontalListSortingStrategy,
 } from "@dnd-kit/sortable";
 import { useAtomValue, useSetAtom } from "jotai";
-import React, { Fragment, useCallback, useRef, useState } from "react";
+import React, {
+  Fragment,
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 
@@ -50,6 +56,7 @@ import {
   dispatchSessionTabDragStart,
 } from "@src/shared/dnd/sessionTabDrag";
 import { useSessionTabDropTarget } from "@src/shared/dnd/useSessionTabDropTarget";
+import { useTabInsertionIndicator } from "@src/shared/dnd/useTabInsertionIndicator";
 import { openTeamInboxInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabOpenAtoms";
 import {
   activateChatPanelTabAtom,
@@ -90,6 +97,7 @@ export function ChatPanelTabBar(): React.ReactNode {
     null
   );
   const [draggingTabId, setDraggingTabId] = useState<string | null>(null);
+  useTabInsertionIndicator({ containerRef: barRef, draggingTabId });
   const [contextMenuTabId, setContextMenuTabId] = useState<string | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
@@ -113,6 +121,7 @@ export function ChatPanelTabBar(): React.ReactNode {
     window.removeEventListener("pointermove", pointerTrackerRef.current);
     pointerTrackerRef.current = null;
   }, []);
+  useEffect(() => removePointerTracker, [removePointerTracker]);
 
   const handleDragStart = useCallback(
     (event: DragStartEvent) => {
@@ -249,7 +258,7 @@ export function ChatPanelTabBar(): React.ReactNode {
         >
           <div
             ref={barRef}
-            className="relative flex min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden scrollbar-hide"
+            className="relative flex h-8 min-w-0 flex-1 items-center overflow-x-auto overflow-y-hidden scrollbar-hide"
             data-session-tab-drop-target="chat-panel"
             data-tauri-drag-region
             style={CHAT_PANEL_HEADER_DRAG_STYLE}
