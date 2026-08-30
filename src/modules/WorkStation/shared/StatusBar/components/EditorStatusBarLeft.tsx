@@ -13,7 +13,7 @@ import DiffStatsBadge from "@src/components/DiffStatsBadge";
 import { SPINNER_TOKENS } from "@src/config/spinnerTokens";
 import {
   ArrowLeftRightIcon,
-  CodeIcon,
+  CodeXmlIcon,
   FolderClosedIcon,
   FolderLibraryIcon,
   FolderTreeIcon,
@@ -131,7 +131,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
             />
           ) : (
             <HugeiconsIcon
-              icon={isGitInitialized === false ? FolderClosedIcon : CodeIcon}
+              icon={isGitInitialized === false ? FolderClosedIcon : CodeXmlIcon}
               data-icon={isGitInitialized === false ? "folder" : "code"}
               size={13}
               className="shrink-0 text-text-1"
@@ -149,7 +149,7 @@ export const EditorStatusBarLeft: React.FC<EditorStatusBarLeftProps> = ({
         dataTestId="status-bar-no-repo"
       >
         <HugeiconsIcon
-          icon={CodeIcon}
+          icon={CodeXmlIcon}
           data-icon="code"
           size={13}
           className="text-primary-6"

@@ -5,7 +5,7 @@
  */
 import {
   BoxIcon,
-  CodeIcon,
+  CodeXmlIcon,
   FileScriptIcon,
   FirstBracketIcon,
   FunctionSquareIcon,
@@ -30,7 +30,7 @@ export const SYMBOL_ICONS: Record<SymbolKind, IconSvgElement> = {
   var: VariableIcon,
   export: FileScriptIcon,
   import: FileScriptIcon,
-  method: CodeIcon,
+  method: CodeXmlIcon,
   property: HashtagIcon,
   enum: FirstBracketIcon,
 };

@@ -2,6 +2,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { DeliveryBox01Icon } from "@src/icons";
+
 import {
   buildLinkedSessionRows,
   buildProjectOverviewRow,
@@ -138,7 +140,7 @@ describe("buildWorkItemRow", () => {
 });
 
 describe("project rows", () => {
-  it("uses the GitHub SVG for imported projects", () => {
+  it("uses the same box icon for imported projects and their overviews", () => {
     const row = buildProjectRow(
       t,
       "orgii-issues",
@@ -154,12 +156,9 @@ describe("project rows", () => {
     );
 
     for (const projectRow of [row, overviewRow]) {
-      const markup = renderToStaticMarkup(
-        createElement("div", null, projectRow.iconElement)
-      );
-      expect(markup).toContain('data-integration-icon="github"');
-      expect(projectRow.icon).toBeUndefined();
-      expect(projectRow.iconName).toBeUndefined();
+      expect(projectRow.icon).toBe(DeliveryBox01Icon);
+      expect(projectRow.iconName).toBe("box");
+      expect(projectRow.iconElement).toBeUndefined();
     }
   });
 

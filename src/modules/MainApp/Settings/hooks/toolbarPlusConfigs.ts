@@ -10,12 +10,12 @@ import type {
 } from "@src/api/types/integrations";
 import {
   BlocksIcon,
-  CalendarArrowUpIcon,
   DatabaseIcon,
   Download01Icon,
   File02Icon,
   Key01Icon,
   McpServerIcon,
+  TwentyFourHoursClockIcon,
   UnplugIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
@@ -161,7 +161,7 @@ function buildRoutinesDropdownItems(
     {
       id: "add-routine",
       label: t("toolbarPlusMenu.addRoutine"),
-      icon: CalendarArrowUpIcon,
+      icon: TwentyFourHoursClockIcon,
       onClick: () => dispatch("add-routine"),
     },
   ];

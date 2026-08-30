@@ -1,12 +1,12 @@
 import React from "react";
 
 import {
-  BookOpen01Icon,
   Calendar01Icon,
   CancelCircleIcon,
   CheckmarkCircle01Icon,
   CircleIcon,
   Clock01Icon,
+  DeliveryBox01Icon,
   FavouriteIcon,
   HugeiconsIcon,
 } from "@src/icons";
@@ -92,11 +92,7 @@ const ProjectCard: React.FC<ProjectCardProps> = ({ card }) => {
     <ToolResultCardFrame>
       <div className="flex items-start gap-2">
         <span className="mt-0.5 shrink-0 text-primary-6">
-          <HugeiconsIcon
-            icon={BookOpen01Icon}
-            data-icon="book-open"
-            size={13}
-          />
+          <HugeiconsIcon icon={DeliveryBox01Icon} data-icon="box" size={13} />
         </span>
 
         <div className="min-w-0 flex-1">

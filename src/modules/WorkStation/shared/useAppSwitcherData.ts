@@ -20,7 +20,7 @@ import {
   getSimulatorDockTitleCenter,
 } from "@src/engines/Simulator/components/Dock";
 import { AppType } from "@src/engines/Simulator/types/appTypes";
-import { CodeIcon, type IconSvgElement } from "@src/icons";
+import { CodeXmlIcon, type IconSvgElement } from "@src/icons";
 import { stationModeAtom } from "@src/store/ui/simulatorAtom";
 import {
   simulatorEffectiveDockAppAtom,
@@ -83,7 +83,7 @@ export function useSimulatorAppSwitcher(): AppSwitcherChipData {
   );
 
   return {
-    icon: titleCenter.icon ?? CodeIcon,
+    icon: titleCenter.icon ?? CodeXmlIcon,
     label: titleCenter.label ?? "",
     activeId: effectiveDockApp ?? "",
     items,

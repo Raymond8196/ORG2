@@ -38,7 +38,7 @@ import {
   BotIcon,
   BrainIcon,
   ChartColumnIcon,
-  CodeIcon,
+  CodeXmlIcon,
   ComputerTerminal01Icon,
   CursorPointer02Icon,
   HierarchyCircle01Icon,
@@ -114,7 +114,7 @@ function resolveCanonicalBrandIcon(
 const ICON_MAP: Record<string, IconSvgElement> = {
   omega: RecordIcon,
   "ai-programming": AiProgrammingIcon,
-  code: CodeIcon,
+  code: CodeXmlIcon,
   monitor: MonitorIcon,
   network: HierarchyCircle01Icon,
   brain: BrainIcon,

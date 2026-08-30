@@ -22,7 +22,7 @@ import Message from "@src/components/Message";
 import { workspaceMatchesRepoFilter } from "@src/features/TeamCollaboration/orgScopeRepoFilter";
 import { createLogger } from "@src/hooks/logger";
 import { useFilteredItems } from "@src/hooks/search";
-import { CodeIcon, HugeiconsIcon } from "@src/icons";
+import { CodeXmlIcon, HugeiconsIcon } from "@src/icons";
 import {
   activeWorkspaceIdAtom,
   activeWorkspaceNameAtom,
@@ -361,7 +361,7 @@ export function useWorkspacePaletteWorkspace({
           title={`${repoCount} repo${repoCount !== 1 ? "s" : ""}: ${names.join(", ")}`}
         >
           {repoCount}
-          <HugeiconsIcon icon={CodeIcon} data-icon="code" size={12} />
+          <HugeiconsIcon icon={CodeXmlIcon} data-icon="code" size={12} />
         </span>
       );
       const manageActions = (

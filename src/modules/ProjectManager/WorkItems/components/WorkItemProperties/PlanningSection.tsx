@@ -2,7 +2,6 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_ITEM,
 } from "@src/components/Dropdown/tokens";
-import IntegrationIcon from "@src/components/IntegrationIcon";
 import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
 import {
   FieldRow,
@@ -12,7 +11,7 @@ import {
 } from "@src/components/PropertyField/PropertyFieldEditable";
 import {
   Book02Icon,
-  BookOpen01Icon,
+  DeliveryBox01Icon,
   DiamondIcon,
   HugeiconsIcon,
 } from "@src/icons";
@@ -51,7 +50,6 @@ export function PlanningSection({
   availableMilestones,
   handlers,
   t,
-  projectIconType,
   projectReadonly = false,
   fieldVariant = "row",
   visibleFields,
@@ -68,18 +66,11 @@ export function PlanningSection({
           label={workItem.project?.name ?? t("workItems.properties.noProject")}
           icon={
             workItem.project ? (
-              projectIconType ? (
-                <IntegrationIcon
-                  type={projectIconType}
-                  size={DROPDOWN_ITEM.iconSize}
-                />
-              ) : (
-                <HugeiconsIcon
-                  icon={BookOpen01Icon}
-                  data-icon="book-open"
-                  size={DROPDOWN_ITEM.iconSize}
-                />
-              )
+              <HugeiconsIcon
+                icon={DeliveryBox01Icon}
+                data-icon="box"
+                size={DROPDOWN_ITEM.iconSize}
+              />
             ) : (
               <HugeiconsIcon
                 icon={Book02Icon}
@@ -135,19 +126,11 @@ export function PlanningSection({
                   <Option
                     key={projectItem.id}
                     icon={
-                      projectIconType &&
-                      projectItem.id === workItem.project?.id ? (
-                        <IntegrationIcon
-                          type={projectIconType}
-                          size={DROPDOWN_ITEM.iconSize}
-                        />
-                      ) : (
-                        <HugeiconsIcon
-                          icon={BookOpen01Icon}
-                          data-icon="book-open"
-                          size={DROPDOWN_ITEM.iconSize}
-                        />
-                      )
+                      <HugeiconsIcon
+                        icon={DeliveryBox01Icon}
+                        data-icon="box"
+                        size={DROPDOWN_ITEM.iconSize}
+                      />
                     }
                     iconColor={projectItem.color}
                     label={projectItem.name}

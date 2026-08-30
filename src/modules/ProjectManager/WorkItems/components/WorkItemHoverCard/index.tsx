@@ -10,8 +10,8 @@ import HoverCardBase, {
 import {
   Building02Icon,
   Clock01Icon,
+  DeliveryBox01Icon,
   Flag01Icon,
-  FolderKanbanIcon,
   GitCommitVerticalIcon,
   HugeiconsIcon,
   TagsIcon,
@@ -137,8 +137,8 @@ const WorkItemHoverCardContent: React.FC<WorkItemHoverCardContentProps> = memo(
           <HoverCardRow
             icon={
               <HugeiconsIcon
-                icon={FolderKanbanIcon}
-                data-icon="folder-kanban"
+                icon={DeliveryBox01Icon}
+                data-icon="box"
                 size={13}
                 strokeWidth={1.75}
               />

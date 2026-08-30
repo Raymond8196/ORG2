@@ -8,7 +8,7 @@ import Textarea from "@src/components/Textarea";
 import {
   ArrowRight02Icon,
   CheckmarkSquare01Icon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   HugeiconsIcon,
 } from "@src/icons";
 import WorkItemProperties from "@src/modules/ProjectManager/WorkItems/components/WorkItemProperties";
@@ -140,8 +140,8 @@ const SessionHandoffComposer: React.FC<SessionHandoffComposerProps> = ({
               <>
                 <span aria-hidden>·</span>
                 <HugeiconsIcon
-                  icon={FolderKanbanIcon}
-                  data-icon="folder-kanban"
+                  icon={DeliveryBox01Icon}
+                  data-icon="box"
                   size={13}
                   aria-hidden
                 />

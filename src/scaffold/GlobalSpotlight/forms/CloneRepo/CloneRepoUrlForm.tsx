@@ -9,7 +9,7 @@ import { useTranslation } from "react-i18next";
 import Button from "@src/components/Button";
 import Input from "@src/components/Input";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   FolderClosedIcon,
   FolderOpenIcon,
   HugeiconsIcon,
@@ -99,7 +99,7 @@ const CloneUrlForm: React.FC<CloneUrlFormProps> = ({
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
               prefix={
                 <HugeiconsIcon
-                  icon={CodeIcon}
+                  icon={CodeXmlIcon}
                   data-icon="code"
                   className="text-[16px] text-text-2"
                   size={16}

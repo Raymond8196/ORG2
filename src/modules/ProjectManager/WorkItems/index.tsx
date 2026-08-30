@@ -11,7 +11,6 @@ import { useTranslation } from "react-i18next";
 
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import { projectSyncApi } from "@src/api/http/project/sync";
-import IntegrationIcon from "@src/components/IntegrationIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
@@ -19,6 +18,7 @@ import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useProjectOrgCloudPermissions } from "@src/features/Org2Cloud/useProjectOrgCloudPermissions";
 import { useCurrentUserMemberIds } from "@src/hooks/project/useCurrentUserMemberId";
 import type { WorkstationTabHeaderHost } from "@src/hooks/tabHost/useWorkstationTabHeader";
+import { DeliveryBox01Icon, HugeiconsIcon } from "@src/icons";
 import type { LinkedRepoOption } from "@src/modules/ProjectManager/shared";
 import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
 import { ContentSearchPalette } from "@src/scaffold/GlobalSpotlight/palettes";
@@ -365,14 +365,15 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       ? projectSyncAdapter.adapterId
       : undefined;
   const projectIdentityIcon = useMemo(
-    () =>
-      projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB ? (
-        <IntegrationIcon
-          type={STORY_SYNC_ADAPTER.GITHUB}
-          size={HEADER_ICON_SIZE.sm}
-        />
-      ) : undefined,
-    [projectSyncAdapterId]
+    () => (
+      <HugeiconsIcon
+        icon={DeliveryBox01Icon}
+        data-icon="box"
+        size={HEADER_ICON_SIZE.sm}
+        strokeWidth={1.75}
+      />
+    ),
+    []
   );
   const selectedShortId = data.selectedWorkItem
     ? (data.getShortId(data.selectedWorkItem.session_id) ?? null)

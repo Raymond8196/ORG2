@@ -6,9 +6,9 @@ import type { LinkedSession } from "@src/api/http/project";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import {
   BotIcon,
-  BoxIcon,
   ChevronsDownUpIcon,
   ComputerTerminal01Icon,
+  DeliveryBox01Icon,
   HierarchyCircle01Icon,
   HugeiconsIcon,
   Loading03Icon,
@@ -159,19 +159,15 @@ export function buildProjectOverviewRow(
   t: TFunction,
   projectSlug: string,
   projectName?: string,
-  projectSyncAdapterId?: string | null
+  _projectSyncAdapterId?: string | null
 ): NavigationMenuItem {
   const id = getProjectOverviewMenuItemId(projectSlug);
-  const isGitHubProject = projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB;
   return {
     id,
     key: id,
     label: t("projects:orgs.management.overview"),
-    icon: isGitHubProject ? undefined : BoxIcon,
-    iconName: isGitHubProject ? undefined : "box",
-    iconElement: isGitHubProject ? (
-      <IntegrationIcon type={STORY_SYNC_ADAPTER.GITHUB} size={14} />
-    ) : undefined,
+    icon: DeliveryBox01Icon,
+    iconName: "box",
     visualTone: "secondary",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
     dragPayload: {
@@ -207,19 +203,15 @@ export function buildProjectRow(
   projectSlug: string,
   projectName: string,
   pendingSync = false,
-  projectSyncAdapterId?: string | null
+  _projectSyncAdapterId?: string | null
 ): NavigationMenuItem {
   const id = getProjectOverviewMenuItemId(projectSlug);
-  const isGitHubProject = projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB;
   return {
     id,
     key: id,
     label: projectName,
-    icon: isGitHubProject ? undefined : BoxIcon,
-    iconName: isGitHubProject ? undefined : "box",
-    iconElement: isGitHubProject ? (
-      <IntegrationIcon type={STORY_SYNC_ADAPTER.GITHUB} size={14} />
-    ) : undefined,
+    icon: DeliveryBox01Icon,
+    iconName: "box",
     visualTone: "secondary",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
     workingIndicator: pendingSync ? pendingSyncIndicator(t) : undefined,

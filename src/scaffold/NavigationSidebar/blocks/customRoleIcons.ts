@@ -10,7 +10,7 @@
 import {
   Book01Icon,
   Briefcase01Icon,
-  CodeIcon,
+  CodeXmlIcon,
   Coffee01Icon,
   CompassIcon,
   FeatherIcon,
@@ -27,7 +27,7 @@ import type { CustomRoleIconId } from "@src/types/userPresence";
 export const CUSTOM_ROLE_ICONS: Record<CustomRoleIconId, IconSvgElement> = {
   user: UserIcon,
   briefcase: Briefcase01Icon,
-  code: CodeIcon,
+  code: CodeXmlIcon,
   rocket: RocketIcon,
   coffee: Coffee01Icon,
   headphones: HeadphonesIcon,

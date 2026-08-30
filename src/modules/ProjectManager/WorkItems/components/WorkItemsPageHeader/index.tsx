@@ -7,7 +7,7 @@ import {
 } from "@src/config/workstation/tokens";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import { useRefreshSpin } from "@src/hooks/ui";
-import { BoxIcon, HugeiconsIcon } from "@src/icons";
+import { DeliveryBox01Icon, HugeiconsIcon } from "@src/icons";
 
 import { WorkItemsHeaderContent } from "./WorkItemsHeaderContent";
 import type { WorkItemsPageHeaderProps } from "./types";
@@ -54,7 +54,7 @@ const WorkItemsPageHeader = ({
           ...segment,
           icon: segment.icon ?? identityIcon ?? (
             <HugeiconsIcon
-              icon={BoxIcon}
+              icon={DeliveryBox01Icon}
               data-icon="box"
               size={HEADER_ICON_SIZE.sm}
               strokeWidth={1.75}

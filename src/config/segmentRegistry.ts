@@ -9,12 +9,11 @@ import { type RenderableIcon } from "@src/components/AnyIcon";
 import {
   Activity01Icon as Activity,
   HierarchyCircle01Icon as AgentTeams,
+  DeliveryBox01Icon as Box,
   FirstBracketIcon as Braces,
-  CalendarArrowUpIcon as CalendarArrowUp,
   InternetIcon as Chromium,
-  ClipboardListIcon as ClipboardList,
   CloudIcon as Cloud,
-  CodeIcon as Code,
+  CodeXmlIcon as Code,
   CursorMagicSelection04Icon as ComputerUse,
   ContentWritingIcon as ContentWriting,
   ContrastIcon as Contrast,
@@ -28,6 +27,7 @@ import {
   HierarchyCircle01Icon as Network,
   PackageIcon as Package,
   PaintBrush01Icon as Paintbrush,
+  TwentyFourHoursClockIcon as RoutineClock,
   RulerDimensionLineIcon as RulerDimensionLine,
   Settings02Icon as Settings2,
   Settings01Icon as SettingsIcon,
@@ -112,7 +112,7 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
   },
   routines: {
     labelKey: "integrations:categories.routines",
-    icon: CalendarArrowUp,
+    icon: RoutineClock,
   },
   devtools: { labelKey: "integrations:categories.devtools", icon: Braces },
 
@@ -158,7 +158,7 @@ export const SEGMENT_REGISTRY: Record<string, SegmentRegistryEntry> = {
   browser: { labelKey: "navigation:labels.browser", icon: Chromium },
   project: {
     labelKey: "navigation:labels.projectManager",
-    icon: ClipboardList,
+    icon: Box,
   },
   inbox: { labelKey: "navigation:labels.inbox", icon: Inbox },
   "select-repo": {

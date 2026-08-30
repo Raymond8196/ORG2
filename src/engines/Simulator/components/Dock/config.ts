@@ -6,12 +6,12 @@
 import {
   Infinity01Icon,
   BubbleChatIcon,
-  CodeIcon,
+  CodeXmlIcon,
+  DeliveryBox01Icon,
   FileDiffIcon,
   type IconSvgElement,
   InternetIcon,
   Layout01Icon,
-  ListTodoIcon,
 } from "@src/icons";
 
 export interface DockApp {
@@ -29,9 +29,9 @@ export const DOCK_APP_SEGMENTS: DockApp[][] = [
   [{ id: "DIFF", name: "Diff", icon: FileDiffIcon }],
   [
     { id: "CHANNELS", name: "Communication", icon: BubbleChatIcon },
-    { id: "CODE_EDITOR", name: "Code Editor", icon: CodeIcon },
+    { id: "CODE_EDITOR", name: "Code Editor", icon: CodeXmlIcon },
     { id: "BROWSER", name: "Browser", icon: InternetIcon },
-    { id: "STORY_MANAGER", name: "Project Manager", icon: ListTodoIcon },
+    { id: "STORY_MANAGER", name: "Project Manager", icon: DeliveryBox01Icon },
     { id: "CANVAS", name: "Canvas", icon: Layout01Icon },
   ],
 ];

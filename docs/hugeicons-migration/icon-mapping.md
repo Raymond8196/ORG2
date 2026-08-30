@@ -155,7 +155,7 @@ the vendor alias table produced. The notable ones:
 | `CheckCircle2`               | `CheckmarkCircle01Icon`          |      41 |
 | `Copy`                       | `CopyIcon`                       |      39 |
 | `GitBranch`                  | `WorkflowCircle05Icon`           |      38 |
-| `Code`                       | `CodeIcon`                       |      29 |
+| `Code`                       | `CodeXmlIcon`                    |      29 |
 | `XCircle`                    | `CancelCircleIcon`               |      29 |
 | `Folder`                     | `FolderClosedIcon`               |      27 |
 | `Terminal`                   | `ComputerTerminal01Icon`         |      27 |
@@ -218,7 +218,7 @@ the vendor alias table produced. The notable ones:
 | `Archive`                    | `ArchiveIcon`                    |       9 |
 | `Brain`                      | `BrainIcon`                      |       9 |
 | `Chrome`                     | `InternetIcon`                   |       9 |
-| `Code2`                      | `CodeIcon`                       |       9 |
+| `Code2`                      | `CodeXmlIcon`                    |       9 |
 | `Database`                   | `DatabaseIcon`                   |       9 |
 | `History`                    | `WorkHistoryIcon`                |       9 |
 | `ScanSearch`                 | `SearchAreaIcon`                 |       9 |

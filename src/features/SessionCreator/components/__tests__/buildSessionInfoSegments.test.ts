@@ -4,7 +4,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import { RUNNING_LOCATIONS } from "@src/config/sessionCreatorConfig";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   FolderClosedIcon,
   FolderLibraryIcon,
   SplitIcon,
@@ -30,7 +30,7 @@ describe("buildSessionInfoSegments", () => {
     expect(
       getSessionInfoDisplayState({ ...baseParams, isMultiRoot: false })
         .SourceIcon
-    ).toBe(CodeIcon);
+    ).toBe(CodeXmlIcon);
     expect(
       getSessionInfoDisplayState({
         ...baseParams,
@@ -67,7 +67,7 @@ describe("buildSessionInfoSegments", () => {
 
   it("orders setup as repository, running location, then branch", () => {
     const segments = buildSessionInfoSegments({
-      SourceIcon: CodeIcon,
+      SourceIcon: CodeXmlIcon,
       hasSource: true,
       sourceDisplayName: "ORGII",
       showBranchRow: true,
@@ -96,7 +96,7 @@ describe("buildSessionInfoSegments", () => {
 
   it("shows the worktree source on the branch segment", () => {
     const segments = buildSessionInfoSegments({
-      SourceIcon: CodeIcon,
+      SourceIcon: CodeXmlIcon,
       hasSource: true,
       sourceDisplayName: "ORGII",
       showBranchRow: true,

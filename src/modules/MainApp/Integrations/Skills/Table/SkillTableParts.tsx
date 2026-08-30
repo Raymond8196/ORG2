@@ -2,7 +2,7 @@ import type { TFunction } from "i18next";
 
 import { SETTINGS_TABLE_CELL } from "@src/components/SettingsTable";
 import type { CursorRepo } from "@src/hooks/policies";
-import { CodeIcon, Home01Icon, HugeiconsIcon, UserIcon } from "@src/icons";
+import { CodeXmlIcon, Home01Icon, HugeiconsIcon, UserIcon } from "@src/icons";
 import { SKILL_SOURCE } from "@src/types/extensions";
 
 import {
@@ -50,7 +50,7 @@ function renderSourceIcon<TSkill extends SkillTableRow>(
   if (isRepoSkill(skill, cursorRepos)) {
     return (
       <HugeiconsIcon
-        icon={CodeIcon}
+        icon={CodeXmlIcon}
         data-icon="code-2"
         size={14}
         className={className}

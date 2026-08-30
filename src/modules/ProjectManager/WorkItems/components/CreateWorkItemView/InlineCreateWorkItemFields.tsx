@@ -23,7 +23,7 @@ import {
   workItemDraftToStubWorkItem,
 } from "@src/hooks/project";
 import { useUndoStackWithRestore } from "@src/hooks/ui";
-import { BookOpen01Icon, HugeiconsIcon } from "@src/icons";
+import { DeliveryBox01Icon, HugeiconsIcon } from "@src/icons";
 import {
   CreateComposerTitleInput,
   ProjectContentEditor,
@@ -344,8 +344,8 @@ export function useInlineCreateWorkItemFields({
         label: project.name,
         icon: (
           <HugeiconsIcon
-            icon={BookOpen01Icon}
-            data-icon="book-open"
+            icon={DeliveryBox01Icon}
+            data-icon="box"
             size={CREATE_WORK_ITEM_BREADCRUMB_ICON_SIZE}
           />
         ),

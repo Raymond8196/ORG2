@@ -17,7 +17,6 @@ import {
 } from "@src/api/http/project";
 import { projectSyncApi } from "@src/api/http/project/sync";
 import Button from "@src/components/Button";
-import IntegrationIcon from "@src/components/IntegrationIcon";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import Message from "@src/components/Message";
 import { Placeholder } from "@src/components/Placeholder";
@@ -39,8 +38,8 @@ import {
 } from "@src/hooks/project";
 import {
   ArrowRightDoubleIcon,
-  BoxIcon,
   DashboardSquare01Icon,
+  DeliveryBox01Icon,
   HugeiconsIcon,
   InformationCircleIcon,
   KanbanIcon,
@@ -246,14 +245,9 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
             : []),
           {
             label: selectedProject.project.name,
-            icon: isGitHubSyncedProject ? (
-              <IntegrationIcon
-                type={STORY_SYNC_ADAPTER.GITHUB}
-                size={HEADER_ICON_SIZE.sm}
-              />
-            ) : (
+            icon: (
               <HugeiconsIcon
-                icon={BoxIcon}
+                icon={DeliveryBox01Icon}
                 data-icon="box"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
@@ -263,11 +257,7 @@ export const ProjectPanelView: React.FC<ProjectPanelViewProps> = ({
         ]}
       />
     ),
-    [
-      isGitHubSyncedProject,
-      selectedProject.orgName,
-      selectedProject.project.name,
-    ]
+    [selectedProject.orgName, selectedProject.project.name]
   );
 
   const toggleProperties = useCallback(() => {

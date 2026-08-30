@@ -10,7 +10,7 @@ import {
   type RunningLocation,
 } from "@src/config/sessionCreatorConfig";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   FolderClosedIcon,
   FolderLibraryIcon,
   Home01Icon,
@@ -40,7 +40,7 @@ export interface SessionInfoDisplayState {
   sourceDisplayName: string;
   SourceIcon:
     | typeof FolderLibraryIcon
-    | typeof CodeIcon
+    | typeof CodeXmlIcon
     | typeof Home01Icon
     | typeof FolderClosedIcon;
   hasSource: boolean;
@@ -67,7 +67,7 @@ export function getSessionInfoDisplayState({
         ? FolderLibraryIcon
         : isSystemPathSource || repoKind === REPO_KIND.FOLDER
           ? FolderClosedIcon
-          : CodeIcon,
+          : CodeXmlIcon,
     hasSource: !!repoName || isMultiRoot,
     showBranchRow:
       !hideBranch &&

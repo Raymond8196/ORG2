@@ -16,7 +16,7 @@ import {
   VirtualizedStickyTree,
 } from "@src/components/VirtualizedStickyTree";
 import {
-  BoxIcon,
+  DeliveryBox01Icon,
   HugeiconsIcon,
   Layers01Icon,
   ListChecksIcon,
@@ -78,7 +78,7 @@ export const WorkspaceOrgTreeContent: React.FC<WorkspaceOrgTreeContentProps> =
               type: "file",
               icon: (
                 <HugeiconsIcon
-                  icon={BoxIcon}
+                  icon={DeliveryBox01Icon}
                   data-icon="box"
                   size={ROW_ICON_SIZE}
                   strokeWidth={ROW_ICON_STROKE}

@@ -13,7 +13,7 @@ import { serializePillNode } from "@src/components/ComposerInput/utils";
 import "@src/components/MarkdownFormattingToolbar/index.scss";
 import Textarea from "@src/components/Textarea";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   Heading02Icon,
   HugeiconsIcon,
   LeftToRightListNumberIcon,
@@ -462,7 +462,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.inlineCode"),
       icon: (
         <HugeiconsIcon
-          icon={CodeIcon}
+          icon={CodeXmlIcon}
           data-icon="code"
           size={TOOLBAR_ICON_SIZE}
         />

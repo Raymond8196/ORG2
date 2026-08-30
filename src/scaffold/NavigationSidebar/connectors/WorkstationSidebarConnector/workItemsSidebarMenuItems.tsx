@@ -1,6 +1,6 @@
 import {
-  BoxesIcon,
   CircleDotIcon,
+  DeliveryBox01Icon,
   GitPullRequestIcon,
   ListTodoIcon,
   PlayCircleIcon,
@@ -82,8 +82,8 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
       key: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
       label: labels.projects,
-      icon: BoxesIcon,
-      iconName: "boxes",
+      icon: DeliveryBox01Icon,
+      iconName: "box",
       dataTestId: "sidebar-work-items-projects",
     },
     {
