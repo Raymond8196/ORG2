@@ -338,6 +338,7 @@ export const TabPill = memo(function TabPill({
       isActive={isActive}
       variant="session"
       role="tab"
+      data-tab-id={tab.id}
       aria-selected={isActive}
       title={displayTitle}
       onClick={() => onActivate(tab.id)}

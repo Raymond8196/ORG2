@@ -180,10 +180,13 @@ order:
 
 #### Draft, ready, and review lifecycle
 
-- Keep the PR in Draft while material design choices, known blockers, required
-  migrations, or risk-proportionate verification remain incomplete.
-- Mark the PR ready only when its acceptance criteria are met and the
-  description reflects the current implementation.
+- Open PRs ready for review by default. Disclose incomplete verification,
+  unverified paths, and missing visual evidence in `Potential risks` and
+  `Verification`; these gaps alone do not require Draft.
+- Use Draft only when the author asks for it or material design choices, a
+  known blocker, or an incomplete migration make the change unready for review.
+- Mark a Draft ready once those conditions resolve and the description
+  reflects the current implementation.
 - If scope, behavior, or the chosen solution changes materially after review
   begins, update the description and notify reviewers instead of silently
   changing direction.
