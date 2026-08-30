@@ -113,10 +113,25 @@ interface UseTailTurnStaleOptions {
 }
 
 /**
+ * How long until the tail turn goes stale, floored at zero.
+ *
+ * A session reopened long after its last event is already past the window,
+ * which would otherwise be a synchronous state write from the effect body
+ * (cascading render). Clamping to zero routes that case through the same
+ * timer as a live session — one macrotask later instead of the same commit.
+ */
+export function resolveTailTurnStaleDelayMs(
+  lastEventMs: number,
+  nowMs: number
+): number {
+  return Math.max(lastEventMs + TAIL_TURN_STALE_MS - nowMs, 0);
+}
+
+/**
  * True once the session's newest event is older than `TAIL_TURN_STALE_MS`.
- * Already-stale sessions (reopened after the fact) report true immediately;
- * live sessions arm a timer for the remaining window, and any new event
- * re-arms it. Wall-clock based on the event's own timestamp, no exclusions.
+ * Live sessions arm a timer for the remaining window, and any new event
+ * re-arms it; already-stale sessions arm a zero-delay one. Wall-clock based
+ * on the event's own timestamp, no exclusions.
  */
 export function useTailTurnStale({
   activeId,
@@ -141,14 +156,12 @@ export function useTailTurnStale({
   useEffect(() => {
     if (!staleKey || lastEventMs === null) return;
 
-    const remainingMs = lastEventMs + TAIL_TURN_STALE_MS - Date.now();
-    if (remainingMs <= 0) {
-      setStaleReadyKey(staleKey);
-      return;
-    }
-    const timeoutId = window.setTimeout(() => {
-      setStaleReadyKey(staleKey);
-    }, remainingMs);
+    const timeoutId = window.setTimeout(
+      () => {
+        setStaleReadyKey(staleKey);
+      },
+      resolveTailTurnStaleDelayMs(lastEventMs, Date.now())
+    );
 
     return () => window.clearTimeout(timeoutId);
   }, [staleKey, lastEventMs]);
