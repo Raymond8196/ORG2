@@ -34,6 +34,12 @@ export const LoginPage = React.lazy(
   () => import(/* webpackChunkName: "auth" */ "@/src/modules/AppLogin")
 );
 
+// Detached session window (label `app-window-session-<id>`): one session
+// surface with no app shell. Opened by `open_session_window` (Rust).
+export const SessionWindowPage = React.lazy(
+  () => import(/* webpackChunkName: "workspace" */ "@src/modules/SessionWindow")
+);
+
 export const FlowAwarenessTestPage = React.lazy(
   () =>
     import(
