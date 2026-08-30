@@ -712,11 +712,6 @@ pub fn run() {
             app.manage(lsp_manager);
             tracing::info!("[LSP] LSP manager initialized");
 
-            // Initialize Component Index state (for DOM-to-source mapping)
-            app.manage(ui_indexer::UiIndexState::new());
-            tracing::info!("[UiIndexer] Component index state initialized");
-
-
             let agent_browser_config = match settings::file_io::read_settings() {
                 Ok(settings_value) => shared_state::AgentBrowserConfig::from_settings(&settings_value),
                 Err(err) => {
