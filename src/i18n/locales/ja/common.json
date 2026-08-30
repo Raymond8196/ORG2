@@ -1254,7 +1254,17 @@
       "openTabs": "開いているタブ",
       "closeItem": "{{label}} を閉じる",
       "expand": "ワークステーション情報を展開",
-      "collapse": "ワークステーション情報を折りたたむ"
+      "collapse": "ワークステーション情報を折りたたむ",
+      "restoreWidth": "元の幅に戻す（{{width}}px）",
+      "setMinimumWidth": "現在の幅を最小値に設定（{{width}}px）",
+      "widerWidth": "広げる（{{width}}px）",
+      "resizeTrail": "ワークステーションバーの幅を変更",
+      "openMiniTerminal": "ミニターミナルを開く",
+      "hideMiniTerminal": "ミニターミナルを隠す",
+      "newMiniTerminal": "新しいミニターミナル",
+      "showMiniTerminals": "ミニターミナル",
+      "sessionInMiniTerminal": "ミニターミナルで実行中",
+      "returnFromMiniTerminal": "ここに表示"
     },
     "pr": {
       "title": "Pull request",

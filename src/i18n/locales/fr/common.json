@@ -1255,7 +1255,17 @@
       "openTabs": "Onglets ouverts",
       "closeItem": "Fermer {{label}}",
       "expand": "Développer les informations de l’espace de travail",
-      "collapse": "Réduire les informations de l’espace de travail"
+      "collapse": "Réduire les informations de l’espace de travail",
+      "restoreWidth": "Rétablir la largeur d'origine ({{width}} px)",
+      "setMinimumWidth": "Définir la largeur actuelle comme minimum ({{width}} px)",
+      "widerWidth": "Plus large ({{width}} px)",
+      "resizeTrail": "Redimensionner la barre de la station",
+      "openMiniTerminal": "Ouvrir le mini-terminal",
+      "hideMiniTerminal": "Masquer le mini-terminal",
+      "newMiniTerminal": "Nouveau mini-terminal",
+      "showMiniTerminals": "Mini-terminaux",
+      "sessionInMiniTerminal": "En cours d'exécution dans le mini-terminal",
+      "returnFromMiniTerminal": "Afficher ici"
     },
     "pr": {
       "title": "Pull request",

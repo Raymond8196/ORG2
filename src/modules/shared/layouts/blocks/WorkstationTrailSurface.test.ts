@@ -14,7 +14,16 @@ import WorkstationTrailSurface, {
 describe("WorkstationTrailSurface", () => {
   it("owns the expanded Workstation trail width", () => {
     expect(WORKSTATION_TRAIL_WIDTH.expandedPx).toBe(256);
-    expect(WORKSTATION_TRAIL_WIDTH.expandedResponsiveClass).toContain("w-64");
+    // The focused-chat column is resizable, so its width and the trail
+    // surface's own width come from custom properties instead of fixed
+    // Tailwind widths — and they are separate, because the docked terminal
+    // can widen the column without widening the trail.
+    expect(WORKSTATION_TRAIL_WIDTH.resizableResponsiveClass).toContain(
+      "var(--workstation-trail-track-width)"
+    );
+    expect(WORKSTATION_TRAIL_WIDTH.surfaceResponsiveClass).toContain(
+      "var(--workstation-trail-width)"
+    );
   });
 
   it("owns the exact focused-chat environment trail surface", () => {
