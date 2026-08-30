@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import PersonAvatar from "@src/components/PersonAvatar";
-import { HugeiconsIcon, Login01Icon } from "@src/icons";
+import { HugeiconsIcon, Login02Icon } from "@src/icons";
 
 interface SidebarAccountButtonProps {
   /** Resolved cloud identity; `null` means the user is signed out. */
@@ -44,7 +44,7 @@ const SidebarAccountButton: React.FC<SidebarAccountButtonProps> = React.memo(
             </span>
           ) : (
             <HugeiconsIcon
-              icon={Login01Icon}
+              icon={Login02Icon}
               data-icon="log-in"
               size={14}
               strokeWidth={2}

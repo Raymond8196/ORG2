@@ -23,6 +23,8 @@ import {
   parseSettingsTopTab,
 } from "@src/config/mainAppPaths";
 import { ROUTES } from "@src/config/routes";
+import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { useOrg2CloudSignIn } from "@src/features/Org2Cloud/useOrg2CloudSignIn";
 import { SIDEBAR_MEMORY_KIND, useSidebarMemoryEntry } from "@src/hooks/perf";
 import {
   Infinity01Icon,
@@ -41,11 +43,13 @@ import {
   SidebarHeaderNavButton,
   SidebarList,
 } from "../blocks";
+import SidebarSettingsMenuButton from "../blocks/SidebarSettingsMenuButton";
 import HoverAnimatedIcon, {
   triggerIconAnimation,
 } from "../components/HoverAnimatedIcon";
 import NavigationMenu from "../components/NavigationMenu";
 import type { NavigationMenuItem } from "../components/NavigationMenu/config";
+import SidebarAccountButton from "../connectors/SidebarAccountButton";
 import { SidebarSearchShortcutTooltip } from "../connectors/WorkstationSidebarConnector/sidebarTabs";
 
 interface SettingsRootSectionConfig {
@@ -92,6 +96,30 @@ const SettingsFooterBackButton: React.FC<SettingsFooterBackButtonProps> = ({
     />
   </button>
 );
+
+const SettingsFooterAccountMenu: React.FC = () => {
+  const cloudAuth = useAtomValue(org2CloudAuthAtom);
+  const handleSignIn = useOrg2CloudSignIn();
+  const identity = cloudAuth
+    ? (cloudAuth.profile?.displayName ??
+      cloudAuth.profile?.primaryEmail ??
+      cloudAuth.userId)
+    : null;
+
+  return (
+    <SidebarSettingsMenuButton
+      onSignIn={identity === null ? handleSignIn : undefined}
+      renderTrigger={({ isOpen, onClick }) => (
+        <SidebarAccountButton
+          identity={identity}
+          avatarUrl={cloudAuth?.profile?.avatarUrl}
+          menuOpen={isOpen}
+          onClick={onClick}
+        />
+      )}
+    />
+  );
+};
 
 function isAgentOrgsRoute(pathname: string): boolean {
   const topTab = parseSettingsTopTab(pathname);
@@ -181,6 +209,7 @@ const SettingsSidebar: React.FC = () => {
     >
       <SettingsRootBody devModeEnabled={devModeEnabled} />
       <SidebarBottomBar
+        leftContent={<SettingsFooterAccountMenu />}
         rightActions={
           <SettingsFooterBackButton
             label={t("sidebar.bottomBar.settings")}
