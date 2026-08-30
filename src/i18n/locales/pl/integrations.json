@@ -343,7 +343,8 @@
     "refreshModels": {
       "button": "Odśwież listę modeli Cursor",
       "failed": "Odświeżanie z Cursor nie powiodło się: {{error}}"
-    }
+    },
+    "revalidate": "Zweryfikuj ponownie"
   },
   "integrations": {
     "title": "Integracje",
@@ -2147,7 +2148,11 @@
     "chatExtras": "Dodatki czatu",
     "queuedMessages": "Wiadomości w kolejce",
     "fileReview": "Przegląd plików",
-    "terminalProcesses": "Procesy terminala"
+    "terminalProcesses": "Procesy terminala",
+    "chatPreview": "Podgląd czatu",
+    "scenario": "Scenariusz",
+    "selectScenario": "Wybierz scenariusz",
+    "sessionSimulation": "Symulacja sesji"
   },
   "agentTools": {
     "enabled": "Włączone",

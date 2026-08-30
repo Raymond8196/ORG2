@@ -106,7 +106,8 @@
     "actions": {
       "addNew": "Agregar nuevo",
       "collapseAll": "Contraer todo",
-      "markAllRead": "Marcar todo como leído"
+      "markAllRead": "Marcar todo como leído",
+      "toggleGroup": "Alternar sección"
     },
     "search": {
       "folders": "Buscar en el espacio de trabajo...",

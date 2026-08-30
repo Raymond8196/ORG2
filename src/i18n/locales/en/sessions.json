@@ -493,7 +493,6 @@
       "bottomPanel": {
         "tabTrajectory": "Trajectory",
         "tabTodo": "Todo",
-        "collapsePanel": "Hide panel",
         "expandPanel": "Show trajectory and todo panel",
         "placeholderTrajectoryTitle": "No events yet",
         "placeholderTrajectorySubtitle": "Session activity will appear here once the agent runs",
@@ -818,9 +817,7 @@
       "showSidebar": "Show sidebar",
       "hideSidebar": "Hide sidebar",
       "showBottomPanel": "Show bottom panel",
-      "hideBottomPanel": "Hide bottom panel",
-      "showDevTools": "Show DevTools",
-      "hideDevTools": "Hide DevTools"
+      "hideBottomPanel": "Hide bottom panel"
     },
     "multiTask": {
       "monitoringProgress": "Monitoring the progress of {{count}} subagents",
@@ -851,7 +848,8 @@
       "current": "Current"
     },
     "agentSentMessageCaption": "{{subject}} sent you a message",
-    "userSentMessageCaption": "You sent Agent a message"
+    "userSentMessageCaption": "You sent Agent a message",
+    "thoughtSentMessageCaption": "{{subject}} is thinking"
   },
   "terminal": {
     "findInTerminal": "Find in terminal",
@@ -1444,9 +1442,7 @@
     },
     "editFileFailedNoName": "Attempted to edit",
     "file": "file",
-    "runShellRunning": "Running command",
     "terminalWaitRunning": "Waiting for terminal to finish",
-    "runShellDone": "Ran command",
     "runShellFailed": "Command failed",
     "runCommands": "Run commands",
     "terminalSummary": {
@@ -1591,8 +1587,6 @@
     "killProcessFailed": "Failed to kill process",
     "listDirCount_one": "{{count}} dir",
     "listDirCount_other": "{{count}} dirs",
-    "listFileCount_one": "{{count}} file",
-    "listFileCount_other": "{{count}} files",
     "taskAgentLine": "Agent {{name}}",
     "outputTruncatedForDisplay": "\n\n... (truncated for display)",
     "repeatedErrorNotice": "Same error occurred {{count}} times, agent retrying",
@@ -2166,7 +2160,11 @@
     "orgSendMessageRunning": "Sending message to {{recipient}}",
     "orgSendMessageDone": "Sent message to {{recipient}}",
     "orgSendMessageFailed": "Failed to send message to {{recipient}}",
-    "noMatch": "No match"
+    "noMatch": "No match",
+    "runCommandRunning": "Running command",
+    "runCommandDone": "Ran command",
+    "nFiles_one": "{{count}} file",
+    "nFiles_other": "{{count}} files"
   },
   "hoverCard": {
     "commits": "Commits",
@@ -2806,7 +2804,8 @@
       "markedAs": "Marked as {{status}}",
       "runningTitle": "Updating task",
       "rejectedTitle": "Task update needs correction",
-      "failedTitle": "Task update failed"
+      "failedTitle": "Task update failed",
+      "title": "Updated task"
     },
     "get": {
       "title": "View task details"
@@ -3067,5 +3066,12 @@
   },
   "sessionBadge": {
     "subagent": "Subagent"
+  },
+  "tooltips": {
+    "hidePanel": "Hide panel"
+  },
+  "titleBar": {
+    "showDevTools": "Show DevTools",
+    "hideDevTools": "Hide DevTools"
   }
 }

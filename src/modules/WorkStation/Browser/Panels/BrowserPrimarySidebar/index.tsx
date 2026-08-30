@@ -304,7 +304,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
         sessionsTab,
         {
           key: "history",
-          label: t("tabs.history"),
+          label: t("labels.history"),
           icon: (
             <HugeiconsIcon
               icon={WorkHistoryIcon}

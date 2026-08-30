@@ -135,7 +135,8 @@
     "actions": {
       "addNew": "Add New",
       "collapseAll": "Collapse All",
-      "markAllRead": "Mark All Read"
+      "markAllRead": "Mark All Read",
+      "toggleGroup": "Toggle section"
     },
     "search": {
       "folders": "Search Workspace...",

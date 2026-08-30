@@ -469,7 +469,6 @@
       "bottomPanel": {
         "tabTrajectory": "Trajectory",
         "tabTodo": "Todo",
-        "collapsePanel": "Скрыть панель",
         "expandPanel": "Показать панель trajectory и todo",
         "placeholderTrajectoryTitle": "Пока нет событий",
         "placeholderTrajectorySubtitle": "Активность сессии появится здесь после запуска Agent",
@@ -772,9 +771,7 @@
       "showSidebar": "Показать боковую панель",
       "hideSidebar": "Скрыть боковую панель",
       "showBottomPanel": "Показать нижнюю панель",
-      "hideBottomPanel": "Скрыть нижнюю панель",
-      "showDevTools": "Показать DevTools",
-      "hideDevTools": "Скрыть DevTools"
+      "hideBottomPanel": "Скрыть нижнюю панель"
     },
     "multiTask": {
       "monitoringProgress": "Отслеживание прогресса {{count}} subagents",
@@ -805,7 +802,8 @@
       "current": "Текущий"
     },
     "agentSentMessageCaption": "{{subject}} отправил вам сообщение",
-    "userSentMessageCaption": "Вы отправили сообщение Agent"
+    "userSentMessageCaption": "Вы отправили сообщение Agent",
+    "thoughtSentMessageCaption": "{{subject}} думает"
   },
   "terminal": {
     "findInTerminal": "Поиск в терминале",
@@ -1384,9 +1382,7 @@
     },
     "editFileFailedNoName": "Попытка отредактировать",
     "file": "файл",
-    "runShellRunning": "Выполнение команды",
     "terminalWaitRunning": "Ожидание завершения терминала",
-    "runShellDone": "Команда выполнена",
     "runShellFailed": "Ошибка выполнения команды",
     "runCommands": "Выполнить команды",
     "terminalSummary": {
@@ -1537,8 +1533,6 @@
     "killProcessFailed": "Не удалось завершить процесс",
     "listDirCount_one": "{{count}} каталог",
     "listDirCount_other": "{{count}} каталогов",
-    "listFileCount_one": "{{count}} файл",
-    "listFileCount_other": "{{count}} файлов",
     "taskAgentLine": "Agent {{name}}",
     "outputTruncatedForDisplay": "\n\n... (сокращено для отображения)",
     "repeatedErrorNotice": "Одна и та же ошибка возникла {{count}} раз, агент повторяет попытку",
@@ -2127,7 +2121,11 @@
     "orgSendMessageRunning": "Отправка сообщения {{recipient}}",
     "orgSendMessageDone": "Сообщение отправлено {{recipient}}",
     "orgSendMessageFailed": "Не удалось отправить сообщение {{recipient}}",
-    "noMatch": "No match"
+    "noMatch": "No match",
+    "runCommandRunning": "Выполнение команды",
+    "runCommandDone": "Команда выполнена",
+    "nFiles_one": "{{count}} файл",
+    "nFiles_other": "{{count}} файлов"
   },
   "hoverCard": {
     "commits": "Коммиты",
@@ -2729,7 +2727,8 @@
     "update": {
       "titleStatus": "Обновить статус задачи",
       "titleDetail": "Обновить детали задачи",
-      "markedAs": "Отмечено как {{status}}"
+      "markedAs": "Отмечено как {{status}}",
+      "title": "Задача обновлена"
     },
     "get": {
       "title": "Просмотр деталей задачи"
@@ -2888,5 +2887,12 @@
   },
   "sessionBadge": {
     "subagent": "Sub Agent"
+  },
+  "tooltips": {
+    "hidePanel": "Скрыть панель"
+  },
+  "titleBar": {
+    "showDevTools": "Показать DevTools",
+    "hideDevTools": "Скрыть DevTools"
   }
 }

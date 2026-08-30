@@ -346,7 +346,8 @@
     "refreshModels": {
       "button": "Обновить список моделей Cursor",
       "failed": "Сбой обновления из Cursor: {{error}}"
-    }
+    },
+    "revalidate": "Перепроверить"
   },
   "integrations": {
     "title": "Интеграции",
@@ -2140,7 +2141,11 @@
     "chatExtras": "Дополнения чата",
     "queuedMessages": "Сообщения в очереди",
     "fileReview": "Обзор файлов",
-    "terminalProcesses": "Процессы терминала"
+    "terminalProcesses": "Процессы терминала",
+    "chatPreview": "Просмотр чата",
+    "scenario": "Сценарий",
+    "selectScenario": "Выберите сценарий",
+    "sessionSimulation": "Симуляция сессии"
   },
   "rulesTabs": {
     "rules": "Правила",

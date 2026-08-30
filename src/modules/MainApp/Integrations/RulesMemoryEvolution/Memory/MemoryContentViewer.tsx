@@ -42,7 +42,7 @@ const MemoryContentViewer = ({
       .then(() => {
         setEditModalOpen(false);
         onSaved();
-        Message.success(t("common:actions.saved"));
+        Message.success(t("common:status.saved"));
       })
       .catch(() => {
         Message.error(t("indexing.workspaceMemorySaveFailed"));

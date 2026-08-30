@@ -80,7 +80,7 @@ const AgentStationTopHeader: React.FC = memo(() => {
     captionMessage?.isCurrentEvent && effectiveDockApp === AppType.CHANNELS;
   const captionText = showMessageNotice
     ? captionMessage.eventKind === "thought"
-      ? t("workStation.chat.messages.bubble.senderTitle.thought", {
+      ? t("simulator.thoughtSentMessageCaption", {
           subject: captionAgentName,
         })
       : t(

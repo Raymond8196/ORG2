@@ -473,7 +473,6 @@
       "bottomPanel": {
         "tabTrajectory": "Trajektoria",
         "tabTodo": "Lista zadań",
-        "collapsePanel": "Ukryj panel",
         "expandPanel": "Pokaż panel trajektorii i listy zadań",
         "placeholderTrajectoryTitle": "Brak zdarzeń",
         "placeholderTrajectorySubtitle": "Aktywność sesji pojawi się tutaj, gdy Agent zacznie działać",
@@ -769,9 +768,7 @@
       "showSidebar": "Pokaż pasek boczny",
       "hideSidebar": "Ukryj pasek boczny",
       "showBottomPanel": "Pokaż dolny panel",
-      "hideBottomPanel": "Ukryj dolny panel",
-      "showDevTools": "Pokaż DevTools",
-      "hideDevTools": "Ukryj DevTools"
+      "hideBottomPanel": "Ukryj dolny panel"
     },
     "multiTask": {
       "monitoringProgress": "Monitorowanie postępu {{count}} subagentów",
@@ -802,7 +799,8 @@
       "current": "Bieżące"
     },
     "agentSentMessageCaption": "{{subject}} wysłał Ci wiadomość",
-    "userSentMessageCaption": "Wysłano wiadomość do Agent"
+    "userSentMessageCaption": "Wysłano wiadomość do Agent",
+    "thoughtSentMessageCaption": "{{subject}} zastanawia się"
   },
   "terminal": {
     "findInTerminal": "Znajdź w terminalu",
@@ -1393,9 +1391,7 @@
     },
     "editFileFailedNoName": "Próba edycji",
     "file": "plik",
-    "runShellRunning": "Wykonywanie polecenia",
     "terminalWaitRunning": "Oczekiwanie na zakończenie terminala",
-    "runShellDone": "Wykonano polecenie",
     "runShellFailed": "Polecenie nieudane",
     "runCommands": "Wykonaj polecenia",
     "terminalSummary": {
@@ -1561,8 +1557,6 @@
     "killProcessFailed": "Nie udało się zabić procesu",
     "listDirCount_one": "{{count}} katalog",
     "listDirCount_other": "{{count}} katalogów",
-    "listFileCount_one": "{{count}} plik",
-    "listFileCount_other": "{{count}} plików",
     "taskAgentLine": "Agent {{name}}",
     "outputTruncatedForDisplay": "\n\n... (skrócono na potrzeby wyświetlenia)",
     "repeatedErrorNotice": "Ten sam błąd wystąpił {{count}} razy, Agent ponawia próbę",
@@ -2136,7 +2130,11 @@
     "orgSendMessageRunning": "Wysyłanie wiadomości do {{recipient}}",
     "orgSendMessageDone": "Wysłano wiadomość do {{recipient}}",
     "orgSendMessageFailed": "Nie udało się wysłać wiadomości do {{recipient}}",
-    "noMatch": "No match"
+    "noMatch": "No match",
+    "runCommandRunning": "Wykonywanie polecenia",
+    "runCommandDone": "Wykonano polecenie",
+    "nFiles_one": "{{count}} plik",
+    "nFiles_other": "{{count}} plików"
   },
   "hoverCard": {
     "commits": "Commity",
@@ -2722,7 +2720,8 @@
     "update": {
       "titleStatus": "Aktualizuj status zadania",
       "titleDetail": "Aktualizuj szczegóły zadania",
-      "markedAs": "Oznaczono jako {{status}}"
+      "markedAs": "Oznaczono jako {{status}}",
+      "title": "Zaktualizowano zadanie"
     },
     "get": {
       "title": "Wyświetl szczegóły zadania"
@@ -2881,5 +2880,12 @@
   },
   "sessionBadge": {
     "subagent": "Subagent"
+  },
+  "tooltips": {
+    "hidePanel": "Ukryj panel"
+  },
+  "titleBar": {
+    "showDevTools": "Pokaż DevTools",
+    "hideDevTools": "Ukryj DevTools"
   }
 }

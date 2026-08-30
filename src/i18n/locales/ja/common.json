@@ -408,7 +408,10 @@
     "later": "後で",
     "link": "リンク",
     "copyName": "名前をコピー",
-    "switchMethod": "方法を切り替える"
+    "switchMethod": "方法を切り替える",
+    "dismiss": "閉じる",
+    "comingSoon": "近日公開",
+    "clearSelection": "選択をクリア"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました"
@@ -467,7 +470,6 @@
     "disabledInSettings": "設定で無効",
     "diagnosticsInitializing": "診断ソースを起動中...",
     "diagnosticSourceIssues": "診断ソースの問題",
-    "comingSoon": "近日公開",
     "copied": "コピー済み",
     "copyFailed": "コピーに失敗しました",
     "searching": "検索中...",
@@ -668,7 +670,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "コミット済み"
+    "committedRate": "コミット済み",
+    "email": "メール"
   },
   "searchModes": {},
   "tabs": {
@@ -1035,7 +1038,8 @@
     "noWorkspaceFolders": "Workspace フォルダがありません",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "プレビューを利用できません",
-    "selectRepositoryFromWorkspace": "ワークスペースのリポジトリを選択"
+    "selectRepositoryFromWorkspace": "ワークスペースのリポジトリを選択",
+    "noData": "データなし"
   },
   "inbox": {
     "searchPlaceholder": "メッセージを検索...",
@@ -2100,7 +2104,9 @@
   "relativeDate": {
     "today": "今日",
     "yesterday": "昨日",
-    "tomorrow": "明日"
+    "tomorrow": "明日",
+    "last7Days": "過去7日間",
+    "last30Days": "過去30日間"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "GitHub からクローン",

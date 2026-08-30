@@ -408,7 +408,10 @@
     "later": "Để sau",
     "link": "Liên kết",
     "copyName": "Sao chép tên",
-    "switchMethod": "Đổi phương thức"
+    "switchMethod": "Đổi phương thức",
+    "dismiss": "Bỏ qua",
+    "comingSoon": "Sắp ra mắt",
+    "clearSelection": "Xóa lựa chọn"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}"
@@ -467,7 +470,6 @@
     "disabledInSettings": "đã tắt trong cài đặt",
     "diagnosticsInitializing": "Đang khởi động nguồn chẩn đoán...",
     "diagnosticSourceIssues": "Vấn đề với nguồn chẩn đoán",
-    "comingSoon": "Sắp ra mắt",
     "copied": "Đã sao chép",
     "copyFailed": "Sao chép thất bại",
     "searching": "Đang tìm kiếm...",
@@ -668,7 +670,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "Đã commit"
+    "committedRate": "Đã commit",
+    "email": "Email"
   },
   "searchModes": {},
   "tabs": {
@@ -1035,7 +1038,8 @@
     "noWorkspaceFolders": "Không có thư mục Workspace",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "Không thể xem trước",
-    "selectRepositoryFromWorkspace": "Chọn kho lưu trữ trong không gian làm việc"
+    "selectRepositoryFromWorkspace": "Chọn kho lưu trữ trong không gian làm việc",
+    "noData": "Không có dữ liệu"
   },
   "inbox": {
     "searchPlaceholder": "Tìm kiếm tin nhắn...",
@@ -2095,7 +2099,9 @@
   "relativeDate": {
     "today": "Hôm nay",
     "yesterday": "Hôm qua",
-    "tomorrow": "Ngày mai"
+    "tomorrow": "Ngày mai",
+    "last7Days": "7 ngày qua",
+    "last30Days": "30 ngày qua"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "Clone từ GitHub",

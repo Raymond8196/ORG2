@@ -346,7 +346,8 @@
     "refreshModels": {
       "button": "Cursor-Modellliste aktualisieren",
       "failed": "Aktualisierung von Cursor fehlgeschlagen: {{error}}"
-    }
+    },
+    "revalidate": "Erneut validieren"
   },
   "integrations": {
     "title": "Integrationen",
@@ -2140,7 +2141,11 @@
     "chatExtras": "Chat-Extras",
     "queuedMessages": "Warteschlange-Nachrichten",
     "fileReview": "Dateiüberprüfung",
-    "terminalProcesses": "Terminalprozesse"
+    "terminalProcesses": "Terminalprozesse",
+    "chatPreview": "Chat-Vorschau",
+    "scenario": "Szenario",
+    "selectScenario": "Szenario auswählen",
+    "sessionSimulation": "Sitzungssimulation"
   },
   "rulesTabs": {
     "rules": "Regeln",

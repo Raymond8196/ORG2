@@ -343,7 +343,8 @@
     "refreshModels": {
       "button": "Cursor model listesini yenile",
       "failed": "Cursor'dan yenileme başarısız: {{error}}"
-    }
+    },
+    "revalidate": "Yeniden doğrula"
   },
   "integrations": {
     "title": "Entegrasyonlar",
@@ -2137,7 +2138,11 @@
     "chatExtras": "Sohbet Eklentileri",
     "queuedMessages": "Kuyruktaki Mesajlar",
     "fileReview": "Dosya İncelemesi",
-    "terminalProcesses": "Terminal İşlemleri"
+    "terminalProcesses": "Terminal İşlemleri",
+    "chatPreview": "Sohbet önizleme",
+    "scenario": "Senaryo",
+    "selectScenario": "Bir senaryo seçin",
+    "sessionSimulation": "Oturum simülasyonu"
   },
   "rulesTabs": {
     "rules": "Kurallar",

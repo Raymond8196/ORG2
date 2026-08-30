@@ -107,7 +107,8 @@
     "actions": {
       "addNew": "新建",
       "collapseAll": "全部折叠",
-      "markAllRead": "全部标为已读"
+      "markAllRead": "全部标为已读",
+      "toggleGroup": "切换分组"
     },
     "search": {
       "folders": "搜索工作区...",

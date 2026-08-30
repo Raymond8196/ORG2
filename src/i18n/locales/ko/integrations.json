@@ -343,7 +343,8 @@
     "refreshModels": {
       "button": "Cursor 모델 목록 새로고침",
       "failed": "Cursor에서 새로고침 실패: {{error}}"
-    }
+    },
+    "revalidate": "재검증"
   },
   "integrations": {
     "title": "통합",
@@ -2137,7 +2138,11 @@
     "chatExtras": "채팅 추가 기능",
     "queuedMessages": "대기 메시지",
     "fileReview": "파일 검토",
-    "terminalProcesses": "터미널 프로세스"
+    "terminalProcesses": "터미널 프로세스",
+    "chatPreview": "채팅 미리보기",
+    "scenario": "시나리오",
+    "selectScenario": "시나리오 선택",
+    "sessionSimulation": "세션 시뮬레이션"
   },
   "rulesTabs": {
     "rules": "규칙",

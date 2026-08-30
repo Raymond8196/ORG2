@@ -247,7 +247,10 @@
     "skipThisVersion": "跳过此版本",
     "later": "稍后",
     "link": "链接",
-    "copyName": "复制名称"
+    "copyName": "复制名称",
+    "dismiss": "忽略",
+    "comingSoon": "即将推出",
+    "clearSelection": "清除选择"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新"
@@ -306,7 +309,6 @@
     "disabledInSettings": "在设置中已禁用",
     "diagnosticsInitializing": "正在启动诊断源...",
     "diagnosticSourceIssues": "诊断源问题",
-    "comingSoon": "即将推出",
     "copied": "已复制",
     "copyFailed": "复制失败",
     "searching": "搜索中...",
@@ -529,7 +531,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "已提交"
+    "committedRate": "已提交",
+    "email": "邮箱"
   },
   "searchModes": {},
   "tabs": {
@@ -897,7 +900,8 @@
     "noWorkspaceFolders": "没有工作区文件夹",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "预览不可用",
-    "selectRepositoryFromWorkspace": "选择工作区仓库"
+    "selectRepositoryFromWorkspace": "选择工作区仓库",
+    "noData": "无数据"
   },
   "inbox": {
     "searchPlaceholder": "搜索消息...",
@@ -1999,7 +2003,9 @@
   "relativeDate": {
     "today": "今天",
     "yesterday": "昨天",
-    "tomorrow": "明天"
+    "tomorrow": "明天",
+    "last7Days": "最近7天",
+    "last30Days": "最近30天"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "从 GitHub 克隆",

@@ -346,7 +346,8 @@
     "refreshModels": {
       "button": "Làm mới danh sách mô hình Cursor",
       "failed": "Làm mới từ Cursor thất bại: {{error}}"
-    }
+    },
+    "revalidate": "Xác thực lại"
   },
   "integrations": {
     "title": "Tích hợp",
@@ -2140,7 +2141,11 @@
     "chatExtras": "Tiện ích trò chuyện",
     "queuedMessages": "Tin nhắn đang chờ",
     "fileReview": "Xem lại tệp",
-    "terminalProcesses": "Tiến trình terminal"
+    "terminalProcesses": "Tiến trình terminal",
+    "chatPreview": "Xem trước trò chuyện",
+    "scenario": "Kịch bản",
+    "selectScenario": "Chọn một kịch bản",
+    "sessionSimulation": "Mô phỏng phiên"
   },
   "rulesTabs": {
     "rules": "Quy tắc",

@@ -971,7 +971,8 @@
       "archiveWorkflowState": "归档 Linear 工作流状态失败",
       "statusStateMissing": "没有匹配此状态的 Linear 工作流状态",
       "unsupportedIssueUpdate": "ORGII 尚不支持编辑此 Linear Issue 字段"
-    }
+    },
+    "loadingConnections": "正在加载 Linear 连接…"
   },
   "gitSyncReview": {
     "breadcrumb": "Git 同步检查",

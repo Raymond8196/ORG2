@@ -347,7 +347,8 @@
     "refreshModels": {
       "button": "刷新模型",
       "failed": "刷新模型失败：{{error}}"
-    }
+    },
+    "revalidate": "重新验证"
   },
   "integrations": {
     "title": "集成",
@@ -2206,7 +2207,11 @@
     "chatExtras": "聊天附加组件",
     "queuedMessages": "消息队列",
     "fileReview": "文件审查",
-    "terminalProcesses": "终端进程"
+    "terminalProcesses": "终端进程",
+    "chatPreview": "聊天预览",
+    "scenario": "场景",
+    "selectScenario": "选择场景",
+    "sessionSimulation": "会话模拟"
   },
   "rulesTabs": {
     "rules": "规则",

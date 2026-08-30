@@ -215,8 +215,8 @@ const ChatFloatingComposer: React.FC<ChatFloatingComposerProps> = memo(
           />
         }
         iconOnly
-        aria-label={t("common:chat.scrollToBottom")}
-        title={t("common:chat.scrollToBottom")}
+        aria-label={t("common:inbox.scrollToBottom")}
+        title={t("common:inbox.scrollToBottom")}
         onClick={scrollNav.onScrollToBottom}
         className={`shrink-0 ${PILL_CONTROL_IDLE_SURFACE_CLASS}`}
       />

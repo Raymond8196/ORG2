@@ -164,7 +164,7 @@ const ChannelPreviewPanel: React.FC<ChannelPreviewPanelProps> = ({
       </div>
       <PanelFooter
         primaryAction={{
-          label: tIntegrations("channels.quickActions.testConnection"),
+          label: tIntegrations("integrations.testConnection"),
           onClick: handleProbeChannel,
           loading: channelProbing,
         }}

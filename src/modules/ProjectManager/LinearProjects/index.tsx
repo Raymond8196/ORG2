@@ -356,7 +356,7 @@ const LinearProjectsPage: React.FC<LinearProjectsPageProps> = ({
       <Placeholder
         variant="loading"
         placement="detail-panel"
-        title={t("linearProjects.loading")}
+        title={t("linearProjects.loadingConnections")}
         fillParentHeight
       />
     );

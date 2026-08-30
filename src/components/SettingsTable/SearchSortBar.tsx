@@ -83,7 +83,7 @@ const SearchSortBar: React.FC<SearchSortBarProps> = ({
             className={filterConfig.active ? "text-primary-6" : ""}
           />
         }
-        title={filterConfig.title ?? t("labels.filter")}
+        title={filterConfig.title ?? t("actions.filter")}
       />
     ) : undefined);
 
