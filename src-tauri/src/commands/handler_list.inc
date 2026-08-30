@@ -411,16 +411,8 @@ terminal::pty_commands::pty::get_pty_foreground_process,
 terminal::pty_commands::pty::get_pty_cwd,
 terminal::pty_commands::pty::ack_pty_data,
 terminal::pty_commands::shells::detect_available_shells,
-// UI Indexer commands — frontend source-code analysis powering the embedded
-// browser inspector: DOM→source mapping and CSS design-token scanning.
-// Crate: src-tauri/crates/ui-indexer.
-ui_indexer::ui_index_build_repo,
-ui_indexer::ui_index_lookup_component,
-ui_indexer::ui_index_update_file,
-ui_indexer::ui_index_clear,
-ui_indexer::ui_index_is_repo_indexed,
-ui_indexer::ui_index_get_stats,
-ui_indexer::scan_global_tokens,
+// Stateless CSS variable scan used by the browser design-token panel.
+browser::scan_global_tokens,
 // Validation commands (key validation for AI providers)
 key_vault::validate_key,
 key_vault::test_model_availability,
