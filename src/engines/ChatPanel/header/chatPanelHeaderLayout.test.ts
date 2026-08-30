@@ -75,22 +75,12 @@ describe("transcript top padding under floating chrome", () => {
 });
 
 describe("collapsing the tab row into the published header", () => {
-  it("folds a maximized pane that holds a single tab", () => {
-    expect(
-      shouldCollapseChatPanelTabRow({ chatMaximized: true, tabCount: 1 })
-    ).toBe(true);
+  it("folds a pane that holds a single tab regardless of maximization", () => {
+    expect(shouldCollapseChatPanelTabRow({ tabCount: 1 })).toBe(true);
   });
 
   it("keeps the row whenever a second tab exists to switch to", () => {
-    expect(
-      shouldCollapseChatPanelTabRow({ chatMaximized: true, tabCount: 2 })
-    ).toBe(false);
-  });
-
-  it("keeps the row while the pane shares the workbench with a Station", () => {
-    expect(
-      shouldCollapseChatPanelTabRow({ chatMaximized: false, tabCount: 1 })
-    ).toBe(false);
+    expect(shouldCollapseChatPanelTabRow({ tabCount: 2 })).toBe(false);
   });
 
   it("keeps the window-edge gap the folded tab row used to hold", () => {

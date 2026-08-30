@@ -577,7 +577,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
       humanSessionActive,
     });
     const tabRowCollapsed = shouldCollapseChatPanelTabRow({
-      chatMaximized: isChatFocus,
       tabCount,
     });
     const chromeTopInsetPx = resolveChatPanelChromeTopInsetPx(
