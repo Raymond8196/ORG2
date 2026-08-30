@@ -128,7 +128,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
   } = historyState;
   const {
     activeProjectionHistory,
-    collapseTailWhenIdle,
     currentPageIndex,
     currentTurnPageLabel,
     currentTurnPageTimeLabel,
@@ -155,8 +154,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     selectTurnPage,
     setTurnPageListOpen,
     setTurnPageSortAscending,
-    tailTurnComplete,
-    tailTurnStale,
+    tailTurnPhase,
     turnMetadataReloadKey,
     turnPageListOpen,
     turnPageSortAscending,
@@ -222,9 +220,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     displayGroupCount: displayGroupCounts.length,
     collapseLabelVariant: groupChatEnabled ? "agents" : "agent",
     turnPaginationEnabled,
-    collapseTailWhenIdle,
-    tailTurnComplete,
-    tailTurnStale,
+    tailTurnPhase,
     hideUserMessage: hideGroupUserMessage,
     defaultTurnCollapsed,
     turnCollapseInteractionAtRef,
@@ -299,9 +295,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
       header={activePinnedHeader}
       meta={activePinnedMeta}
       collapseLabelVariant={groupChatEnabled ? "agents" : "agent"}
-      collapseTailWhenIdle={collapseTailWhenIdle}
-      tailTurnComplete={tailTurnComplete}
-      tailTurnStale={tailTurnStale}
+      tailTurnPhase={tailTurnPhase}
       hideUserMessage={hideGroupUserMessage}
       defaultTurnCollapsed={defaultTurnCollapsed}
       turnCollapseInteractionAtRef={turnCollapseInteractionAtRef}

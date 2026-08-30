@@ -23,9 +23,7 @@ interface UseGroupHeaderRendererOptions {
   displayGroupCount: number;
   collapseLabelVariant?: GroupHeaderRendererProps["collapseLabelVariant"];
   turnPaginationEnabled: boolean;
-  collapseTailWhenIdle: boolean;
-  tailTurnComplete: boolean;
-  tailTurnStale: boolean;
+  tailTurnPhase: GroupHeaderRendererProps["tailTurnPhase"];
   hideUserMessage: boolean;
   defaultTurnCollapsed: boolean;
   turnCollapseInteractionAtRef: React.MutableRefObject<number>;
@@ -41,9 +39,7 @@ export function useGroupHeaderRenderer({
   displayGroupCount,
   collapseLabelVariant,
   turnPaginationEnabled,
-  collapseTailWhenIdle,
-  tailTurnComplete,
-  tailTurnStale,
+  tailTurnPhase,
   hideUserMessage,
   defaultTurnCollapsed,
   turnCollapseInteractionAtRef,
@@ -71,9 +67,7 @@ export function useGroupHeaderRenderer({
           groupCount={displayGroupCount}
           collapseLabelVariant={collapseLabelVariant}
           hideCollapseTimeRange={turnPaginationEnabled}
-          collapseTailWhenIdle={collapseTailWhenIdle}
-          tailTurnComplete={tailTurnComplete}
-          tailTurnStale={tailTurnStale}
+          tailTurnPhase={tailTurnPhase}
           hideUserMessage={hideUserMessage}
           defaultTurnCollapsed={defaultTurnCollapsed}
           renderPart={renderPart}
@@ -91,9 +85,7 @@ export function useGroupHeaderRenderer({
       displayGroupCount,
       collapseLabelVariant,
       turnPaginationEnabled,
-      collapseTailWhenIdle,
-      tailTurnComplete,
-      tailTurnStale,
+      tailTurnPhase,
       hideUserMessage,
       defaultTurnCollapsed,
       turnCollapseInteractionAtRef,
