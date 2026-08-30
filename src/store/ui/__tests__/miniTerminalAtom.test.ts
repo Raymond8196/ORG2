@@ -13,7 +13,7 @@ import {
   openMiniTerminalAtom,
   releaseMiniTerminalSessionAtom,
   setMiniTerminalActiveIdAtom,
-} from "./miniTerminalAtom";
+} from "../miniTerminalAtom";
 
 function seedStore(sessionIds: string[]) {
   const store = createStore();
