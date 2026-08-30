@@ -19,7 +19,12 @@
  *
  * Completed turns are collapsed by default; the override atom only
  * records explicit user toggles. The currently active (tail) turn is
- * never collapsed while the agent is still streaming.
+ * never collapsed while the agent is still streaming; once its round ends
+ * the bar renders immediately (wall-clock start→end duration, no idle wait
+ * or size threshold) but the turn stays expanded until the idle rule —
+ * see `isTailTurnIdleCollapsible` — folds it, or the session goes stale
+ * (last event older than `TAIL_TURN_STALE_MS`, most likely finished), which
+ * defaults it to collapsed like a historical turn.
  *
  * Hover reveals a navigate icon that jumps to this turn in WorkStation replay.
  * Hidden inside the Simulator Messages replay surface (no-op jump).
