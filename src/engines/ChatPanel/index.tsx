@@ -78,7 +78,8 @@ import {
   ChatPanelTabBar,
   useChatPanelTabShortcuts,
 } from "./ChatPanelTabBar";
-import SessionContinueCliHeaderExtras from "./SessionContinueCliHeaderExtras";
+// Parked with its header button below.
+// import SessionContinueCliHeaderExtras from "./SessionContinueCliHeaderExtras";
 import SessionOpenInAppHeaderExtras from "./SessionOpenInAppHeaderExtras";
 import {
   SessionAlternateSurface,
@@ -641,11 +642,15 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
             <ConversationParticipantsChip
               sessionId={currentSessionId ?? null}
             />
-            <SessionContinueCliHeaderExtras
+            {/* "Continue in <agent>" is parked: it hands the session to a
+                CLI in a Workstation terminal tab, which leaves the focused
+                chat — the same reason the trail's Workstation-navigating
+                rows were parked. */}
+            {/* <SessionContinueCliHeaderExtras
               session={currentSession ?? null}
               sessionId={currentSessionId ?? null}
               onOpenCliTerminal={handleOpenCliTerminal}
-            />
+            /> */}
             <SessionOpenInAppHeaderExtras
               sessionId={currentSessionId ?? null}
             />

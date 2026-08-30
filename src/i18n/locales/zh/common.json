@@ -1131,7 +1131,17 @@
       "openTabs": "打开的标签页",
       "closeItem": "关闭 {{label}}",
       "expand": "展开工作区信息",
-      "collapse": "折叠工作区信息"
+      "collapse": "折叠工作区信息",
+      "restoreWidth": "恢复原始宽度（{{width}}px）",
+      "setMinimumWidth": "将当前宽度设为最小值（{{width}}px）",
+      "widerWidth": "加宽（{{width}}px）",
+      "resizeTrail": "调整工作站栏宽度",
+      "openMiniTerminal": "打开迷你终端",
+      "hideMiniTerminal": "隐藏迷你终端",
+      "newMiniTerminal": "新建迷你终端",
+      "showMiniTerminals": "迷你终端",
+      "sessionInMiniTerminal": "正在迷你终端中运行",
+      "returnFromMiniTerminal": "在此处显示"
     },
     "pr": {
       "title": "Pull request",

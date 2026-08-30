@@ -257,6 +257,12 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
       }) as React.CSSProperties,
     [chatFontSize, chatCodeFontSize, chatLineHeight]
   );
+  const conversationMinimapOpen =
+    !turnPaginationEnabled && !turnPageListOpen && !agentOrgOverviewOpen;
+  // The scrollport reserves nothing for the minimap rail. While the rail has
+  // no space of its own it floats as an inset pill over the transcript, and
+  // it only goes flush against the edge once the pane is wide enough that it
+  // covers nothing (see `ConversationMinimap`'s placement classes).
   const showTurnContextRow =
     turnPaginationEnabled ||
     Boolean(agentOrgCurrentMemberName) ||
@@ -394,23 +400,21 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
             style={VIRTUALIZED_BODY_STYLE}
             data-chat-virtualized-body-layer
           >
-            {!turnPaginationEnabled &&
-              !turnPageListOpen &&
-              !agentOrgOverviewOpen && (
-                <ConversationMinimap
-                  groupHeaders={displayGroupHeaders}
-                  groupMeta={displayGroupMeta}
-                  groupCounts={displayGroupCounts}
-                  flatItems={displayFlatItems}
-                  chatPanelPosition={chatPanelPosition}
-                  activeGroupIndex={activeGroupIndex}
-                  visibleGroupIndices={visibleGroupIndices}
-                  isAtBottom={historyState.atBottom}
-                  isScrolling={conversationMinimapScrolling}
-                  labelVariant={groupChatEnabled ? "agents" : "agent"}
-                  onNavigate={handleConversationMinimapNavigate}
-                />
-              )}
+            {conversationMinimapOpen && (
+              <ConversationMinimap
+                groupHeaders={displayGroupHeaders}
+                groupMeta={displayGroupMeta}
+                groupCounts={displayGroupCounts}
+                flatItems={displayFlatItems}
+                chatPanelPosition={chatPanelPosition}
+                activeGroupIndex={activeGroupIndex}
+                visibleGroupIndices={visibleGroupIndices}
+                isAtBottom={historyState.atBottom}
+                isScrolling={conversationMinimapScrolling}
+                labelVariant={groupChatEnabled ? "agents" : "agent"}
+                onNavigate={handleConversationMinimapNavigate}
+              />
+            )}
 
             {turnPageListOpen &&
               (turnPaginationEnabled

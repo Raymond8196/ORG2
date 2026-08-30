@@ -1255,7 +1255,17 @@
       "openTabs": "Geöffnete Tabs",
       "closeItem": "{{label}} schließen",
       "expand": "Arbeitsbereichsinformationen erweitern",
-      "collapse": "Arbeitsbereichsinformationen einklappen"
+      "collapse": "Arbeitsbereichsinformationen einklappen",
+      "restoreWidth": "Ursprüngliche Breite wiederherstellen ({{width}} px)",
+      "setMinimumWidth": "Aktuelle Breite als Minimum festlegen ({{width}} px)",
+      "widerWidth": "Breiter ({{width}} px)",
+      "resizeTrail": "Breite der Workstation-Leiste ändern",
+      "openMiniTerminal": "Mini-Terminal öffnen",
+      "hideMiniTerminal": "Mini-Terminal ausblenden",
+      "newMiniTerminal": "Neues Mini-Terminal",
+      "showMiniTerminals": "Mini-Terminals",
+      "sessionInMiniTerminal": "Läuft im Mini-Terminal",
+      "returnFromMiniTerminal": "Hier anzeigen"
     },
     "pr": {
       "title": "Pull Request",

@@ -1256,7 +1256,17 @@
       "openTabs": "Açık sekmeler",
       "closeItem": "{{label}} öğesini kapat",
       "expand": "Çalışma alanı bilgilerini genişlet",
-      "collapse": "Çalışma alanı bilgilerini daralt"
+      "collapse": "Çalışma alanı bilgilerini daralt",
+      "restoreWidth": "Özgün genişliği geri yükle ({{width}} px)",
+      "setMinimumWidth": "Geçerli genişliği en küçük değer yap ({{width}} px)",
+      "widerWidth": "Daha geniş ({{width}} px)",
+      "resizeTrail": "İstasyon çubuğunu yeniden boyutlandır",
+      "openMiniTerminal": "Mini terminali aç",
+      "hideMiniTerminal": "Mini terminali gizle",
+      "newMiniTerminal": "Yeni mini terminal",
+      "showMiniTerminals": "Mini terminaller",
+      "sessionInMiniTerminal": "Mini terminalde çalışıyor",
+      "returnFromMiniTerminal": "Burada göster"
     },
     "pr": {
       "title": "Pull request",

@@ -1259,7 +1259,17 @@
       "openTabs": "Открытые вкладки",
       "closeItem": "Закрыть {{label}}",
       "expand": "Развернуть сведения о рабочей области",
-      "collapse": "Свернуть сведения о рабочей области"
+      "collapse": "Свернуть сведения о рабочей области",
+      "restoreWidth": "Восстановить исходную ширину ({{width}} px)",
+      "setMinimumWidth": "Сделать текущую ширину минимальной ({{width}} px)",
+      "widerWidth": "Шире ({{width}} px)",
+      "resizeTrail": "Изменить ширину панели рабочей станции",
+      "openMiniTerminal": "Открыть мини-терминал",
+      "hideMiniTerminal": "Скрыть мини-терминал",
+      "newMiniTerminal": "Новый мини-терминал",
+      "showMiniTerminals": "Мини-терминалы",
+      "sessionInMiniTerminal": "Выполняется в мини-терминале",
+      "returnFromMiniTerminal": "Показать здесь"
     },
     "pr": {
       "title": "Pull request",

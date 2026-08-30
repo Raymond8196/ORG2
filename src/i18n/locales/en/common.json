@@ -1143,7 +1143,17 @@
       "openTabs": "Open Tabs",
       "closeItem": "Close {{label}}",
       "expand": "Expand workstation info",
-      "collapse": "Collapse workstation info"
+      "collapse": "Collapse workstation info",
+      "restoreWidth": "Restore original width ({{width}}px)",
+      "setMinimumWidth": "Set current width as minimum ({{width}}px)",
+      "widerWidth": "Wider ({{width}}px)",
+      "resizeTrail": "Resize workstation trail",
+      "openMiniTerminal": "Open mini terminal",
+      "hideMiniTerminal": "Hide mini terminal",
+      "newMiniTerminal": "New mini terminal",
+      "showMiniTerminals": "Mini terminals",
+      "sessionInMiniTerminal": "Running in the mini terminal",
+      "returnFromMiniTerminal": "Show it here"
     },
     "messages": {
       "pushSuccess": "Successfully pushed changes to remote",
