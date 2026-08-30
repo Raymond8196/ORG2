@@ -142,7 +142,19 @@ export function useTailTurnPhase({
   const completeNow = turnKey !== null && !agentWorking;
 
   useEffect(() => {
-    if (completeNow) setCompleteLatchKey(turnKey);
+    if (!completeNow || turnKey === null) return;
+
+    // Routed through a zero-delay timer for the same reason the stale effect
+    // below is: a synchronous set from an effect body is a cascading render
+    // (react-hooks/set-state-in-effect). The latch lands one macrotask after
+    // the "complete" render commits; a complete→running flip inside that
+    // same macrotask loses the latch, but a bar that never survived a single
+    // frame has nothing visible to preserve.
+    const timeoutId = window.setTimeout(() => {
+      setCompleteLatchKey(turnKey);
+    }, 0);
+
+    return () => window.clearTimeout(timeoutId);
   }, [completeNow, turnKey]);
 
   useEffect(() => {

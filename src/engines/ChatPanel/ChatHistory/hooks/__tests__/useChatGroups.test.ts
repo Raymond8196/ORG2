@@ -566,9 +566,9 @@ describe("isTurnCollapseEligible — unloaded placeholder affordance", () => {
     // Non-tail turns default to collapsed.
     expect(resolveTurnDefaultCollapsed(false, {})).toBe(true);
     // A fresh completed tail stays expanded…
-    expect(resolveTurnDefaultCollapsed(true, { tailTurnPhase: "complete" })).toBe(
-      false
-    );
+    expect(
+      resolveTurnDefaultCollapsed(true, { tailTurnPhase: "complete" })
+    ).toBe(false);
     // …until the session goes stale.
     expect(resolveTurnDefaultCollapsed(true, { tailTurnPhase: "stale" })).toBe(
       true
@@ -662,5 +662,4 @@ describe("projectChatGroups — completed tail turn", () => {
       "current reply",
     ]);
   });
-
 });
