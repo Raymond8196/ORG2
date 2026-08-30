@@ -180,13 +180,14 @@ order:
 
 #### Draft, ready, and review lifecycle
 
-- Open PRs ready for review by default. Disclose incomplete verification,
-  unverified paths, and missing visual evidence in `Potential risks` and
-  `Verification`; these gaps alone do not require Draft.
-- Use Draft only when the author asks for it or material design choices, a
-  known blocker, or an incomplete migration make the change unready for review.
-- Mark a Draft ready once those conditions resolve and the description
-  reflects the current implementation.
+- Open pull requests ready for review by default. Incomplete verification,
+  unverified paths, and missing visual evidence are not reasons to use Draft;
+  disclose them in `Potential risks` and `Verification`.
+- Use Draft only when the author asks for it, or when material design choices,
+  a known blocker, or an incomplete migration mean the change must not be
+  reviewed yet.
+- Mark a Draft ready once those resolve and the description reflects the
+  implementation.
 - If scope, behavior, or the chosen solution changes materially after review
   begins, update the description and notify reviewers instead of silently
   changing direction.
