@@ -28,6 +28,7 @@ import { activeWorkspaceRootAtom } from "@src/store/workspace";
 
 import LinkHoverCard from "./LinkHoverCard";
 import CodeBlock from "./MarkdownCodeBlock";
+import MarkdownFilePathHoverCard from "./MarkdownFilePathHoverCard";
 import MarkdownLinkIcon, { hasMarkdownLinkIcon } from "./MarkdownLinkIcon";
 import MarkdownLocalImage, { openLocalMarkdownRef } from "./MarkdownLocalImage";
 import MermaidBlock from "./MermaidBlock";
@@ -442,6 +443,37 @@ const MarkdownComponent: React.FC<MarkdownProps> = ({
         }
         const linkTarget = classifyMarkdownLinkTarget(url, fileRootPath);
         const linkHasIcon = hasMarkdownLinkIcon(url, linkTarget);
+        const anchor = (
+          <a
+            {...props}
+            className={
+              linkHasIcon
+                ? ["markdown-link-with-icon", props.className]
+                    .filter(Boolean)
+                    .join(" ")
+                : props.className
+            }
+            href={url}
+            title={undefined}
+            onClick={(event) => handleLinkClick(event, url)}
+          >
+            <MarkdownLinkIcon href={url} target={linkTarget} />
+            {children}
+          </a>
+        );
+        // A workspace path is not an HTTP URL, so `LinkHoverCard` renders
+        // nothing for it. Route local targets to the file-tree card instead so
+        // both kinds of link carry a hover preview.
+        if (linkTarget.kind === "local") {
+          return (
+            <MarkdownFilePathHoverCard
+              path={linkTarget.path}
+              workspaceRootPath={fileRootPath}
+            >
+              {anchor}
+            </MarkdownFilePathHoverCard>
+          );
+        }
         return (
           <LinkHoverCard
             url={url}
@@ -449,22 +481,7 @@ const MarkdownComponent: React.FC<MarkdownProps> = ({
             workspaceRootRepoId={activeWorkspaceRoot?.repoId}
             workspaceRootRepoUrl={activeWorkspaceRoot?.repo?.repo_url}
           >
-            <a
-              {...props}
-              className={
-                linkHasIcon
-                  ? ["markdown-link-with-icon", props.className]
-                      .filter(Boolean)
-                      .join(" ")
-                  : props.className
-              }
-              href={url}
-              title={undefined}
-              onClick={(event) => handleLinkClick(event, url)}
-            >
-              <MarkdownLinkIcon href={url} target={linkTarget} />
-              {children}
-            </a>
+            {anchor}
           </LinkHoverCard>
         );
       },
