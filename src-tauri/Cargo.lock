@@ -227,9 +227,13 @@ name = "api_search"
 version = "0.1.0"
 dependencies = [
  "axum",
+ "http-body-util",
  "search",
  "serde",
  "serde_json",
+ "tempfile",
+ "tokio",
+ "tower",
  "utoipa",
 ]
 
