@@ -466,7 +466,6 @@
       "bottomPanel": {
         "tabTrajectory": "Trajectory",
         "tabTodo": "Todo",
-        "collapsePanel": "パネルを隠す",
         "expandPanel": "Trajectory / Todo パネルを表示",
         "placeholderTrajectoryTitle": "イベントがありません",
         "placeholderTrajectorySubtitle": "Agent が実行されると、セッションの活動がここに表示されます",
@@ -767,9 +766,7 @@
       "showSidebar": "サイドバーを表示",
       "hideSidebar": "サイドバーを非表示",
       "showBottomPanel": "下部パネルを表示",
-      "hideBottomPanel": "下部パネルを非表示",
-      "showDevTools": "DevTools を表示",
-      "hideDevTools": "DevTools を非表示"
+      "hideBottomPanel": "下部パネルを非表示"
     },
     "multiTask": {
       "monitoringProgress": "{{count}} 体の Subagent の進捗を監視中",
@@ -800,7 +797,8 @@
       "current": "現在"
     },
     "agentSentMessageCaption": "{{subject}} からメッセージが届きました",
-    "userSentMessageCaption": "Agent にメッセージを送信しました"
+    "userSentMessageCaption": "Agent にメッセージを送信しました",
+    "thoughtSentMessageCaption": "{{subject}} が考えています"
   },
   "terminal": {
     "findInTerminal": "ターミナル内を検索",
@@ -1359,9 +1357,7 @@
     },
     "editFileFailedNoName": "編集を試行",
     "file": "ファイル",
-    "runShellRunning": "コマンド実行中",
     "terminalWaitRunning": "Terminal の完了を待機中",
-    "runShellDone": "コマンド実行完了",
     "runShellFailed": "コマンド実行に失敗しました",
     "runCommands": "コマンドを実行",
     "terminalSummary": {
@@ -1498,8 +1494,6 @@
     "killProcessFailed": "プロセスの終了に失敗しました",
     "listDirCount_one": "ディレクトリ {{count}} 件",
     "listDirCount_other": "ディレクトリ {{count}} 件",
-    "listFileCount_one": "ファイル {{count}} 件",
-    "listFileCount_other": "ファイル {{count}} 件",
     "taskAgentLine": "Agent {{name}}",
     "outputTruncatedForDisplay": "\n\n...（表示のため省略）",
     "repeatedErrorNotice": "同じエラーが {{count}} 回発生しました、Agent が再試行中",
@@ -2084,7 +2078,11 @@
     "orgSendMessageRunning": "{{recipient}} にメッセージを送信中",
     "orgSendMessageDone": "{{recipient}} にメッセージを送信しました",
     "orgSendMessageFailed": "{{recipient}} へのメッセージ送信に失敗",
-    "noMatch": "No match"
+    "noMatch": "No match",
+    "runCommandRunning": "コマンド実行中",
+    "runCommandDone": "コマンド実行完了",
+    "nFiles_one": "ファイル {{count}} 件",
+    "nFiles_other": "ファイル {{count}} 件"
   },
   "hoverCard": {
     "commits": "コミット",
@@ -2684,7 +2682,8 @@
     "update": {
       "titleStatus": "タスクのステータスを更新",
       "titleDetail": "タスクの詳細を更新",
-      "markedAs": "{{status}} に変更"
+      "markedAs": "{{status}} に変更",
+      "title": "タスクを更新しました"
     },
     "get": {
       "title": "タスク詳細を表示"
@@ -2843,5 +2842,12 @@
   },
   "sessionBadge": {
     "subagent": "Sub Agent"
+  },
+  "tooltips": {
+    "hidePanel": "パネルを隠す"
+  },
+  "titleBar": {
+    "showDevTools": "DevTools を表示",
+    "hideDevTools": "DevTools を非表示"
   }
 }

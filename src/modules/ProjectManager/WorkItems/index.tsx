@@ -291,7 +291,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       }
       onExpandWorkItemToTab(
         workItem.session_id,
-        workItem.name || t("workItems.untitled"),
+        workItem.name || t("common:placeholders.untitled"),
         undefined,
         workItem.workItemStatus ?? workItem.status,
         workItem

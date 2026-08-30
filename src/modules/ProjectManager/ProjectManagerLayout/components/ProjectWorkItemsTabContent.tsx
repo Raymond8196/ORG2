@@ -252,7 +252,7 @@ export const ProjectWorkItemsTabContent: React.FC<
               noneLabel={t("workItems.properties.noAssignee")}
               loadingLabel={t("common:status.loading")}
               searchPlaceholder={t("properties.searchAssignee")}
-              readonlyReason={t("common:errors.messages.forbidden")}
+              readonlyReason={t("common:errors.forbidden")}
               disabled={
                 workItem.workspaceSource?.source === WORKSPACE_SOURCE.LINEAR ||
                 !workItem.project

@@ -410,7 +410,10 @@
     "later": "稍後",
     "link": "連結",
     "copyName": "複製名稱",
-    "switchMethod": "切換方式"
+    "switchMethod": "切換方式",
+    "dismiss": "忽略",
+    "comingSoon": "即將推出",
+    "clearSelection": "清除選擇"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新"
@@ -469,7 +472,6 @@
     "disabledInSettings": "在設置中已禁用",
     "diagnosticsInitializing": "正在啓動診斷源...",
     "diagnosticSourceIssues": "診斷源問題",
-    "comingSoon": "即將推出",
     "copied": "已複製",
     "copyFailed": "複製失敗",
     "searching": "搜索中...",
@@ -681,7 +683,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "已提交"
+    "committedRate": "已提交",
+    "email": "郵箱"
   },
   "searchModes": {},
   "tabs": {
@@ -1048,7 +1051,8 @@
     "noWorkspaceFolders": "沒有工作區文件夾",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "預覽不可用",
-    "selectRepositoryFromWorkspace": "選擇工作區儲存庫"
+    "selectRepositoryFromWorkspace": "選擇工作區儲存庫",
+    "noData": "無資料"
   },
   "inbox": {
     "searchPlaceholder": "搜索消息...",
@@ -2118,7 +2122,9 @@
   "relativeDate": {
     "today": "今天",
     "yesterday": "昨天",
-    "tomorrow": "明天"
+    "tomorrow": "明天",
+    "last7Days": "最近7天",
+    "last30Days": "最近30天"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "從 GitHub 克隆",

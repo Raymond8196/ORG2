@@ -210,7 +210,7 @@ export function GitHubWorkItemsView({
     ],
     [t]
   );
-  const readonlyReason = t("common:errors.messages.forbidden");
+  const readonlyReason = t("common:errors.forbidden");
   const handleStateChange = useCallback(
     (state: string) => {
       if (
@@ -529,7 +529,7 @@ export function GitHubWorkItemsView({
               issue={item}
               addLabel={t("chat.panels.manageIssues.addToChat")}
               openInBrowserLabel={t("common:previews.openInBrowser")}
-              moreActionsLabel={t("common:actions.moreActions")}
+              moreActionsLabel={t("common:tooltips.moreActions")}
               onOpenIssueInBrowser={onOpenIssueInBrowser}
               onAddIssue={onAddIssue}
             />

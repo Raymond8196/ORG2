@@ -414,7 +414,10 @@
     "later": "Позже",
     "link": "Связать",
     "copyName": "Копировать имя",
-    "switchMethod": "Сменить способ"
+    "switchMethod": "Сменить способ",
+    "dismiss": "Отклонить",
+    "comingSoon": "Скоро",
+    "clearSelection": "Очистить выбор"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено"
@@ -473,7 +476,6 @@
     "disabledInSettings": "отключено в настройках",
     "diagnosticsInitializing": "Запуск источников диагностики...",
     "diagnosticSourceIssues": "Проблемы источников диагностики",
-    "comingSoon": "Скоро",
     "copied": "Скопировано",
     "copyFailed": "Не удалось скопировать",
     "searching": "Поиск...",
@@ -674,7 +676,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "Закоммичено"
+    "committedRate": "Закоммичено",
+    "email": "Email"
   },
   "searchModes": {},
   "tabs": {
@@ -1041,7 +1044,8 @@
     "noWorkspaceFolders": "Нет папок Workspace",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "Предпросмотр недоступен",
-    "selectRepositoryFromWorkspace": "Выберите репозиторий из рабочего пространства"
+    "selectRepositoryFromWorkspace": "Выберите репозиторий из рабочего пространства",
+    "noData": "Нет данных"
   },
   "inbox": {
     "searchPlaceholder": "Поиск сообщений...",
@@ -2109,7 +2113,9 @@
   "relativeDate": {
     "today": "Сегодня",
     "yesterday": "Вчера",
-    "tomorrow": "Завтра"
+    "tomorrow": "Завтра",
+    "last7Days": "Последние 7 дней",
+    "last30Days": "Последние 30 дней"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "Клонировать из GitHub",

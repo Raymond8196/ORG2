@@ -106,7 +106,8 @@
     "actions": {
       "addNew": "Yeni Ekle",
       "collapseAll": "Tümünü daralt",
-      "markAllRead": "Tümünü okundu olarak işaretle"
+      "markAllRead": "Tümünü okundu olarak işaretle",
+      "toggleGroup": "Bölümü aç/kapat"
     },
     "search": {
       "folders": "Çalışma alanında ara...",

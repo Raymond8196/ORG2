@@ -410,7 +410,10 @@
     "later": "Daha sonra",
     "link": "Bağla",
     "copyName": "Adı Kopyala",
-    "switchMethod": "Yöntemi değiştir"
+    "switchMethod": "Yöntemi değiştir",
+    "dismiss": "Yoksay",
+    "comingSoon": "Yakında",
+    "clearSelection": "Seçimi temizle"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi"
@@ -469,7 +472,6 @@
     "disabledInSettings": "ayarlarda devre dışı",
     "diagnosticsInitializing": "Tanılama kaynakları başlatılıyor...",
     "diagnosticSourceIssues": "Tanılama kaynağı sorunları",
-    "comingSoon": "Yakında",
     "copied": "Kopyalandı",
     "copyFailed": "Kopyalama başarısız",
     "searching": "Aranıyor...",
@@ -670,7 +672,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "Commitlendi"
+    "committedRate": "Commitlendi",
+    "email": "E-posta"
   },
   "searchModes": {},
   "tabs": {
@@ -1037,7 +1040,8 @@
     "noWorkspaceFolders": "Workspace klasörü yok",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "Önizleme kullanılamıyor",
-    "selectRepositoryFromWorkspace": "Çalışma alanından bir depo seçin"
+    "selectRepositoryFromWorkspace": "Çalışma alanından bir depo seçin",
+    "noData": "Veri yok"
   },
   "inbox": {
     "searchPlaceholder": "Mesajlarda ara...",
@@ -2102,7 +2106,9 @@
   "relativeDate": {
     "today": "Bugün",
     "yesterday": "Dün",
-    "tomorrow": "Yarın"
+    "tomorrow": "Yarın",
+    "last7Days": "Son 7 gün",
+    "last30Days": "Son 30 gün"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "GitHub'dan Klonla",

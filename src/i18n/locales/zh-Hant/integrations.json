@@ -343,7 +343,8 @@
     "refreshModels": {
       "button": "重新整理模型",
       "failed": "重新整理模型失敗：{{error}}"
-    }
+    },
+    "revalidate": "重新驗證"
   },
   "integrations": {
     "title": "集成",
@@ -2170,7 +2171,11 @@
     "chatExtras": "聊天附加組件",
     "queuedMessages": "消息隊列",
     "fileReview": "文件審查",
-    "terminalProcesses": "終端進程"
+    "terminalProcesses": "終端進程",
+    "chatPreview": "聊天預覽",
+    "scenario": "場景",
+    "selectScenario": "選擇場景",
+    "sessionSimulation": "工作階段模擬"
   },
   "rulesTabs": {
     "rules": "規則",

@@ -410,7 +410,10 @@
     "later": "Plus tard",
     "link": "Lier",
     "copyName": "Copier le nom",
-    "switchMethod": "Changer de méthode"
+    "switchMethod": "Changer de méthode",
+    "dismiss": "Ignorer",
+    "comingSoon": "Bientôt",
+    "clearSelection": "Effacer la sélection"
   },
   "refreshToast": {
     "successName": "{{name}} actualisé"
@@ -469,7 +472,6 @@
     "disabledInSettings": "désactivé dans les paramètres",
     "diagnosticsInitializing": "Démarrage des sources de diagnostic...",
     "diagnosticSourceIssues": "Problèmes de sources de diagnostic",
-    "comingSoon": "Bientôt",
     "copied": "Copié",
     "copyFailed": "Échec de la copie",
     "searching": "Recherche...",
@@ -670,7 +672,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "Validé"
+    "committedRate": "Validé",
+    "email": "E-mail"
   },
   "searchModes": {},
   "tabs": {
@@ -1037,7 +1040,8 @@
     "noWorkspaceFolders": "Aucun dossier de workspace",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "Aperçu indisponible",
-    "selectRepositoryFromWorkspace": "Choisissez un dépôt dans l’espace de travail"
+    "selectRepositoryFromWorkspace": "Choisissez un dépôt dans l’espace de travail",
+    "noData": "Aucune donnée"
   },
   "inbox": {
     "searchPlaceholder": "Rechercher des messages...",
@@ -2100,7 +2104,9 @@
   "relativeDate": {
     "today": "Aujourd'hui",
     "yesterday": "Hier",
-    "tomorrow": "Demain"
+    "tomorrow": "Demain",
+    "last7Days": "7 derniers jours",
+    "last30Days": "30 derniers jours"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "Cloner depuis GitHub",

@@ -106,7 +106,8 @@
     "actions": {
       "addNew": "新規追加",
       "collapseAll": "すべて折りたたむ",
-      "markAllRead": "すべて既読にする"
+      "markAllRead": "すべて既読にする",
+      "toggleGroup": "セクションを切り替え"
     },
     "search": {
       "folders": "ワークスペースを検索...",

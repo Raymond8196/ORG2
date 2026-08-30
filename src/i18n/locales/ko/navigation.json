@@ -106,7 +106,8 @@
     "actions": {
       "addNew": "새로 추가",
       "collapseAll": "모두 접기",
-      "markAllRead": "모두 읽음으로 표시"
+      "markAllRead": "모두 읽음으로 표시",
+      "toggleGroup": "섹션 전환"
     },
     "search": {
       "folders": "워크스페이스 검색...",

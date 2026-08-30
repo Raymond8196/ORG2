@@ -927,7 +927,8 @@
       "archiveWorkflowState": "Failed to archive Linear workflow state",
       "statusStateMissing": "No matching Linear workflow state exists for this status",
       "unsupportedIssueUpdate": "This Linear Issue field cannot be edited in ORGII yet"
-    }
+    },
+    "loadingConnections": "Загрузка подключений Linear..."
   },
   "gitSyncReview": {
     "breadcrumb": "Git Sync Review",

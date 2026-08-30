@@ -255,7 +255,7 @@ const WorkManagementProjectsSurface: React.FC<{
           selection.projectId,
           selection.projectName,
           selection.workItem.session_id,
-          selection.workItem.name || t("workItems.untitled"),
+          selection.workItem.name || t("common:placeholders.untitled"),
           selection.projectSlug,
           undefined,
           undefined,

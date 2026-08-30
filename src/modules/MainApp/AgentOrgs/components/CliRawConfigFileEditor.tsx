@@ -126,7 +126,7 @@ const CliRawConfigFileEditor: React.FC<CliRawConfigFileEditorProps> = ({
 
   const handleCopy = useCallback(async () => {
     await copyText(value);
-    Message.success(t("common:common.copied"));
+    Message.success(t("common:status.copied"));
   }, [t, value]);
 
   const handleRevealConfig = useCallback(() => {

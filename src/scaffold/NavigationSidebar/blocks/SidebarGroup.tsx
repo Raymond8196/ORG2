@@ -128,7 +128,7 @@ function SidebarGroupInner<T extends SidebarItemData = SidebarItemData>({
             {/* Chevron */}
             <NavigationMenuRowActionButton
               icon={isCollapsed ? UnfoldMoreIcon : ChevronsDownUpIcon}
-              label={t("actions.toggle")}
+              label={t("sidebar.actions.toggleGroup")}
               onClick={handleToggle}
             />
           </div>

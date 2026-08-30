@@ -106,7 +106,8 @@
     "actions": {
       "addNew": "Neu hinzufügen",
       "collapseAll": "Alle einklappen",
-      "markAllRead": "Alle als gelesen markieren"
+      "markAllRead": "Alle als gelesen markieren",
+      "toggleGroup": "Abschnitt umschalten"
     },
     "search": {
       "folders": "Workspace suchen...",

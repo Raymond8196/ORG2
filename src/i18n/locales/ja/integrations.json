@@ -346,7 +346,8 @@
     "refreshModels": {
       "button": "Cursor モデル一覧を更新",
       "failed": "Cursor からの更新に失敗しました: {{error}}"
-    }
+    },
+    "revalidate": "再検証"
   },
   "integrations": {
     "title": "統合",
@@ -2140,7 +2141,11 @@
     "chatExtras": "チャット拡張",
     "queuedMessages": "キューメッセージ",
     "fileReview": "ファイルレビュー",
-    "terminalProcesses": "ターミナルプロセス"
+    "terminalProcesses": "ターミナルプロセス",
+    "chatPreview": "チャットプレビュー",
+    "scenario": "シナリオ",
+    "selectScenario": "シナリオを選択",
+    "sessionSimulation": "セッションシミュレーション"
   },
   "rulesTabs": {
     "rules": "ルール",

@@ -348,7 +348,8 @@
     "refreshModels": {
       "button": "Refresh models",
       "failed": "Refresh models failed: {{error}}"
-    }
+    },
+    "revalidate": "Revalidate"
   },
   "integrations": {
     "title": "Integrations",
@@ -2218,7 +2219,11 @@
     "chatExtras": "Chat Extras",
     "queuedMessages": "Queued Messages",
     "fileReview": "File Review",
-    "terminalProcesses": "Terminal Processes"
+    "terminalProcesses": "Terminal Processes",
+    "chatPreview": "Chat Preview",
+    "scenario": "Scenario",
+    "selectScenario": "Select a scenario",
+    "sessionSimulation": "Session Simulation"
   },
   "agentTools": {
     "enabled": "Enabled",

@@ -155,8 +155,8 @@ export function useSearchTabConfig({
             type="button"
             className="flex min-w-0 items-center gap-1.5 normal-case"
             onClick={onBack}
-            aria-label={t("tabs.files")}
-            title={t("tabs.files")}
+            aria-label={t("labels.files")}
+            title={t("labels.files")}
           >
             <HugeiconsIcon
               icon={ArrowLeft02Icon}

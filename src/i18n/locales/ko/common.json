@@ -408,7 +408,10 @@
     "later": "나중에",
     "link": "연결",
     "copyName": "이름 복사",
-    "switchMethod": "방법 전환"
+    "switchMethod": "방법 전환",
+    "dismiss": "무시",
+    "comingSoon": "출시 예정",
+    "clearSelection": "선택 지우기"
   },
   "refreshToast": {
     "successName": "{{name}} 새로고침됨"
@@ -467,7 +470,6 @@
     "disabledInSettings": "설정에서 비활성화됨",
     "diagnosticsInitializing": "진단 소스 시작 중...",
     "diagnosticSourceIssues": "진단 소스 문제",
-    "comingSoon": "출시 예정",
     "copied": "복사됨",
     "copyFailed": "복사 실패",
     "searching": "검색 중...",
@@ -668,7 +670,8 @@
     "appliedCommits": "Applied commits",
     "noAppliedCommit": "No linked commit yet",
     "noSessionsForFile": "No sessions found for this file",
-    "committedRate": "커밋됨"
+    "committedRate": "커밋됨",
+    "email": "이메일"
   },
   "searchModes": {},
   "tabs": {
@@ -1035,7 +1038,8 @@
     "noWorkspaceFolders": "Workspace 폴더 없음",
     "noRepoSelected": "No repository selected",
     "previewUnavailable": "미리보기를 사용할 수 없습니다",
-    "selectRepositoryFromWorkspace": "워크스페이스 리포지토리 선택"
+    "selectRepositoryFromWorkspace": "워크스페이스 리포지토리 선택",
+    "noData": "데이터 없음"
   },
   "inbox": {
     "searchPlaceholder": "메시지 검색...",
@@ -2098,7 +2102,9 @@
   "relativeDate": {
     "today": "오늘",
     "yesterday": "어제",
-    "tomorrow": "내일"
+    "tomorrow": "내일",
+    "last7Days": "최근 7일",
+    "last30Days": "최근 30일"
   },
   "cloneForm": {
     "titleCloneFromGitHub": "GitHub에서 클론",

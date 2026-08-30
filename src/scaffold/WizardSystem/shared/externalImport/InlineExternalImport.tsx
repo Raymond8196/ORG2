@@ -159,7 +159,7 @@ const InlineExternalImport: React.FC<InlineExternalImportProps> = ({
                       `${t("common:actions.search")} ${labels.itemColumn.toLowerCase()}...`,
                     allowSearchClear: true,
                   },
-                  emptyTitle: t("common:actions.noResults"),
+                  emptyTitle: t("common:status.noResults"),
                   searchHeaderClassName: "-mx-4 w-[calc(100%+2rem)]",
                 })}
                 noPx

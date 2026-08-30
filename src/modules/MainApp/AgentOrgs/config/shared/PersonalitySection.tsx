@@ -68,7 +68,7 @@ const PersonalitySection: React.FC<PersonalitySectionProps> = ({
 
   const handleCopy = async () => {
     await copyText(draftValue);
-    Message.success(t("common:common.copied"));
+    Message.success(t("common:status.copied"));
   };
 
   const handleTabChange = (tab: string) => {

@@ -106,7 +106,8 @@
     "actions": {
       "addNew": "Dodaj nowy",
       "collapseAll": "Zwiń wszystko",
-      "markAllRead": "Oznacz wszystkie jako przeczytane"
+      "markAllRead": "Oznacz wszystkie jako przeczytane",
+      "toggleGroup": "Przełącz sekcję"
     },
     "search": {
       "folders": "Szukaj w Workspace...",

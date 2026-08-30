@@ -392,7 +392,7 @@ const McpAddWizard: React.FC<McpAddWizardProps> = ({
           )}
 
           {w.error && !w.testing && (
-            <InlineAlert type="danger" title={t("common:errors.error")}>
+            <InlineAlert type="danger" title={t("common:status.error")}>
               {w.error}
             </InlineAlert>
           )}
