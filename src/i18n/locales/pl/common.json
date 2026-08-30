@@ -1259,7 +1259,17 @@
       "openTabs": "Otwarte karty",
       "closeItem": "Zamknij {{label}}",
       "expand": "Rozwiń informacje o obszarze roboczym",
-      "collapse": "Zwiń informacje o obszarze roboczym"
+      "collapse": "Zwiń informacje o obszarze roboczym",
+      "restoreWidth": "Przywróć pierwotną szerokość ({{width}} px)",
+      "setMinimumWidth": "Ustaw bieżącą szerokość jako minimalną ({{width}} px)",
+      "widerWidth": "Szerzej ({{width}} px)",
+      "resizeTrail": "Zmień szerokość paska stacji roboczej",
+      "openMiniTerminal": "Otwórz miniterminal",
+      "hideMiniTerminal": "Ukryj miniterminal",
+      "newMiniTerminal": "Nowy miniterminal",
+      "showMiniTerminals": "Miniterminale",
+      "sessionInMiniTerminal": "Działa w miniterminalu",
+      "returnFromMiniTerminal": "Pokaż tutaj"
     },
     "pr": {
       "title": "Pull request",

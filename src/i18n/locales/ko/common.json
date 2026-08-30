@@ -1254,7 +1254,17 @@
       "openTabs": "열린 탭",
       "closeItem": "{{label}} 닫기",
       "expand": "워크스테이션 정보 펼치기",
-      "collapse": "워크스테이션 정보 접기"
+      "collapse": "워크스테이션 정보 접기",
+      "restoreWidth": "원래 너비로 복원({{width}}px)",
+      "setMinimumWidth": "현재 너비를 최소값으로 설정({{width}}px)",
+      "widerWidth": "넓게({{width}}px)",
+      "resizeTrail": "워크스테이션 바 너비 조정",
+      "openMiniTerminal": "미니 터미널 열기",
+      "hideMiniTerminal": "미니 터미널 숨기기",
+      "newMiniTerminal": "새 미니 터미널",
+      "showMiniTerminals": "미니 터미널",
+      "sessionInMiniTerminal": "미니 터미널에서 실행 중",
+      "returnFromMiniTerminal": "여기에 표시"
     },
     "pr": {
       "title": "Pull request",

@@ -15,7 +15,7 @@ Verdict totals: **1 fix candidate**, **5 keep with reason**, **0 abstract**.
 
 - Conversation mute is removed from the menu, hook, policy evaluator, summary coordinator, settings schema/projection, cancellation toast, settings UI, and 13 locale files. Global/category/quiet-hours notification settings are preserved. Old mute values are ignored on validation and omitted on settings regeneration; no persisted file is proactively rewritten or deleted.
 - Copy event JSON, URL, and Export JSON share one flyout. Move page to, project links, and UI settings have separate flyouts. The raw-transcript menu item is gone; the raw view itself remains available through its existing view controls.
-- Native-app opening moves from the toolbar into a direct separated menu row. Claude/Codex capability gating and existing native RPCs are unchanged. CLI continuation is preserved. Missing source disables the action; backend failure still reports an error.
+- Native-app opening moves from the toolbar into a direct separated menu row. Claude/Codex capability gating and existing native RPCs are unchanged. Integration with develop preserves its separately parked CLI continuation header button. Missing source disables the action; backend failure still reports an error.
 - Export-only dialog width and introduction change; import behavior does not.
 - Shared nested-panel spacing and Tooltip use the current 3px token. Moving to a single neutral 4px overlay token belongs to the separate follow-up, not this snapshot PR.
 

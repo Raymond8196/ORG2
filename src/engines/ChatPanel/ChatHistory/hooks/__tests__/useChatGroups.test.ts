@@ -22,6 +22,7 @@ import {
   isTurnCollapseEligible,
   isTurnPreviewItem,
   projectChatGroups,
+  resolveTurnDefaultCollapsed,
 } from "../useChatGroupsProjection";
 
 vi.mock("react", () => ({
@@ -243,7 +244,7 @@ describe("useChatGroups collapse — terminal error survival", () => {
     const result = useChatGroups(history);
 
     // The prior turn defaults to the compact summary, while the live tail
-    // remains expanded until it becomes eligible after the idle delay.
+    // remains expanded while its round is still running.
     expect(result.groupCounts).toEqual([1, 2]);
     expect(flatTexts(result.flatItems)).toEqual([
       "first reply",
@@ -537,33 +538,48 @@ describe("isTurnCollapseEligible — unloaded placeholder affordance", () => {
     expect(isTurnCollapseEligible(empty, 0, 3, {})).toBe(false);
   });
 
-  it("shows the tail bar as soon as the round ends, with no idle wait or size threshold", () => {
+  it("shows the tail bar as soon as the round ends, with no wait or size threshold", () => {
     const smallTail = meta({ itemCount: 2 });
-    // Without the completion signal the old gating still applies.
+    // A running tail is never collapsible.
     expect(isTurnCollapseEligible(smallTail, 2, 3, {})).toBe(false);
     expect(
-      isTurnCollapseEligible(smallTail, 2, 3, { collapseTailWhenIdle: true })
+      isTurnCollapseEligible(smallTail, 2, 3, { tailTurnPhase: "running" })
     ).toBe(false);
-    // With it, the completed tail is eligible regardless of size/idle.
+    // A completed tail is eligible regardless of size.
     expect(
-      isTurnCollapseEligible(smallTail, 2, 3, { tailTurnComplete: true })
+      isTurnCollapseEligible(smallTail, 2, 3, { tailTurnPhase: "complete" })
+    ).toBe(true);
+    expect(
+      isTurnCollapseEligible(smallTail, 2, 3, { tailTurnPhase: "stale" })
     ).toBe(true);
   });
 
   it("still hides the bar for a trivial completed tail", () => {
     expect(
       isTurnCollapseEligible(meta({ itemCount: 1 }), 2, 3, {
-        tailTurnComplete: true,
+        tailTurnPhase: "complete",
       })
     ).toBe(false);
   });
 
-  it("treats a stale tail as eligible on its own (stale implies finished)", () => {
+  it("resolves the shared default-collapse decision per phase", () => {
+    // Non-tail turns default to collapsed.
+    expect(resolveTurnDefaultCollapsed(false, {})).toBe(true);
+    // A fresh completed tail stays expanded…
     expect(
-      isTurnCollapseEligible(meta({ itemCount: 2 }), 2, 3, {
-        tailTurnStale: true,
+      resolveTurnDefaultCollapsed(true, { tailTurnPhase: "complete" })
+    ).toBe(false);
+    // …until the session goes stale.
+    expect(resolveTurnDefaultCollapsed(true, { tailTurnPhase: "stale" })).toBe(
+      true
+    );
+    // An explicit expanded-by-default surface wins over everything.
+    expect(
+      resolveTurnDefaultCollapsed(true, {
+        defaultTurnCollapsed: false,
+        tailTurnPhase: "stale",
       })
-    ).toBe(true);
+    ).toBe(false);
   });
 });
 
@@ -580,10 +596,10 @@ describe("projectChatGroups — completed tail turn", () => {
   }
 
   it("keeps the completed tail expanded by default", () => {
-    const result = projectChatGroups(history(), { tailTurnComplete: true });
+    const result = projectChatGroups(history(), { tailTurnPhase: "complete" });
 
-    // Bar-eligible, but the tail's default stays expanded: the idle rule
-    // (collapseTailWhenIdle + size threshold) still governs auto-collapse.
+    // Bar-eligible, but the tail's default stays expanded until the session
+    // goes stale.
     expect(result.groupCounts).toEqual([1, 2]);
     expect(flatTexts(result.flatItems)).toEqual([
       "first reply",
@@ -597,7 +613,7 @@ describe("projectChatGroups — completed tail turn", () => {
     const tailTurnId = items[3].event!.id;
 
     const result = projectChatGroups(items, {
-      tailTurnComplete: true,
+      tailTurnPhase: "complete",
       collapseOverrides: new Map([[tailTurnId, true]]),
     });
 
@@ -616,15 +632,12 @@ describe("projectChatGroups — completed tail turn", () => {
       collapseOverrides: new Map([[tailTurnId, true]]),
     });
 
-    // Not complete and not idle-eligible -> not collapse-eligible at all.
+    // A running tail is not collapse-eligible at all.
     expect(result.groupCounts).toEqual([1, 2]);
   });
 
   it("defaults a stale tail to collapsed regardless of size", () => {
-    const result = projectChatGroups(history(), {
-      tailTurnComplete: true,
-      tailTurnStale: true,
-    });
+    const result = projectChatGroups(history(), { tailTurnPhase: "stale" });
 
     expect(result.groupCounts).toEqual([1, 1]);
     expect(flatTexts(result.flatItems)).toEqual([
@@ -638,8 +651,7 @@ describe("projectChatGroups — completed tail turn", () => {
     const tailTurnId = items[3].event!.id;
 
     const result = projectChatGroups(items, {
-      tailTurnComplete: true,
-      tailTurnStale: true,
+      tailTurnPhase: "stale",
       collapseOverrides: new Map([[tailTurnId, false]]),
     });
 
@@ -649,21 +661,5 @@ describe("projectChatGroups — completed tail turn", () => {
       "run_shell",
       "current reply",
     ]);
-  });
-
-  it("still auto-collapses the tail under the pre-existing idle rule", () => {
-    const items = [
-      userItem("only turn"),
-      ...Array.from({ length: 10 }, () => toolItem()),
-      assistantItem("final reply"),
-    ];
-
-    const result = projectChatGroups(items, {
-      tailTurnComplete: true,
-      collapseTailWhenIdle: true,
-    });
-
-    expect(result.groupCounts).toEqual([1]);
-    expect(flatTexts(result.flatItems)).toEqual(["final reply"]);
   });
 });

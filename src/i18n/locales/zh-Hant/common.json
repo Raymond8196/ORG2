@@ -1267,7 +1267,17 @@
       "openTabs": "開啟的分頁",
       "closeItem": "關閉 {{label}}",
       "expand": "展開工作區資訊",
-      "collapse": "收合工作區資訊"
+      "collapse": "收合工作區資訊",
+      "restoreWidth": "恢復原始寬度（{{width}}px）",
+      "setMinimumWidth": "將目前寬度設為最小值（{{width}}px）",
+      "widerWidth": "加寬（{{width}}px）",
+      "resizeTrail": "調整工作站列寬度",
+      "openMiniTerminal": "開啟迷你終端機",
+      "hideMiniTerminal": "隱藏迷你終端機",
+      "newMiniTerminal": "新增迷你終端機",
+      "showMiniTerminals": "迷你終端機",
+      "sessionInMiniTerminal": "正在迷你終端機中執行",
+      "returnFromMiniTerminal": "在此處顯示"
     },
     "pr": {
       "title": "Pull request",

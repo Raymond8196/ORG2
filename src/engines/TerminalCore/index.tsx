@@ -68,6 +68,17 @@ export interface TerminalCoreProps {
   visible?: boolean;
   /** Host-owned renderer for SessionCore read-only terminal sessions. */
   renderReadOnlySession?: (agentSessionId: string) => React.ReactNode;
+  /**
+   * Sessions another host currently mounts (today: the terminal docked
+   * under the Workstation trail). A PTY is bound to one xterm through
+   * `TerminalView`'s `sessionKey`, so mounting it here as well would give
+   * one PTY two writers and two competing resizes. Suppressed sessions stay in
+   * `terminalState.sessions` — only their mount is skipped — and remount
+   * through the normal PTY attach/restore path once released.
+   */
+  suppressedSessionIds?: ReadonlySet<string>;
+  /** Host-owned placeholder shown when the active session is suppressed. */
+  renderSuppressedSession?: (sessionId: string) => React.ReactNode;
 }
 
 // ============================================
@@ -82,6 +93,8 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
   onOpenFileLink,
   visible = true,
   renderReadOnlySession,
+  suppressedSessionIds,
+  renderSuppressedSession,
 }) => {
   const { sessions, activeSessionId, initializedSessions, updateSessionInfo } =
     terminalState;
@@ -325,11 +338,14 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
 
   const bgColor = backgroundColor || "var(--cm-editor-background)";
 
+  const activeSessionSuppressed =
+    suppressedSessionIds?.has(activeSessionId) === true;
   const visibleSessions = selectMountedTerminalSessions(
     sessions,
     activeSessionId,
     initializedSessions,
-    recentTerminalIds
+    recentTerminalIds,
+    suppressedSessionIds
   );
 
   return (
@@ -347,9 +363,13 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
         className="terminal-content-area relative flex flex-1 flex-col overflow-hidden"
         style={{ backgroundColor: bgColor }}
       >
-        {visibleSessions.length === 0 && (
+        {activeSessionSuppressed ? (
+          (renderSuppressedSession?.(activeSessionId) ?? (
+            <Placeholder variant="empty" fillParentHeight />
+          ))
+        ) : visibleSessions.length === 0 ? (
           <Placeholder variant="empty" fillParentHeight />
-        )}
+        ) : null}
         {visibleSessions.map((session) => (
           <div
             key={session.id}

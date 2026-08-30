@@ -1254,7 +1254,17 @@
       "openTabs": "Các tab đang mở",
       "closeItem": "Đóng {{label}}",
       "expand": "Mở rộng thông tin không gian làm việc",
-      "collapse": "Thu gọn thông tin không gian làm việc"
+      "collapse": "Thu gọn thông tin không gian làm việc",
+      "restoreWidth": "Khôi phục chiều rộng ban đầu ({{width}} px)",
+      "setMinimumWidth": "Đặt chiều rộng hiện tại làm mức tối thiểu ({{width}} px)",
+      "widerWidth": "Rộng hơn ({{width}} px)",
+      "resizeTrail": "Đổi chiều rộng thanh workstation",
+      "openMiniTerminal": "Mở terminal thu nhỏ",
+      "hideMiniTerminal": "Ẩn terminal thu nhỏ",
+      "newMiniTerminal": "Terminal thu nhỏ mới",
+      "showMiniTerminals": "Terminal thu nhỏ",
+      "sessionInMiniTerminal": "Đang chạy trong terminal thu nhỏ",
+      "returnFromMiniTerminal": "Hiển thị tại đây"
     },
     "pr": {
       "title": "Pull request",

@@ -19,6 +19,10 @@ import {
   TerminalNewSessionSplitButton,
 } from "@src/modules/WorkStation/shared";
 import {
+  miniTerminalSuppressedIdsAtom,
+  releaseMiniTerminalSessionAtom,
+} from "@src/store/ui/miniTerminalAtom";
+import {
   clearTerminalTargetReferencesAtom,
   codeEditorTerminalTargetAtom,
 } from "@src/store/workstation/codeEditor";
@@ -48,6 +52,25 @@ const TerminalMainContent: React.FC<TerminalMainContentProps> = ({
   const setTerminalTarget = useSetAtom(codeEditorTerminalTargetAtom);
   const clearTerminalTargetReferences = useSetAtom(
     clearTerminalTargetReferencesAtom
+  );
+  // Sessions the trail's docked terminal currently mounts. One PTY can only
+  // have one xterm, so this pane skips their mount and offers to take them
+  // back instead.
+  const suppressedSessionIds = useAtomValue(miniTerminalSuppressedIdsAtom);
+  const releaseMiniTerminalSession = useSetAtom(releaseMiniTerminalSessionAtom);
+  const renderSuppressedSession = useCallback(
+    (sessionId: string) => (
+      <Placeholder
+        variant="empty"
+        fillParentHeight
+        title={t("common:git.rail.sessionInMiniTerminal")}
+        action={{
+          label: t("common:git.rail.returnFromMiniTerminal"),
+          onClick: () => releaseMiniTerminalSession(sessionId),
+        }}
+      />
+    ),
+    [releaseMiniTerminalSession, t]
   );
 
   const activePtySession = terminalState.activeSession;
@@ -193,6 +216,8 @@ const TerminalMainContent: React.FC<TerminalMainContentProps> = ({
         backgroundColor="var(--cm-editor-background)"
         onOpenFileLink={handleOpenFileLink}
         renderReadOnlySession={renderReadOnlySession}
+        suppressedSessionIds={suppressedSessionIds}
+        renderSuppressedSession={renderSuppressedSession}
       />
     );
 

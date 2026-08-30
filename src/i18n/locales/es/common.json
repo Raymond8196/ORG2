@@ -1255,7 +1255,17 @@
       "openTabs": "Pestañas abiertas",
       "closeItem": "Cerrar {{label}}",
       "expand": "Expandir la información del espacio de trabajo",
-      "collapse": "Contraer la información del espacio de trabajo"
+      "collapse": "Contraer la información del espacio de trabajo",
+      "restoreWidth": "Restaurar ancho original ({{width}} px)",
+      "setMinimumWidth": "Fijar el ancho actual como mínimo ({{width}} px)",
+      "widerWidth": "Más ancho ({{width}} px)",
+      "resizeTrail": "Redimensionar la barra de la estación",
+      "openMiniTerminal": "Abrir miniterminal",
+      "hideMiniTerminal": "Ocultar miniterminal",
+      "newMiniTerminal": "Nuevo miniterminal",
+      "showMiniTerminals": "Miniterminales",
+      "sessionInMiniTerminal": "En ejecución en el miniterminal",
+      "returnFromMiniTerminal": "Mostrar aquí"
     },
     "pr": {
       "title": "Pull request",

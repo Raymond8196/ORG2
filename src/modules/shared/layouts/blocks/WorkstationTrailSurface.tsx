@@ -20,7 +20,19 @@ export interface WorkstationTrailSurfaceProps extends HTMLAttributes<HTMLElement
 export const WORKSTATION_TRAIL_SURFACE_CLASS = `max-h-full w-full flex-col overflow-hidden rounded-xl border border-border-1 p-1 ${DROPDOWN_PANEL.shadowClass} ${EDITOR_TAB_CANVAS_BG_CLASS}`;
 export const WORKSTATION_TRAIL_WIDTH = {
   expandedPx: 256,
-  expandedResponsiveClass: "@[1100px]/focusedchat:w-64",
+  /**
+   * Expanded focused-chat column. Its width comes from the
+   * `--workstation-trail-track-width` custom property the trail sets inline
+   * (see `FocusedChatWorkstationRail/trailWidth.ts`) — the column has to
+   * contain both the trail surface and the wider docked terminal. The
+   * container query keeps it at zero below 1100px, where the compact
+   * dropdown takes over.
+   */
+  resizableResponsiveClass:
+    "@[1100px]/focusedchat:w-[var(--workstation-trail-track-width)]",
+  /** Trail surface's own width inside that column. */
+  surfaceResponsiveClass:
+    "@[1100px]/focusedchat:w-[var(--workstation-trail-width)]",
   collapsedResponsiveClass: "@[1100px]/focusedchat:w-11",
 } as const;
 export const WORKSTATION_TRAIL_RAIL_PADDING_CLASS = "px-1 pb-1 pt-2";
