@@ -536,4 +536,134 @@ describe("isTurnCollapseEligible — unloaded placeholder affordance", () => {
     });
     expect(isTurnCollapseEligible(empty, 0, 3, {})).toBe(false);
   });
+
+  it("shows the tail bar as soon as the round ends, with no idle wait or size threshold", () => {
+    const smallTail = meta({ itemCount: 2 });
+    // Without the completion signal the old gating still applies.
+    expect(isTurnCollapseEligible(smallTail, 2, 3, {})).toBe(false);
+    expect(
+      isTurnCollapseEligible(smallTail, 2, 3, { collapseTailWhenIdle: true })
+    ).toBe(false);
+    // With it, the completed tail is eligible regardless of size/idle.
+    expect(
+      isTurnCollapseEligible(smallTail, 2, 3, { tailTurnComplete: true })
+    ).toBe(true);
+  });
+
+  it("still hides the bar for a trivial completed tail", () => {
+    expect(
+      isTurnCollapseEligible(meta({ itemCount: 1 }), 2, 3, {
+        tailTurnComplete: true,
+      })
+    ).toBe(false);
+  });
+
+  it("treats a stale tail as eligible on its own (stale implies finished)", () => {
+    expect(
+      isTurnCollapseEligible(meta({ itemCount: 2 }), 2, 3, {
+        tailTurnStale: true,
+      })
+    ).toBe(true);
+  });
+});
+
+describe("projectChatGroups — completed tail turn", () => {
+  function history(): OptimizedChatItem[] {
+    return [
+      userItem("first turn"),
+      toolItem(),
+      assistantItem("first reply"),
+      userItem("current turn"),
+      toolItem(),
+      assistantItem("current reply"),
+    ];
+  }
+
+  it("keeps the completed tail expanded by default", () => {
+    const result = projectChatGroups(history(), { tailTurnComplete: true });
+
+    // Bar-eligible, but the tail's default stays expanded: the idle rule
+    // (collapseTailWhenIdle + size threshold) still governs auto-collapse.
+    expect(result.groupCounts).toEqual([1, 2]);
+    expect(flatTexts(result.flatItems)).toEqual([
+      "first reply",
+      "run_shell",
+      "current reply",
+    ]);
+  });
+
+  it("honors an explicit collapse override on the completed tail", () => {
+    const items = history();
+    const tailTurnId = items[3].event!.id;
+
+    const result = projectChatGroups(items, {
+      tailTurnComplete: true,
+      collapseOverrides: new Map([[tailTurnId, true]]),
+    });
+
+    expect(result.groupCounts).toEqual([1, 1]);
+    expect(flatTexts(result.flatItems)).toEqual([
+      "first reply",
+      "current reply",
+    ]);
+  });
+
+  it("ignores a tail collapse override while the round is still running", () => {
+    const items = history();
+    const tailTurnId = items[3].event!.id;
+
+    const result = projectChatGroups(items, {
+      collapseOverrides: new Map([[tailTurnId, true]]),
+    });
+
+    // Not complete and not idle-eligible -> not collapse-eligible at all.
+    expect(result.groupCounts).toEqual([1, 2]);
+  });
+
+  it("defaults a stale tail to collapsed regardless of size", () => {
+    const result = projectChatGroups(history(), {
+      tailTurnComplete: true,
+      tailTurnStale: true,
+    });
+
+    expect(result.groupCounts).toEqual([1, 1]);
+    expect(flatTexts(result.flatItems)).toEqual([
+      "first reply",
+      "current reply",
+    ]);
+  });
+
+  it("lets an explicit expand override beat the stale default", () => {
+    const items = history();
+    const tailTurnId = items[3].event!.id;
+
+    const result = projectChatGroups(items, {
+      tailTurnComplete: true,
+      tailTurnStale: true,
+      collapseOverrides: new Map([[tailTurnId, false]]),
+    });
+
+    expect(result.groupCounts).toEqual([1, 2]);
+    expect(flatTexts(result.flatItems)).toEqual([
+      "first reply",
+      "run_shell",
+      "current reply",
+    ]);
+  });
+
+  it("still auto-collapses the tail under the pre-existing idle rule", () => {
+    const items = [
+      userItem("only turn"),
+      ...Array.from({ length: 10 }, () => toolItem()),
+      assistantItem("final reply"),
+    ];
+
+    const result = projectChatGroups(items, {
+      tailTurnComplete: true,
+      collapseTailWhenIdle: true,
+    });
+
+    expect(result.groupCounts).toEqual([1]);
+    expect(flatTexts(result.flatItems)).toEqual(["final reply"]);
+  });
 });

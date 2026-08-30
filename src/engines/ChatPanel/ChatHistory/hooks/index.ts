@@ -68,7 +68,9 @@ export { useReloadSession } from "./useReloadSession";
 export {
   findTailTurnId,
   TAIL_TURN_COLLAPSE_IDLE_MS,
+  TAIL_TURN_STALE_MS,
   useTailTurnCollapse,
+  useTailTurnStale,
 } from "./useTailTurnCollapse";
 export {
   useTurnPageNavigation,
