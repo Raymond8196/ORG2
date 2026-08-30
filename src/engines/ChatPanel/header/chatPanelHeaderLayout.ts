@@ -42,26 +42,23 @@ export function resolveTranscriptTopPaddingPx(
 }
 
 interface ChatPanelTabRowCollapseState {
-  /** Whether the pane currently owns the full workbench width. */
-  chatMaximized: boolean;
   tabCount: number;
 }
 
 /**
  * Whether the 44px tab row folds into the 40px published header.
  *
- * A maximized pane holding a single tab has nothing to switch between: the
+ * A pane holding a single tab has nothing to switch between, maximized or not: the
  * lone pill only repeats the surface title published one row below it, so the
  * row costs 44px of chrome and buys nothing. Collapsing moves its controls
- * (new tab / close tab / restore) onto the published row, which is why that
+ * (new tab / maximize or restore) onto the published row, which is why that
  * row is force-rendered while collapsed even for surfaces that publish no
  * slots of their own.
  */
 export function shouldCollapseChatPanelTabRow({
-  chatMaximized,
   tabCount,
 }: ChatPanelTabRowCollapseState): boolean {
-  return chatMaximized && tabCount === 1;
+  return tabCount === 1;
 }
 
 /**
