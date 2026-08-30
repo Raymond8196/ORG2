@@ -40,6 +40,7 @@ import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
 } from "@src/engines/ChatPanel/header";
+import { shouldStartHeaderDragFromTarget } from "@src/engines/ChatPanel/header/chatPanelHeaderLayout";
 import { useSessionActionModals } from "@src/engines/ChatPanel/hooks/useSessionActionModals";
 import { useSessionHeaderActions } from "@src/engines/ChatPanel/hooks/useSessionHeaderActions";
 import { useSessionViewMode } from "@src/engines/ChatPanel/hooks/useSessionViewMode";
@@ -142,6 +143,24 @@ const SessionWindowContent: React.FC<{ sessionId: string }> = memo(
 
     const windowsHost = isWindows();
 
+    // The `data-tauri-drag-region` attribute only reacts to mousedowns whose
+    // TARGET carries the attribute — child elements swallow most of the row.
+    // Mirror ChatPanelHeader's collapsed-header fallback: any left-press on a
+    // non-interactive part of the header starts a native drag, and a
+    // double-press toggles maximize. Windows keeps its native title bar.
+    const handleHeaderMouseDown = (event: React.MouseEvent<HTMLDivElement>) => {
+      if (windowsHost || event.button !== 0) return;
+      if (!shouldStartHeaderDragFromTarget(event.target as Element | null)) {
+        return;
+      }
+      const maximize = event.detail === 2;
+      event.preventDefault();
+      void import("@src/util/platform/ipcRenderer").then(
+        ({ maxWindow, startWindowDrag }) =>
+          maximize ? maxWindow() : startWindowDrag()
+      );
+    };
+
     if (!sessionId) return null;
     return (
       <div
@@ -156,6 +175,7 @@ const SessionWindowContent: React.FC<{ sessionId: string }> = memo(
           className="relative z-40 flex h-11 min-h-11 flex-shrink-0 items-center gap-1.5 pr-[7px] pt-2"
           data-testid="session-window-header"
           data-tauri-drag-region={windowsHost ? undefined : true}
+          onMouseDown={handleHeaderMouseDown}
           style={{
             paddingLeft: isMacOS() ? MACOS_TRAFFIC_LIGHTS_INSET_PX : 12,
             ...(windowsHost

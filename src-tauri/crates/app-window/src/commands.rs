@@ -226,15 +226,14 @@ unsafe fn set_draws_background_recursive(view: *mut AnyObject, draws: bool) {
     }
 }
 
-/// Remove the startup background from the main window. Called from the
-/// frontend once the React app finishes loading and CSS backgrounds are
-/// painted — this restores the normal transparent glass appearance.
+/// Remove the startup background from the CALLING window. Every window's
+/// frontend invokes this once React finishes loading and CSS backgrounds are
+/// painted — restoring the transparent glass appearance and re-asserting the
+/// traffic-light inset (the post-paint re-apply is what keeps the buttons
+/// stable on macOS). Tauri injects the invoking window, so main and detached
+/// session windows each clear their own backdrop.
 #[tauri::command]
-pub async fn remove_window_background(app: AppHandle) -> Result<(), String> {
-    let window = app
-        .get_webview_window("main")
-        .ok_or("Main window not found")?;
-
+pub async fn remove_window_background(window: tauri::WebviewWindow) -> Result<(), String> {
     #[cfg(target_os = "macos")]
     {
         super::remove_window_background_color(&window);
@@ -323,14 +322,20 @@ pub async fn open_session_window(
         .resizable(true)
         .visible(true)
         .decorations(true)
-        // Match the main window's startup backdrop so the pre-splash frame is
+        // Match the main window's startup backdrop so the pre-paint frame is
         // never a white flash. The page paints its own background on top.
         .background_color(tauri::window::Color(0x0d, 0x0d, 0x0d, 0xff));
 
+    // Same chrome contract as the main window's config: a TRANSPARENT
+    // NSWindow under the overlay title bar. Without transparency, macOS
+    // draws an opaque titlebar band across the top and the repositioned
+    // traffic lights sit against a mismatched strip instead of over the
+    // app's own header.
     #[cfg(target_os = "macos")]
     let builder = builder
         .hidden_title(true)
         .title_bar_style(TitleBarStyle::Overlay)
+        .transparent(true)
         .traffic_light_position(Position::Logical(LogicalPosition::new(
             super::TRAFFIC_LIGHT_X,
             super::TRAFFIC_LIGHT_Y,
@@ -342,8 +347,20 @@ pub async fn open_session_window(
         .map_err(|e| format!("Failed to create session window: {e}"))?;
     ownership_observation.commit();
 
+    // Same post-build sequence as `recreate_main_window`: reposition the
+    // traffic lights (the builder option alone is unreliable for dynamically
+    // created windows), paint the startup background so the transparent
+    // window never shows the desktop through, and mount the same glass
+    // material the main window uses. The frontend clears the startup
+    // background via `remove_window_background` once React paints — that
+    // command operates on the calling window, so this window gets the same
+    // post-paint traffic-light re-apply main does.
     #[cfg(target_os = "macos")]
-    super::set_traffic_light_position(&window, super::TRAFFIC_LIGHT_X, super::TRAFFIC_LIGHT_Y);
+    {
+        super::set_traffic_light_position(&window, super::TRAFFIC_LIGHT_X, super::TRAFFIC_LIGHT_Y);
+        super::apply_window_background_color(&window);
+        super::apply_macos_window_material(&window);
+    }
 
     super::apply_host_desktop_decorated_window_corners(&window);
 
