@@ -16,8 +16,9 @@ import type { OptimizedChatItem } from "../chatItemPipeline/types";
 import { CHAT_FOOTER_SPACER } from "../config/chatFooterSpacer";
 import {
   type ChatGroupMeta,
-  isTailTurnIdleCollapsible,
+  type TailTurnPhase,
   isTurnCollapseEligible,
+  resolveTurnDefaultCollapsed,
 } from "../hooks/useChatGroups";
 
 const log = createLogger("GroupHeaderRenderer");
@@ -83,9 +84,7 @@ function sameGroupHeaderProps(
     previous.collapseLabelVariant === next.collapseLabelVariant &&
     previous.hideCollapseTimeRange === next.hideCollapseTimeRange &&
     previous.suppressRoundGap === next.suppressRoundGap &&
-    previous.collapseTailWhenIdle === next.collapseTailWhenIdle &&
-    previous.tailTurnComplete === next.tailTurnComplete &&
-    previous.tailTurnStale === next.tailTurnStale &&
+    previous.tailTurnPhase === next.tailTurnPhase &&
     previous.hideUserMessage === next.hideUserMessage &&
     previous.defaultTurnCollapsed === next.defaultTurnCollapsed &&
     previous.renderPart === next.renderPart &&
@@ -113,19 +112,12 @@ export interface GroupHeaderRendererProps {
   hideCollapseTimeRange?: boolean;
   /** Suppresses the inter-round top gap for headers rendered outside the list. */
   suppressRoundGap?: boolean;
-  /** Allows the latest turn to AUTO-collapse after the session idles. */
-  collapseTailWhenIdle?: boolean;
   /**
-   * The tail round has ended — its "Agent worked for X" bar renders
-   * immediately (no idle wait, no size threshold) while its default collapse
-   * state still follows the idle rule.
+   * Lifecycle phase of the tail turn: "complete" renders its "Agent worked
+   * for X" bar immediately (still expanded by default); "stale" also
+   * defaults it to collapsed like a historical turn.
    */
-  tailTurnComplete?: boolean;
-  /**
-   * The session's last event is older than the stale window — the tail turn
-   * defaults to collapsed like a historical turn.
-   */
-  tailTurnStale?: boolean;
+  tailTurnPhase?: TailTurnPhase;
   /**
    * Skip rendering the per-turn user-message card. The `TurnCollapsePinBar`
    * ("Agent worked for X") still renders. Subagent cells use this so each
@@ -163,9 +155,7 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
     collapseLabelVariant = "agent",
     hideCollapseTimeRange = false,
     suppressRoundGap = false,
-    collapseTailWhenIdle = false,
-    tailTurnComplete = false,
-    tailTurnStale = false,
+    tailTurnPhase = "running",
     hideUserMessage = false,
     defaultTurnCollapsed = false,
     renderPart = "all",
@@ -230,26 +220,19 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
     if (!header) return <div />;
 
     // Show the "Agent worked for …" pin bar on collapse-eligible turns.
-    // The latest turn joins as soon as its round ends (`tailTurnComplete`).
+    // The latest turn joins as soon as its round ends (phase "complete").
     const showCollapseBar = isTurnCollapseEligible(
       meta,
       collapseGroupIndex,
       collapseGroupCount,
-      {
-        collapseTailWhenIdle,
-        tailTurnComplete,
-        tailTurnStale,
-      }
+      { tailTurnPhase }
     );
-    // Mirror projectChatGroups: a completed tail turn renders its bar
-    // immediately but stays expanded until the idle rule folds it or the
-    // session goes stale.
-    const isTailGroup = collapseGroupIndex === collapseGroupCount - 1;
-    const turnDefaultCollapsed =
-      defaultTurnCollapsed &&
-      (!isTailGroup ||
-        tailTurnStale ||
-        (meta ? isTailTurnIdleCollapsible(meta, collapseTailWhenIdle) : false));
+    // Same helper as projectChatGroups, so the chevron's default always
+    // matches what the projection actually folded.
+    const turnDefaultCollapsed = resolveTurnDefaultCollapsed(
+      collapseGroupIndex === collapseGroupCount - 1,
+      { defaultTurnCollapsed, tailTurnPhase }
+    );
 
     const showUserPart = renderPart !== "collapse" && !hideUserMessage;
     const showCollapsePart = renderPart !== "user" && showCollapseBar && turnId;

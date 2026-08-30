@@ -161,7 +161,6 @@ const ChatHistory: React.FC<ChatHistoryProps> = ({
     groupChat,
     hideGroupUserMessage,
     isAgentWorking,
-    isCursorIde,
     planningIndicatorCount,
     sessionStatus: activeSession?.status,
     sessionLoadStatus: historyState.sessionLoadStatus,
