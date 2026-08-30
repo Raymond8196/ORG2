@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 
 import type { AgentOrgRunMemberView } from "@src/api/tauri/agent";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import { ChatLoadingBlock } from "@src/engines/ChatPanel/blocks/primitives";
 import { resolveTranscriptTopPaddingPx } from "@src/engines/ChatPanel/header/chatPanelHeaderLayout";
 import CloudSessionDownloadProgressCard from "@src/features/Org2Cloud/CloudSessionDownloadProgressCard";
@@ -321,7 +321,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
           data-chat-search-chrome
         >
           <div
-            className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+            className={`mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
           >
             <ChatSearchBar search={search} />
           </div>
@@ -343,7 +343,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
         ref={chatContainerRef as React.RefObject<HTMLDivElement>}
         style={chatHistoryContainerStyle}
       >
-        <div className={DETAIL_PANEL_TOKENS.contentWidth}>
+        <div className={CHAT_PANEL_WIDTH_TOKENS.contentWidth}>
           <SessionHeader sessionInfo={sessionInfo} />
         </div>
 
@@ -365,7 +365,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
             layer sits above chat content but below app modals (z-10000+). */}
         {hasCloudDownloadProgress && activeProjectionHistory.length > 0 && (
           <div
-            className={`pointer-events-none absolute left-0 right-0 top-0 z-[9999] mx-auto p-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+            className={`pointer-events-none absolute left-0 right-0 top-0 z-[9999] mx-auto p-2 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
           >
             <CloudSessionDownloadProgressCard sessionId={activeId} />
           </div>
@@ -377,7 +377,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
               className={`max-h-[45%] flex-shrink-0 overflow-y-auto scrollbar-hide ${surfaceBgClass}`}
             >
               <div
-                className={`mx-auto w-full px-2 pb-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+                className={`mx-auto w-full px-2 pb-2 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
               >
                 <div
                   data-agent-org-overview-panel="true"
@@ -444,7 +444,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
 
             {isLoadingMore && (
               <div
-                className={`pointer-events-none absolute left-0 right-0 top-0 z-[9999] mx-auto p-2 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+                className={`pointer-events-none absolute left-0 right-0 top-0 z-[9999] mx-auto p-2 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
               >
                 <div className={`pointer-events-auto ${surfaceBgClass}`}>
                   <ChatLoadingBlock />

@@ -27,7 +27,7 @@ import React, {
   useRef,
 } from "react";
 
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import { PlanningFooter } from "@src/engines/ChatPanel/blocks/primitives";
 import { CHAT_PANEL_TRANSCRIPT_TOP_PADDING_PX } from "@src/engines/ChatPanel/header/chatPanelHeaderLayout";
 
@@ -447,7 +447,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
         }}
       >
         <div
-          className={`${useStaticRendering ? "mx-auto" : "relative mx-auto"} min-h-full w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          className={`${useStaticRendering ? "mx-auto" : "relative mx-auto"} min-h-full w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
           style={
             useStaticRendering
               ? undefined

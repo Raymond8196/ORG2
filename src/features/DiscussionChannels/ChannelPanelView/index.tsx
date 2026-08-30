@@ -14,7 +14,7 @@
  *    inert with the explanation above it, because there is no RPC to call.
  *
  * Both scopes are built from session parts, not look-alikes: the transcript is
- * `ChannelMessageList` on `DETAIL_PANEL_TOKENS.contentMaxWidth`, and the
+ * `ChannelMessageList` on `CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth`, and the
  * composer is the real `InputArea` in the absolutely positioned footer
  * `HumanSessionView` uses. Settings reuses the existing per-scope dialog —
  * this view mounts it, never reimplements it. Cloud rows go through the SAME

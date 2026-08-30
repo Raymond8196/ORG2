@@ -4,7 +4,7 @@ import React, { useCallback, useState } from "react";
 import SegmentedTextPill from "@src/components/SegmentedTextPill";
 import Select, { type SelectOption } from "@src/components/Select";
 import TabPill from "@src/components/TabPill";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import ImportSharedSessionDialog from "@src/features/Org2Cloud/ImportSharedSessionDialog";
 import {
   type LaunchpadAction,
@@ -250,7 +250,7 @@ export function ChatPanelStartPage({
         data-testid="chat-panel-start-page-tabs"
       >
         <div
-          className={`${DETAIL_PANEL_TOKENS.headerWidth} flex h-14 items-center justify-center gap-3 px-4 pt-1`}
+          className={`${CHAT_PANEL_WIDTH_TOKENS.headerWidth} flex h-14 items-center justify-center gap-3 px-4 pt-1`}
         >
           <TabPill
             activeTab={activeView}

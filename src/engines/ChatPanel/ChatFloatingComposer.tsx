@@ -8,7 +8,7 @@ import {
   COMPOSER_BOTTOM_DOCK_PADDING_CLASS,
   COMPOSER_HORIZONTAL_GUTTER_CLASS,
 } from "@src/config/composerStackTokens";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import {
   ChatRetryBanner,
   toChatRetryKind,
@@ -232,7 +232,7 @@ const ChatFloatingComposer: React.FC<ChatFloatingComposerProps> = memo(
           className="pointer-events-none absolute inset-x-0 bottom-0 top-[-28px] bg-gradient-to-t from-chat-pane via-chat-pane/90 to-transparent"
         />
         <div
-          className={`relative z-10 flex w-full flex-col gap-1.5 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          className={`relative z-10 flex w-full flex-col gap-1.5 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
         >
           {currentPlanApproval && shouldShowCurrentPlanSurface && (
             <CreatePlanCard

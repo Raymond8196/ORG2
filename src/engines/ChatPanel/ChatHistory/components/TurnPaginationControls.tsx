@@ -19,7 +19,7 @@ import {
 import { HeaderSectionSeparator } from "@src/components/HeaderSectionSeparator";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import {
@@ -202,7 +202,7 @@ const TurnPaginationControls: React.FC<TurnPaginationControlsProps> = memo(
 
     return (
       <div
-        className={`flex h-10 min-h-10 flex-shrink-0 items-center justify-between gap-2 px-2 text-xs text-text-3 ${DETAIL_PANEL_TOKENS.contentWidth}`}
+        className={`flex h-10 min-h-10 flex-shrink-0 items-center justify-between gap-2 px-2 text-xs text-text-3 ${CHAT_PANEL_WIDTH_TOKENS.contentWidth}`}
       >
         <div className="flex min-w-0 flex-1 items-center gap-1.5">
           {hasAgentOrgOverview && (

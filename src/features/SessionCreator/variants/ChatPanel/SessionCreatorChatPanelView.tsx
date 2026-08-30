@@ -9,7 +9,7 @@ import { pillControlStateClass } from "@src/components/CompoundPill/config";
 import InlineAlert from "@src/components/InlineAlert";
 import SelectorPill from "@src/components/SelectorPill";
 import { COMPOSER_HORIZONTAL_GUTTER_CLASS } from "@src/config/composerStackTokens";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
+import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
 import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import CollapsedInlineRow from "@src/engines/ChatPanel/InputArea/components/CollapsedInlineRow";
 import PinnedActionsBar from "@src/engines/ChatPanel/InputArea/components/PinnedActionsBar";
@@ -207,7 +207,7 @@ const SessionCreatorChatPanelView: React.FC<
   const repoPills = (
     <div className="flex w-full justify-center">
       <div
-        className={`flex w-full flex-wrap items-center justify-start gap-0.5 ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+        className={`flex w-full flex-wrap items-center justify-start gap-0.5 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
       >
         {sessionInfoLine}
       </div>
@@ -268,7 +268,7 @@ const SessionCreatorChatPanelView: React.FC<
     (!isLaunchpadLayout || Boolean(multiRunnerContent));
   const sessionSetupActions = !hideSessionSetupControls ? (
     <div
-      className={`mx-auto flex w-full items-center ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+      className={`mx-auto flex w-full items-center ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
       onContextMenu={handlePinnedActionsContextMenu}
     >
       <PinnedActionsBar
@@ -325,7 +325,9 @@ const SessionCreatorChatPanelView: React.FC<
   ) : null;
   const cliVersionWarning =
     !hideSessionSetupControls && cliVersionAlert ? (
-      <div className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}>
+      <div
+        className={`mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
+      >
         <InlineAlert
           type="warning"
           icon={
@@ -459,7 +461,7 @@ const SessionCreatorChatPanelView: React.FC<
           others do not exist. */}
       {multiRunnerContent ? (
         <div
-          className={`session-creator-chat-panel-launchpad-runners mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+          className={`session-creator-chat-panel-launchpad-runners mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
         >
           {multiRunnerContent}
         </div>
@@ -484,7 +486,7 @@ const SessionCreatorChatPanelView: React.FC<
         isLaunchpadWorkItemPickerOpen ? "min-h-0 flex-1 justify-end" : ""
       }`
     : "contents";
-  const composerGroupClassName = `session-creator-chat-panel-fullscreen-composer-group mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth} ${
+  const composerGroupClassName = `session-creator-chat-panel-fullscreen-composer-group mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth} ${
     isLaunchpadWorkItemPickerOpen
       ? "flex min-h-0 flex-1 flex-col justify-end"
       : ""
@@ -527,7 +529,7 @@ const SessionCreatorChatPanelView: React.FC<
       data-testid="session-creator-chat-panel"
     >
       <div
-        className={`session-creator-chat-panel-content flex min-h-0 flex-1 ${COMPOSER_HORIZONTAL_GUTTER_CLASS} ${DETAIL_PANEL_TOKENS.headerWidth} ${
+        className={`session-creator-chat-panel-content flex min-h-0 flex-1 ${COMPOSER_HORIZONTAL_GUTTER_CLASS} ${CHAT_PANEL_WIDTH_TOKENS.headerWidth} ${
           isLaunchpadLayout
             ? `session-creator-chat-panel-launchpad-content flex-col ${CREATOR_BOTTOM_DOCK_PADDING_CLASS}`
             : `items-center justify-center ${
@@ -608,7 +610,7 @@ const SessionCreatorChatPanelView: React.FC<
 
           {!hideSessionSetupControls && showMissingGitAlert && (
             <div
-              className={`mx-auto w-full ${DETAIL_PANEL_TOKENS.contentMaxWidth}`}
+              className={`mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
             >
               <InlineAlert type="warning" title={t("creator.missingGit.title")}>
                 {t("creator.missingGit.body")}
