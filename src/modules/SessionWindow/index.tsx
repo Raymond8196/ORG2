@@ -223,7 +223,6 @@ const SessionWindowContent: React.FC<{ sessionId: string }> = memo(
                 sessionActions.handleOpenExportSessionJson
               }
               handleOpenLinkWorkItem={sessionActions.handleOpenLinkWorkItem}
-              handleOpenRawTranscript={sessionView.showRaw}
               handleOpenSearch={headerActions.handleOpenSearch}
               handlePaginationToggle={headerActions.handlePaginationToggle}
               handleReloadFromMenu={headerActions.handleReloadFromMenu}

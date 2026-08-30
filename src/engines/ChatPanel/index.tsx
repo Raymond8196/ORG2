@@ -80,7 +80,6 @@ import {
 } from "./ChatPanelTabBar";
 // Parked with its header button below.
 // import SessionContinueCliHeaderExtras from "./SessionContinueCliHeaderExtras";
-import SessionOpenInAppHeaderExtras from "./SessionOpenInAppHeaderExtras";
 import {
   SessionAlternateSurface,
   SessionHeaderViewControls,
@@ -599,7 +598,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
         handleOpenExportSessionJson={handleOpenExportSessionJson}
         handleOpenLinkWorkItem={handleOpenLinkWorkItem}
         handleOpenCloudShareSettings={handleOpenCloudShareSettings}
-        handleOpenRawTranscript={sessionView.showRaw}
         handleMoveToWorkstation={handleMoveToWorkstation}
         handleOpenSearch={handleOpenSearch}
         handlePaginationToggle={handlePaginationToggle}
@@ -651,9 +649,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
               sessionId={currentSessionId ?? null}
               onOpenCliTerminal={handleOpenCliTerminal}
             /> */}
-            <SessionOpenInAppHeaderExtras
-              sessionId={currentSessionId ?? null}
-            />
             <SessionForkHeaderExtras session={currentSession ?? null} />
             <SessionRawToolbarActions
               view={sessionView}

@@ -53,7 +53,6 @@ function render({
       handleOpenExportSessionJson: noop,
       handleOpenLinkWorkItem: noop,
       handleOpenCloudShareSettings: noop,
-      handleOpenRawTranscript: noop,
       handleOpenSearch: noop,
       handlePaginationToggle: noop,
       handleReloadFromMenu: noop,
