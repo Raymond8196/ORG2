@@ -79,7 +79,6 @@ const RUST_SCOPES: &str = r#"
 
 (label (identifier) @local.definition.label)
 (lifetime (identifier) @local.definition.lifetime)
-(type_parameters (lifetime (identifier) @local.definition.lifetime))
 
 ;; Imports
 
@@ -96,3 +95,18 @@ const RUST_SCOPES: &str = r#"
 (shorthand_field_identifier) @local.reference
 (lifetime (identifier) @local.reference)
 "#;
+
+#[cfg(test)]
+mod tests {
+    use super::RUST;
+
+    #[test]
+    fn queries_compile_against_the_rust_grammar() {
+        RUST.scope_query
+            .query(RUST.grammar)
+            .expect("Rust scope query should compile");
+        RUST.hoverable_query
+            .query(RUST.grammar)
+            .expect("Rust hoverable query should compile");
+    }
+}
