@@ -487,7 +487,7 @@ const SessionCreatorChatPanelView: React.FC<
         isLaunchpadWorkItemPickerOpen ? "min-h-0 flex-1 justify-end" : ""
       }`
     : "contents";
-  const composerGroupClassName = `session-creator-chat-panel-fullscreen-composer-group mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth} ${
+  const composerGroupClassName = `session-creator-chat-panel-fullscreen-composer-group ${isLaunchpadLayout && !isCliTuiMode ? "composer-bottom-glow" : ""} mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth} ${
     isLaunchpadWorkItemPickerOpen
       ? "flex min-h-0 flex-1 flex-col justify-end"
       : ""

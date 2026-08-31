@@ -149,6 +149,23 @@
     box-shadow: none;
   }
 
+  .session-creator-chat-panel-fullscreen-composer-group {
+    position: relative;
+    border-radius: 12px;
+    background: var(--color-chat-container);
+
+    // Paint the edge shadow over the floating surface and its content (1–2).
+    &::before {
+      position: absolute;
+      inset: 0;
+      z-index: 3;
+      pointer-events: none;
+      content: "";
+      border-radius: inherit;
+      box-shadow: var(--shadow-dropdown-soft);
+    }
+  }
+
   .session-creator-chat-panel-fullscreen-composer {
     position: relative;
   }
@@ -161,17 +178,12 @@
   .session-creator-chat-panel-fullscreen-input-shell {
     background: var(--color-chat-input) !important;
 
-    &:not(.composer-breathing) {
-      box-shadow:
-        0 1px 3px rgba(0, 0, 0, 0.05),
-        0 0 0 1px rgba(0, 0, 0, 0.02) !important;
-
-      &:focus-within {
-        box-shadow:
-          0 0 0 2px color-mix(in srgb, var(--color-primary-6) 15%, transparent),
-          0 1px 3px rgba(0, 0, 0, 0.05),
-          0 0 0 1px rgba(0, 0, 0, 0.02) !important;
-      }
+    // The outer surface owns the shadow and bottom glow. Keep the input's
+    // focus/drag ring without duplicating either decoration on the inner box.
+    &.composer-surface-shadow::before,
+    &.composer-breathing::before,
+    &.composer-breathing::after {
+      content: none;
     }
   }
 
