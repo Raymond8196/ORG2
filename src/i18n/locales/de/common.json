@@ -414,7 +414,8 @@
     "dismiss": "Ignorieren",
     "comingSoon": "Demnächst",
     "clearSelection": "Auswahl löschen",
-    "uiSettings": "Oberflächeneinstellungen"
+    "uiSettings": "Oberflächeneinstellungen",
+    "clearAll": "Alles löschen"
   },
   "refreshToast": {
     "successName": "{{name}} aktualisiert"

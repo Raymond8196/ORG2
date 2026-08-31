@@ -256,7 +256,8 @@
     "dismiss": "Dismiss",
     "comingSoon": "Coming soon",
     "clearSelection": "Clear selection",
-    "uiSettings": "UI settings"
+    "uiSettings": "UI settings",
+    "clearAll": "Clear All"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed"

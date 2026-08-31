@@ -418,7 +418,8 @@
     "dismiss": "Odrzuć",
     "comingSoon": "Wkrótce",
     "clearSelection": "Wyczyść zaznaczenie",
-    "uiSettings": "Ustawienia interfejsu"
+    "uiSettings": "Ustawienia interfejsu",
+    "clearAll": "Wyczyść wszystko"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}"

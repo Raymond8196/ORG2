@@ -414,7 +414,8 @@
     "dismiss": "Yoksay",
     "comingSoon": "Yakında",
     "clearSelection": "Seçimi temizle",
-    "uiSettings": "Arayüz ayarları"
+    "uiSettings": "Arayüz ayarları",
+    "clearAll": "Tümünü temizle"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi"

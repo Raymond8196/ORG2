@@ -412,7 +412,8 @@
     "dismiss": "무시",
     "comingSoon": "출시 예정",
     "clearSelection": "선택 지우기",
-    "uiSettings": "UI 설정"
+    "uiSettings": "UI 설정",
+    "clearAll": "모두 지우기"
   },
   "refreshToast": {
     "successName": "{{name}} 새로고침됨"

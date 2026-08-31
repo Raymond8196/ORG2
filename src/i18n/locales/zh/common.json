@@ -251,7 +251,8 @@
     "dismiss": "忽略",
     "comingSoon": "即将推出",
     "clearSelection": "清除选择",
-    "uiSettings": "界面设置"
+    "uiSettings": "界面设置",
+    "clearAll": "全部清除"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新"

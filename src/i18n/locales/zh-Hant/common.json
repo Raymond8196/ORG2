@@ -414,7 +414,8 @@
     "dismiss": "忽略",
     "comingSoon": "即將推出",
     "clearSelection": "清除選擇",
-    "uiSettings": "介面設定"
+    "uiSettings": "介面設定",
+    "clearAll": "全部清除"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新"

@@ -414,7 +414,8 @@
     "dismiss": "Ignorer",
     "comingSoon": "Bientôt",
     "clearSelection": "Effacer la sélection",
-    "uiSettings": "Paramètres d’interface"
+    "uiSettings": "Paramètres d’interface",
+    "clearAll": "Tout effacer"
   },
   "refreshToast": {
     "successName": "{{name}} actualisé"

@@ -418,7 +418,8 @@
     "dismiss": "Отклонить",
     "comingSoon": "Скоро",
     "clearSelection": "Очистить выбор",
-    "uiSettings": "Настройки интерфейса"
+    "uiSettings": "Настройки интерфейса",
+    "clearAll": "Очистить всё"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено"

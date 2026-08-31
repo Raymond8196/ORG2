@@ -412,7 +412,8 @@
     "dismiss": "閉じる",
     "comingSoon": "近日公開",
     "clearSelection": "選択をクリア",
-    "uiSettings": "UI 設定"
+    "uiSettings": "UI 設定",
+    "clearAll": "すべてクリア"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました"

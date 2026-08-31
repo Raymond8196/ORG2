@@ -412,7 +412,8 @@
     "dismiss": "Bỏ qua",
     "comingSoon": "Sắp ra mắt",
     "clearSelection": "Xóa lựa chọn",
-    "uiSettings": "Cài đặt giao diện"
+    "uiSettings": "Cài đặt giao diện",
+    "clearAll": "Xóa tất cả"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}"
