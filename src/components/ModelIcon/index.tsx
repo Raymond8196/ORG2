@@ -22,6 +22,7 @@
 import React, { memo, useMemo } from "react";
 
 import type { ModelType } from "@src/api/types/keys";
+import { DECORATIVE_ICON_CLASS } from "@src/config/appearance/decorativeIcons";
 import {
   getModelAliasIcon,
   useModelAliasRegistryVersion,
@@ -141,6 +142,12 @@ const ModelIcon: React.FC<ModelIconProps> = memo(
 
     const monochromeClass = monochrome ? "brightness-0 invert" : "";
 
+    // Themeable icons already draw in currentColor, and the `monochrome` prop
+    // (white-on-dark tooltips) is a stronger, deliberate override. Only brand
+    // artwork left in its own palette is subject to the monochrome setting.
+    const decorativeClass =
+      isThemeable || monochrome ? "" : DECORATIVE_ICON_CLASS;
+
     // No icon found
     if (!Icon) {
       if (fallback) {
@@ -163,7 +170,7 @@ const ModelIcon: React.FC<ModelIconProps> = memo(
       <Icon
         width={numericSize}
         height={numericSize}
-        className={`${colorClass} ${monochromeClass} ${className}`.trim()}
+        className={`${colorClass} ${monochromeClass} ${decorativeClass} ${className}`.trim()}
         style={style}
       />
     );
