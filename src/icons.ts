@@ -310,6 +310,7 @@ export { default as MessageCircleMoreIcon } from "@hugeicons/core-free-icons/Mes
 export { default as MessageCircleQuestionMarkIcon } from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
 export { default as MessageCircleWarningIcon } from "@hugeicons/core-free-icons/MessageCircleWarningIcon";
 export { default as MessageMultiple01Icon } from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+export { default as MessagesSquareIcon } from "@hugeicons/core-free-icons/MessagesSquareIcon";
 export { default as MessageSquareMoreIcon } from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
 export { default as MessageSquareReplyIcon } from "@hugeicons/core-free-icons/MessageSquareReplyIcon";
 export { default as Mic01Icon } from "@hugeicons/core-free-icons/Mic01Icon";
