@@ -8,7 +8,7 @@
 import {
   Infinity01Icon,
   CloudIcon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   LaptopIcon,
   ListTodoIcon,
   Search01Icon,
@@ -163,7 +163,7 @@ export const COMPOSER_MODES: ComposerModeEntry[] = [
   ...AGENT_EXEC_MODES,
   {
     id: PRODUCT_MODE_PROJECT,
-    icon: FolderKanbanIcon,
+    icon: DeliveryBox01Icon,
     i18nKey: "planner.modes.project",
     name: "Project",
     description:

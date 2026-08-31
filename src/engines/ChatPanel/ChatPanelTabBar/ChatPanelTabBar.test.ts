@@ -131,7 +131,7 @@ describe("ChatPanelTabBar", () => {
     expect(markup).toContain('data-icon="square-pen"');
   });
 
-  it("uses the GitHub SVG for a GitHub-imported project tab", () => {
+  it("uses the project icon for a GitHub-imported project tab", () => {
     const store = createStore();
     store.set(chatPanelTabsAtom, {
       tabs: [
@@ -154,8 +154,8 @@ describe("ChatPanelTabBar", () => {
       createElement(Provider, { store }, createElement(ChatPanelTabBar))
     );
 
-    expect(markup).toContain('data-integration-icon="github"');
-    expect(markup).toContain('data-icon-size="16"');
+    expect(markup).toContain('data-icon="box"');
+    expect(markup).not.toContain('data-integration-icon="github"');
   });
 
   it("uses the localized project label in the Workstation-style tab", () => {
@@ -167,7 +167,7 @@ describe("ChatPanelTabBar", () => {
     );
 
     expect(markup).toContain("sessions:creator.createTarget.project");
-    expect(markup).toContain('data-icon="package-add"');
+    expect(markup).toContain('data-icon="box"');
     expect(markup).toContain("work-station-editor-tab");
   });
 

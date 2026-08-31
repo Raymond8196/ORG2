@@ -18,7 +18,7 @@ import { ACTION_ID } from "@src/ActionSystem";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import {
   AiGenerativeIcon,
-  BoxIcon,
+  DeliveryBox01Icon,
   DockIcon,
   FolderAddIcon,
   FolderGitTwoIcon,
@@ -128,7 +128,7 @@ export const AGENT_SESSION_ACTIONS = [
   {
     id: "create-project",
     labelKey: "selectors.spotlight.actions.createProject.label",
-    icon: BoxIcon,
+    icon: DeliveryBox01Icon,
     keywords: ["create project", "new project", "add project", "project"],
     actionId: ACTION_ID.WORKSTATION_CREATE_PROJECT,
     payload: {},

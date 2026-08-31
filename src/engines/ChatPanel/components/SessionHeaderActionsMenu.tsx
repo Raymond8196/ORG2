@@ -20,7 +20,7 @@ import {
   AppWindowMacIcon,
   Copy01Icon,
   CursorInWindowIcon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   FolderOutputIcon,
   HugeiconsIcon,
   Link01Icon,
@@ -454,8 +454,8 @@ export const SessionHeaderActionsMenu: React.FC<
                 dataTestId="session-track-as-project-button"
                 icon={
                   <HugeiconsIcon
-                    icon={FolderKanbanIcon}
-                    data-icon="folder-kanban"
+                    icon={DeliveryBox01Icon}
+                    data-icon="box"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                   />

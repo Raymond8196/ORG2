@@ -17,8 +17,7 @@ import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useRefreshSpin } from "@src/hooks/ui";
 import {
   Add01Icon,
-  BoxIcon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   GithubIcon,
   HugeiconsIcon,
   ImportIcon,
@@ -281,7 +280,7 @@ const CreateActionsDropdown: React.FC<CreateActionsDropdownProps> = ({
               role="menuitem"
             >
               <HugeiconsIcon
-                icon={BoxIcon}
+                icon={DeliveryBox01Icon}
                 data-icon="box"
                 size={ACTION_ICON_SIZE}
                 strokeWidth={ACTION_ICON_STROKE}
@@ -376,7 +375,7 @@ export function useProjectsTabConfig({
         key: "create-project",
         icon: (
           <HugeiconsIcon
-            icon={BoxIcon}
+            icon={DeliveryBox01Icon}
             data-icon="box"
             size={ACTION_ICON_SIZE}
             strokeWidth={ACTION_ICON_STROKE}
@@ -481,8 +480,8 @@ export function useProjectsTabConfig({
       label: t("labels.projects"),
       icon: (
         <HugeiconsIcon
-          icon={FolderKanbanIcon}
-          data-icon="folder-kanban"
+          icon={DeliveryBox01Icon}
+          data-icon="box"
           size={TAB_ICON_SIZE}
         />
       ),

@@ -20,7 +20,7 @@ import { useTranslation } from "react-i18next";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
 import {
   Add01Icon,
-  CodeIcon,
+  CodeXmlIcon,
   FilterIcon,
   HugeiconsIcon,
   InternetIcon,
@@ -353,7 +353,7 @@ export const BrowserPrimarySidebar: React.FC<BrowserPrimarySidebarProps> = memo(
               title: t("labels.globalTokens"),
               icon: (
                 <HugeiconsIcon
-                  icon={CodeIcon}
+                  icon={CodeXmlIcon}
                   data-icon="code-2"
                   size={14}
                   strokeWidth={1.75}

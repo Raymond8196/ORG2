@@ -20,7 +20,7 @@ import {
 import { useRefreshSpin } from "@src/hooks/ui";
 import {
   Add01Icon,
-  BoxesIcon,
+  DeliveryBox01Icon,
   HugeiconsIcon,
   ListChevronsDownUpIcon,
   Refresh04Icon,
@@ -87,8 +87,8 @@ const ProjectsPageHeader: React.FC<ProjectsPageHeaderProps> = ({
             ...segment,
             icon: segment.icon ?? (
               <HugeiconsIcon
-                icon={BoxesIcon}
-                data-icon="boxes"
+                icon={DeliveryBox01Icon}
+                data-icon="box"
                 size={HEADER_ICON_SIZE.sm}
                 strokeWidth={1.75}
               />

@@ -11,12 +11,7 @@ import {
   type FlattenedTreeNode,
   VirtualizedStickyTree,
 } from "@src/components/VirtualizedStickyTree";
-import {
-  BookOpen01Icon,
-  BoxIcon,
-  HugeiconsIcon,
-  ListChecksIcon,
-} from "@src/icons";
+import { DeliveryBox01Icon, HugeiconsIcon, ListChecksIcon } from "@src/icons";
 
 export interface LinearProjectSelection {
   connectionId: string;
@@ -79,8 +74,8 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             type: "file",
             icon: (
               <HugeiconsIcon
-                icon={BookOpen01Icon}
-                data-icon="book-open"
+                icon={DeliveryBox01Icon}
+                data-icon="box"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}
               />
@@ -115,7 +110,7 @@ export const WorkspaceTreeContent: React.FC<WorkspaceTreeContentProps> = memo(
             type: "file",
             icon: (
               <HugeiconsIcon
-                icon={BoxIcon}
+                icon={DeliveryBox01Icon}
                 data-icon="box"
                 size={ROW_ICON_SIZE}
                 strokeWidth={ROW_ICON_STROKE}

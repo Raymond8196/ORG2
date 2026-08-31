@@ -9,9 +9,8 @@ import { useTranslation } from "react-i18next";
 import { STORY_SYNC_ADAPTER } from "@src/api/http/integrations/syncConnections";
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
-import IntegrationIcon from "@src/components/IntegrationIcon";
 import {
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   HugeiconsIcon,
   ListChecksIcon,
   TimeScheduleIcon,
@@ -173,20 +172,12 @@ const ProjectRow: React.FC<ProjectRowProps> = ({
             className="flex h-7 w-7 items-center justify-center text-text-3"
             data-project-source-icon={isGitHubSource ? "github" : "local"}
           >
-            {isGitHubSource ? (
-              <IntegrationIcon
-                type={STORY_SYNC_ADAPTER.GITHUB}
-                size={14}
-                className="text-text-2"
-              />
-            ) : (
-              <HugeiconsIcon
-                icon={FolderKanbanIcon}
-                data-icon="folder-kanban"
-                size={14}
-                strokeWidth={1.75}
-              />
-            )}
+            <HugeiconsIcon
+              icon={DeliveryBox01Icon}
+              data-icon="box"
+              size={14}
+              strokeWidth={1.75}
+            />
           </div>
         </div>
 

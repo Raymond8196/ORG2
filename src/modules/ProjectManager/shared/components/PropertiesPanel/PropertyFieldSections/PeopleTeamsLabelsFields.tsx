@@ -17,7 +17,7 @@ import {
 } from "@src/components/PropertyField/PropertyFieldEditable";
 import {
   Airplane01Icon,
-  CodeIcon,
+  CodeXmlIcon,
   HugeiconsIcon,
   Tag01Icon,
   UserIcon,
@@ -384,7 +384,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
           <FieldRow
             icon={
               <HugeiconsIcon
-                icon={CodeIcon}
+                icon={CodeXmlIcon}
                 data-icon="code-2"
                 size={DROPDOWN_ITEM.iconSize}
               />
@@ -430,7 +430,7 @@ const PeopleTeamsLabelsFields: React.FC<PeopleTeamsLabelsFieldsProps> = ({
                       onClick={() => handleLinkedRepoToggle(repo)}
                     >
                       <HugeiconsIcon
-                        icon={CodeIcon}
+                        icon={CodeXmlIcon}
                         data-icon="code-2"
                         size={DROPDOWN_ITEM.iconSize}
                         className="text-text-3"

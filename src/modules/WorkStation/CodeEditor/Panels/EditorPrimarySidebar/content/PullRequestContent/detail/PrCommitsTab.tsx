@@ -23,7 +23,7 @@ import {
   CancelCircleIcon,
   CheckmarkCircle01Icon,
   CircleDotDashedIcon,
-  CodeIcon,
+  CodeXmlIcon,
   Copy01Icon,
   GitCommitHorizontalIcon,
   HugeiconsIcon,
@@ -283,7 +283,7 @@ function PrCommitCard({
         <ActivityHeaderActionButton
           icon={
             <HugeiconsIcon
-              icon={CodeIcon}
+              icon={CodeXmlIcon}
               data-icon="code-2"
               size={14}
               strokeWidth={1.75}

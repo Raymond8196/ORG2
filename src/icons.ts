@@ -140,7 +140,7 @@ export { default as CloudDownloadIcon } from "@hugeicons/core-free-icons/CloudDo
 export { default as CloudIcon } from "@hugeicons/core-free-icons/CloudIcon";
 export { default as CloudLoadingIcon } from "@hugeicons/core-free-icons/CloudLoadingIcon";
 export { default as CloudUploadIcon } from "@hugeicons/core-free-icons/CloudUploadIcon";
-export { default as CodeIcon } from "@hugeicons/core-free-icons/CodeIcon";
+export { default as CodeXmlIcon } from "@hugeicons/core-free-icons/CodeXmlIcon";
 export { default as ContentWritingIcon } from "@hugeicons/core-free-icons/ContentWritingIcon";
 export { default as Coffee01Icon } from "@hugeicons/core-free-icons/Coffee01Icon";
 export { default as CogIcon } from "@hugeicons/core-free-icons/CogIcon";
@@ -171,6 +171,7 @@ export { default as DashboardSquare01Icon } from "@hugeicons/core-free-icons/Das
 export { default as DatabaseIcon } from "@hugeicons/core-free-icons/DatabaseIcon";
 export { default as Delete01Icon } from "@hugeicons/core-free-icons/Delete01Icon";
 export { default as Delete02Icon } from "@hugeicons/core-free-icons/Delete02Icon";
+export { default as DeliveryBox01Icon } from "@hugeicons/core-free-icons/DeliveryBox01Icon";
 export { default as DiamondIcon } from "@hugeicons/core-free-icons/DiamondIcon";
 export { default as DockIcon } from "@hugeicons/core-free-icons/DockIcon";
 export { default as Download01Icon } from "@hugeicons/core-free-icons/Download01Icon";
@@ -431,6 +432,7 @@ export { default as Timer01Icon } from "@hugeicons/core-free-icons/Timer01Icon";
 export { default as ToolboxIcon } from "@hugeicons/core-free-icons/ToolboxIcon";
 export { default as TrelloIcon } from "@hugeicons/core-free-icons/TrelloIcon";
 export { default as TriangleAlertIcon } from "@hugeicons/core-free-icons/TriangleAlertIcon";
+export { default as TwentyFourHoursClockIcon } from "@hugeicons/core-free-icons/TwentyFourHoursClockIcon";
 export { default as TypeIcon } from "@hugeicons/core-free-icons/TypeIcon";
 export { default as Undo02Icon } from "@hugeicons/core-free-icons/Undo02Icon";
 export { default as UnfoldMoreIcon } from "@hugeicons/core-free-icons/UnfoldMoreIcon";

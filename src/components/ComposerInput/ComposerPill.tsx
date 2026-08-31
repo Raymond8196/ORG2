@@ -29,10 +29,10 @@ import { PILL_SIZE, readPillText } from "@src/config/pillTokens";
 import {
   AtIcon,
   Cancel01Icon,
-  CodeIcon,
+  CodeXmlIcon,
   ComputerTerminal01Icon,
   Cursor02Icon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   GitPullRequestIcon,
   HugeiconsIcon,
   InternetIcon,
@@ -332,7 +332,11 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
         }
         if (iconType === "repo")
           return (
-            <HugeiconsIcon icon={CodeIcon} data-icon="code" {...ICON_PROPS} />
+            <HugeiconsIcon
+              icon={CodeXmlIcon}
+              data-icon="code"
+              {...ICON_PROPS}
+            />
           );
         if (iconType === "pr")
           return (
@@ -382,8 +386,8 @@ const ComposerPill: React.FC<ComposerPillProps> = ({
       case "project":
         return (
           <HugeiconsIcon
-            icon={FolderKanbanIcon}
-            data-icon="folder-kanban"
+            icon={DeliveryBox01Icon}
+            data-icon="box"
             {...ICON_PROPS}
           />
         );

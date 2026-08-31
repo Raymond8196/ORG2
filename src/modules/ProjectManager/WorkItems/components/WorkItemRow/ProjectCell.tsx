@@ -4,7 +4,7 @@ import {
 } from "@src/components/Dropdown/tokens";
 import { PropertyDropdownField } from "@src/components/PropertyField/PropertyDropdownField";
 import { Option } from "@src/components/PropertyField/PropertyFieldEditable";
-import { Book02Icon, BookOpen01Icon, HugeiconsIcon } from "@src/icons";
+import { Book02Icon, DeliveryBox01Icon, HugeiconsIcon } from "@src/icons";
 import type { WorkItemProject } from "@src/types/core/workItem";
 
 interface ProjectCellProps {
@@ -33,8 +33,8 @@ export function ProjectCell({
       icon={
         project ? (
           <HugeiconsIcon
-            icon={BookOpen01Icon}
-            data-icon="book-open"
+            icon={DeliveryBox01Icon}
+            data-icon="box"
             size={DROPDOWN_ITEM.iconSize}
           />
         ) : (
@@ -93,8 +93,8 @@ export function ProjectCell({
                 key={projectItem.id}
                 icon={
                   <HugeiconsIcon
-                    icon={BookOpen01Icon}
-                    data-icon="book-open"
+                    icon={DeliveryBox01Icon}
+                    data-icon="box"
                     size={DROPDOWN_ITEM.iconSize}
                   />
                 }

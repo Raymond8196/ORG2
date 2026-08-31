@@ -6,7 +6,7 @@ import {
   Cardiogram01Icon,
   CircleDotIcon,
   CircleIcon,
-  CodeIcon,
+  CodeXmlIcon,
   Copy01Icon,
   Delete02Icon,
   Flag01Icon,
@@ -161,7 +161,7 @@ function createRepoSubmenu(
     id: `repo-${repo.id}`,
     label: getRepoDisplayName(repo),
     icon: createElement(HugeiconsIcon, {
-      icon: CodeIcon,
+      icon: CodeXmlIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     secondary: selectedRepoIds.has(repo.id) ? "✓" : undefined,
@@ -398,7 +398,7 @@ export function getProjectPropertyContextMenuItems({
       id: "linkedRepos",
       label: t("properties.repos"),
       icon: createElement(HugeiconsIcon, {
-        icon: CodeIcon,
+        icon: CodeXmlIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.linkedRepos?.length

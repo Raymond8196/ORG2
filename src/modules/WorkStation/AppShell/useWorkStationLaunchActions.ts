@@ -17,7 +17,7 @@ import { useTranslation } from "react-i18next";
 
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import {
-  BoxIcon,
+  DeliveryBox01Icon,
   FileDiffIcon,
   FileSearchIcon,
   FolderClosedIcon,
@@ -171,7 +171,7 @@ export function useWorkStationLaunchActions(): WorkStationLaunchAction[] {
       },
       {
         id: "projects",
-        icon: BoxIcon,
+        icon: DeliveryBox01Icon,
         label: t("workstation.plusMenu.projects"),
         onClick: () =>
           openTabInMainPane(

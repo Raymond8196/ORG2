@@ -7,7 +7,7 @@ import { WORK_MANAGEMENT_DATASET } from "./workManagementDataset";
 
 describe("WorkManagementDatasetSwitch", () => {
   it.each([
-    [WORK_MANAGEMENT_DATASET.PROJECTS, 'data-icon="boxes"'],
+    [WORK_MANAGEMENT_DATASET.PROJECTS, 'data-icon="box"'],
     [WORK_MANAGEMENT_DATASET.WORK_ITEMS, 'data-icon="list-todo"'],
     [WORK_MANAGEMENT_DATASET.GITHUB_ISSUES, 'data-icon="circle-dot"'],
     [WORK_MANAGEMENT_DATASET.REVIEWS, 'data-icon="git-pull-request"'],

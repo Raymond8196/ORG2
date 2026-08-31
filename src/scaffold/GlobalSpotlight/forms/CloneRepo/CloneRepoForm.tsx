@@ -15,7 +15,7 @@ import { Placeholder } from "@src/components/Placeholder";
 import Radio from "@src/components/Radio";
 import { buildIntegrationsPath } from "@src/config/mainAppPaths";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   FilterIcon,
   FolderClosedIcon,
   FolderOpenIcon,
@@ -235,7 +235,7 @@ const CloneRepoForm: React.FC<CloneRepoFormProps> = ({
                 className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
                 prefix={
                   <HugeiconsIcon
-                    icon={CodeIcon}
+                    icon={CodeXmlIcon}
                     data-icon="code"
                     className="text-[16px] text-text-2"
                   />

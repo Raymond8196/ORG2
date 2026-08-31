@@ -13,7 +13,7 @@ import { useTranslation } from "react-i18next";
 import AnyIcon from "@src/components/AnyIcon";
 import Select, { type SelectOption } from "@src/components/Select";
 import {
-  BoxIcon,
+  DeliveryBox01Icon,
   FolderClosedIcon,
   HugeiconsIcon,
   Layers01Icon,
@@ -70,7 +70,7 @@ const CATEGORY_OPTION_KEYS = [
   {
     value: "project" as const,
     i18nKey: "scope.categories.projects",
-    icon: BoxIcon,
+    icon: DeliveryBox01Icon,
   },
   {
     value: "workitem" as const,
@@ -210,7 +210,7 @@ const ScopeInfoLine: React.FC<ScopeInfoLineProps> = ({
             label: project.name,
             icon: (
               <HugeiconsIcon
-                icon={BoxIcon}
+                icon={DeliveryBox01Icon}
                 data-icon="box"
                 size={14}
                 className="shrink-0"
