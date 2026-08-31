@@ -125,7 +125,7 @@ pnpm run download:sidecars
 pnpm run tauri:dev
 ```
 
-Więcej szczegółów dotyczących wkładu znajdziesz w [CONTRIBUTING.md](../../CONTRIBUTING.md). Prosimy wszystkich o szacunek i empatię; zobacz [CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md).
+Więcej szczegółów dotyczących wkładu znajdziesz w [CONTRIBUTING.md](../../.github/CONTRIBUTING.md). Prosimy wszystkich o szacunek i empatię; zobacz [CODE_OF_CONDUCT.md](../../.github/CODE_OF_CONDUCT.md).
 
 ## Opcjonalne natywne sidecars
 

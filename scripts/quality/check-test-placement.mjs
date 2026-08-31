@@ -3,7 +3,7 @@
 /**
  * Fails when a directory mixes the two test-placement conventions.
  *
- * `CONTRIBUTING.md` ("Where tests live") allows either style — a test colocated
+ * `.github/CONTRIBUTING.md` ("Where tests live") allows either style — a test colocated
  * beside its source, or one inside a `__tests__/` subdirectory — but requires a
  * directory to pick one. A directory holding both leaves no way to tell where a
  * new test belongs, which is how the repo drifted to 53 mixed directories before
@@ -61,7 +61,7 @@ console.error(
   `${mixed.length} director${mixed.length === 1 ? "y mixes" : "ies mix"} both test-placement conventions.`
 );
 console.error(
-  `Each directory must pick one — see CONTRIBUTING.md "Where tests live".\n`
+  `Each directory must pick one — see .github/CONTRIBUTING.md "Where tests live".\n`
 );
 
 for (const [owner, { colocated, testsDir }] of mixed) {

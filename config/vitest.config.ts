@@ -1,11 +1,14 @@
 import path from "path";
 import { defineConfig } from "vitest/config";
 
+const repoRoot = path.resolve(__dirname, "..");
+
 export default defineConfig({
+  root: repoRoot,
   resolve: {
     alias: {
-      "@src": path.resolve(__dirname, "src"),
-      "@": path.resolve(__dirname),
+      "@src": path.resolve(repoRoot, "src"),
+      "@": repoRoot,
     },
   },
   test: {
