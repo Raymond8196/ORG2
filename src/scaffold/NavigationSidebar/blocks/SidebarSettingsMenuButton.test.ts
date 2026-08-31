@@ -14,6 +14,11 @@ import {
 } from "vitest";
 
 import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
+import {
+  ORG2_CLOUD_AUTH_STORAGE_KEY,
+  org2CloudAuthAtom,
+} from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import * as entitlementCoordinator from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 
 import SidebarSettingsMenuButton from "./SidebarSettingsMenuButton";
@@ -101,6 +106,7 @@ describe("SidebarSettingsMenuButton", () => {
 
   beforeEach(async () => {
     store = createStore();
+    store.set(org2CloudAuthAtom, null);
     store.set(devModeEnabledAtom, true);
     container = document.createElement("div");
     document.body.appendChild(container);
@@ -128,7 +134,7 @@ describe("SidebarSettingsMenuButton", () => {
     Reflect.deleteProperty(reactActEnvironment, "IS_REACT_ACT_ENVIRONMENT");
   });
 
-  it("keeps the Changelog placeholder hidden while Tutorials remains available", () => {
+  it("omits ADE Manager, Tutorials, and the Changelog placeholder", () => {
     const buttons = Array.from(document.body.querySelectorAll("button"));
     const changelogButton = buttons.find(
       (button) => button.textContent === "routes.changelog"
@@ -136,9 +142,13 @@ describe("SidebarSettingsMenuButton", () => {
     const tutorialButton = buttons.find(
       (button) => button.textContent === "sidebar.settingsMenu.tutorials"
     );
+    const adeManagerButton = buttons.find(
+      (button) => button.textContent === "common:adeManager.menuToggle"
+    );
 
     expect(changelogButton).toBeUndefined();
-    expect(tutorialButton).toBeDefined();
+    expect(tutorialButton).toBeUndefined();
+    expect(adeManagerButton).toBeUndefined();
   });
 
   it("does not expose the retired setup walkthrough", () => {
@@ -151,7 +161,7 @@ describe("SidebarSettingsMenuButton", () => {
     expect(setupButton).toBeUndefined();
   });
 
-  it("supports an account trigger with a signed-out login action", async () => {
+  it("puts login last in the signed-out account menu", async () => {
     const onSignIn = vi.fn();
 
     await act(async () => {
@@ -186,10 +196,71 @@ describe("SidebarSettingsMenuButton", () => {
       '[data-testid="sidebar-menu-sign-in"]'
     );
     expect(signIn?.textContent).toBe("cloud.signIn");
+    expect(
+      Array.from(signIn!.parentElement!.querySelectorAll("button")).at(-1)
+    ).toBe(signIn);
+    expect(
+      document.querySelector('[data-testid="sidebar-menu-sign-out"]')
+    ).toBeNull();
 
     act(() => signIn?.click());
     expect(mocks.closeDropdown).toHaveBeenCalledOnce();
     expect(onSignIn).toHaveBeenCalledOnce();
+  });
+
+  it("puts logout first and clears the persisted account before showing login", async () => {
+    const onSignIn = vi.fn();
+    const resetEntitlements = vi.spyOn(
+      entitlementCoordinator,
+      "resetOrgEntitlementCoordinator"
+    );
+
+    await act(async () => {
+      store.set(org2CloudAuthAtom, {
+        kind: "org2_cloud",
+        supabaseUrl: "https://cloud.example.test",
+        supabaseAnonKey: "test-anon-key",
+        userId: "user-1",
+        accessToken: "test-access-token",
+        refreshToken: "test-refresh-token",
+        expiresAt: 2_000_000_000,
+      });
+      root.render(
+        React.createElement(
+          Provider,
+          { store },
+          React.createElement(SidebarSettingsMenuButton, { onSignIn })
+        )
+      );
+    });
+
+    const signOut = document.querySelector<HTMLButtonElement>(
+      '[data-testid="sidebar-menu-sign-out"]'
+    );
+    expect(signOut?.textContent).toBe("cloud.signOut");
+    expect(signOut!.parentElement!.querySelector("button")).toBe(signOut);
+    expect(
+      document.querySelector('[data-testid="sidebar-menu-sign-in"]')
+    ).toBeNull();
+
+    await act(async () => signOut!.click());
+
+    expect(mocks.closeDropdown).toHaveBeenCalledOnce();
+    expect(resetEntitlements).toHaveBeenCalledOnce();
+    expect(resetEntitlements).toHaveBeenCalledWith(store);
+    expect(store.get(org2CloudAuthAtom)).toBeNull();
+    expect(localStorage.getItem(ORG2_CLOUD_AUTH_STORAGE_KEY)).toBe("null");
+    expect(
+      document.querySelector('[data-testid="sidebar-menu-sign-out"]')
+    ).toBeNull();
+    const signIn = document.querySelector<HTMLButtonElement>(
+      '[data-testid="sidebar-menu-sign-in"]'
+    );
+    expect(signIn).not.toBeNull();
+    expect(
+      Array.from(signIn!.parentElement!.querySelectorAll("button")).at(-1)
+    ).toBe(signIn);
+    expect(onSignIn).not.toHaveBeenCalled();
   });
 
   it("does not expose onboarding development simulations", () => {
