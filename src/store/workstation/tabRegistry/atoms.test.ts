@@ -120,7 +120,7 @@ describe("live shared-resource close semantics", () => {
 
   function sharedTab(
     id: string,
-    type: "settings" | "terminal"
+    type: "project-settings" | "terminal"
   ): WorkStationTab {
     return { id, type, title: id, data: {} };
   }
@@ -180,7 +180,7 @@ describe("live shared-resource close semantics", () => {
     const browserA = createBrowserSessionTab("browser-1", "One");
     const browserB = createBrowserSessionTab("browser-2", "Two");
     const terminal = sharedTab("terminal:main", "terminal");
-    const settings = sharedTab("settings:main", "settings");
+    const settings = sharedTab("project-settings:main", "project-settings");
     const dirtyFile = fileTab("file:/dirty.ts", true);
     store.set(workstationLayoutAtom, {
       mainPane: {
@@ -204,7 +204,7 @@ describe("live shared-resource close semantics", () => {
     const browserA = createBrowserSessionTab("browser-1", "One");
     const browserB = createBrowserSessionTab("browser-2", "Two");
     const terminal = sharedTab("terminal:main", "terminal");
-    const settings = sharedTab("settings:main", "settings");
+    const settings = sharedTab("project-settings:main", "project-settings");
     store.set(workstationLayoutAtom, {
       mainPane: {
         tabs: [browserA, browserB, terminal, settings],
