@@ -23,6 +23,7 @@ export class ActiveSessionError extends Error {
 }
 
 export function resolveDiagnosticPaths(repoRoot, options = {}) {
+  // Retain the existing state path so the rename cannot split recording ownership.
   const stateRoot = path.resolve(
     options.stateRoot ?? path.join(repoRoot, ".orgii", "diagnostics")
   );
@@ -59,7 +60,9 @@ function assertActiveState(value) {
     typeof value.rootProcess?.startToken !== "string" ||
     !path.isAbsolute(value.sessionDir)
   ) {
-    throw new ActiveSessionError("活动会话状态已损坏，无法安全操作");
+    throw new ActiveSessionError(
+      "Active session state is corrupt; refusing to proceed"
+    );
   }
   return value;
 }
@@ -70,7 +73,9 @@ export async function readActiveState(activePath) {
   } catch (error) {
     if (error.code === "ENOENT") return undefined;
     if (error instanceof ActiveSessionError) throw error;
-    throw new ActiveSessionError(`无法读取活动会话：${error.message}`);
+    throw new ActiveSessionError(
+      `Cannot read active session: ${error.message}`
+    );
   }
 }
 
@@ -114,7 +119,7 @@ export async function claimActiveSession(paths, active) {
       const inspection = await inspectActiveState(paths.activePath);
       if (inspection.state === "recording") {
         throw new ActiveSessionError(
-          `已有录制会话 ${inspection.active.sessionId}（记录器 PID ${inspection.active.recorder.pid}）`
+          `Session ${inspection.active.sessionId} is already recording (recorder PID ${inspection.active.recorder.pid})`
         );
       }
       const stalePath = path.join(
@@ -128,7 +133,9 @@ export async function claimActiveSession(paths, active) {
       }
     }
   }
-  throw new ActiveSessionError("无法取得诊断录制所有权，请重试");
+  throw new ActiveSessionError(
+    "Cannot claim diagnostic recording ownership; please retry"
+  );
 }
 
 export async function removeActiveStateIfOwned(activePath, sessionId) {
@@ -141,11 +148,11 @@ export async function removeActiveStateIfOwned(activePath, sessionId) {
 export async function requireLiveActiveSession(activePath) {
   const inspection = await inspectActiveState(activePath);
   if (inspection.state === "idle") {
-    throw new ActiveSessionError("当前没有正在录制的诊断会话");
+    throw new ActiveSessionError("No diagnostic recording session is active");
   }
   if (inspection.state === "stale") {
     throw new ActiveSessionError(
-      `会话 ${inspection.active.sessionId} 的记录器已退出；请重新执行 record`
+      `The recorder for session ${inspection.active.sessionId} has exited; run record again`
     );
   }
   return inspection.active;
@@ -213,14 +220,16 @@ export async function resolveReportSessionDir(paths, requestedPath) {
   if (requestedPath) {
     const resolved = path.resolve(requestedPath);
     const info = await stat(resolved);
-    if (!info.isDirectory()) throw new Error(`不是会话目录：${resolved}`);
+    if (!info.isDirectory())
+      throw new Error(`Not a session directory: ${resolved}`);
     return resolved;
   }
   let entries;
   try {
     entries = await readdir(paths.outputRoot, { withFileTypes: true });
   } catch (error) {
-    if (error.code === "ENOENT") throw new Error("还没有诊断会话可生成报告");
+    if (error.code === "ENOENT")
+      throw new Error("No diagnostic sessions are available to report");
     throw error;
   }
   const directories = await Promise.all(
@@ -232,6 +241,7 @@ export async function resolveReportSessionDir(paths, requestedPath) {
       })
   );
   directories.sort((left, right) => right.modifiedAt - left.modifiedAt);
-  if (!directories[0]) throw new Error("还没有诊断会话可生成报告");
+  if (!directories[0])
+    throw new Error("No diagnostic sessions are available to report");
   return directories[0].directory;
 }

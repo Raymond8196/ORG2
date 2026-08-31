@@ -63,7 +63,8 @@ export async function recordMemorySession(options) {
   const initialRows = await collectProcessTable();
   const root = resolveRootProcess(initialRows, options.pid, options.repoRoot);
   const recorder = initialRows.find((row) => row.pid === process.pid);
-  if (!recorder) throw new Error("无法读取诊断记录器自身的进程身份");
+  if (!recorder)
+    throw new Error("Cannot read the diagnostic recorder's process identity");
 
   const sessionId = createSessionId();
   const sessionDir = path.join(paths.outputRoot, sessionId);
@@ -128,7 +129,7 @@ export async function recordMemorySession(options) {
     waiter.observe(sessionDir);
     await writeJsonAtomic(path.join(sessionDir, "session.json"), session);
     process.stdout.write(
-      `录制已开始：${sessionId}\n根进程：PID ${root.pid}\n产物目录：${sessionDir}\n`
+      `Recording started: ${sessionId}\nRoot process: PID ${root.pid}\nOutput directory: ${sessionDir}\n`
     );
 
     while (sequence < options.maxSamples) {
@@ -161,7 +162,7 @@ export async function recordMemorySession(options) {
         }
         consecutiveErrors = 0;
         process.stdout.write(
-          `样本 ${sequence}/${options.maxSamples}：${formatMiB(sample.totalRssBytes)}，${sample.processes.length} 个进程，归因 ${sample.attribution}\n`
+          `Sample ${sequence}/${options.maxSamples}: ${formatMiB(sample.totalRssBytes)}, ${sample.processes.length} processes, attribution ${sample.attribution}\n`
         );
       } catch (error) {
         consecutiveErrors += 1;
@@ -173,7 +174,7 @@ export async function recordMemorySession(options) {
           error: error.message,
           processes: [],
         });
-        process.stderr.write(`样本 ${sequence} 失败：${error.message}\n`);
+        process.stderr.write(`Sample ${sequence} failed: ${error.message}\n`);
         if (consecutiveErrors >= 3) {
           stopReason = "three_consecutive_sample_errors";
           break;
@@ -226,9 +227,9 @@ export async function recordMemorySession(options) {
   }
 
   if (fatalError) throw fatalError;
-  if (!report) throw new Error("诊断录制未生成报告");
+  if (!report) throw new Error("Diagnostic recording did not produce a report");
   process.stdout.write(
-    `录制已结束：${stopReason}\n报告：${report.files.markdown}\n`
+    `Recording stopped: ${stopReason}\nReport: ${report.files.markdown}\n`
   );
   return report;
 }

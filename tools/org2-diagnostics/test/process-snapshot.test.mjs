@@ -32,6 +32,10 @@ test("root resolution and descendant traversal stay inside one process instance 
   assert.equal(root.pid, 100);
   assert.equal(descendantDepth(102, 100, rows), 2);
   assert.equal(descendantDepth(103, 100, rows), undefined);
+  const legacyRows = parsePsOutput(
+    psFixture.replace("debug/org2", "debug/orgii")
+  );
+  assert.equal(resolveRootProcess(legacyRows, "auto", "/repo").pid, 100);
 });
 
 test("audit distinguishes a zombie child from an adopted workspace process", () => {

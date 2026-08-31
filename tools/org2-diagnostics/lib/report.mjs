@@ -13,7 +13,7 @@ function parseJsonLines(text) {
       values.push({
         status: "invalid_sample",
         sequence: index + 1,
-        error: `样本行无法解析：${error.message}`,
+        error: `Cannot parse sample line: ${error.message}`,
       });
     }
   }
@@ -198,7 +198,7 @@ function buildCsv(samples) {
 }
 
 function formatBytes(value) {
-  if (!Number.isFinite(value)) return "不可用";
+  if (!Number.isFinite(value)) return "unavailable";
   const sign = value < 0 ? "-" : "";
   const absolute = Math.abs(value);
   if (absolute >= 1024 ** 3)
@@ -211,10 +211,10 @@ function formatBytes(value) {
 function buildMarkdown(session, summary, markers) {
   const verdict =
     summary.verdict === "possible_growth"
-      ? "检测到持续增长迹象，需要结合阶段标记和更长时间复测。"
+      ? "Signs of sustained growth were detected. Review the workflow markers and repeat the measurement over a longer period."
       : summary.verdict === "no_clear_growth"
-        ? "本次 RSS 序列未呈现明确的持续增长迹象。"
-        : "有效样本不足，暂时无法判断增长趋势。";
+        ? "This RSS series shows no clear signs of sustained growth."
+        : "There are not enough usable samples to assess the growth trend.";
   const markerRows = markers.length
     ? markers
         .map(
@@ -222,46 +222,46 @@ function buildMarkdown(session, summary, markers) {
             `| ${marker.capturedAt} | ${marker.label.replaceAll(/[\r\n]+/g, " ").replaceAll("|", "\\|")} |`
         )
         .join("\n")
-    : "| — | 无 |";
+    : "| — | None |";
   const roleRows = Object.entries(summary.rolePeakRssBytes)
     .sort(([left], [right]) => left.localeCompare(right))
     .map(([role, bytes]) => `| ${role} | ${formatBytes(bytes)} |`)
     .join("\n");
-  return `# ORGII 独立内存诊断报告
+  return `# ORG2 standalone memory diagnostics report
 
-> 该报告来自外部系统采样，不会修改 App。RSS 汇总可能包含共享页，趋势用于定位，不能单独证明内存泄漏。
+> This report uses external system sampling and does not modify the app. Summed RSS may double-count shared pages. Use the trend to guide investigation; it cannot prove a memory leak on its own.
 
-## 会话
+## Session
 
-| 项目 | 值 |
+| Field | Value |
 | --- | --- |
-| 会话 ID | ${session.sessionId} |
-| 根进程 | PID ${session.rootProcess.pid} |
-| 开始时间 | ${session.startedAt} |
-| 结束时间 | ${session.endedAt ?? "未正常结束"} |
-| 停止原因 | ${session.stopReason ?? "未知"} |
-| 采样间隔 | ${session.config.intervalSeconds} 秒 |
-| 归因方式 | 后端进程树${session.platform === "darwin" ? " + launchctl 宿主 WebKit 服务" : ""} |
+| Session ID | ${session.sessionId} |
+| Root process | PID ${session.rootProcess.pid} |
+| Started at | ${session.startedAt} |
+| Ended at | ${session.endedAt ?? "Not finalized"} |
+| Stop reason | ${session.stopReason ?? "Unknown"} |
+| Sampling interval | ${session.config.intervalSeconds} seconds |
+| Attribution | Backend process tree${session.platform === "darwin" ? " + host-owned WebKit services from launchctl" : ""} |
 
-## 结论
+## Findings
 
 ${verdict}
 
-- 有效样本：${summary.usableSampleCount} / ${summary.sampleCount}
-- 首末变化：${formatBytes(summary.deltaRssBytes)}
-- 峰值 RSS：${formatBytes(summary.peakRssBytes)}
-- 线性趋势：${Number.isFinite(summary.slopeBytesPerSecond) ? `${formatBytes(summary.slopeBytesPerSecond * 60)}/分钟` : "不可用"}
-- 含僵尸进程的样本数：${summary.zombieSampleCount}
+- Usable samples: ${summary.usableSampleCount} / ${summary.sampleCount}
+- Change from first to last sample: ${formatBytes(summary.deltaRssBytes)}
+- Peak RSS: ${formatBytes(summary.peakRssBytes)}
+- Linear trend: ${Number.isFinite(summary.slopeBytesPerSecond) ? `${formatBytes(summary.slopeBytesPerSecond * 60)}/minute` : "unavailable"}
+- Samples containing zombie processes: ${summary.zombieSampleCount}
 
-## 各角色峰值
+## Peak RSS by role
 
-| 角色 | 峰值 RSS |
+| Role | Peak RSS |
 | --- | ---: |
-${roleRows || "| — | 不可用 |"}
+${roleRows || "| — | unavailable |"}
 
-## 阶段标记
+## Workflow markers
 
-| 时间 | 操作 |
+| Time | Action |
 | --- | --- |
 ${markerRows}
 `;

@@ -22,33 +22,35 @@ const repoRoot = path.resolve(
 );
 
 function formatBytes(bytes) {
-  if (!Number.isFinite(bytes)) return "不可用";
+  if (!Number.isFinite(bytes)) return "unavailable";
   return `${(bytes / 1024 ** 2).toFixed(1)} MiB`;
 }
 
 function printProcessAudit(audit) {
-  process.stdout.write(`进程审计：${audit.capturedAt}\n`);
+  process.stdout.write(`Process audit: ${audit.capturedAt}\n`);
   if (audit.root) {
-    process.stdout.write(`ORGII 主进程：PID ${audit.root.pid}\n`);
-    process.stdout.write(`相关进程：${audit.relatedProcesses.length}\n`);
+    process.stdout.write(`ORG2 root process: PID ${audit.root.pid}\n`);
+    process.stdout.write(
+      `Related processes: ${audit.relatedProcesses.length}\n`
+    );
   } else {
-    process.stdout.write(`ORGII 主进程：未找到（${audit.warning}）\n`);
+    process.stdout.write(`ORG2 root process: not found (${audit.warning})\n`);
     for (const candidate of audit.candidates ?? []) {
       process.stdout.write(
-        `- 候选 PID ${candidate.pid}：${candidate.command}\n`
+        `- Candidate PID ${candidate.pid}: ${candidate.command}\n`
       );
     }
   }
   if (audit.findings.length === 0) {
     process.stdout.write(
-      "未发现与当前工作区/ORGII 进程树相关的僵尸或被接管进程。\n"
+      "No zombie or adopted processes found for this workspace or ORG2 process tree.\n"
     );
     return;
   }
-  process.stdout.write(`发现 ${audit.findings.length} 项需要检查：\n`);
+  process.stdout.write(`Found ${audit.findings.length} findings to review:\n`);
   for (const finding of audit.findings) {
     process.stdout.write(
-      `- [${finding.kind}] PID ${finding.pid}，PPID ${finding.parentPid}：${finding.reason}\n  ${finding.command}\n`
+      `- [${finding.kind}] PID ${finding.pid}, PPID ${finding.parentPid}: ${finding.reason}\n  ${finding.command}\n`
     );
   }
 }
@@ -60,37 +62,39 @@ async function runMemoryCommand(parsed) {
   }
   if (parsed.subcommand === "mark") {
     const { active, marker } = await addMarker(paths.activePath, parsed.label);
-    process.stdout.write(`已标记会话 ${active.sessionId}：${marker.label}\n`);
+    process.stdout.write(
+      `Marked session ${active.sessionId}: ${marker.label}\n`
+    );
     return;
   }
   if (parsed.subcommand === "stop") {
     const { active } = await requestStop(paths.activePath);
     process.stdout.write(
-      `已请求停止会话 ${active.sessionId}，正在生成报告。\n`
+      `Stop requested for session ${active.sessionId}; the recorder will finalize the report.\n`
     );
     return;
   }
   if (parsed.subcommand === "status") {
     const inspection = await inspectActiveState(paths.activePath);
     if (inspection.state === "idle") {
-      process.stdout.write("当前没有诊断录制会话。\n");
+      process.stdout.write("No diagnostic recording session is active.\n");
       return;
     }
     process.stdout.write(
-      `${inspection.state === "recording" ? "正在录制" : "发现中断的旧会话"}：${inspection.active.sessionId}\n` +
-        `记录器 PID：${inspection.active.recorder.pid}\n` +
-        `根进程 PID：${inspection.active.rootProcess.pid}（${inspection.rootLive ? "仍在运行" : "已退出或被替换"}）\n` +
-        `产物目录：${inspection.active.sessionDir}\n`
+      `${inspection.state === "recording" ? "Recording" : "Interrupted session found"}: ${inspection.active.sessionId}\n` +
+        `Recorder PID: ${inspection.active.recorder.pid}\n` +
+        `Root process PID: ${inspection.active.rootProcess.pid} (${inspection.rootLive ? "running" : "exited or replaced"})\n` +
+        `Output directory: ${inspection.active.sessionDir}\n`
     );
     return;
   }
   const sessionDir = await resolveReportSessionDir(paths, parsed.sessionPath);
   const report = await generateReports(sessionDir);
   process.stdout.write(
-    `报告已生成：${report.files.markdown}\n` +
-      `有效样本：${report.summary.usableSampleCount}\n` +
-      `RSS 变化：${formatBytes(report.summary.deltaRssBytes)}\n` +
-      `判断：${report.summary.verdict}\n`
+    `Report generated: ${report.files.markdown}\n` +
+      `Usable samples: ${report.summary.usableSampleCount}\n` +
+      `RSS change: ${formatBytes(report.summary.deltaRssBytes)}\n` +
+      `Verdict: ${report.summary.verdict}\n`
   );
 }
 
@@ -116,11 +120,14 @@ async function main() {
 }
 
 main().catch((error) => {
-  const prefix = error instanceof CliUsageError ? "用法错误" : "诊断失败";
-  process.stderr.write(`${prefix}：${error.message}\n`);
+  const prefix =
+    error instanceof CliUsageError ? "Usage error" : "Diagnostics failed";
+  process.stderr.write(`${prefix}: ${error.message}\n`);
   if (error instanceof CliUsageError) process.stderr.write(`\n${usage()}\n`);
   if (error instanceof ActiveSessionError) {
-    process.stderr.write("未执行任何可能影响其他进程的操作。\n");
+    process.stderr.write(
+      "No actions that could affect other processes were performed.\n"
+    );
   }
   process.exitCode = 1;
 });

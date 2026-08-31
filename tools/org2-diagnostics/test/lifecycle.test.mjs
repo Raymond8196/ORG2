@@ -24,7 +24,7 @@ async function waitForFile(filePath, timeoutMs = 8_000) {
       await new Promise((resolve) => setTimeout(resolve, 50));
     }
   }
-  throw new Error(`等待文件超时：${filePath}`);
+  throw new Error(`Timed out waiting for file: ${filePath}`);
 }
 
 async function waitForNonEmptyFile(filePath, timeoutMs = 8_000) {
@@ -38,7 +38,7 @@ async function waitForNonEmptyFile(filePath, timeoutMs = 8_000) {
     }
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
-  throw new Error(`等待非空文件超时：${filePath}`);
+  throw new Error(`Timed out waiting for nonempty file: ${filePath}`);
 }
 
 test(
@@ -46,7 +46,7 @@ test(
   { skip: process.platform === "win32", timeout: 15_000 },
   async () => {
     const temporaryRoot = await mkdtemp(
-      path.join(os.tmpdir(), "orgii-diag-lifecycle-")
+      path.join(os.tmpdir(), "org2-diag-lifecycle-")
     );
     const stateRoot = path.join(temporaryRoot, "state");
     const outputRoot = path.join(temporaryRoot, "output");
@@ -86,7 +86,7 @@ test(
       cliPath,
       "memory",
       "mark",
-      "完成一轮操作",
+      "Completed one workflow",
       "--state-root",
       stateRoot,
     ]);
@@ -107,7 +107,7 @@ test(
       await readFile(path.join(active.sessionDir, "report.json"), "utf8")
     );
     assert.equal(report.session.stopReason, "external_stop");
-    assert.equal(report.markers[0].label, "完成一轮操作");
+    assert.equal(report.markers[0].label, "Completed one workflow");
     assert.ok(report.summary.usableSampleCount >= 1);
   }
 );

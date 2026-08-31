@@ -42,10 +42,8 @@ test("summary flags sustained material growth without claiming a leak", () => {
   assert.equal(summary.rolePeakRssBytes.backend, 180 * 1024 ** 2);
 });
 
-test("report writes JSON, CSV, and Markdown artifacts with markers", async () => {
-  const sessionDir = await mkdtemp(
-    path.join(os.tmpdir(), "orgii-diag-report-")
-  );
+test("report writes English Markdown and preserves Unicode markers", async () => {
+  const sessionDir = await mkdtemp(path.join(os.tmpdir(), "org2-diag-report-"));
   const markersDir = path.join(sessionDir, "markers");
   await mkdir(markersDir);
   await writeFile(
@@ -79,6 +77,9 @@ test("report writes JSON, CSV, and Markdown artifacts with markers", async () =>
   const csv = await readFile(result.files.csv, "utf8");
   assert.equal(report.summary.verdict, "no_clear_growth");
   assert.equal(report.markers[0].label, "打开 20 个会话");
-  assert.match(markdown, /不能单独证明内存泄漏/);
+  assert.match(markdown, /^# ORG2 standalone memory diagnostics report/m);
+  assert.match(markdown, /## Workflow markers/);
+  assert.ok(markdown.includes(report.markers[0].label));
+  assert.match(markdown, /cannot prove a memory leak on its own/);
   assert.match(csv, /process_instance_id/);
 });
