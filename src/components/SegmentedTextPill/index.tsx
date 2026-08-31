@@ -1,8 +1,12 @@
 import type { ReactNode } from "react";
 
+import Tooltip from "@src/components/Tooltip";
+
 export interface SegmentedTextPillOption<T extends string> {
+  ariaLabel?: string;
   disabled?: boolean;
   label: ReactNode;
+  tooltip?: ReactNode;
   value: T;
 }
 
@@ -28,7 +32,7 @@ const BUTTON_SIZE_CLASSES: Record<SegmentedTextPillSize, string> = {
   default: "h-6 px-2.5",
 };
 
-/** Compact text-only segmented control shared by creator setup rows. */
+/** Compact segmented control with optional tooltips and accessible icon labels. */
 export default function SegmentedTextPill<T extends string>({
   ariaLabel,
   className = "",
@@ -48,7 +52,7 @@ export default function SegmentedTextPill<T extends string>({
       {options.map((option) => {
         const selected = option.value === value;
 
-        return (
+        const button = (
           <button
             key={option.value}
             type="button"
@@ -58,11 +62,27 @@ export default function SegmentedTextPill<T extends string>({
                 : "text-text-3 hover:text-text-1"
             } ${option.disabled ? "cursor-not-allowed opacity-50" : ""}`}
             disabled={option.disabled}
+            aria-label={option.ariaLabel}
             aria-pressed={selected}
             onClick={() => onChange(option.value)}
           >
             {option.label}
           </button>
+        );
+
+        return option.tooltip ? (
+          <Tooltip
+            key={option.value}
+            content={option.tooltip}
+            position="top"
+            mouseEnterDelay={200}
+            framedPanel
+            smartPlacement
+          >
+            {button}
+          </Tooltip>
+        ) : (
+          button
         );
       })}
     </div>
