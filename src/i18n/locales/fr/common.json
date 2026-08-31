@@ -1671,7 +1671,8 @@
         "refresh": "Actualiser la branche",
         "checkoutDetachedSuccess": "État detached HEAD au commit actuel",
         "removeWorktree": "Supprimer le Worktree",
-        "newWorktree": "Nouveau worktree..."
+        "newWorktree": "Nouveau worktree...",
+        "refreshPullRequests": "Actualiser les Pull requests"
       },
       "messages": {
         "deletedCount_one": "{{count}} branche supprimée",
@@ -1688,12 +1689,21 @@
         "worktreeInUse": "En cours d’utilisation",
         "checkedOutInWorktree": "Checkout dans le Worktree : {{path}}",
         "mainWorktreeSection": "Worktree principal",
-        "linkedWorktrees": "Worktrees liés"
+        "linkedWorktrees": "Worktrees liés",
+        "noGithubRemote": "Aucun dépôt distant GitHub configuré",
+        "prSearchScope": "La recherche porte sur les {{count}} Pull requests chargées",
+        "prLimit": "Affichage de {{count}} PR ouvertes au maximum",
+        "noPullRequests": "Aucune Pull requests correspondante"
       },
       "placeholders": {
         "checkout": "branche",
-        "add": "nom de nouvelle branche",
-        "remove": "branche"
+        "add": "nom de nouvelle branche...",
+        "remove": "branche",
+        "pullRequests": "Rechercher des Pull requests..."
+      },
+      "tabs": {
+        "branches": "Branches",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1724,6 +1734,7 @@
       "switchColumn": "Changer de colonne",
       "switchSection": "Changer de section",
       "showPath": "Afficher le chemin",
+      "showBranchInfo": "Afficher les infos de branche",
       "compatibleKeys": "Compatible",
       "planSupport": "Plan",
       "byokSupport": "Keys",

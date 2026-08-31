@@ -1671,7 +1671,8 @@
         "refresh": "Actualizar rama",
         "checkoutDetachedSuccess": "En estado detached HEAD en el commit actual",
         "removeWorktree": "Eliminar Worktree",
-        "newWorktree": "Nuevo worktree..."
+        "newWorktree": "Nuevo worktree...",
+        "refreshPullRequests": "Actualizar Pull requests"
       },
       "messages": {
         "deletedCount_one": "{{count}} rama eliminada",
@@ -1688,12 +1689,21 @@
         "worktreeInUse": "En uso",
         "checkedOutInWorktree": "Checkout en Worktree: {{path}}",
         "mainWorktreeSection": "Worktree principal",
-        "linkedWorktrees": "Worktrees vinculados"
+        "linkedWorktrees": "Worktrees vinculados",
+        "noGithubRemote": "No hay un remoto de GitHub configurado",
+        "prSearchScope": "Buscar en {{count}} Pull requests cargadas",
+        "prLimit": "Se muestran hasta {{count}} PR abiertas",
+        "noPullRequests": "No hay Pull requests coincidentes"
       },
       "placeholders": {
         "checkout": "rama",
-        "add": "nombre de nueva rama",
-        "remove": "rama"
+        "add": "nombre de nueva rama...",
+        "remove": "rama",
+        "pullRequests": "Buscar Pull requests..."
+      },
+      "tabs": {
+        "branches": "Ramas",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1724,6 +1734,7 @@
       "switchColumn": "Cambiar columna",
       "switchSection": "Cambiar sección",
       "showPath": "Mostrar ruta",
+      "showBranchInfo": "Mostrar información de rama",
       "compatibleKeys": "Compatible",
       "planSupport": "Plan",
       "byokSupport": "Keys",

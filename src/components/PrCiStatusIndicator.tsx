@@ -41,7 +41,7 @@ const PrCiStatusIndicator: React.FC<PrCiStatusIndicatorProps> = ({
       ) : status === "failure" ? (
         <HugeiconsIcon icon={Cancel01Icon} data-icon="x" {...iconProps} />
       ) : status === "pending" ? (
-        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-warning-6" />
+        <span className="inline-block h-1.5 w-1.5 animate-pulse rounded-full bg-current" />
       ) : status === "none" ? (
         <HugeiconsIcon icon={MinusSignIcon} data-icon="minus" {...iconProps} />
       ) : (
@@ -97,6 +97,7 @@ const PrCiStatusIndicator: React.FC<PrCiStatusIndicatorProps> = ({
       className={`inline-flex shrink-0 items-center gap-1.5 whitespace-nowrap ${colorClass} ${className}`}
       title={label}
       aria-label={label}
+      role={showLabel ? undefined : "img"}
       data-testid={dataTestId}
     >
       {icon}

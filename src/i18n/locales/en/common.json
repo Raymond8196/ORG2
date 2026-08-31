@@ -1599,7 +1599,8 @@
         "refresh": "Refresh branch",
         "checkoutDetachedSuccess": "Now in detached HEAD state at current commit",
         "removeWorktree": "Remove Worktree",
-        "newWorktree": "New Worktree..."
+        "newWorktree": "New Worktree...",
+        "refreshPullRequests": "Refresh Pull requests"
       },
       "messages": {
         "deletedCount_one": "Deleted {{count}} branch",
@@ -1616,12 +1617,21 @@
         "worktreeInUse": "In use",
         "checkedOutInWorktree": "Checked out in worktree: {{path}}",
         "mainWorktreeSection": "Main worktree",
-        "linkedWorktrees": "Linked worktrees"
+        "linkedWorktrees": "Linked worktrees",
+        "noGithubRemote": "No GitHub remote configured",
+        "prSearchScope": "Search covers {{count}} loaded Pull requests",
+        "prLimit": "Showing up to {{count}} open PRs",
+        "noPullRequests": "No matching Pull requests"
       },
       "placeholders": {
         "checkout": "branch",
-        "add": "new branch name",
-        "remove": "branch"
+        "add": "new branch name...",
+        "remove": "branch",
+        "pullRequests": "Search Pull requests..."
+      },
+      "tabs": {
+        "branches": "Branches",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1653,6 +1663,7 @@
       "switchColumn": "Switch column",
       "switchSection": "Switch section",
       "showPath": "Show path",
+      "showBranchInfo": "Show branch info",
       "compatibleKeys": "Compatible",
       "planSupport": "Plan",
       "byokSupport": "Keys",

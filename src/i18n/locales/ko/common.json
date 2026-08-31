@@ -1670,7 +1670,8 @@
         "refresh": "브랜치 새로 고침",
         "checkoutDetachedSuccess": "현재 커밋에서 detached HEAD 상태입니다",
         "removeWorktree": "Worktree 제거",
-        "newWorktree": "새 Worktree..."
+        "newWorktree": "새 Worktree...",
+        "refreshPullRequests": "Pull requests 새로 고침"
       },
       "messages": {
         "deletedCount_one": "브랜치 {{count}}개 삭제됨",
@@ -1687,12 +1688,21 @@
         "worktreeInUse": "사용 중",
         "checkedOutInWorktree": "Worktree에서 체크아웃됨: {{path}}",
         "mainWorktreeSection": "메인 Worktree",
-        "linkedWorktrees": "연결된 Worktree"
+        "linkedWorktrees": "연결된 Worktree",
+        "noGithubRemote": "GitHub 원격 저장소가 설정되지 않았습니다",
+        "prSearchScope": "불러온 Pull requests {{count}}개 내에서 검색",
+        "prLimit": "열린 PR 최대 {{count}}개 표시",
+        "noPullRequests": "일치하는 Pull requests가 없습니다"
       },
       "placeholders": {
         "checkout": "브랜치",
-        "add": "새 브랜치 이름",
-        "remove": "브랜치"
+        "add": "새 브랜치 이름...",
+        "remove": "브랜치",
+        "pullRequests": "Pull requests 검색..."
+      },
+      "tabs": {
+        "branches": "브랜치",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1723,6 +1733,7 @@
       "switchColumn": "열 전환",
       "switchSection": "Switch section",
       "showPath": "경로 표시",
+      "showBranchInfo": "브랜치 정보 표시",
       "compatibleKeys": "호환",
       "planSupport": "Plan",
       "byokSupport": "Keys",

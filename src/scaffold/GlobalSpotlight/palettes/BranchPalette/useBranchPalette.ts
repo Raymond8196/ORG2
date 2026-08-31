@@ -1,9 +1,4 @@
-/**
- * useBranchPalette Hook
- *
- * Main hook that orchestrates branch palette state and behavior.
- * Uses useSelector for common patterns while adding branch-specific logic.
- */
+/** Branch-specific state and actions composed over the shared selector kernel. */
 import {
   type Dispatch,
   type KeyboardEvent,
@@ -87,6 +82,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
 
   // ============ FETCH BRANCHES ============
   const {
+    repoPath,
     branches: rawBranches,
     isLoading,
     refresh: refreshBranches,
@@ -588,6 +584,7 @@ export function useBranchPalette(options: UseBranchPaletteOptions) {
     setSelectedStartPoint,
 
     // Data
+    repoPath,
     items: mainItems,
     pinnedActionItems,
     isLoading,

@@ -364,12 +364,15 @@ export const SpotlightItemRow = memo<SpotlightItemRowProps>(
         data-source-account-id={sourceAccountId}
         data-source-model-type={sourceModelType}
         data-source-type={sourceType}
-        className={`spotlight-item group relative mx-2 mb-[3px] flex items-center gap-2.5 rounded-lg px-2 ${
+        className={`spotlight-item group relative mx-2 flex items-center gap-2.5 rounded-lg px-2 ${
           isDisabled
             ? "cursor-not-allowed opacity-50"
             : `cursor-pointer ${isCurrentSelection ? "is-current-selection" : ""} ${isSelected ? "selected" : ""}`
         }`}
-        style={{ height: getItemHeight(item) }}
+        style={{
+          height: getItemHeight(item),
+          marginBottom: SPOTLIGHT_TOKENS.itemGap,
+        }}
         onClick={handleClick}
         onContextMenu={handleContextMenu}
         onMouseEnter={handleMouseEnter}

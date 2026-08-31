@@ -37,12 +37,7 @@ import { useRefreshSpin } from "../../shared";
 import { PaletteBody, ShellFooterAction, SpotlightShell } from "../../shell";
 import type { SpotlightItem } from "../../types";
 import { useSelectorKernel } from "../core";
-import type {
-  BranchPaletteProps,
-  WorktreePaletteMode,
-  WorktreePaletteProps,
-} from "./types";
-import { useBranchPalette } from "./useBranchPalette";
+import type { WorktreePaletteMode, WorktreePaletteProps } from "./types";
 import {
   refreshWorktreeMap,
   revalidateWorktreeMap,
@@ -451,129 +446,7 @@ export const WorktreePalette: React.FC<WorktreePaletteProps> = ({
 
 // ============ COMPONENT ============
 
-export const BranchPalette: React.FC<BranchPaletteProps> = ({
-  isOpen,
-  onClose,
-  onSelect,
-  repoId,
-  repoPath: repoPathProp,
-  currentBranchName,
-  groupWorktreeBranches = true,
-  onCreateBranch,
-  onDeleteBranch,
-  onCheckoutDetached,
-  githubConnectionId,
-  githubRepoFullName,
-  variant = "global",
-  showRemoveMode,
-  asBody = false,
-  hideActionClose = false,
-  onModeChange,
-  onGoBackToParent,
-}) => {
-  const effectiveShowRemoveMode = showRemoveMode ?? variant === "global";
-
-  const {
-    kernel,
-    activeMode,
-    setActiveMode,
-    isCreatingBranch,
-    setSelectedStartPoint,
-    items,
-    pinnedActionItems,
-    isLoading,
-    getPath,
-    getPlaceholder,
-  } = useBranchPalette({
-    isOpen,
-    repoId,
-    repoPathProp,
-    currentBranchName,
-    groupWorktreeBranches,
-    onSelect,
-    onCreateBranch,
-    onDeleteBranch,
-    onCheckoutDetached,
-    onClose,
-    onGoBackToParent,
-    variant,
-    effectiveShowRemoveMode,
-    parentModalState: asBody || !!onGoBackToParent,
-    githubConnectionId,
-    githubRepoFullName,
-  });
-
-  React.useEffect(() => {
-    onModeChange?.(activeMode);
-  }, [activeMode, onModeChange]);
-
-  const handleRemovePathSegment = React.useCallback(() => {
-    if (activeMode === "checkout") {
-      if (onGoBackToParent) {
-        onGoBackToParent();
-        return;
-      }
-      onClose();
-      return;
-    }
-    setSelectedStartPoint(null);
-    setActiveMode("checkout");
-    kernel.setSearchQuery("");
-  }, [
-    activeMode,
-    kernel,
-    onClose,
-    onGoBackToParent,
-    setActiveMode,
-    setSelectedStartPoint,
-  ]);
-
-  const pinnedActionStartIndex = items.length;
-  const pinnedActionSection =
-    activeMode === "checkout" || activeMode === "remove" ? (
-      <SpotlightPinnedActionSection
-        items={pinnedActionItems}
-        startIndex={pinnedActionStartIndex}
-        selectedIndex={kernel.selectedIndex}
-        onItemSelect={kernel.handleItemClick}
-        onItemHover={kernel.setSelectedIndex}
-        searchQuery={kernel.searchQuery}
-        layout="twoColumn"
-      />
-    ) : undefined;
-
-  const body = (
-    <PaletteBody
-      kernel={kernel}
-      items={items}
-      placeholder={getPlaceholder()}
-      path={getPath()}
-      onRemoveSegment={handleRemovePathSegment}
-      isLoading={isLoading || isCreatingBranch}
-      hideActionClose={hideActionClose && activeMode === "checkout"}
-      containerHeight={350}
-      fixedHeight
-      contentOverride={activeMode === "add" ? <></> : undefined}
-      afterListSlot={pinnedActionSection}
-    />
-  );
-
-  if (asBody) return body;
-
-  return (
-    <SpotlightShell
-      isOpen={isOpen}
-      onClose={onClose}
-      hasActiveAction={
-        (activeMode === "checkout" || activeMode === "remove") &&
-        pinnedActionItems.length > 0
-      }
-      activeActionChip={SPOTLIGHT_FOOTER_ACTIVE_CHIP.switchSection}
-    >
-      {body}
-    </SpotlightShell>
-  );
-};
+export { BranchPalette } from "./BranchPalette";
 
 export type {
   BranchPaletteProps,
