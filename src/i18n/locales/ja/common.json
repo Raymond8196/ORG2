@@ -411,7 +411,8 @@
     "switchMethod": "方法を切り替える",
     "dismiss": "閉じる",
     "comingSoon": "近日公開",
-    "clearSelection": "選択をクリア"
+    "clearSelection": "選択をクリア",
+    "uiSettings": "UI 設定"
   },
   "refreshToast": {
     "successName": "{{name}} を更新しました"

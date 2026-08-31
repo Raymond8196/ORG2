@@ -413,7 +413,8 @@
     "switchMethod": "Yöntemi değiştir",
     "dismiss": "Yoksay",
     "comingSoon": "Yakında",
-    "clearSelection": "Seçimi temizle"
+    "clearSelection": "Seçimi temizle",
+    "uiSettings": "Arayüz ayarları"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi"

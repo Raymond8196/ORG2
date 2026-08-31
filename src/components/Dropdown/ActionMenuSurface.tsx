@@ -26,7 +26,7 @@ const ACTION_SELECTOR =
   'button:not(:disabled), [role="menuitem"]:not([aria-disabled="true"])';
 
 /** One keyboard owner for the menu tree; unmounting removes all its state. */
-export function SessionActionsMenuSurface({
+export function ActionMenuSurface({
   panelRef,
   onClose,
   children,
@@ -44,7 +44,7 @@ export function SessionActionsMenuSurface({
       if (event.isComposing || event.metaKey || event.ctrlKey || event.altKey)
         return;
       const submenu = panel.querySelector<HTMLElement>(
-        '[data-session-actions-submenu="true"]'
+        '[data-action-menu-submenu="true"]'
       );
       const scope = submenu ?? panel;
       const rows = Array.from(
@@ -117,7 +117,7 @@ export function SessionActionsMenuSurface({
           // its hover bridge. Only another action row dismisses the group.
           if (
             event.target.closest(ACTION_SELECTOR) &&
-            !event.target.closest("[data-session-actions-group]")
+            !event.target.closest("[data-action-menu-group]")
           ) {
             setActive(null);
           }
@@ -130,7 +130,8 @@ export function SessionActionsMenuSurface({
   );
 }
 
-export function SessionActionsSubmenu({
+/** Left-opening flyout for trailing action menus, shared by editor and session headers. */
+export function ActionSubmenu({
   label,
   icon,
   disabled = false,
@@ -145,8 +146,7 @@ export function SessionActionsSubmenu({
 }) {
   const id = useId();
   const context = useContext(SubmenuContext);
-  if (!context)
-    throw new Error("SessionActionsSubmenu requires a menu surface");
+  if (!context) throw new Error("ActionSubmenu requires an ActionMenuSurface");
   const { active, setActive } = context;
   const open = active === id;
   const rowRef = useRef<HTMLDivElement>(null);
@@ -184,7 +184,7 @@ export function SessionActionsSubmenu({
   });
 
   return (
-    <div data-session-actions-group={id}>
+    <div data-action-menu-group={id}>
       <DropdownItem
         ref={rowRef}
         role="menuitem"
@@ -218,7 +218,7 @@ export function SessionActionsSubmenu({
             ref={panelRef}
             role="menu"
             aria-label={label}
-            data-session-actions-submenu="true"
+            data-action-menu-submenu="true"
             data-testid={`${dataTestId}-panel`}
             className={`${DROPDOWN_CLASSES.menuPanelBase} ${DROPDOWN_WIDTHS.sidebarMenuClass}`}
           >

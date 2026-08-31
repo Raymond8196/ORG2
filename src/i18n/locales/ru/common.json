@@ -417,7 +417,8 @@
     "switchMethod": "Сменить способ",
     "dismiss": "Отклонить",
     "comingSoon": "Скоро",
-    "clearSelection": "Очистить выбор"
+    "clearSelection": "Очистить выбор",
+    "uiSettings": "Настройки интерфейса"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено"

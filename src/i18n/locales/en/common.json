@@ -255,7 +255,8 @@
     "copyName": "Copy Name",
     "dismiss": "Dismiss",
     "comingSoon": "Coming soon",
-    "clearSelection": "Clear selection"
+    "clearSelection": "Clear selection",
+    "uiSettings": "UI settings"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed"

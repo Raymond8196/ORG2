@@ -413,7 +413,8 @@
     "switchMethod": "Alterar método",
     "dismiss": "Dispensar",
     "comingSoon": "Em breve",
-    "clearSelection": "Limpar seleção"
+    "clearSelection": "Limpar seleção",
+    "uiSettings": "Configurações da interface"
   },
   "refreshToast": {
     "successName": "{{name}} atualizado"

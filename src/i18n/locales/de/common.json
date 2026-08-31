@@ -413,7 +413,8 @@
     "switchMethod": "Methode wechseln",
     "dismiss": "Ignorieren",
     "comingSoon": "Demnächst",
-    "clearSelection": "Auswahl löschen"
+    "clearSelection": "Auswahl löschen",
+    "uiSettings": "Oberflächeneinstellungen"
   },
   "refreshToast": {
     "successName": "{{name}} aktualisiert"

@@ -413,7 +413,8 @@
     "switchMethod": "Changer de méthode",
     "dismiss": "Ignorer",
     "comingSoon": "Bientôt",
-    "clearSelection": "Effacer la sélection"
+    "clearSelection": "Effacer la sélection",
+    "uiSettings": "Paramètres d’interface"
   },
   "refreshToast": {
     "successName": "{{name}} actualisé"
