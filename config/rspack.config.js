@@ -253,6 +253,23 @@ module.exports = () => {
         path: false,
       },
     },
+    // EXPERIMENTS (opt-in via env, defaults unchanged; both are top-level
+    // options in rspack 2.x, not `experiments.*`):
+    // ORGII_RSPACK_CACHE=persistent — persistent build cache for warm starts.
+    // ORGII_RSPACK_LAZY=true — compile dynamic-import chunks only when the
+    // webview actually requests them (875+ import() boundaries in src).
+    ...(process.env.ORGII_RSPACK_CACHE === "persistent"
+      ? {
+          cache: {
+            type: "persistent",
+            buildDependencies: [__filename],
+            version: "dev-1",
+          },
+        }
+      : {}),
+    ...(process.env.ORGII_RSPACK_LAZY === "true"
+      ? { lazyCompilation: { imports: true, entries: false } }
+      : {}),
     optimization: {
       minimize: false,
       // Same dev dedup group as webpack.config.js: hoist modules shared by

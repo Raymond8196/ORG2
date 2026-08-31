@@ -42,7 +42,10 @@ let compileStartTime = Date.now();
 // status bar works for both servers.
 new rspack.ProgressPlugin((percentage, message, ...details) => {
   const pct = Math.round(percentage * 100);
-  const detail = details[0] ? ` ${String(details[0]).slice(-60)}` : "";
+  // rspack passes non-string detail args (unlike webpack) — only strings
+  // are printable.
+  const detail =
+    typeof details[0] === "string" ? ` ${details[0].slice(-60)}` : "";
   process.stdout.write(`WEBPACK_PROGRESS:${pct} ${message ?? ""}${detail}\n`);
 }).apply(compiler);
 
@@ -85,6 +88,23 @@ compiler.hooks.done.tap("ORGIIRspackDevServer", (stats) => {
     );
   }
 });
+
+// ORGII_RSPACK_LAZY=true (see config/rspack.config.js): @rspack/dev-server
+// does not install the lazy-compilation trigger endpoint itself, so wire the
+// middleware from @rspack/core manually. Without it the lazyCompilation
+// option is silently inert and every chunk still compiles eagerly.
+if (process.env.ORGII_RSPACK_LAZY === "true") {
+  const { lazyCompilationMiddleware } = require("@rspack/core");
+  const lazyMiddleware = lazyCompilationMiddleware(compiler);
+  const userSetup = config.devServer.setupMiddlewares;
+  config.devServer.setupMiddlewares = (middlewares, devServer) => {
+    middlewares.unshift({
+      name: "rspack-lazy-compilation",
+      middleware: lazyMiddleware,
+    });
+    return userSetup ? userSetup(middlewares, devServer) : middlewares;
+  };
+}
 
 const server = new RspackDevServer(config.devServer, compiler);
 
