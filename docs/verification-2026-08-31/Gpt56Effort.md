@@ -49,8 +49,8 @@ This implements ORGII's delegation guidance; it does not establish full parity
 with Codex's internal orchestration.
 
 Ultra's slider fill, label, and focus ring use the existing purple theme token.
-Other levels retain the primary accent. The popup retains its existing
-Apply/Cancel workflow in this change.
+Other levels retain the primary accent. The subsequent automatic-update change
+removes Cancel/Apply; see [automatic-update verification](ModelPropertiesAutoUpdate.md).
 
 ## Architecture coverage
 
