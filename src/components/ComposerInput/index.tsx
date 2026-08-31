@@ -258,8 +258,7 @@ const ComposerInput = forwardRef<ComposerInputRef, ComposerInputProps>(
     // The op mutates the DOM directly (no `beforeinput`/`input` event),
     // so without this the parent never sees the new `\n`.
     const insertNewlineAndNotify = useCallback(() => {
-      ops.insertNewline();
-      handleInput();
+      if (ops.insertNewline()) handleInput();
     }, [ops, handleInput]);
 
     const undoAndNotify = useCallback(() => {

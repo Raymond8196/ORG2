@@ -54,6 +54,7 @@ export function useComposerNativeEvents({
     commitHistoryBoundary,
     reconcilePillsFromDom,
     insertTextAtCaret,
+    insertNewline,
   } = ops;
 
   useEffect(() => {
@@ -67,7 +68,22 @@ export function useComposerNativeEvents({
       compositionEndedAtRef.current = performance.now();
     };
     const handleBeforeInput = (event: InputEvent) => {
-      if (isComposingRef.current) return;
+      if (isComposingRef.current || event.isComposing) return;
+
+      // Soft keyboards and native editing commands can insert line breaks
+      // without keydown. Use the same guarded operation as Enter/Shift+Enter.
+      if (
+        event.inputType === "insertParagraph" ||
+        event.inputType === "insertLineBreak"
+      ) {
+        if (!event.cancelable) return;
+        event.preventDefault();
+        markHistoryBoundary();
+        const inserted = insertNewline();
+        commitHistoryBoundary();
+        if (inserted) handleInput();
+        return;
+      }
 
       // WebKit may express Edit → Undo/Redo (including Cmd+Z) solely as a
       // beforeinput history event. Browser-native history cannot restore
@@ -182,6 +198,7 @@ export function useComposerNativeEvents({
     commitHistoryBoundary,
     reconcilePillsFromDom,
     insertTextAtCaret,
+    insertNewline,
     handlePaste,
     handleDrop,
     handleCut,
