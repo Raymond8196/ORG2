@@ -178,6 +178,12 @@
   }
 }
 
+// Centered creators keep the tint close to the edge, including while focused.
+[data-creator-composer-position="middle"] {
+  --composer-glow-height: 12px;
+  --composer-glow-focus-scale: 1;
+}
+
 // Backed composers put the original glow on their complete outer surface.
 .composer-breathing,
 .composer-bottom-glow {
@@ -189,7 +195,7 @@
     top: 100%;
     left: 5%;
     width: 90%;
-    height: 72px;
+    height: var(--composer-glow-height, 72px);
     pointer-events: none;
     content: "";
     // Fade only the tint: the real chat pane shows through at every edge,
@@ -215,7 +221,7 @@
   &:focus-within {
     &::after {
       opacity: 1;
-      transform: scaleY(1.08);
+      transform: scaleY(var(--composer-glow-focus-scale, 1.08));
     }
   }
 }

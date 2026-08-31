@@ -53,6 +53,37 @@
     }
   }
 
+  &.session-creator-chat-panel-centered-composer {
+    .session-creator-chat-panel-content {
+      align-items: stretch;
+      justify-content: flex-start;
+      overflow-y: auto;
+      padding-block: 1rem;
+    }
+
+    // Auto margins center the existing stack without remounting the input.
+    // They collapse on short windows so tall input remains reachable by scrolling.
+    .session-creator-chat-panel-launchpad-stack {
+      flex: 0 0 auto;
+      margin-block: auto;
+    }
+
+    .session-creator-chat-panel-launchpad-middle {
+      position: static;
+      align-items: center;
+      transform: none;
+    }
+
+    .session-creator-agent-hero-question {
+      justify-content: center;
+      text-align: center;
+
+      [role="heading"] {
+        justify-content: center;
+      }
+    }
+  }
+
   // Shared backing surface; its children keep their original colors.
   // Keep the shadow here so top/bottom chrome and the input share one edge.
   .session-creator-chat-panel-fullscreen-composer-group {

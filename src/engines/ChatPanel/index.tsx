@@ -78,6 +78,7 @@ import {
   ChatPanelTabBar,
   useChatPanelTabShortcuts,
 } from "./ChatPanelTabBar";
+import { NewChatHeaderActionsMenu } from "./components/NewChatHeaderActionsMenu";
 // Parked with its header button below.
 // import SessionContinueCliHeaderExtras from "./SessionContinueCliHeaderExtras";
 import {
@@ -561,14 +562,19 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const tabStrip = <ChatPanelTabBar />;
 
     const tabStripPlus = (
-      <ChatPanelPlusMenu
-        onOpenLaunchpad={handleOpenLaunchpadTab}
-        onOpenKanban={handleOpenKanbanTab}
-        onOpenRuntime={handleShowRuntime}
-        onNewProject={handleStartPageNewProject}
-        onNewWorkItem={handleStartPageNewWorkItem}
-        onOpenSideChat={handleOpenSideChat}
-      />
+      <>
+        <ChatPanelPlusMenu
+          onOpenLaunchpad={handleOpenLaunchpadTab}
+          onOpenKanban={handleOpenKanbanTab}
+          onOpenRuntime={handleShowRuntime}
+          onNewProject={handleStartPageNewProject}
+          onNewWorkItem={handleStartPageNewWorkItem}
+          onOpenSideChat={handleOpenSideChat}
+        />
+        {startPageOpen && !isStandaloneToolTabActive && (
+          <NewChatHeaderActionsMenu />
+        )}
+      </>
     );
 
     const overlayChatHeaders = shouldOverlayChatSessionHeaders({

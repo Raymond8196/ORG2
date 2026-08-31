@@ -10,6 +10,10 @@ import InlineAlert from "@src/components/InlineAlert";
 import SelectorPill from "@src/components/SelectorPill";
 import { COMPOSER_HORIZONTAL_GUTTER_CLASS } from "@src/config/composerStackTokens";
 import { CHAT_PANEL_WIDTH_TOKENS } from "@src/config/detailPanelTokens";
+import {
+  CREATOR_COMPOSER_POSITION,
+  type CreatorComposerPosition,
+} from "@src/config/sessionCreatorConfig";
 import type { ScrollNavState } from "@src/engines/ChatPanel/ChatHistory";
 import CollapsedInlineRow from "@src/engines/ChatPanel/InputArea/components/CollapsedInlineRow";
 import PinnedActionsBar from "@src/engines/ChatPanel/InputArea/components/PinnedActionsBar";
@@ -81,6 +85,7 @@ interface SessionCreatorChatPanelViewProps {
   cliVersionAlert?: CliVersionAlert;
   compactHeaderIcon: React.ReactNode;
   composerHeaderContent?: React.ReactNode;
+  composerPosition: CreatorComposerPosition;
   composerInputRef: React.RefObject<ComposerInputRef | null>;
   editorAreaProps: React.ComponentProps<typeof EditorArea>;
   fileInputRef: React.RefObject<HTMLInputElement | null>;
@@ -143,6 +148,7 @@ const SessionCreatorChatPanelView: React.FC<
   cliVersionAlert,
   compactHeaderIcon,
   composerHeaderContent,
+  composerPosition,
   composerInputRef,
   editorAreaProps,
   fileInputRef,
@@ -189,6 +195,8 @@ const SessionCreatorChatPanelView: React.FC<
     visible: pinnedActionsVisible,
     onVisibleChange: onPinnedActionsVisibleChange,
   });
+  const isCenteredComposer =
+    isLaunchpadLayout && composerPosition === CREATOR_COMPOSER_POSITION.MIDDLE;
   const sessionInfoLine = (
     <SessionInfoLine
       {...sessionInfoProps}
@@ -409,7 +417,7 @@ const SessionCreatorChatPanelView: React.FC<
     <LaunchpadActionGrid
       className="mx-auto w-full"
       layoutActionCount={Children.count(heroFooterSlot) + 1}
-      presentation="card"
+      presentation={isCenteredComposer ? "pill" : "card"}
       collapsible
       controlAlignment="center"
       collapseLabel={t("common:actions.collapse")}
@@ -422,7 +430,7 @@ const SessionCreatorChatPanelView: React.FC<
         repoId={sessionInfoProps.repoId}
         repoPath={sessionInfoProps.repoPath}
         mode="solve"
-        presentation="card"
+        presentation={isCenteredComposer ? "pill" : "card"}
       />
       {heroFooterSlot}
     </LaunchpadActionGrid>
@@ -444,7 +452,7 @@ const SessionCreatorChatPanelView: React.FC<
       ) : (
         <>
           {agentHero}
-          {launchpadSuggestionContent && (
+          {!isCenteredComposer && launchpadSuggestionContent && (
             <div className="session-creator-chat-panel-launchpad-suggestions w-full">
               {launchpadSuggestionContent}
             </div>
@@ -489,8 +497,13 @@ const SessionCreatorChatPanelView: React.FC<
     <div
       className={`session-creator-chat-panel-wrapper ${
         isLaunchpadLayout ? "h-full" : ""
+      } ${
+        isCenteredComposer ? "session-creator-chat-panel-centered-composer" : ""
       } ${className}`}
       data-testid="session-creator-chat-panel"
+      data-creator-composer-position={
+        isLaunchpadLayout ? composerPosition : undefined
+      }
     >
       <div
         className={`session-creator-chat-panel-content flex min-h-0 flex-1 ${COMPOSER_HORIZONTAL_GUTTER_CLASS} ${CHAT_PANEL_WIDTH_TOKENS.headerWidth} ${
@@ -533,12 +546,9 @@ const SessionCreatorChatPanelView: React.FC<
                 {t("chat.shareScreen")}
               </button>
             )}
-            {isLaunchpadLayout && (
-              <>
-                {" "}
-                {sessionSetupActions} {cliVersionWarning}{" "}
-              </>
-            )}
+            {/* Skills/actions stay above the input in every creator layout. */}
+            {sessionSetupActions}
+            {isLaunchpadLayout && cliVersionWarning}
             <div
               className={composerGroupClassName}
               onContextMenu={handlePinnedActionsContextMenu}
@@ -571,12 +581,7 @@ const SessionCreatorChatPanelView: React.FC<
             </div>
           )}
 
-          {!isLaunchpadLayout && (
-            <>
-              {" "}
-              {sessionSetupActions} {cliVersionWarning}{" "}
-            </>
-          )}
+          {!isLaunchpadLayout && cliVersionWarning}
 
           {!hideSessionSetupControls &&
             orgMembersPanelProps &&
@@ -598,6 +603,16 @@ const SessionCreatorChatPanelView: React.FC<
           )}
           {!hideSessionSetupControls && footerSlot}
         </div>
+        {isCenteredComposer &&
+          !multiRunnerContent &&
+          launchpadSuggestionContent && (
+            <div
+              className={`mx-auto w-full shrink-0 pt-4 ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
+              data-testid="session-creator-bottom-suggestions"
+            >
+              {launchpadSuggestionContent}
+            </div>
+          )}
       </div>
 
       {!hideSessionSetupControls && (
