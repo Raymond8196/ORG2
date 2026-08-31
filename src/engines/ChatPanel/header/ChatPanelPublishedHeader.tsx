@@ -5,6 +5,7 @@ import { PublishedHeaderSlotsView } from "@src/components/WindowChrome";
 import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
+  CHAT_PANEL_HEADER_RIGHT_PADDING_CLASS,
 } from "./ChatPanelHeaderPrimitives";
 import type { ChatPanelHeaderSlots } from "./chatPanelHeaderSlots";
 
@@ -26,7 +27,7 @@ export const ChatPanelPublishedHeader: React.FC<ChatPanelPublishedHeaderProps> =
 
     return (
       <div
-        className={`relative z-40 flex h-9 shrink-0 items-center gap-2 pr-2 ${
+        className={`relative z-40 flex h-9 shrink-0 items-center gap-2 ${CHAT_PANEL_HEADER_RIGHT_PADDING_CLASS} ${
           slots.joinWithFollowingRow ? "" : "border-b border-border-2"
         }`}
         data-testid="chat-panel-published-header"
