@@ -330,6 +330,7 @@ const SessionCreatorChatPanelView: React.FC<
       >
         <InlineAlert
           type="warning"
+          compact
           icon={
             <HugeiconsIcon
               icon={Download02Icon}
