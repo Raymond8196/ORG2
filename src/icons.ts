@@ -389,6 +389,8 @@ export { default as Shield02Icon } from "@hugeicons/core-free-icons/Shield02Icon
 export { default as ShieldAlertIcon } from "@hugeicons/core-free-icons/ShieldAlertIcon";
 export { default as SidebarBottomIcon } from "@hugeicons/core-free-icons/SidebarBottomIcon";
 export { default as SidebarLeft01Icon } from "@hugeicons/core-free-icons/SidebarLeft01Icon";
+export { default as SidebarLeftIcon } from "@hugeicons/core-free-icons/SidebarLeftIcon";
+export { default as SidebarRightIcon } from "@hugeicons/core-free-icons/SidebarRightIcon";
 export { default as SignalFull01Icon } from "@hugeicons/core-free-icons/SignalFull01Icon";
 export { default as SkipBackIcon } from "@hugeicons/core-free-icons/SkipBackIcon";
 export { default as SlashIcon } from "@hugeicons/core-free-icons/SlashIcon";

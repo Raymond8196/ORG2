@@ -19,7 +19,7 @@ import {
   BubbleChatIcon,
   Cancel01Icon,
   HugeiconsIcon,
-  PanelRightCloseIcon,
+  LayoutAlignRightIcon,
   PanelRightIcon,
 } from "@src/icons";
 import ProjectManagerWorkItemsTabBarTrailing from "@src/modules/ProjectManager/ProjectManagerLayout/components/ProjectManagerWorkItemsTabBarTrailing";
@@ -65,20 +65,20 @@ export function WorkstationMaximizeChatIcon({
   }
 
   return (
-    <span className="relative flex h-4 w-4 items-center justify-center">
+    <span className="flex h-4 w-4 items-center justify-center">
       <HugeiconsIcon
         icon={PanelRightIcon}
         data-icon="panel-right"
         size={HEADER_ICON_SIZE.md}
         strokeWidth={2}
-        className="absolute transition-opacity duration-150 group-hover:opacity-0"
+        className="group-hover:hidden"
       />
       <HugeiconsIcon
-        icon={PanelRightCloseIcon}
-        data-icon="panel-right-close"
+        icon={LayoutAlignRightIcon}
+        data-icon="layout-align-right"
         size={HEADER_ICON_SIZE.md}
         strokeWidth={2}
-        className="absolute opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+        className="hidden group-hover:block"
       />
     </span>
   );

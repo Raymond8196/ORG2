@@ -587,6 +587,7 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const headerSection = (
       <ChatPanelHeader
         activeSessionExists={Boolean(activeSession)}
+        chatPanelPosition={position}
         copyEventJsonLabel={copyEventJsonLabel}
         currentSessionId={currentSessionId ?? null}
         displayMode={displayMode}

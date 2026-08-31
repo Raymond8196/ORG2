@@ -13,6 +13,7 @@ import {
   ArrowExpand01Icon,
   ComputerVideoIcon,
   HugeiconsIcon,
+  LayoutAlignRightIcon,
   PanelRightIcon,
   PanelRightOpenIcon,
   SquareTerminalIcon,
@@ -20,6 +21,7 @@ import {
 import { HEADER_ICON_SIZE } from "@src/modules/WorkStation/shared/tokens";
 import { CollapsedSidebarButton } from "@src/scaffold/NavigationSidebar/CollapsedSidebarButton";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
+import type { ChatPanelPosition } from "@src/store/ui/workStationLayout/chatPositionAtoms";
 import { isWindows } from "@src/util/platform/tauri";
 
 import { SessionHeaderActionsMenu } from "./components/SessionHeaderActionsMenu";
@@ -44,6 +46,7 @@ const CHAT_PANEL_HEADER_ICON_SIZE = 14;
 
 interface ChatPanelHeaderProps {
   activeSessionExists: boolean;
+  chatPanelPosition: ChatPanelPosition;
   copyEventJsonLabel: "idle" | "copied" | "failed";
   currentSessionId: string | null;
   displayMode: ChatHistoryDisplayMode;
@@ -102,6 +105,7 @@ interface ChatPanelHeaderProps {
 
 export function ChatPanelHeader({
   activeSessionExists,
+  chatPanelPosition,
   copyEventJsonLabel,
   currentSessionId,
   displayMode,
@@ -264,24 +268,34 @@ export function ChatPanelHeader({
         className="group"
       >
         {isChatFocus ? (
-          // Swapped with `hidden`, never cross-faded. Both glyphs draw the
-          // same rounded-rect outline from different path strings (opposite
-          // winding, different start point); fading one through the other
-          // rasterizes that identical outline twice at slightly different
-          // anti-aliasing, which reads as the icon shaking. Only ever
-          // painting one keeps the hover to what actually differs — the
-          // chevron `PanelRightOpenIcon` adds.
+          // Swap glyphs without cross-fading so their outlines never overlap.
           <span className="flex h-4 w-4 items-center justify-center">
             <HugeiconsIcon
-              icon={PanelRightIcon}
-              data-icon="panel-right"
+              icon={
+                chatPanelPosition === "left"
+                  ? LayoutAlignRightIcon
+                  : PanelRightIcon
+              }
+              data-icon={
+                chatPanelPosition === "left"
+                  ? "layout-align-right"
+                  : "panel-right"
+              }
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}
               className="group-hover:hidden"
             />
             <HugeiconsIcon
-              icon={PanelRightOpenIcon}
-              data-icon="panel-right-open"
+              icon={
+                chatPanelPosition === "left"
+                  ? PanelRightIcon
+                  : PanelRightOpenIcon
+              }
+              data-icon={
+                chatPanelPosition === "left"
+                  ? "panel-right"
+                  : "panel-right-open"
+              }
               size={HEADER_ICON_SIZE.md}
               strokeWidth={1.75}
               className="hidden group-hover:block"

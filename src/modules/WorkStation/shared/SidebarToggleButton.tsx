@@ -22,13 +22,14 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
-import { PanelLeftIcon, PanelRightIcon } from "@src/components/PanelIcons";
 import type { TooltipProps } from "@src/components/Tooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import {
   HugeiconsIcon,
   LayoutAlignLeftIcon,
   LayoutAlignRightIcon,
+  SidebarLeftIcon,
+  SidebarRightIcon,
 } from "@src/icons";
 import {
   simulatorPrimarySidebarCollapsedAtom,
@@ -83,7 +84,7 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
   showShortcut = true,
 }) => {
   const { t } = useTranslation("sessions");
-  const Icon = position === "right" ? PanelRightIcon : PanelLeftIcon;
+  const SidebarIcon = position === "right" ? SidebarRightIcon : SidebarLeftIcon;
   const AlignmentIcon =
     position === "right" ? LayoutAlignRightIcon : LayoutAlignLeftIcon;
   const label = collapsed
@@ -105,6 +106,7 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
           size="small"
           iconOnly
           disabled={disabled}
+          className={disabled ? undefined : "group/sidebar-toggle"}
           onClick={disabled ? undefined : onToggle}
           aria-label={label}
           icon={
@@ -116,11 +118,22 @@ const SidebarToggleButtonComponent: React.FC<SidebarToggleButtonProps> = ({
                 strokeWidth={2.25}
               />
             ) : (
-              <Icon
-                size={iconSize}
-                strokeWidth={1.75}
-                fillSidebar={!collapsed}
-              />
+              <>
+                <HugeiconsIcon
+                  icon={collapsed ? AlignmentIcon : SidebarIcon}
+                  data-icon={`${collapsed ? "layout-align" : "sidebar"}-${position}`}
+                  size={iconSize}
+                  strokeWidth={2.25}
+                  className="group-hover/sidebar-toggle:hidden"
+                />
+                <HugeiconsIcon
+                  icon={collapsed ? SidebarIcon : AlignmentIcon}
+                  data-icon={`${collapsed ? "sidebar" : "layout-align"}-${position}`}
+                  size={iconSize}
+                  strokeWidth={2.25}
+                  className="hidden group-hover/sidebar-toggle:block"
+                />
+              </>
             )
           }
         />
@@ -174,7 +187,6 @@ const WorkStationSidebarToggleButtonComponent: React.FC<
       onToggle={callbacks.onTogglePrimaryPanel ?? handleFallbackToggle}
       position={position}
       iconSize={iconSize}
-      stableAlignmentIcon
       tooltipPosition={activeApp === "browser" ? "top" : "bottom"}
       disabled={disabled}
     />

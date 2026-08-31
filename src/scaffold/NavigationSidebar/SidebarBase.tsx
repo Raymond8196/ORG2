@@ -33,8 +33,8 @@ import {
   Add01Icon,
   Cancel01Icon,
   HugeiconsIcon,
+  LayoutAlignLeftIcon,
   PanelLeftIcon,
-  SidebarLeft01Icon,
 } from "@src/icons";
 import {
   PANE_WIDTH_TRANSITION_CLASSES,
@@ -425,21 +425,21 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                         className="group flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                         onClick={handleCollapse}
                       >
-                        <span className="relative flex h-4 w-4 items-center justify-center">
+                        <span className="flex h-4 w-4 items-center justify-center">
                           <HugeiconsIcon
                             icon={PanelLeftIcon}
                             data-icon="panel-left"
                             size={16}
                             strokeWidth={2}
-                            className="absolute text-text-2 transition-opacity duration-150 group-hover:opacity-0"
+                            className="text-text-2 group-hover:hidden"
                             style={iconThemeStyle}
                           />
                           <HugeiconsIcon
-                            icon={SidebarLeft01Icon}
-                            data-icon="sidebar-left-01"
+                            icon={LayoutAlignLeftIcon}
+                            data-icon="layout-align-left"
                             size={16}
                             strokeWidth={2}
-                            className="absolute text-text-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                            className="hidden text-text-2 group-hover:block"
                             style={iconThemeStyle}
                           />
                         </span>
