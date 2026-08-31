@@ -411,7 +411,8 @@
     "switchMethod": "방법 전환",
     "dismiss": "무시",
     "comingSoon": "출시 예정",
-    "clearSelection": "선택 지우기"
+    "clearSelection": "선택 지우기",
+    "uiSettings": "UI 설정"
   },
   "refreshToast": {
     "successName": "{{name}} 새로고침됨"

@@ -390,7 +390,7 @@ describe("SessionHeaderActionsMenu", () => {
     render();
     expect(document.querySelector('[role="switch"]')).toBeNull();
     expect(element("session-ui-settings-submenu").textContent).toBe(
-      "chat.uiSettings"
+      "common:actions.uiSettings"
     );
     click("session-ui-settings-submenu");
     const panel = element("session-ui-settings-submenu-panel");
@@ -436,7 +436,9 @@ describe("SessionHeaderActionsMenu", () => {
     expect(props.toggleHeaderActionsMenu).not.toHaveBeenCalled();
 
     render({ showTranscriptActions: false });
-    expect(document.body.textContent).not.toContain("chat.uiSettings");
+    expect(document.body.textContent).not.toContain(
+      "common:actions.uiSettings"
+    );
     expect(document.querySelector('[role="switch"]')).toBeNull();
   });
 
@@ -495,7 +497,7 @@ describe("SessionHeaderActionsMenu", () => {
         new MouseEvent("mouseover", { bubbles: true })
       )
     );
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
   });
 
   it("navigates into the left submenu and back without closing the parent", () => {
@@ -521,7 +523,7 @@ describe("SessionHeaderActionsMenu", () => {
     key("Enter");
     element("session-copy-submenu-panel");
     key("Escape");
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
     key("Escape");
     expect(props.toggleHeaderActionsMenu).toHaveBeenCalledOnce();
   });
@@ -542,7 +544,7 @@ describe("SessionHeaderActionsMenu", () => {
         "getBoundingClientRect"
       ).mockImplementation(function (this: HTMLElement) {
         const isFlyout = this.className === "fixed";
-        const isPanel = this.hasAttribute("data-session-actions-submenu");
+        const isPanel = this.hasAttribute("data-action-menu-submenu");
         const width = isFlyout
           ? panelWidth + DROPDOWN_PANEL.submenuGap
           : isPanel
@@ -581,7 +583,7 @@ describe("SessionHeaderActionsMenu", () => {
     key("Escape");
     expect(props.toggleHeaderActionsMenu).not.toHaveBeenCalled();
     render({ isHeaderActionsOpen: true });
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
     key("Escape");
     expect(props.toggleHeaderActionsMenu).toHaveBeenCalledOnce();
   });
@@ -789,7 +791,7 @@ describe("SessionHeaderActionsMenu native app action", () => {
     ]) {
       click(testId);
       expect(
-        document.querySelectorAll("[data-session-actions-submenu]")
+        document.querySelectorAll("[data-action-menu-submenu]")
       ).toHaveLength(1);
       expect(element(`${testId}-panel`)).toBeDefined();
       expect(element("session-open-in-app-menu-item")).toBe(row);
@@ -797,7 +799,7 @@ describe("SessionHeaderActionsMenu native app action", () => {
     act(() =>
       row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
     );
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
     expect(mocks.appOpenPlan).toHaveBeenCalledOnce();
     expect(mocks.openInApp).not.toHaveBeenCalled();
     expect(props.toggleHeaderActionsMenu).not.toHaveBeenCalled();

@@ -411,7 +411,8 @@
     "switchMethod": "Đổi phương thức",
     "dismiss": "Bỏ qua",
     "comingSoon": "Sắp ra mắt",
-    "clearSelection": "Xóa lựa chọn"
+    "clearSelection": "Xóa lựa chọn",
+    "uiSettings": "Cài đặt giao diện"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}"

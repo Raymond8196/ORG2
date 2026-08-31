@@ -417,7 +417,8 @@
     "switchMethod": "Zmień metodę",
     "dismiss": "Odrzuć",
     "comingSoon": "Wkrótce",
-    "clearSelection": "Wyczyść zaznaczenie"
+    "clearSelection": "Wyczyść zaznaczenie",
+    "uiSettings": "Ustawienia interfejsu"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}"
