@@ -336,6 +336,11 @@ export const ModelPropertiesDropdown: React.FC<
     [draft, variantOptions]
   );
 
+  // Preserve an applied Max selection while the editor's draft changes.
+  const availableLevels = variantOptions.getAvailableLevels(
+    variantOptions.parseSelection(value).level
+  );
+
   // Mirror the live draft to the parent for optimistic UI. We emit the
   // resolved model id while the panel is open and `undefined` when it
   // closes without Apply so the parent can revert. The Apply path skips
@@ -455,10 +460,10 @@ export const ModelPropertiesDropdown: React.FC<
       {/* Effort / Reasoning section (above Options). The lightweight
           slider keeps the same discrete model variants while making the
           choice feel faster than a menu of rows. */}
-      {variantOptions.availableLevels.length > 0 && (
+      {availableLevels.length > 0 && (
         <div className={DROPDOWN_CLASSES.sectionContainer}>
           <EffortSlider
-            levels={variantOptions.availableLevels}
+            levels={availableLevels}
             value={draft.level}
             onChange={handleLevelSelect}
             fast={showFastRow && draft.fast}

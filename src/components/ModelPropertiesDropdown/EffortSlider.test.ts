@@ -13,6 +13,7 @@ import {
 } from "vitest";
 
 import { MODEL_REASONING_LEVEL } from "@src/util/modelVariants";
+import { buildVariantEditOptions } from "@src/util/variantEditOptions";
 
 import { EffortSlider } from "./EffortSlider";
 
@@ -127,6 +128,53 @@ describe("EffortSlider", () => {
     expect(
       add.mock.calls.filter(([type]) => type === "visibilitychange")
     ).toHaveLength(0);
+  });
+
+  it("goes directly from Extra High to purple Ultra in the Codex picker", () => {
+    const onChange = vi.fn();
+    const options = buildVariantEditOptions(
+      ["low", "medium", "high", "xhigh", "max", "ultra"].map(
+        (level) => `gpt-5.6-sol-${level}`
+      )
+    );
+    const levels = options.getAvailableLevels(MODEL_REASONING_LEVEL.EXTRA_HIGH);
+    render({ levels, value: MODEL_REASONING_LEVEL.EXTRA_HIGH, onChange });
+    expect(range().getAttribute("aria-valuetext")).toBe("Extra High");
+    expect(range().max).toBe("4");
+    expect(container.textContent).not.toContain("Max");
+    expect(container.querySelector(".text-purple-6")).toBeNull();
+    changeValue("4");
+    expect(onChange).toHaveBeenCalledWith(MODEL_REASONING_LEVEL.ULTRA);
+    render({
+      levels,
+      value: MODEL_REASONING_LEVEL.ULTRA,
+      fast: true,
+      onChange,
+    });
+    expect(range().getAttribute("aria-valuetext")).toBe("Ultra");
+    expect(range().value).toBe(range().max);
+    expect(container.querySelector(".text-purple-6")?.textContent).toBe(
+      "Ultra"
+    );
+    expect(
+      container.querySelector<HTMLElement>(".effort-slider")?.dataset.effort
+    ).toBe("ultra");
+    expect(
+      container.querySelector<HTMLElement>(".effort-slider")?.dataset.fast
+    ).toBe("true");
+    // Saved Max remains honest when reopening its editor; it is never
+    // silently relabeled as Ultra or Light, and it keeps the blue accent.
+    render({
+      levels: options.getAvailableLevels(MODEL_REASONING_LEVEL.MAX),
+      value: MODEL_REASONING_LEVEL.MAX,
+    });
+    expect(range().getAttribute("aria-valuetext")).toBe("Max");
+    expect(range().value).toBe("4");
+    expect(range().max).toBe("5");
+    expect(container.querySelector(".text-purple-6")).toBeNull();
+    expect(
+      container.querySelector<HTMLElement>(".effort-slider")?.dataset.effort
+    ).toBe("max");
   });
 
   it("pauses while hidden, resumes once visible, and removes its listener on close", () => {

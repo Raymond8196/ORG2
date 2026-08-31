@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from "react";
 import { useTranslation } from "react-i18next";
 
 import {
+  MODEL_REASONING_LEVEL,
   type ModelReasoningLevel,
   formatReasoningLevel,
 } from "@src/util/modelVariants";
@@ -56,6 +57,7 @@ export const EffortSlider: React.FC<EffortSliderProps> = ({
   if (!selectedLevel) return null;
 
   const levelLabel = formatReasoningLevel(selectedLevel);
+  const isUltra = selectedLevel === MODEL_REASONING_LEVEL.ULTRA;
   const effortLabel = t("selectors.modelProperties.effort", {
     defaultValue: "Effort",
   });
@@ -64,13 +66,18 @@ export const EffortSlider: React.FC<EffortSliderProps> = ({
     <div className="px-1.5 py-1">
       <div className="mb-1 flex items-center justify-between gap-3 text-xs leading-4">
         <span className="font-medium text-text-3">{effortLabel}</span>
-        <span className="font-medium text-primary-6">{levelLabel}</span>
+        <span
+          className={`font-medium ${isUltra ? "text-purple-6" : "text-primary-6"}`}
+        >
+          {levelLabel}
+        </span>
       </div>
       {hasRange && (
         <div
           ref={sliderRef}
           className="effort-slider"
           data-fast={fast}
+          data-effort={selectedLevel}
           style={
             {
               "--effort-progress": selectedIndex / maxIndex,
@@ -78,7 +85,7 @@ export const EffortSlider: React.FC<EffortSliderProps> = ({
           }
         >
           <div className="effort-slider__rail bg-fill-2" aria-hidden="true">
-            <div className="effort-slider__fill bg-primary-6">
+            <div className="effort-slider__fill">
               {COMET_INDICES.map((index) => (
                 <span key={index} className="effort-slider__comet" />
               ))}
