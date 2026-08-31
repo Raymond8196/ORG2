@@ -69,6 +69,7 @@ export function useGroupHeaderRenderer({
           hideCollapseTimeRange={turnPaginationEnabled}
           tailTurnPhase={tailTurnPhase}
           hideUserMessage={hideUserMessage}
+          compactUserMessage={turnPaginationEnabled}
           defaultTurnCollapsed={defaultTurnCollapsed}
           renderPart={renderPart}
           turnCollapseInteractionAtRef={turnCollapseInteractionAtRef}

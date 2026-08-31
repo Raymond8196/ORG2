@@ -86,6 +86,7 @@ function sameGroupHeaderProps(
     previous.suppressRoundGap === next.suppressRoundGap &&
     previous.tailTurnPhase === next.tailTurnPhase &&
     previous.hideUserMessage === next.hideUserMessage &&
+    previous.compactUserMessage === next.compactUserMessage &&
     previous.defaultTurnCollapsed === next.defaultTurnCollapsed &&
     previous.renderPart === next.renderPart &&
     previous.turnCollapseInteractionAtRef ===
@@ -125,6 +126,8 @@ export interface GroupHeaderRendererProps {
    * the pagination row.
    */
   hideUserMessage?: boolean;
+  /** Use the short user-message preview in paginated/pinned turn headers. */
+  compactUserMessage?: boolean;
   /** Default collapse state for eligible turns when no explicit override exists. */
   defaultTurnCollapsed?: boolean;
   renderPart?: GroupHeaderRenderPart;
@@ -157,6 +160,7 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
     suppressRoundGap = false,
     tailTurnPhase = "running",
     hideUserMessage = false,
+    compactUserMessage = true,
     defaultTurnCollapsed = false,
     renderPart = "all",
     turnCollapseInteractionAtRef,
@@ -252,6 +256,7 @@ export const GroupHeaderRenderer: React.FC<GroupHeaderRendererProps> = memo(
         {showUserPart ? (
           <UserChatItem
             chatItem={header}
+            compactPreview={compactUserMessage}
             onEditSubmit={onEditSubmit ? handleEdit : undefined}
             onRestoreCheckpoint={
               onRestoreCheckpoint ? handleRestoreCheckpoint : undefined
