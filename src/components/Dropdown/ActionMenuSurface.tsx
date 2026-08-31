@@ -1,5 +1,6 @@
 import React, {
   createContext,
+  useCallback,
   useContext,
   useEffect,
   useId,
@@ -15,11 +16,14 @@ import {
   DROPDOWN_PANEL,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import { useMenuHoverGrace } from "@src/hooks/dropdown/useMenuHoverGrace";
 import { ArrowRight01Icon, HugeiconsIcon } from "@src/icons";
 
 const SubmenuContext = createContext<{
   active: string | null;
   setActive: (id: string | null) => void;
+  hoverSubmenu: (id: string) => void;
+  cancelHover: () => void;
 } | null>(null);
 
 const ACTION_SELECTOR =
@@ -35,7 +39,24 @@ export function ActionMenuSurface({
   panelRef: React.RefObject<HTMLDivElement | null>;
   onClose: () => void;
 }) {
-  const [active, setActive] = useState<string | null>(null);
+  const [active, setActiveId] = useState<string | null>(null);
+  const { cancel: cancelHover, schedule: scheduleHover } = useMenuHoverGrace(
+    active !== null
+  );
+  const setActive = useCallback(
+    (id: string | null) => {
+      cancelHover();
+      setActiveId(id);
+    },
+    [cancelHover]
+  );
+  const hoverSubmenu = (id: string) => {
+    if (active !== null && active !== id) {
+      scheduleHover(() => setActive(id));
+    } else {
+      setActive(id);
+    }
+  };
 
   useEffect(() => {
     const panel = panelRef.current;
@@ -43,6 +64,7 @@ export function ActionMenuSurface({
     const handleKeyDown = (event: KeyboardEvent) => {
       if (event.isComposing || event.metaKey || event.ctrlKey || event.altKey)
         return;
+      cancelHover();
       const submenu = panel.querySelector<HTMLElement>(
         '[data-action-menu-submenu="true"]'
       );
@@ -103,26 +125,30 @@ export function ActionMenuSurface({
     };
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
-  }, [onClose, panelRef]);
+  }, [cancelHover, onClose, panelRef, setActive]);
 
   return (
-    <SubmenuContext.Provider value={{ active, setActive }}>
+    <SubmenuContext.Provider
+      value={{ active, setActive, hoverSubmenu, cancelHover }}
+    >
       <div
         {...props}
         ref={panelRef}
         role="menu"
+        onMouseEnter={cancelHover}
+        onPointerDownCapture={cancelHover}
         onMouseOver={(event) => {
           if (!(event.target instanceof Element)) return;
-          // Keep the flyout open while crossing the parent's padding into
-          // its hover bridge. Only another action row dismisses the group.
+          // Crossing another row on a diagonal must not immediately dismiss
+          // the flyout. Entering it cancels this pending hover transition.
           if (
             event.target.closest(ACTION_SELECTOR) &&
             !event.target.closest("[data-action-menu-group]")
           ) {
-            setActive(null);
+            scheduleHover(() => setActive(null));
           }
         }}
-        onMouseLeave={() => setActive(null)}
+        onMouseLeave={() => scheduleHover(() => setActive(null))}
       >
         {children}
       </div>
@@ -147,7 +173,7 @@ export function ActionSubmenu({
   const id = useId();
   const context = useContext(SubmenuContext);
   if (!context) throw new Error("ActionSubmenu requires an ActionMenuSurface");
-  const { active, setActive } = context;
+  const { active, setActive, hoverSubmenu, cancelHover } = context;
   const open = active === id;
   const rowRef = useRef<HTMLDivElement>(null);
   const flyoutRef = useRef<HTMLDivElement>(null);
@@ -196,7 +222,7 @@ export function ActionSubmenu({
         ariaExpanded={open}
         dataTestId={dataTestId}
         onMouseEnter={() => {
-          if (!disabled) setActive(id);
+          if (!disabled) hoverSubmenu(id);
         }}
         onClick={() => setActive(id)}
         suffix={
@@ -213,6 +239,7 @@ export function ActionSubmenu({
           ref={flyoutRef}
           className="fixed"
           style={{ paddingRight: DROPDOWN_PANEL.submenuGap }}
+          onMouseEnter={cancelHover}
         >
           <div
             ref={panelRef}
