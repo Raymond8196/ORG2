@@ -28,7 +28,7 @@ import {
   useModelEffortSegment,
   useModelPillLabel,
 } from "@src/hooks/models";
-import { GripIcon, HugeiconsIcon } from "@src/icons";
+import { AiSettingIcon, HugeiconsIcon } from "@src/icons";
 import type { LastModelSelection } from "@src/store/session/creatorDefaultModelAtom";
 
 export interface ModelSelectorPillProps {
@@ -127,8 +127,8 @@ const ModelSelectorPill = forwardRef<HTMLButtonElement, ModelSelectorPillProps>(
           />
         ) : (
           <HugeiconsIcon
-            icon={GripIcon}
-            data-icon="grip"
+            icon={AiSettingIcon}
+            data-icon="ai-setting"
             size={iconSize}
             strokeWidth={1.75}
             className="text-primary-6"

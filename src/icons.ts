@@ -28,6 +28,7 @@ export { default as Add01Icon } from "@hugeicons/core-free-icons/Add01Icon";
 export { default as AiGenerativeIcon } from "@hugeicons/core-free-icons/AiGenerativeIcon";
 export { default as AiNetworkIcon } from "@hugeicons/core-free-icons/AiNetworkIcon";
 export { default as AiProgrammingIcon } from "@hugeicons/core-free-icons/AiProgrammingIcon";
+export { default as AiSettingIcon } from "@hugeicons/core-free-icons/AiSettingIcon";
 export { default as Airplane01Icon } from "@hugeicons/core-free-icons/Airplane01Icon";
 export { default as Alert01Icon } from "@hugeicons/core-free-icons/Alert01Icon";
 export { default as AlertCircleIcon } from "@hugeicons/core-free-icons/AlertCircleIcon";

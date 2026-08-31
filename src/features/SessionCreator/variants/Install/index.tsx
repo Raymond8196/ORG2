@@ -18,7 +18,7 @@ import SelectorPill from "@src/components/SelectorPill";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import type { AdvancedConfig } from "@src/features/SessionCreator/types";
 import { useModelPillLabel } from "@src/hooks/models";
-import { GripIcon, HugeiconsIcon } from "@src/icons";
+import { AiSettingIcon, HugeiconsIcon } from "@src/icons";
 import { UnifiedModelPalette } from "@src/scaffold/GlobalSpotlight/palettes/UnifiedModelPalette";
 
 export interface SessionCreatorInstallProps {
@@ -83,8 +83,8 @@ const SessionCreatorInstall: React.FC<SessionCreatorInstallProps> = memo(
               />
             ) : (
               <HugeiconsIcon
-                icon={GripIcon}
-                data-icon="grip"
+                icon={AiSettingIcon}
+                data-icon="ai-setting"
                 size={iconSize}
                 strokeWidth={1.75}
                 className="text-primary-6"
