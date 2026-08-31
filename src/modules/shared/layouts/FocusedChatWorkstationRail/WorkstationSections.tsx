@@ -47,7 +47,7 @@ export function WorkstationSections({
             }
           >
             {section.label && (
-              <div className="flex h-7 items-center">
+              <div className="flex h-6 items-center">
                 <div className={WORKSTATION_TRAIL_CONTENT.sectionLabelInline}>
                   {section.label}
                 </div>

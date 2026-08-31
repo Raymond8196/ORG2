@@ -14,6 +14,7 @@ import {
   DROPDOWN_PANEL,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import { ProcessStopButton } from "@src/components/ProcessStopButton";
 import { REFRESH_ICON_TOKENS } from "@src/components/RefreshIcon/tokens";
 import { resolveTimeZoneForIntl } from "@src/config/timezone";
 import { useDropdownEngine } from "@src/hooks/dropdown";
@@ -23,10 +24,8 @@ import {
   Copy01Icon,
   HugeiconsIcon,
   InternetIcon,
-  Loading03Icon,
   Refresh04Icon,
   ServerStack03Icon,
-  StopIcon,
 } from "@src/icons";
 import {
   addressForPort,
@@ -164,32 +163,11 @@ const PortRow: React.FC<PortRowProps> = memo(
             />
           </button>
           {canStop && (
-            <button
-              type="button"
-              className="hover:text-danger-7 inline-flex h-6 w-6 items-center justify-center rounded text-danger-6 transition-colors hover:bg-danger-1 disabled:opacity-40"
-              title={t("workstation.ports.stopProcess")}
-              aria-label={t("workstation.ports.stopProcess")}
-              disabled={stopping}
-              onClick={(event) => {
-                event.stopPropagation();
-                onStop(port);
-              }}
-            >
-              {stopping ? (
-                <HugeiconsIcon
-                  icon={Loading03Icon}
-                  data-icon="loader-2"
-                  size={MENU_ICON_SIZE}
-                  className="animate-spin text-danger-6"
-                />
-              ) : (
-                <HugeiconsIcon
-                  icon={StopIcon}
-                  data-icon="stop"
-                  size={MENU_ICON_SIZE}
-                />
-              )}
-            </button>
+            <ProcessStopButton
+              label={t("workstation.ports.stopProcess")}
+              loading={stopping}
+              onClick={() => onStop(port)}
+            />
           )}
         </div>
       </div>

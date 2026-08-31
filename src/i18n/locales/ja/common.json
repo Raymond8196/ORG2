@@ -1265,7 +1265,10 @@
       "newMiniTerminal": "新しいミニターミナル",
       "showMiniTerminals": "ミニターミナル",
       "sessionInMiniTerminal": "ミニターミナルで実行中",
-      "returnFromMiniTerminal": "ここに表示"
+      "returnFromMiniTerminal": "ここに表示",
+      "resizeTerminal": "ターミナルのサイズを変更",
+      "terminalProcessCount_one": "{{count}} 個のプロセス",
+      "terminalProcessCount_other": "{{count}} 個のプロセス"
     },
     "pr": {
       "title": "Pull request",

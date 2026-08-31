@@ -11,8 +11,9 @@ import { useTranslation } from "react-i18next";
 
 import Button from "@src/components/Button";
 import { Placeholder } from "@src/components/Placeholder";
+import { ProcessStopButton } from "@src/components/ProcessStopButton";
 import { EDITOR_TAB_CANVAS_BG_CLASS } from "@src/config/workstation/tokens";
-import { Delete02Icon, HugeiconsIcon } from "@src/icons";
+import { Cancel01Icon, HugeiconsIcon } from "@src/icons";
 import {
   FileHeader,
   TerminalInfoButton,
@@ -169,21 +170,25 @@ const TerminalMainContent: React.FC<TerminalMainContentProps> = ({
           </>
         )}
         <span className="flex items-center gap-px">
-          <Button
-            htmlType="button"
-            variant="tertiary"
-            size="small"
-            iconOnly
-            title={t("tooltips.killTerminal")}
-            onClick={handleKillTerminal}
-            icon={
-              <HugeiconsIcon
-                icon={Delete02Icon}
-                data-icon="trash-2"
-                size={14}
-              />
-            }
-          />
+          {isAgentTerminal ? (
+            <Button
+              htmlType="button"
+              variant="tertiary"
+              size="small"
+              iconOnly
+              title={t("common:actions.close")}
+              aria-label={t("common:actions.close")}
+              onClick={handleKillTerminal}
+              icon={
+                <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={14} />
+              }
+            />
+          ) : (
+            <ProcessStopButton
+              label={t("common:tooltips.killTerminal")}
+              onClick={handleKillTerminal}
+            />
+          )}
           {!isAgentTerminal && (
             <TerminalInfoButton
               title={t("common:terminology.myTerminalInfo")}

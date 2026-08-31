@@ -89,6 +89,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       forceRepoCwd,
       nameOverride,
       backgroundColor,
+      fontSize,
       shellIntegration,
     },
     ref
@@ -118,7 +119,8 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     const [_isBrowserMode, setIsBrowserMode] = useState(false);
     const [isReady, setIsReady] = useState(false);
     const terminalTheme = useAtomValue(terminalThemeAtom);
-    const terminalFontSize = useAtomValue(terminalFontSizeAtom);
+    const configuredFontSize = useAtomValue(terminalFontSizeAtom);
+    const terminalFontSize = fontSize ?? configuredFontSize;
     const terminalLetterSpacing = useAtomValue(terminalLetterSpacingAtom);
     const codeFontFamily = useAtomValue(resolvedTerminalFontFamilyAtom);
     const shellType = useAtomValue(shellTypeAtom);

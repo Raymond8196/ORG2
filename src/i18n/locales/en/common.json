@@ -1154,7 +1154,10 @@
       "newMiniTerminal": "New mini terminal",
       "showMiniTerminals": "Mini terminals",
       "sessionInMiniTerminal": "Running in the mini terminal",
-      "returnFromMiniTerminal": "Show it here"
+      "returnFromMiniTerminal": "Show it here",
+      "resizeTerminal": "Resize terminal",
+      "terminalProcessCount_one": "{{count}} process",
+      "terminalProcessCount_other": "{{count}} processes"
     },
     "messages": {
       "pushSuccess": "Successfully pushed changes to remote",

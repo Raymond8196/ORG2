@@ -1270,7 +1270,12 @@
       "newMiniTerminal": "Новый мини-терминал",
       "showMiniTerminals": "Мини-терминалы",
       "sessionInMiniTerminal": "Выполняется в мини-терминале",
-      "returnFromMiniTerminal": "Показать здесь"
+      "returnFromMiniTerminal": "Показать здесь",
+      "resizeTerminal": "Изменить размер терминала",
+      "terminalProcessCount_one": "{{count}} процесс",
+      "terminalProcessCount_other": "{{count}} процесса",
+      "terminalProcessCount_few": "{{count}} процесса",
+      "terminalProcessCount_many": "{{count}} процессов"
     },
     "pr": {
       "title": "Pull request",

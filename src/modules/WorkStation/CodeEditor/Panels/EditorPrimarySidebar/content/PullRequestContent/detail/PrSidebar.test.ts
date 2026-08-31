@@ -145,8 +145,8 @@ describe("PrSidebar", () => {
     const reviewerTrigger = surface?.querySelector(
       "[data-testid='pr-reviewer-action']"
     );
-    expect(reviewerTrigger?.className).toContain("h-[26px]");
-    expect(reviewerTrigger?.className).toContain("w-[26px]");
+    expect(reviewerTrigger?.className).toContain("h-5");
+    expect(reviewerTrigger?.className).toContain("w-5");
     expect(reviewerTrigger?.className).toContain("rounded-lg");
     const reviewers = container.querySelector(
       "[data-testid='pr-sidebar-reviewers']"

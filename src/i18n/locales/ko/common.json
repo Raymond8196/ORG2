@@ -1265,7 +1265,10 @@
       "newMiniTerminal": "새 미니 터미널",
       "showMiniTerminals": "미니 터미널",
       "sessionInMiniTerminal": "미니 터미널에서 실행 중",
-      "returnFromMiniTerminal": "여기에 표시"
+      "returnFromMiniTerminal": "여기에 표시",
+      "resizeTerminal": "터미널 크기 조정",
+      "terminalProcessCount_one": "프로세스 {{count}}개",
+      "terminalProcessCount_other": "프로세스 {{count}}개"
     },
     "pr": {
       "title": "Pull request",
