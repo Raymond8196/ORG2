@@ -24,6 +24,7 @@ import { useDropdownEngine } from "@src/hooks/dropdown";
 import { useActiveRepoRef } from "@src/hooks/git/useActiveRepoRef";
 import { useBranchPullRequestStatus } from "@src/hooks/git/useBranchPullRequestStatus";
 import {
+  ArrowUpRight01Icon,
   CancelCircleIcon,
   CheckmarkCircle01Icon,
   CircleDashedIcon,
@@ -32,7 +33,6 @@ import {
   HugeiconsIcon,
   Loading03Icon,
   Refresh04Icon,
-  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 import {
@@ -189,8 +189,8 @@ const CheckRow: React.FC<CheckRowProps> = memo(({ item, onOpenDetails }) => {
             }}
           >
             <HugeiconsIcon
-              icon={SquareArrowUpRight02Icon}
-              data-icon="square-arrow-out-up-right"
+              icon={ArrowUpRight01Icon}
+              data-icon="arrow-up-right"
               size={MENU_ICON_SIZE}
             />
           </button>
