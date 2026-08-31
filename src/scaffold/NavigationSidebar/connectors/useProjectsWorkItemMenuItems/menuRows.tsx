@@ -348,11 +348,9 @@ export function buildLinkedSessionRows(
       visualTone: "secondary",
       showIndentGuide: true,
       dataTestId: `sidebar-work-item-linked-session-${workItem.id}-${session.session_id}`,
-      workingIndicator:
-        session.status === "running" ? renderBreathingStatusDot() : undefined,
-      trailingElement:
+      iconBadge:
         session.status === "running"
-          ? undefined
+          ? renderBreathingStatusDot()
           : linkedSessionStatusIndicator(t, session),
       shortcut: formatRelativeTime(timestamp, "nano"),
       dragPayload: {

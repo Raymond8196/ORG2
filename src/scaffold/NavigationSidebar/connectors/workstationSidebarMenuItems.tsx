@@ -213,7 +213,7 @@ export function buildDraftMenuItems({
         }),
         shortcut: formatRelativeTime(draft.createdAt, "nano"),
         openContextMenuOnSelectedClick: true,
-        trailingElement: (
+        iconBadge: (
           <span className="h-1.5 w-1.5 rounded-full border border-border-3 bg-transparent" />
         ),
       } satisfies NavigationMenuItem;

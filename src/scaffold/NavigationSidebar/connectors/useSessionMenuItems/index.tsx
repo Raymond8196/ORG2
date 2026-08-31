@@ -127,7 +127,7 @@ function buildChildSessionMenuItem(
     visualTone: "secondary",
     dataTestId: `sidebar-subagent-session-item-${session.session_id}`,
     // Subagent rows don't carry a meaningful read status, so drop the dot.
-    workingIndicator: undefined,
+    iconBadge: undefined,
     trailingElement: undefined,
   };
 }
