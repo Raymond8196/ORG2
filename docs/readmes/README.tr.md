@@ -125,7 +125,7 @@ pnpm run download:sidecars
 pnpm run tauri:dev
 ```
 
-Katkı ayrıntıları için [CONTRIBUTING.md](../../CONTRIBUTING.md) dosyasına bakın. Herkesten saygılı ve empatik olmasını rica ediyoruz; [CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md) dosyasına bakın.
+Katkı ayrıntıları için [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) dosyasına bakın. Herkesten saygılı ve empatik olmasını rica ediyoruz; [CODE_OF_CONDUCT.md](../../.github/CODE_OF_CONDUCT.md) dosyasına bakın.
 
 ## İsteğe bağlı native sidecars
 

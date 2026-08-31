@@ -2,6 +2,8 @@
 
 Thank you for helping improve ORGII. This project is a Tauri v2 desktop app built with React, TypeScript, webpack, and Rust.
 
+Unless otherwise noted, paths and shell commands are relative to the repository root.
+
 ## Quick path
 
 1. Search existing issues and pull requests first.
@@ -32,7 +34,13 @@ pnpm run tauri:dev
 
 Tauri starts the webpack dev server through its `beforeDevCommand`, so use the Tauri scripts for normal desktop development.
 
-Copy `.env.example` to `.env` only when you need local configuration. `.env` is gitignored; never commit real secrets.
+Copy `config/env.example` to the repository-root `.env` only when you need local configuration. `.env` is gitignored; never commit real secrets.
+
+Build, test, CSS, and commit-message configuration lives in `config/`. The package scripts and Git hooks select these files explicitly. Use `pnpm build`, `pnpm test`, and `pnpm test:watch`; direct webpack or Vitest commands need `--config config/webpack.config.js` or `--config config/vitest.config.ts`, respectively. Editor integrations that ask for a config path should use the files in `config/` as well.
+
+ESLint, Prettier, and unimported settings live in `package.json` so editors and CLI tools can discover them automatically. See [linting conventions](../docs/development/linting.md) for the reasoning behind the lint rules.
+
+Restart a running dev server after changing or relocating build configuration. The webpack wrapper loads its config only at startup, so an existing process can keep using old loader paths even after source hot reloads.
 
 For fast desktop iteration against a built app bundle:
 
@@ -167,7 +175,7 @@ Also confirm that no secrets, local configuration, generated build output, or un
 
 ## Contributor License Agreement
 
-ORGII requires contributors to sign the repository Contributor License Agreement before a pull request can be merged. The agreement text is in [`docs/contributing/CLA.md`](docs/contributing/CLA.md).
+ORGII requires contributors to sign the repository Contributor License Agreement before a pull request can be merged. The agreement text is in [`docs/contributing/CLA.md`](../docs/contributing/CLA.md).
 
 GitHub CLA Assistant will comment with a signing link on your first PR if your GitHub account has not signed the current agreement.
 

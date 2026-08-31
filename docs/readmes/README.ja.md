@@ -125,7 +125,7 @@ pnpm run download:sidecars
 pnpm run tauri:dev
 ```
 
-コントリビューションの詳細は [CONTRIBUTING.md](../../CONTRIBUTING.md) を参照してください。すべての参加者に敬意と共感を求めます。[CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md) も参照してください。
+コントリビューションの詳細は [CONTRIBUTING.md](../../.github/CONTRIBUTING.md) を参照してください。すべての参加者に敬意と共感を求めます。[CODE_OF_CONDUCT.md](../../.github/CODE_OF_CONDUCT.md) も参照してください。
 
 ## オプションのネイティブ sidecars
 

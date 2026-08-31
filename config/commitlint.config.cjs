@@ -4,7 +4,7 @@
  * Subjects must look like:
  *   <type>(<scope>?)!?: <description>
  *
- * Allowed types and scope conventions are documented in CONTRIBUTING.md.
+ * Allowed types and scope conventions are documented in .github/CONTRIBUTING.md.
  */
 module.exports = {
   extends: ["@commitlint/config-conventional"],

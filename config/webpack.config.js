@@ -11,6 +11,8 @@ const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
 const { EsbuildPlugin } = require("esbuild-loader");
 const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 
+const repoRoot = path.resolve(__dirname, "..");
+
 // ForkTsCheckerWebpackPlugin removed - causes memory issues with large codebase
 // Type checking handled by IDE; transpileOnly: true provides fast builds
 
@@ -57,11 +59,12 @@ module.exports = (env, argv) => {
   );
 
   return {
+    context: repoRoot,
     entry: {
       main: "./src/index.tsx",
     },
     output: {
-      path: path.resolve(__dirname, "build"),
+      path: path.resolve(repoRoot, "build"),
       // IMPORTANT: publicPath must be "/" to ensure assets load from root
       // Without this, deep routes like /orgii/marketplace/callback cause 404s
       publicPath: "/",
@@ -99,7 +102,7 @@ module.exports = (env, argv) => {
     // Snapshot: use timestamps for node_modules instead of content hashing.
     // node_modules rarely change during a dev session; timestamp checks are much faster.
     snapshot: {
-      managedPaths: [path.resolve(__dirname, "node_modules")],
+      managedPaths: [path.resolve(repoRoot, "node_modules")],
       immutablePaths: [],
       module: {
         timestamp: true,
@@ -140,7 +143,14 @@ module.exports = (env, argv) => {
           use: [
             isProduction ? MiniCssExtractPlugin.loader : "style-loader",
             "css-loader",
-            "postcss-loader",
+            {
+              loader: "postcss-loader",
+              options: {
+                postcssOptions: {
+                  config: path.resolve(repoRoot, "config/postcss.config.js"),
+                },
+              },
+            },
             {
               loader: "sass-loader",
               options: {
@@ -305,6 +315,7 @@ module.exports = (env, argv) => {
             {
               loader: "@svgr/webpack",
               options: {
+                configFile: path.resolve(repoRoot, "config/svgr.json"),
                 svgo: true,
                 svgoConfig: {
                   plugins: [
@@ -353,12 +364,12 @@ module.exports = (env, argv) => {
       // Having src in modules causes extra filesystem lookups for every bare import.
       modules: ["node_modules"],
       alias: {
-        "@": path.resolve(__dirname),
-        "@src": path.resolve(__dirname, "src/"),
-        "@api": path.resolve(__dirname, "src/api/"),
-        "@common": path.resolve(__dirname, "src/common/"),
-        "@page": path.resolve(__dirname, "src/page/"),
-        "@assets": path.resolve(__dirname, "src/assets/"),
+        "@": path.resolve(repoRoot),
+        "@src": path.resolve(repoRoot, "src/"),
+        "@api": path.resolve(repoRoot, "src/api/"),
+        "@common": path.resolve(repoRoot, "src/common/"),
+        "@page": path.resolve(repoRoot, "src/page/"),
+        "@assets": path.resolve(repoRoot, "src/assets/"),
         "@codemirror/commands": path.dirname(
           require.resolve("@codemirror/commands")
         ),
@@ -382,7 +393,7 @@ module.exports = (env, argv) => {
         // Resolve that nested dependency explicitly from the pnpm store when needed.
         "lowlight/lib/core": (() => {
           const fs = require("fs");
-          const pnpmDir = path.resolve(__dirname, "node_modules/.pnpm");
+          const pnpmDir = path.resolve(repoRoot, "node_modules/.pnpm");
           try {
             const dir = fs
               .readdirSync(pnpmDir)
@@ -395,7 +406,7 @@ module.exports = (env, argv) => {
               );
           } catch (_ignored) {}
           return path.resolve(
-            __dirname,
+            repoRoot,
             "node_modules/react-syntax-highlighter/node_modules/lowlight/lib/core.js"
           );
         })(),
@@ -587,7 +598,7 @@ module.exports = (env, argv) => {
         new ReactRefreshWebpackPlugin({ overlay: false }),
       new Dotenv({
         systemvars: true,
-        silent: !fs.existsSync(path.resolve(__dirname, ".env")),
+        silent: !fs.existsSync(path.resolve(repoRoot, ".env")),
       }),
       isProduction &&
         new MiniCssExtractPlugin({
@@ -635,7 +646,7 @@ module.exports = (env, argv) => {
       // Default behavior watches public/ directory, which can race with HMR
       // updates and trigger unnecessary index.html reloads.
       static: {
-        directory: path.resolve(__dirname, "public"),
+        directory: path.resolve(repoRoot, "public"),
         watch: false,
       },
       client: isLightDev
