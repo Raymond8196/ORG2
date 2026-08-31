@@ -28,6 +28,7 @@ import { SessionHeaderActionsMenu } from "./components/SessionHeaderActionsMenu"
 import {
   CHAT_PANEL_HEADER_DRAG_STYLE,
   CHAT_PANEL_HEADER_NO_DRAG_STYLE,
+  CHAT_PANEL_HEADER_RIGHT_PADDING_CLASS,
   ChatPanelCollapsedTabHeading,
   ChatPanelPublishedHeader,
   chatPanelHeaderSlotsAtom,
@@ -454,7 +455,7 @@ export function ChatPanelHeader({
           (HEADER_CONTENT_LEFT_PADDING_CLASS 15px + breadcrumb px-1 4px). */}
       {tabRowCollapsed ? null : (
         <div
-          className={`workspace-header header-tab-group z-40 flex h-11 min-h-11 items-center gap-1.5 pl-1 pr-[7px] pt-2 ${
+          className={`workspace-header header-tab-group z-40 flex h-11 min-h-11 items-center gap-1.5 pl-1 pt-2 ${CHAT_PANEL_HEADER_RIGHT_PADDING_CLASS} ${
             overlayPublishedHeader
               ? "absolute left-0 right-0 top-0"
               : "relative flex-shrink-0"
