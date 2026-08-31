@@ -498,7 +498,12 @@ function pipeProcessLines(childProcess, onLine) {
 function startFrontendDev() {
   const scriptName = createFrontendScriptName({
     lightDev: process.env.ORGII_LIGHT_DEV === "true",
-    rspack: process.env.ORGII_RSPACK === "true",
+    rspack:
+      process.env.ORGII_RSPACK === "true"
+        ? true
+        : process.env.ORGII_RSPACK === "false"
+          ? false
+          : undefined,
   });
   const pnpmCli = createPnpmCliCommand();
 

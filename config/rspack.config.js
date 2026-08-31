@@ -1,6 +1,8 @@
-// Rspack dev-server config (opt-in alternative to config/webpack.config.js).
-// Dev-only: production builds stay on webpack. Launch via
-// `pnpm dev:frontend:rspack` (standalone) or `pnpm tauri:dev:rspack`.
+// Rspack dev-server config — the default dev bundler on macOS; other
+// platforms default to config/webpack.config.js (see
+// createFrontendScriptName in scripts/dev/tauri-dev-processes.cjs).
+// Dev-only: production builds stay on webpack. Launch via `pnpm tauri:dev`
+// (macOS), `pnpm tauri:dev:rspack`, or `pnpm dev:frontend:rspack`.
 // Measured vs the webpack dev server (2026-09-01, macOS, footprint method):
 // idle 1.65 GB vs 2.4 GB, warm-start peak 2.1 GB vs 3.6 GB, HMR rebuild
 // ~0.6 s vs ~3 s, cold compile 10.7 s with no persistent cache.

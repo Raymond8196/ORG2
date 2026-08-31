@@ -19,6 +19,7 @@
     "tauri:dev": "node scripts/dev/tauri-launcher.cjs",
     "tauri:dev:light": "node scripts/dev/tauri-launcher.cjs --light",
     "tauri:dev:rspack": "node scripts/dev/tauri-launcher.cjs --rspack",
+    "tauri:dev:webpack": "node scripts/dev/tauri-launcher.cjs --webpack",
     "tauri:dev:only": "node scripts/tauri/run-with-features.cjs dev",
     "build:release": "rm -rf build node_modules/.cache && webpack --config config/webpack.config.js --mode production",
     "tauri:build": "node scripts/tauri/run-with-features.cjs build",

@@ -1,12 +1,14 @@
 #!/usr/bin/env node
 
 /**
- * ORG2 Rspack dev server (opt-in).
- * Mirror of webpack-server.js against config/rspack.config.js.
- * Emits the same WEBPACK_STATUS/WEBPACK_PROGRESS structured lines so
- * scripts/dev/tauri.js can drive it unchanged: `pnpm tauri:dev:rspack`
- * (or ORGII_RSPACK=true pnpm tauri:dev). Standalone: `pnpm dev:frontend:rspack`.
- * Same default port as the webpack server (1998, tauri.conf.json devUrl).
+ * ORG2 Rspack dev server — the default dev server on macOS
+ * (`pnpm tauri:dev`; other platforms default to webpack-server.js, and
+ * `--webpack` / ORGII_RSPACK=false opts back out on macOS).
+ * Mirror of webpack-server.js against config/rspack.config.js. Emits the
+ * same WEBPACK_STATUS/WEBPACK_PROGRESS structured lines so
+ * scripts/dev/tauri.js can drive either server unchanged.
+ * Standalone: `pnpm dev:frontend:rspack`. Same default port as the webpack
+ * server (1998, tauri.conf.json devUrl).
  */
 
 process.title = "ORG2 Rspack Dev";

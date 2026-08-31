@@ -20,17 +20,32 @@ const tauriLauncherSource = fs.readFileSync(
 );
 const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
 
-test("frontend script name honors light and rspack opt-ins", () => {
-  assert.equal(createFrontendScriptName(), "dev:frontend");
-  assert.equal(createFrontendScriptName({ rspack: true }), "dev:frontend:rspack");
+test("frontend script name defaults to rspack on macOS only", () => {
+  assert.equal(
+    createFrontendScriptName({ platform: "darwin" }),
+    "dev:frontend:rspack"
+  );
+  assert.equal(createFrontendScriptName({ platform: "win32" }), "dev:frontend");
+  assert.equal(createFrontendScriptName({ platform: "linux" }), "dev:frontend");
+  // Explicit overrides beat the platform default in both directions.
+  assert.equal(
+    createFrontendScriptName({ rspack: true, platform: "linux" }),
+    "dev:frontend:rspack"
+  );
+  assert.equal(
+    createFrontendScriptName({ rspack: false, platform: "darwin" }),
+    "dev:frontend"
+  );
   // Light dev wins: it has no rspack equivalent yet.
   assert.equal(
     createFrontendScriptName({ lightDev: true, rspack: true }),
     "dev:frontend:light"
   );
-  // The npm scripts the names resolve to must exist.
+  // The npm scripts and launcher flags the names resolve to must exist.
   assert.ok(packageJson.scripts["dev:frontend:rspack"]);
+  assert.ok(packageJson.scripts["tauri:dev:webpack"]);
   assert.ok(tauriLauncherSource.includes('args.includes("--rspack")'));
+  assert.ok(tauriLauncherSource.includes('args.includes("--webpack")'));
 });
 
 test("recognizes only the initial successful webpack compile as ready", () => {
