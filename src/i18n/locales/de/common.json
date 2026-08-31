@@ -1578,11 +1578,8 @@
       "selectAccount": "Konto auswählen"
     },
     "modelProperties": {
-      "options": "Optionen",
       "effort": "Aufwand",
-      "default": "Standard",
-      "faster": "Schneller",
-      "smarter": "Intelligenter"
+      "default": "Standard"
     },
     "repo": {
       "workspaceFolders": "Workspace-Ordner",

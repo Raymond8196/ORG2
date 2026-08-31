@@ -1578,11 +1578,8 @@
       "selectAccount": "Seleccionar una cuenta"
     },
     "modelProperties": {
-      "options": "Opciones",
       "effort": "Esfuerzo",
-      "default": "Predeterminado",
-      "faster": "Más rápido",
-      "smarter": "Más inteligente"
+      "default": "Predeterminado"
     },
     "repo": {
       "workspaceFolders": "Carpetas del Workspace",

@@ -1590,11 +1590,8 @@
       "selectAccount": "Выберите аккаунт"
     },
     "modelProperties": {
-      "options": "Параметры",
       "effort": "Усилие",
-      "default": "По умолчанию",
-      "faster": "Быстрее",
-      "smarter": "Умнее"
+      "default": "По умолчанию"
     },
     "repo": {
       "workspaceFolders": "Папки Workspace",

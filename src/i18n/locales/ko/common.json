@@ -1577,11 +1577,8 @@
       "selectAccount": "계정 선택"
     },
     "modelProperties": {
-      "options": "옵션",
       "effort": "Effort",
-      "default": "기본",
-      "faster": "더 빠르게",
-      "smarter": "더 똑똑하게"
+      "default": "기본"
     },
     "repo": {
       "workspaceFolders": "Workspace 폴더",

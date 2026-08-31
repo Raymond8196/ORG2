@@ -1592,11 +1592,8 @@
       "selectAccount": "選擇帳號"
     },
     "modelProperties": {
-      "options": "選項",
       "effort": "Effort",
-      "default": "預設",
-      "faster": "更快",
-      "smarter": "更智能"
+      "default": "預設"
     },
     "repo": {
       "workspaceFolders": "工作區文件夾",

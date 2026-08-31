@@ -1582,11 +1582,8 @@
       "selectAccount": "Wybierz konto"
     },
     "modelProperties": {
-      "options": "Opcje",
       "effort": "Wysiłek",
-      "default": "Domyślnie",
-      "faster": "Szybciej",
-      "smarter": "Mądrzej"
+      "default": "Domyślnie"
     },
     "shared": {
       "repo": "repo",

@@ -1570,11 +1570,8 @@
       "selectAccount": "Selecionar uma conta"
     },
     "modelProperties": {
-      "options": "Opções",
       "effort": "Esforço",
-      "default": "Padrão",
-      "faster": "Mais rápido",
-      "smarter": "Mais inteligente"
+      "default": "Padrão"
     },
     "shared": {
       "repo": "Repo",
