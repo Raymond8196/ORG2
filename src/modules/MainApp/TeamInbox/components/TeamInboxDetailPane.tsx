@@ -8,11 +8,7 @@ import type { TFunction } from "i18next";
 import React from "react";
 
 import { Placeholder } from "@src/components/Placeholder";
-import {
-  HugeiconsIcon,
-  InternetIcon,
-  SquareArrowUpRight02Icon,
-} from "@src/icons";
+import { HugeiconsIcon, InternetIcon, LinkSquare02Icon } from "@src/icons";
 import type { ManagedPrItem } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import GitHubPrDetailTabs from "@src/modules/shared/components/GitHubPrDetailTabs";
@@ -90,11 +86,11 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
         />
         {onOpenPullRequestTab ? (
           <TeamInboxHeaderIconAction
-            label={t("teamInbox.actions.openPullRequest", "Open pull request")}
+            label={t("common:actions.openInNewTab")}
             icon={
               <HugeiconsIcon
-                icon={SquareArrowUpRight02Icon}
-                data-icon="square-arrow-out-up-right"
+                icon={LinkSquare02Icon}
+                data-icon="link-square-02"
                 size={14}
                 strokeWidth={1.75}
                 aria-hidden

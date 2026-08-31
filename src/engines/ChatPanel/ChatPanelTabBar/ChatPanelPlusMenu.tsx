@@ -15,11 +15,11 @@ import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import {
   Add01Icon,
   Briefcase02Icon,
-  DashboardSquare01Icon,
   DeliveryBox01Icon,
   GaugeIcon,
   HugeiconsIcon,
   KanbanIcon,
+  MessageAdd02Icon,
   PictureInPicture01Icon,
 } from "@src/icons";
 import { isMacOS } from "@src/util/platform/tauri";
@@ -57,8 +57,8 @@ export function PlusMenuContent({
       id: "launchpad",
       icon: (
         <HugeiconsIcon
-          icon={DashboardSquare01Icon}
-          data-icon="layout-grid"
+          icon={MessageAdd02Icon}
+          data-icon="message-add"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />

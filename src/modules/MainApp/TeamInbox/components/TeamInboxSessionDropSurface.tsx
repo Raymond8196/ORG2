@@ -9,8 +9,8 @@ import {
   HugeiconsIcon,
   InboxIcon,
   Link02Icon,
+  LinkSquare02Icon,
   RotateLeft01Icon,
-  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import type { SessionReferenceOpen } from "@src/shared/dnd/sessionTabDrag";
 import { useSessionDropTarget } from "@src/shared/dnd/useSessionDropTarget";
@@ -383,15 +383,15 @@ const TeamInboxSessionDropSurface: React.FC<
               size="mini"
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowUpRight02Icon}
-                  data-icon="square-arrow-out-up-right"
+                  icon={LinkSquare02Icon}
+                  data-icon="link-square-02"
                   size={14}
                   aria-hidden
                 />
               }
               onClick={openCreated}
             >
-              {t("teamInbox.drop.open")}
+              {t("common:actions.openInNewTab")}
             </Button>
           ) : null}
           {currentOperation.status === "error" ? (

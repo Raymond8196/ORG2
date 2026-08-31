@@ -14,7 +14,7 @@ import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
-import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
+import { HugeiconsIcon, LinkSquare02Icon } from "@src/icons";
 import { openRuntimeInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
 
 export type FactoryViewMode = "kanban" | "list" | "diary";
@@ -51,8 +51,8 @@ const FactoryViewPill: React.FC = () => {
         dataTestId: "kanban-view-data-source-runtime",
         hoverBadge: (
           <HugeiconsIcon
-            icon={SquareArrowUpRight02Icon}
-            data-icon="square-arrow-out-up-right"
+            icon={LinkSquare02Icon}
+            data-icon="link-square-02"
             size={11}
             strokeWidth={1.75}
             aria-hidden="true"

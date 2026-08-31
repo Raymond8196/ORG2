@@ -6,13 +6,13 @@
  */
 import {
   EllipsisIcon,
-  FileAddIcon,
   FilePlusIcon,
   Files01Icon,
   FilterIcon,
   FolderAddIcon,
   HierarchyFilesIcon,
   Layers01Icon,
+  LinkSquare02Icon,
   ListChevronsDownUpIcon,
   ListIcon,
   Refresh04Icon,
@@ -39,7 +39,7 @@ export const ICON_CONFIG = {
   list: ListIcon,
   listTree: HierarchyFilesIcon,
   group: Layers01Icon,
-  openInTab: FileAddIcon,
+  openInTab: LinkSquare02Icon,
   moreActions: EllipsisIcon,
 } as const;
 

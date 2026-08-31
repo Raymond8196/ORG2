@@ -280,6 +280,7 @@ export { default as LeftToRightListNumberIcon } from "@hugeicons/core-free-icons
 export { default as LegalHammerIcon } from "@hugeicons/core-free-icons/LegalHammerIcon";
 export { default as Link01Icon } from "@hugeicons/core-free-icons/Link01Icon";
 export { default as Link02Icon } from "@hugeicons/core-free-icons/Link02Icon";
+export { default as LinkSquare02Icon } from "@hugeicons/core-free-icons/LinkSquare02Icon";
 export { default as ListChecksIcon } from "@hugeicons/core-free-icons/ListChecksIcon";
 export { default as ListChevronsDownUpIcon } from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 export { default as ListFilterIcon } from "@hugeicons/core-free-icons/ListFilterIcon";

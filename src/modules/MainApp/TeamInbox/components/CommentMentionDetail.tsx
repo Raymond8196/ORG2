@@ -2,7 +2,7 @@ import React from "react";
 import { useTranslation } from "react-i18next";
 
 import Markdown from "@src/components/MarkDown";
-import { AtIcon, HugeiconsIcon, Message01Icon } from "@src/icons";
+import { AtIcon, HugeiconsIcon, LinkSquare02Icon } from "@src/icons";
 import { CARD_ROW_TOKENS } from "@src/modules/shared/layouts/blocks";
 
 import type { CommentMentionItem, TeamInboxNavigationIntent } from "../domain";
@@ -35,15 +35,11 @@ const CommentMentionDetail: React.FC<CommentMentionDetailProps> = ({
       unread={item.readAt === null}
       markReadLabel={t("teamInbox.actions.markRead")}
       markUnreadLabel={t("teamInbox.actions.markUnread")}
-      openLabel={t(
-        item.target.kind === "work_item_comment"
-          ? "teamInbox.actions.openWorkItem"
-          : "teamInbox.actions.openSession"
-      )}
+      openLabel={t("common:actions.openInNewTab")}
       openIcon={
         <HugeiconsIcon
-          icon={Message01Icon}
-          data-icon="message-square"
+          icon={LinkSquare02Icon}
+          data-icon="link-square-02"
           size={14}
           aria-hidden
         />
