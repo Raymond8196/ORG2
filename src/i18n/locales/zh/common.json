@@ -1458,11 +1458,8 @@
       "selectAccount": "选择账号"
     },
     "modelProperties": {
-      "options": "选项",
       "effort": "Effort",
-      "default": "默认",
-      "faster": "更快",
-      "smarter": "更智能"
+      "default": "默认"
     },
     "repo": {
       "workspaceFolders": "工作区文件夹",

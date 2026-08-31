@@ -1496,11 +1496,8 @@
       "selectAccount": "Select an account"
     },
     "modelProperties": {
-      "options": "Options",
       "effort": "Effort",
-      "default": "Default",
-      "faster": "Faster",
-      "smarter": "Smarter"
+      "default": "Default"
     },
     "shared": {
       "repo": "repo",

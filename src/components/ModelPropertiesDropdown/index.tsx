@@ -461,20 +461,16 @@ export const ModelPropertiesDropdown: React.FC<
             levels={variantOptions.availableLevels}
             value={draft.level}
             onChange={handleLevelSelect}
+            fast={showFastRow && draft.fast}
+            animate={hasPosition}
           />
         </div>
       )}
 
-      {/* Options section — only the "Options" header is localized; the
-          "Thinking" / "Fast" switch labels stay as English literals.
-          Rows are conditionally rendered: hidden entirely (never
-          disabled) when the family or current selection doesn't
-          expose that dimension. */}
+      {/* Thinking / Fast switches stay hidden when the family or current
+          selection doesn't expose that dimension. */}
       {(showThinkingRow || showFastRow) && (
         <div className={DROPDOWN_CLASSES.sectionContainer}>
-          <div className={DROPDOWN_CLASSES.sectionLabel}>
-            {t("selectors.modelProperties.options")}
-          </div>
           {showThinkingRow && (
             <SwitchRow
               icon={

@@ -1576,11 +1576,8 @@
       "selectAccount": "アカウントを選択"
     },
     "modelProperties": {
-      "options": "オプション",
       "effort": "Effort",
-      "default": "デフォルト",
-      "faster": "高速",
-      "smarter": "高精度"
+      "default": "デフォルト"
     },
     "repo": {
       "workspaceFolders": "Workspace フォルダ",
