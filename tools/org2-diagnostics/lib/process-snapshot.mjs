@@ -61,7 +61,9 @@ export function parsePsOutput(output) {
 
 export async function collectProcessTable() {
   if (process.platform === "win32") {
-    throw new Error("当前版本的独立诊断工具暂不支持 Windows 进程采样");
+    throw new Error(
+      "This version of ORG2 diagnostics does not support process sampling on Windows"
+    );
   }
   const { stdout } = await execFileAsync(
     PS_PATH,
@@ -81,8 +83,9 @@ function executableBasename(command) {
   return path.basename(executable).toLowerCase();
 }
 
-export function isOrgiiRootCandidate(row, workspaceRoot) {
+export function isOrg2RootCandidate(row, workspaceRoot) {
   const basename = executableBasename(row.command);
+  // Legacy executable names remain valid even though the tool is branded ORG2.
   const isRootName =
     basename === "org2" ||
     basename === "orgii" ||
@@ -102,21 +105,21 @@ export function resolveRootProcess(rows, requestedPid, workspaceRoot) {
     const selected = rows.find((row) => row.pid === requestedPid);
     if (!selected) {
       throw new ProcessResolutionError(
-        `找不到 PID ${requestedPid}；它可能已经退出`
+        `PID ${requestedPid} was not found; the process may have exited`
       );
     }
     return selected;
   }
 
   const candidates = rows.filter((row) =>
-    isOrgiiRootCandidate(row, workspaceRoot)
+    isOrg2RootCandidate(row, workspaceRoot)
   );
   if (candidates.length === 1) return candidates[0];
   if (candidates.length === 0) {
-    throw new ProcessResolutionError("没有找到正在运行的 ORGII 主进程");
+    throw new ProcessResolutionError("No running ORG2 root process was found");
   }
   throw new ProcessResolutionError(
-    "找到多个 ORGII 主进程，请用 --pid 明确指定",
+    "Multiple ORG2 root processes found; specify one with --pid",
     candidates
   );
 }
@@ -182,7 +185,7 @@ async function collectOwnedWebKitServices(rootPid) {
     return {
       rolesByPid: new Map(),
       attribution: "partial",
-      warning: `无法读取宿主 WebKit 服务：${error.message}`,
+      warning: `Cannot read host-owned WebKit services: ${error.message}`,
     };
   }
 }
@@ -364,7 +367,8 @@ export function auditProcessTable(
         pid: row.pid,
         parentPid: row.parentPid,
         command: redactProcessCommand(row.command),
-        reason: "进程已退出但父进程尚未回收退出状态",
+        reason:
+          "The process has exited, but its parent has not reaped its exit status",
       });
       continue;
     }
@@ -380,7 +384,8 @@ export function auditProcessTable(
         pid: row.pid,
         parentPid: row.parentPid,
         command: redactProcessCommand(row.command),
-        reason: "工作区相关进程已被系统 init 进程接管，需核对是否仍有用途",
+        reason:
+          "This workspace process has been adopted by the system init process; check whether it is still needed",
       });
     }
   }

@@ -43,7 +43,7 @@ test("record arguments parse lifecycle bounds", () => {
   );
 });
 
-test("mark keeps a human-readable label while accepting state root", () => {
+test("mark preserves a Unicode label while accepting state root", () => {
   assert.deepEqual(
     parseCliArgs([
       "memory",

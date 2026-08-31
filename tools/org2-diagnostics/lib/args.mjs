@@ -16,7 +16,7 @@ const MEMORY_SUBCOMMANDS = new Set([
 function takeValue(argv, index, option) {
   const value = argv[index + 1];
   if (value === undefined || value.startsWith("--")) {
-    throw new CliUsageError(`${option} 需要一个值`);
+    throw new CliUsageError(`${option} requires a value`);
   }
   return value;
 }
@@ -28,7 +28,9 @@ function parsePositiveNumber(raw, option, { integer = false } = {}) {
     value <= 0 ||
     (integer && !Number.isInteger(value))
   ) {
-    throw new CliUsageError(`${option} 必须是正${integer ? "整数" : "数"}`);
+    throw new CliUsageError(
+      `${option} must be a positive ${integer ? "integer" : "number"}`
+    );
   }
   return value;
 }
@@ -49,7 +51,7 @@ function parseOptions(argv, allowed) {
       continue;
     }
     if (!allowed.has(token)) {
-      throw new CliUsageError(`不支持的参数：${token}`);
+      throw new CliUsageError(`Unsupported option: ${token}`);
     }
     if (token === "--json") {
       options.json = true;
@@ -80,7 +82,7 @@ function parseOptions(argv, allowed) {
         options.stateRoot = value;
         break;
       default:
-        throw new CliUsageError(`尚未实现的参数：${token}`);
+        throw new CliUsageError(`Unimplemented option: ${token}`);
     }
   }
   return { options, positionals };
@@ -104,7 +106,7 @@ export function parseCliArgs(argv) {
     );
     if (positionals.length > 0) {
       throw new CliUsageError(
-        `process 不接受位置参数：${positionals.join(" ")}`
+        `process does not accept positional arguments: ${positionals.join(" ")}`
       );
     }
     return {
@@ -115,12 +117,14 @@ export function parseCliArgs(argv) {
   }
 
   if (command !== "memory") {
-    throw new CliUsageError(`未知命令：${command}`);
+    throw new CliUsageError(`Unknown command: ${command}`);
   }
 
   const [subcommand, ...subcommandArgs] = rest;
   if (!MEMORY_SUBCOMMANDS.has(subcommand)) {
-    throw new CliUsageError(`未知 memory 子命令：${subcommand ?? "（缺失）"}`);
+    throw new CliUsageError(
+      `Unknown memory subcommand: ${subcommand ?? "(missing)"}`
+    );
   }
 
   if (subcommand === "record") {
@@ -137,7 +141,7 @@ export function parseCliArgs(argv) {
     );
     if (positionals.length > 0) {
       throw new CliUsageError(
-        `memory record 不接受位置参数：${positionals.join(" ")}`
+        `memory record does not accept positional arguments: ${positionals.join(" ")}`
       );
     }
     return {
@@ -158,9 +162,9 @@ export function parseCliArgs(argv) {
       new Set(["--state-root"])
     );
     const label = positionals.join(" ").trim();
-    if (!label) throw new CliUsageError("memory mark 需要一段标记文字");
+    if (!label) throw new CliUsageError("memory mark requires a marker label");
     if (label.length > 200)
-      throw new CliUsageError("标记文字不能超过 200 个字符");
+      throw new CliUsageError("Marker labels must not exceed 200 characters");
     return { command, subcommand, label, stateRoot: options.stateRoot };
   }
 
@@ -170,11 +174,13 @@ export function parseCliArgs(argv) {
   );
   if (subcommand !== "report" && positionals.length > 0) {
     throw new CliUsageError(
-      `memory ${subcommand} 不接受位置参数：${positionals.join(" ")}`
+      `memory ${subcommand} does not accept positional arguments: ${positionals.join(" ")}`
     );
   }
   if (subcommand === "report" && positionals.length > 1) {
-    throw new CliUsageError("memory report 最多接受一个会话目录");
+    throw new CliUsageError(
+      "memory report accepts at most one session directory"
+    );
   }
   return {
     command,
@@ -185,17 +191,19 @@ export function parseCliArgs(argv) {
 }
 
 export function usage() {
-  return `ORGII 独立诊断工具
+  return `ORG2 standalone diagnostics
 
-用法：
+Usage:
   pnpm diag:process [--pid auto|PID] [--json]
-  pnpm diag:memory record [--pid auto|PID] [--interval 秒] [--max-samples 数量]
-                          [--duration 秒] [--output 目录] [--state-root 目录]
-  pnpm diag:memory mark "操作阶段说明" [--state-root 目录]
-  pnpm diag:memory stop [--state-root 目录]
-  pnpm diag:memory status [--state-root 目录]
-  pnpm diag:memory report [会话目录] [--state-root 目录]
+  pnpm diag:memory record [--pid auto|PID] [--interval SECONDS] [--max-samples COUNT]
+                          [--duration SECONDS] [--output DIR] [--state-root DIR]
+  pnpm diag:memory mark "Describe the workflow stage" [--state-root DIR]
+  pnpm diag:memory stop [--state-root DIR]
+  pnpm diag:memory status [--state-root DIR]
+  pnpm diag:memory report [SESSION_DIR] [--state-root DIR]
 
-说明：record 是前台录制；可从另一个终端执行 mark / stop。默认产物位于
-.orgii/diagnostics/，不会接入或修改 App 的 UI、IPC 与生产运行路径。`;
+record runs in the foreground; use another terminal for mark or stop.
+The default storage path remains .orgii/diagnostics/ for compatibility with
+existing recordings. This tool does not modify the app's UI, IPC, or production
+runtime.`;
 }
