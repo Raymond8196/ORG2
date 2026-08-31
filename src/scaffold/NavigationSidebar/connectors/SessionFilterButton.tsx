@@ -495,9 +495,6 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
               onMouseDown={handleSubmenuMouseDown}
             >
               <div className={DROPDOWN_CLASSES.itemsColumnPadded}>
-                <div className={DROPDOWN_CLASSES.sectionLabel}>
-                  {t("sidebar.groupBy.title")}
-                </div>
                 {groupByModes.map((mode) => (
                   <DropdownItem
                     key={mode}
