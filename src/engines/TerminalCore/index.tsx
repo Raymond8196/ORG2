@@ -60,6 +60,8 @@ export interface TerminalCoreProps {
   className?: string;
   /** Background color override */
   backgroundColor?: string;
+  /** Font size in pixels for this host; defaults to the terminal setting. */
+  fontSize?: number;
   /** Repository path for terminal working directory */
   repoPath?: string;
   /** Opens file references detected in terminal output */
@@ -89,6 +91,7 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
   terminalState,
   className = "",
   backgroundColor,
+  fontSize,
   repoPath,
   onOpenFileLink,
   visible = true,
@@ -396,6 +399,7 @@ export const TerminalCore: React.FC<TerminalCoreProps> = ({
                 workingDirectory={session.liveCwd || session.cwd}
                 onOpenFileLink={onOpenFileLink}
                 backgroundColor={bgColor}
+                fontSize={fontSize}
                 // Managed CLI terminals use the configured default shell.
                 // `session.shell` becomes runtime metadata after the PTY connects,
                 // so reusing it as a launch override would recreate xterm.

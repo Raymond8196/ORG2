@@ -1278,7 +1278,10 @@
       "newMiniTerminal": "新增迷你終端機",
       "showMiniTerminals": "迷你終端機",
       "sessionInMiniTerminal": "正在迷你終端機中執行",
-      "returnFromMiniTerminal": "在此處顯示"
+      "returnFromMiniTerminal": "在此處顯示",
+      "resizeTerminal": "調整終端大小",
+      "terminalProcessCount_one": "{{count}} 個程序",
+      "terminalProcessCount_other": "{{count}} 個程序"
     },
     "pr": {
       "title": "Pull request",

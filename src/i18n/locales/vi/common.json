@@ -1265,7 +1265,10 @@
       "newMiniTerminal": "Terminal thu nhỏ mới",
       "showMiniTerminals": "Terminal thu nhỏ",
       "sessionInMiniTerminal": "Đang chạy trong terminal thu nhỏ",
-      "returnFromMiniTerminal": "Hiển thị tại đây"
+      "returnFromMiniTerminal": "Hiển thị tại đây",
+      "resizeTerminal": "Thay đổi kích thước terminal",
+      "terminalProcessCount_one": "{{count}} tiến trình",
+      "terminalProcessCount_other": "{{count}} tiến trình"
     },
     "pr": {
       "title": "Pull request",

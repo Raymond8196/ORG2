@@ -1,17 +1,16 @@
 /**
- * Rail collapse / width persistence and CI status-dot mapping.
+ * Rail collapse / terminal size persistence and CI status-dot mapping.
  *
  * Storage is best-effort: the responsive control still works when
  * localStorage is unavailable, and every reader falls back to the shipped
- * defaults in `./trailWidth`.
+ * defaults in the terminal size model.
  */
 import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
 
 const FOCUSED_CHAT_RAIL_COLLAPSED_KEY =
   "orgii:focusedChatWorkstationRailCollapsed";
-const FOCUSED_CHAT_RAIL_WIDTH_KEY = "orgii:focusedChatWorkstationRailWidth";
-const FOCUSED_CHAT_RAIL_MIN_WIDTH_KEY =
-  "orgii:focusedChatWorkstationRailMinWidth";
+const TRAIL_TERMINAL_WIDTH_KEY = "orgii:workstationTrailTerminalWidth";
+const TRAIL_TERMINAL_HEIGHT_KEY = "orgii:workstationTrailTerminalHeight";
 
 function readStoredNumber(key: string): number | null {
   try {
@@ -28,26 +27,21 @@ function writeStoredNumber(key: string, value: number): void {
   try {
     localStorage.setItem(key, String(Math.round(value)));
   } catch {
-    // The trail still resizes for this session when storage is unavailable.
+    // The terminal still resizes for this session when storage is unavailable.
   }
 }
 
-/** Persisted expanded width, or `null` when never set / unreadable. */
-export function getStoredRailWidth(): number | null {
-  return readStoredNumber(FOCUSED_CHAT_RAIL_WIDTH_KEY);
+export function getStoredTrailTerminalWidth(): number | null {
+  return readStoredNumber(TRAIL_TERMINAL_WIDTH_KEY);
 }
 
-export function persistRailWidth(width: number): void {
-  writeStoredNumber(FOCUSED_CHAT_RAIL_WIDTH_KEY, width);
+export function getStoredTrailTerminalHeight(): number | null {
+  return readStoredNumber(TRAIL_TERMINAL_HEIGHT_KEY);
 }
 
-/** Persisted user-set minimum width, or `null` when never set. */
-export function getStoredRailMinWidth(): number | null {
-  return readStoredNumber(FOCUSED_CHAT_RAIL_MIN_WIDTH_KEY);
-}
-
-export function persistRailMinWidth(minWidth: number): void {
-  writeStoredNumber(FOCUSED_CHAT_RAIL_MIN_WIDTH_KEY, minWidth);
+export function persistTrailTerminalSize(width: number, height: number): void {
+  writeStoredNumber(TRAIL_TERMINAL_WIDTH_KEY, width);
+  writeStoredNumber(TRAIL_TERMINAL_HEIGHT_KEY, height);
 }
 
 export function getStoredRailCollapsed(): boolean {

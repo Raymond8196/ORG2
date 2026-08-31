@@ -95,6 +95,8 @@ export interface TerminalViewProps {
   nameOverride?: string;
   /** Overrides the xterm surface background for embedded contexts. */
   backgroundColor?: string;
+  /** Font size in pixels for this view; defaults to the terminal setting. */
+  fontSize?: number;
   /** Shell integration event callbacks (OSC 633) */
   shellIntegration?: ShellIntegrationEvents;
 }

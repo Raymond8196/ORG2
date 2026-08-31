@@ -1266,7 +1266,10 @@
       "newMiniTerminal": "Nuevo miniterminal",
       "showMiniTerminals": "Miniterminales",
       "sessionInMiniTerminal": "En ejecución en el miniterminal",
-      "returnFromMiniTerminal": "Mostrar aquí"
+      "returnFromMiniTerminal": "Mostrar aquí",
+      "resizeTerminal": "Cambiar tamaño del terminal",
+      "terminalProcessCount_one": "{{count}} proceso",
+      "terminalProcessCount_other": "{{count}} procesos"
     },
     "pr": {
       "title": "Pull request",

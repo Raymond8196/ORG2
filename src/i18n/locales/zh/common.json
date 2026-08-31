@@ -1142,7 +1142,10 @@
       "newMiniTerminal": "新建迷你终端",
       "showMiniTerminals": "迷你终端",
       "sessionInMiniTerminal": "正在迷你终端中运行",
-      "returnFromMiniTerminal": "在此处显示"
+      "returnFromMiniTerminal": "在此处显示",
+      "resizeTerminal": "调整终端大小",
+      "terminalProcessCount_one": "{{count}} 个进程",
+      "terminalProcessCount_other": "{{count}} 个进程"
     },
     "pr": {
       "title": "Pull request",

@@ -1267,7 +1267,10 @@
       "newMiniTerminal": "Yeni mini terminal",
       "showMiniTerminals": "Mini terminaller",
       "sessionInMiniTerminal": "Mini terminalde çalışıyor",
-      "returnFromMiniTerminal": "Burada göster"
+      "returnFromMiniTerminal": "Burada göster",
+      "resizeTerminal": "Terminali yeniden boyutlandır",
+      "terminalProcessCount_one": "{{count}} işlem",
+      "terminalProcessCount_other": "{{count}} işlem"
     },
     "pr": {
       "title": "Pull request",

@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 import { terminalSessionsAtom } from "@src/store/workstation/codeEditor/terminal";
 
 import {
+  MINI_TERMINAL_SESSION_LIMIT,
   closeMiniTerminalAtom,
   miniTerminalActiveIdAtom,
   miniTerminalClaimedIdsAtom,
@@ -27,6 +28,73 @@ function seedStore(sessionIds: string[]) {
 }
 
 describe("mini terminal claims", () => {
+  it("caps claims at three without deleting other Workstation sessions", () => {
+    const store = seedStore(["a", "b", "c", "d"]);
+    for (const id of ["a", "b", "c"]) store.set(openMiniTerminalAtom, id);
+
+    expect(store.set(openMiniTerminalAtom, "d")).toBeNull();
+    expect(store.get(miniTerminalClaimedIdsAtom)).toEqual(["a", "b", "c"]);
+    expect(store.get(miniTerminalClaimedIdsAtom)).toHaveLength(
+      MINI_TERMINAL_SESSION_LIMIT
+    );
+    expect(store.get(miniTerminalActiveIdAtom)).toBe("c");
+    expect(store.get(terminalSessionsAtom)).toHaveLength(4);
+    expect(store.get(miniTerminalSuppressedIdsAtom).has("d")).toBe(false);
+  });
+
+  it("rejects creation at capacity before adding any Workstation session", () => {
+    const store = seedStore(["a", "b", "c"]);
+    for (const id of ["a", "b", "c"]) store.set(openMiniTerminalAtom, id);
+    const originalSessions = store.get(terminalSessionsAtom);
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      expect(
+        store.set(openMiniTerminalAtom, null, { bypassCreationCooldown: true })
+      ).toBeNull();
+    }
+    expect(store.get(terminalSessionsAtom)).toBe(originalSessions);
+    expect(store.get(miniTerminalClaimedIdsAtom)).toEqual(["a", "b", "c"]);
+    expect(store.get(miniTerminalActiveIdAtom)).toBe("c");
+  });
+
+  it("still focuses an existing claim when the dock is full", () => {
+    const store = seedStore(["a", "b", "c"]);
+    for (const id of ["a", "b", "c"]) store.set(openMiniTerminalAtom, id);
+    store.set(miniTerminalVisibleAtom, false);
+
+    expect(store.set(openMiniTerminalAtom, "b")).toBe("b");
+    expect(store.get(miniTerminalActiveIdAtom)).toBe("b");
+    expect(store.get(miniTerminalVisibleAtom)).toBe(true);
+    expect(store.get(miniTerminalClaimedIdsAtom)).toEqual(["a", "b", "c"]);
+  });
+
+  it("allows creation again after release and preserves session options", () => {
+    const store = seedStore(["a", "b", "c"]);
+    for (const id of ["a", "b", "c"]) store.set(openMiniTerminalAtom, id);
+    store.set(releaseMiniTerminalSessionAtom, "b");
+
+    const id = store.set(openMiniTerminalAtom, null, {
+      name: "Build",
+      shell: "/bin/sh",
+      cwd: "/workspace/project",
+      profileId: "build-profile",
+      bypassCreationCooldown: true,
+    });
+    expect(id).toBeTruthy();
+    expect(store.get(miniTerminalClaimedIdsAtom)).toEqual(["a", "c", id]);
+    expect(
+      store.get(terminalSessionsAtom).find((session) => session.id === id)
+    ).toMatchObject({
+      name: "Build",
+      shell: "/bin/sh",
+      cwd: "/workspace/project",
+      profileId: "build-profile",
+    });
+    expect(
+      store.get(terminalSessionsAtom).some((session) => session.id === "b")
+    ).toBe(true);
+  });
+
   it("claims a session and suppresses it in the Workstation pane", () => {
     const store = seedStore(["a", "b"]);
     store.set(openMiniTerminalAtom, "a");

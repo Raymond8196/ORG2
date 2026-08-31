@@ -2,11 +2,8 @@ import { useAtomValue } from "jotai";
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
-import {
-  TreeRowAction,
-  TreeRowBase,
-  type TreeRowNode,
-} from "@src/components/TreeRow";
+import { ProcessStopButton } from "@src/components/ProcessStopButton";
+import { TreeRowBase, type TreeRowNode } from "@src/components/TreeRow";
 // `types`, not the `exports` barrel — the barrel re-exports the TerminalCore
 // component and would drag xterm into the sidebar-modules chunk.
 import {
@@ -15,7 +12,6 @@ import {
 } from "@src/engines/TerminalCore/types";
 import {
   Infinity01Icon,
-  Cancel01Icon,
   ComputerTerminal01Icon,
   HugeiconsIcon,
 } from "@src/icons";
@@ -53,13 +49,13 @@ export const AgentSessionRow: React.FC<AgentSessionRowProps> = memo(
           data-icon="infinity"
           size={14}
           strokeWidth={1.75}
-          className="shrink-0 text-primary-6 group-hover/item:hidden"
+          className="shrink-0 text-primary-6 group-focus-within/item:hidden group-hover/item:hidden"
         />
-        <TreeRowAction
-          icon={Cancel01Icon}
+        <ProcessStopButton
+          size="sm"
+          className="hidden group-focus-within/item:flex group-hover/item:flex"
           onClick={onClose}
-          title={t("controlTower.sidebar.stopAgentProcess")}
-          variant="danger"
+          label={t("controlTower.sidebar.stopAgentProcess")}
         />
       </TreeRowBase>
     );
@@ -95,11 +91,11 @@ export const PtySessionRow: React.FC<PtySessionRowProps> = memo(
 
     return (
       <TreeRowBase node={node} depth={0} isSelected={isActive} onClick={onOpen}>
-        <TreeRowAction
-          icon={Cancel01Icon}
+        <ProcessStopButton
+          size="sm"
+          className="hidden group-focus-within/item:flex group-hover/item:flex"
           onClick={onClose}
-          title={t("controlTower.sidebar.closeSession")}
-          variant="danger"
+          label={t("common:tooltips.killTerminal")}
         />
       </TreeRowBase>
     );
