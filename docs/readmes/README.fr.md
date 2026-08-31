@@ -68,7 +68,7 @@ Utilisez le harness Rust intégré d’ORG-II ou lancez ces CLI d’Agents de co
 <p>
   <a href="#fonctionnalités"><kbd><img src="../assets/org2-icon.svg" alt="Logo ORG-2" width="22" valign="middle" /> ORG-2</kbd></a> &nbsp;
   <a href="https://cursor.com/docs/cli/overview"><kbd><img src="../../src/assets/modelIcons/cursor.svg" alt="Logo Cursor CLI" width="16" valign="middle" /> Cursor CLI</kbd></a> &nbsp;
-  <a href="https://code.claude.com/docs/en/configuration"><kbd><img src="../../src/assets/modelIcons/claude-code.svg" alt="Logo Claude Code" width="16" valign="middle" /> Claude Code</kbd></a> &nbsp;
+  <a href="https://code.claude.com/docs/en/configuration"><kbd><img src="../../src/assets/modelIcons/claude.svg" alt="Logo Claude" width="16" valign="middle" /> Claude Code</kbd></a> &nbsp;
   <a href="https://developers.openai.com/codex/config-basic"><kbd><img src="../../src/assets/modelIcons/openai.svg" alt="Logo Codex" width="16" valign="middle" /> Codex</kbd></a> &nbsp;
   <a href="https://kiro.dev/docs/cli/installation"><kbd><img src="../../src/assets/modelIcons/kiro.svg" alt="Logo Kiro CLI" width="16" valign="middle" /> Kiro CLI</kbd></a> &nbsp;
   <a href="https://docs.github.com/en/copilot/how-tos/set-up/install-copilot-in-the-cli"><kbd><img src="../../src/assets/modelIcons/copilot.svg" alt="Logo GitHub Copilot" width="16" valign="middle" /> GitHub Copilot</kbd></a> &nbsp;
