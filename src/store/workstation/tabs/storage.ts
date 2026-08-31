@@ -34,7 +34,6 @@ const VALID_WORKSTATION_TAB_TYPES = new Set<WorkStationTabType>([
   "terminal-content",
   "dom-component-preview",
   "terminal",
-  "settings",
   "search",
   "ai-impact",
   "search-sessions",

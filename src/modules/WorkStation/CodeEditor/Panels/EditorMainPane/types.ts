@@ -29,7 +29,6 @@ export type EditorTabType =
   | "dom-component-preview"
   | "terminal"
   | "output"
-  | "settings"
   | "search"
   | "lint-scan";
 

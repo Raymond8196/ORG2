@@ -289,8 +289,6 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
           );
         case "terminal":
           return <FileTypeIcon fileName="terminal.sh" size="small" />;
-        case "settings":
-          return <FileTypeIcon fileName="settings.json" size="small" />;
         case "browser-session":
           return (
             <FaviconIcon
