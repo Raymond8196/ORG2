@@ -132,8 +132,8 @@ describe("buildWorkItemRow", () => {
       "session-review",
     ]);
     expect(rows.every((row) => row.showIndentGuide)).toBe(true);
-    expect(rows[0]?.workingIndicator).toBeDefined();
-    expect(rows[1]?.trailingElement).toBeDefined();
+    expect(rows[0]?.iconBadge).toBeDefined();
+    expect(rows[1]?.iconBadge).toBeDefined();
     expect(rows[1]?.label).toBe("123456789012345678901234567890");
     expect(rows[0]?.dragPayload?.path).toBe("session://session-running");
   });

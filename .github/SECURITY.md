@@ -13,7 +13,7 @@ Only the latest released version of ORGII receives security patches.
 
 **Please do not open a public GitHub issue for security vulnerabilities.**
 
-Email **security@orgii.ai** with:
+Email **security@org2.ai** with:
 
 - A description of the vulnerability and its potential impact
 - Steps to reproduce (proof-of-concept, if available)

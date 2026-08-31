@@ -125,7 +125,7 @@ pnpm run download:sidecars
 pnpm run tauri:dev
 ```
 
-기여에 대한 자세한 내용은 [CONTRIBUTING.md](../../CONTRIBUTING.md)를 참고하세요. 모든 참여자에게 존중과 공감을 요청합니다. [CODE_OF_CONDUCT.md](../../CODE_OF_CONDUCT.md)도 참고하세요.
+기여에 대한 자세한 내용은 [CONTRIBUTING.md](../../.github/CONTRIBUTING.md)를 참고하세요. 모든 참여자에게 존중과 공감을 요청합니다. [CODE_OF_CONDUCT.md](../../.github/CODE_OF_CONDUCT.md)도 참고하세요.
 
 ## 선택적 네이티브 sidecars
 

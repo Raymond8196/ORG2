@@ -2,7 +2,7 @@
 
 // Decides how much of the tree `pnpm lint` has to cover for one pull request.
 //
-// ESLint is a per-file analysis here: every rule in .eslintrc.js reads a single
+// ESLint is a per-file analysis here: every rule in package.json#eslintConfig reads a single
 // module (unused imports, restricted imports/syntax, prettier formatting, hook
 // deps). Nothing in the config is cross-file, so a pull request cannot make an
 // untouched file newly non-compliant -- the cross-file class of breakage
@@ -17,7 +17,7 @@ const fs = require("node:fs");
 
 const LINTABLE_EXTENSIONS = Object.freeze([".ts", ".tsx", ".js", ".jsx"]);
 
-// .eslintrc.js ignores everything outside src/ (ignorePatterns "/*" + "!/src"),
+// package.json#eslintConfig ignores everything outside src/ (ignorePatterns "/*" + "!/src"),
 // so passing a path from anywhere else would lint nothing and only slow the
 // step down.
 const LINTABLE_PREFIX = "src/";
@@ -28,6 +28,7 @@ const FULL_LINT_TRIGGERS = new Set([
   ".eslintrc.js",
   ".prettierrc",
   ".prettierignore",
+  "config/tailwind.config.js",
   "package.json",
   "pnpm-lock.yaml",
   "tsconfig.json",

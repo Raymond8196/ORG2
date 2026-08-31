@@ -3,7 +3,7 @@
 This file orients Codex / orgii agents working in this repo. It tells you **which audit / methodology skill to invoke** for which kind of task, and what to deliver before declaring work done.
 
 > Test conventions — where a test file belongs, how to name it, and what each
-> suite actually runs — live in `CONTRIBUTING.md` under **Where tests live**.
+> suite actually runs — live in `.github/CONTRIBUTING.md` under **Where tests live**.
 > This file does not restate them; it is about skill routing.
 
 This is **advisory**, not a hard contract. Use judgment based on PR size and risk.
@@ -85,10 +85,10 @@ Run `org2-performance-guard` whenever a change adds or modifies polling, timers,
 ### Pull request contract
 
 Every pull request created or updated by an agent MUST follow these rules.
-Before touching a pull request, read `PR_RULES.md`; it is the tracked,
+Before touching a pull request, read `.github/PR_RULES.md`; it is the tracked,
 repository-wide source of truth shared by Codex, Claude, Cursor, and human
-contributors. If this section and `PR_RULES.md` ever differ, follow
-`PR_RULES.md` and fix the stale adapter in the same pull request.
+contributors. If this section and `.github/PR_RULES.md` ever differ, follow
+`.github/PR_RULES.md` and fix the stale adapter in the same pull request.
 
 Hard gates: one responsibility; a scoped Conventional Commit title; the
 required `Problem`, `Solution`, `Potential risks`, and `Verification` sections;

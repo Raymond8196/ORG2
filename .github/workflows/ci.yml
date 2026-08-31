@@ -111,7 +111,7 @@ jobs:
         env:
           NODE_OPTIONS: "--max-old-space-size=6144"
 
-      # Every rule in .eslintrc.js judges one file at a time, so a pull request
+      # Every rule in package.json#eslintConfig judges one file at a time, so a pull request
       # cannot make an untouched file newly non-compliant; whole-tree linting
       # spent ~3m45s re-proving 6000+ unchanged files. Diffs that change the
       # rules themselves still lint everything -- see select-lint-targets.cjs.
