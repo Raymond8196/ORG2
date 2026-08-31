@@ -40,12 +40,22 @@ import { getViewportSize } from "@src/util/ui/window/viewport";
 
 import type { BranchItem } from "../../types";
 import { categorizeBranches } from "../../utils/branchUtils";
+import { BranchDropdownList } from "./BranchDropdownList";
+import { type BranchPickerTab, BranchPickerTabs } from "./BranchPickerTabs";
+import { BranchPullRequestPicker } from "./BranchPullRequestPicker";
 import { useBranchFetch } from "./useBranchFetch";
 import { useWorktreeMap } from "./useWorktreeMap";
 
 const LIST_MAX_HEIGHT = 360;
 const VIEWPORT_MARGIN = 12;
-const MIN_DROPDOWN_WIDTH = 280;
+
+interface BranchListRow {
+  branch: BranchItem;
+  heading: string | null;
+}
+const branchRowKey = (row: BranchListRow) => row.branch.name;
+const branchRowHeight = (row: BranchListRow) =>
+  DROPDOWN_ITEM.height + (row.heading ? 24 : 0);
 
 interface BranchRowProps {
   branch: BranchItem;
@@ -131,17 +141,27 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
 
+  const [tab, setTab] = useState<BranchPickerTab>("branches");
+  const branchTabOpen = isOpen && tab === "branches";
   const [searchQuery, setSearchQuery] = useState("");
   const [prevIsOpen, setPrevIsOpen] = useState(isOpen);
   if (isOpen !== prevIsOpen) {
     setPrevIsOpen(isOpen);
-    if (!isOpen && searchQuery) setSearchQuery("");
+    if (!isOpen) {
+      setSearchQuery("");
+      setTab("branches");
+    }
   }
 
   const isGitHubRepo = Boolean(githubConnectionId && githubRepoFullName);
 
-  const { branches: rawBranches, isLoading } = useBranchFetch({
-    isOpen,
+  const {
+    branches: rawBranches,
+    isLoading,
+    repoPath: resolvedRepoPath,
+    refresh: refreshBranches,
+  } = useBranchFetch({
+    isOpen: branchTabOpen,
     repoId,
     repoPath: repoPath || "",
     isGitHubRepo,
@@ -150,7 +170,7 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
   });
 
   const worktreeMap = useWorktreeMap({
-    enabled: isOpen && groupWorktreeBranches,
+    enabled: branchTabOpen && groupWorktreeBranches,
     repoId,
     repoPath,
     isLocalRepo: !isGitHubRepo,
@@ -202,10 +222,17 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
     return result;
   }, [filteredBranches, t]);
 
-  const visibleBranches = useMemo(
-    () => sections.flatMap((section) => section.items),
+  const rows = useMemo(
+    () =>
+      sections.flatMap((section) =>
+        section.items.map((branch, index) => ({
+          branch,
+          heading: index === 0 ? section.label : null,
+        }))
+      ),
     [sections]
   );
+  const visibleBranches = useMemo(() => rows.map((row) => row.branch), [rows]);
 
   const handleSelect = useCallback(
     async (branch: BranchItem) => {
@@ -221,7 +248,7 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
     HTMLElement,
     BranchItem
   >({
-    open: isOpen,
+    open: branchTabOpen,
     onOpenChange: (open) => {
       if (!open) onClose();
     },
@@ -236,17 +263,35 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
   });
 
   useEffect(() => {
-    if (!isOpen || !isPositioned) return;
+    if (!branchTabOpen || !isPositioned) return;
     const frame = requestAnimationFrame(() => {
       inputRef.current?.focus();
     });
     return () => cancelAnimationFrame(frame);
-  }, [isOpen, isPositioned]);
+  }, [branchTabOpen, isPositioned]);
 
+  if (isOpen && tab === "prs")
+    return (
+      <BranchPullRequestPicker
+        key={`${repoId}:${resolvedRepoPath}`}
+        repoId={repoId}
+        repoPath={resolvedRepoPath}
+        onSelect={onSelect}
+        onClose={onClose}
+        onBranchPrepared={refreshBranches}
+        onTabChange={setTab}
+        presentation="dropdown"
+        anchorRef={anchorRef}
+        placement={placement}
+      />
+    );
   if (!isOpen || !isPositioned) return null;
 
-  const width = Math.max(MIN_DROPDOWN_WIDTH, panelPosition.width);
   const { width: vw } = getViewportSize();
+  const width = Math.min(
+    Math.max(420, panelPosition.width),
+    vw - VIEWPORT_MARGIN * 2
+  );
   const left = Math.max(
     VIEWPORT_MARGIN,
     Math.min(panelPosition.left, vw - VIEWPORT_MARGIN - width)
@@ -264,50 +309,51 @@ export const BranchDropdown: React.FC<BranchDropdownProps> = ({
       }}
     >
       <DropdownSearch
+        leading={<BranchPickerTabs value={tab} onChange={setTab} />}
+        containerClassName="gap-2"
         ref={inputRef}
         type="text"
         value={searchQuery}
-        onChange={setSearchQuery}
+        onChange={(value) => {
+          setSearchQuery(value);
+          keyboard.setSelectedIndex(-1);
+        }}
         placeholder={t("selectors.spotlight.placeholders.branch")}
       />
 
-      <div
-        className={DROPDOWN_CLASSES.optionsContainerOverlay}
-        style={{ maxHeight: LIST_MAX_HEIGHT }}
-      >
-        {isLoading && filteredBranches.length === 0 ? (
+      {filteredBranches.length === 0 ? (
+        <div
+          className={DROPDOWN_CLASSES.optionsContainerOverlay}
+          style={{ maxHeight: LIST_MAX_HEIGHT }}
+        >
           <div className={DROPDOWN_CLASSES.listMessage}>
-            {t("status.loading")}
+            {t(
+              isLoading ? "status.loading" : "selectors.modelSelector.noResults"
+            )}
           </div>
-        ) : filteredBranches.length === 0 ? (
-          <div className={DROPDOWN_CLASSES.listMessage}>
-            {t("selectors.modelSelector.noResults")}
-          </div>
-        ) : (
-          sections.map((section) => (
-            <React.Fragment key={section.key}>
-              {section.label && (
-                <div className={DROPDOWN_CLASSES.sectionLabel}>
-                  {section.label}
-                </div>
+        </div>
+      ) : (
+        <BranchDropdownList
+          items={rows}
+          getKey={branchRowKey}
+          estimateHeight={branchRowHeight}
+          selectedIndex={keyboard.selectedIndex}
+          keyboardNavigated={keyboard.keyboardNavigated}
+          searchQuery={searchQuery}
+          renderItem={({ branch, heading }, index) => (
+            <>
+              {heading && (
+                <div className={DROPDOWN_CLASSES.sectionLabel}>{heading}</div>
               )}
-              {section.items.map((branch) => {
-                const index = visibleBranches.findIndex(
-                  (visibleBranch) => visibleBranch.name === branch.name
-                );
-                return (
-                  <BranchRow
-                    key={branch.name}
-                    branch={branch}
-                    isCurrent={branch.name === currentBranchName}
-                    keyboardProps={keyboard.getItemProps(index)}
-                  />
-                );
-              })}
-            </React.Fragment>
-          ))
-        )}
-      </div>
+              <BranchRow
+                branch={branch}
+                isCurrent={branch.name === currentBranchName}
+                keyboardProps={keyboard.getItemProps(index)}
+              />
+            </>
+          )}
+        />
+      )}
     </div>,
     document.body
   );

@@ -1670,7 +1670,8 @@
         "refresh": "ブランチを更新",
         "checkoutDetachedSuccess": "detached HEAD 状態になりました（現在のコミット）",
         "removeWorktree": "Worktree を削除",
-        "newWorktree": "新規 Worktree..."
+        "newWorktree": "新規 Worktree...",
+        "refreshPullRequests": "Pull requests を更新"
       },
       "messages": {
         "deletedCount_one": "{{count}} 件のブランチを削除しました",
@@ -1687,12 +1688,21 @@
         "worktreeInUse": "使用中",
         "checkedOutInWorktree": "Worktree でチェックアウト済み: {{path}}",
         "mainWorktreeSection": "メイン Worktree",
-        "linkedWorktrees": "リンク済み Worktree"
+        "linkedWorktrees": "リンク済み Worktree",
+        "noGithubRemote": "GitHub リモートが設定されていません",
+        "prSearchScope": "読み込んだ {{count}} 件の Pull requests を検索",
+        "prLimit": "最大 {{count}} 件のオープン PR を表示",
+        "noPullRequests": "一致する Pull requests はありません"
       },
       "placeholders": {
         "checkout": "ブランチ",
-        "add": "新しいブランチ名",
-        "remove": "ブランチ"
+        "add": "新しいブランチ名...",
+        "remove": "ブランチ",
+        "pullRequests": "Pull requests を検索..."
+      },
+      "tabs": {
+        "branches": "ブランチ",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1723,6 +1733,7 @@
       "switchColumn": "列を切り替え",
       "switchSection": "セクションを切り替え",
       "showPath": "パスを表示",
+      "showBranchInfo": "ブランチ情報を表示",
       "compatibleKeys": "互換性あり",
       "planSupport": "Plan",
       "byokSupport": "Keys",

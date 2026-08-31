@@ -1681,7 +1681,8 @@
         "refresh": "Обновить ветку",
         "checkoutDetachedSuccess": "В состоянии detached HEAD на текущем коммите",
         "removeWorktree": "Удалить Worktree",
-        "newWorktree": "Новый worktree..."
+        "newWorktree": "Новый worktree...",
+        "refreshPullRequests": "Обновить Pull requests"
       },
       "messages": {
         "deletedCount_one": "Удалена {{count}} ветка",
@@ -1698,12 +1699,21 @@
         "worktreeInUse": "Используется",
         "checkedOutInWorktree": "Checkout в Worktree: {{path}}",
         "mainWorktreeSection": "Основной worktree",
-        "linkedWorktrees": "Связанные worktree"
+        "linkedWorktrees": "Связанные worktree",
+        "noGithubRemote": "Удалённый репозиторий GitHub не настроен",
+        "prSearchScope": "Поиск среди {{count}} загруженных Pull requests",
+        "prLimit": "Показано до {{count}} открытых PR",
+        "noPullRequests": "Нет подходящих Pull requests"
       },
       "placeholders": {
         "checkout": "ветка",
-        "add": "имя новой ветки",
-        "remove": "ветка"
+        "add": "имя новой ветки...",
+        "remove": "ветка",
+        "pullRequests": "Поиск Pull requests..."
+      },
+      "tabs": {
+        "branches": "Ветки",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1734,6 +1744,7 @@
       "switchColumn": "Сменить колонку",
       "switchSection": "Сменить раздел",
       "showPath": "Показывать путь",
+      "showBranchInfo": "Показывать информацию о ветках",
       "compatibleKeys": "Совместимые",
       "planSupport": "Plan",
       "byokSupport": "Keys",

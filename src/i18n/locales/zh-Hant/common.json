@@ -1685,7 +1685,8 @@
         "refresh": "刷新分支",
         "checkoutDetachedSuccess": "已切換到 detached HEAD 狀態（當前提交）",
         "removeWorktree": "移除 Worktree",
-        "newWorktree": "新建 Worktree..."
+        "newWorktree": "新建 Worktree...",
+        "refreshPullRequests": "重新整理 Pull requests"
       },
       "messages": {
         "deletedCount_one": "已刪除 {{count}} 個分支",
@@ -1702,12 +1703,21 @@
         "worktreeInUse": "使用中",
         "checkedOutInWorktree": "已在 Worktree 中檢出：{{path}}",
         "mainWorktreeSection": "主 Worktree",
-        "linkedWorktrees": "連結 Worktree"
+        "linkedWorktrees": "連結 Worktree",
+        "noGithubRemote": "未設定 GitHub 遠端倉庫",
+        "prSearchScope": "搜尋範圍為已載入的 {{count}} 個 Pull requests",
+        "prLimit": "最多顯示 {{count}} 個未關閉的 PR",
+        "noPullRequests": "沒有符合的 Pull requests"
       },
       "placeholders": {
         "checkout": "分支",
-        "add": "新分支名稱",
-        "remove": "分支"
+        "add": "新分支名稱...",
+        "remove": "分支",
+        "pullRequests": "搜尋 Pull requests..."
+      },
+      "tabs": {
+        "branches": "分支",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1738,6 +1748,7 @@
       "switchColumn": "切換欄",
       "switchSection": "切換分區",
       "showPath": "顯示路徑",
+      "showBranchInfo": "顯示分支資訊",
       "compatibleKeys": "相容",
       "planSupport": "Plan",
       "byokSupport": "Keys",
