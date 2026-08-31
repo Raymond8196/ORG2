@@ -18,17 +18,10 @@ import { useTranslation } from "react-i18next";
 import InlineBanner, {
   useDismissibleMessage,
 } from "@src/components/InlineBanner";
-import {
-  FileDiffIcon,
-  GitCommitHorizontalIcon,
-  HugeiconsIcon,
-  ListChecksIcon,
-  MessageMultiple01Icon,
-} from "@src/icons";
 import { ExternalBrowserButton } from "@src/modules/WorkStation/shared/ExternalBrowserButton";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
+import GitHubPrDetailTabs from "@src/modules/shared/components/GitHubPrDetailTabs";
 import {
-  DetailTabStrip,
   PersistentDetailTabPanel,
   ScrollTrail,
   WORKSTATION_TRAIL_RAIL_PADDING_CLASS,
@@ -61,8 +54,6 @@ interface PrDetailPanelProps {
   onFileSelect?: (path: string) => void;
 }
 
-type PrDetailTab = "conversation" | "commits" | "checks" | "changes";
-
 interface PrDetailTabsProps {
   identity: PrIdentity;
   repoPath: string;
@@ -89,83 +80,25 @@ export const PrDetailTabs: React.FC<PrDetailTabsProps> = ({
   trailing,
   variant = "row",
 }) => {
-  const { t } = useTranslation("common");
   const scopeKey = workstationPrScopeKey(repoId, repoPath, identity.number);
   const [state, setState] = useAtom(workstationSelectedPrAtomFamily(scopeKey));
   const activeTab = state.viewState.activeTab;
-  const tabs = useMemo(
-    () => [
-      {
-        key: "conversation" as const,
-        label: t("git.pr.tabs.conversation", "Conversation"),
-        icon: (
-          <HugeiconsIcon
-            icon={MessageMultiple01Icon}
-            data-icon="messages-square"
-            size={15}
-            strokeWidth={1.8}
-          />
-        ),
-        count: state.conversation.length + state.reviews.length,
-      },
-      {
-        key: "commits" as const,
-        label: t("git.pr.tabs.commits", "Commits"),
-        icon: (
-          <HugeiconsIcon
-            icon={GitCommitHorizontalIcon}
-            data-icon="git-commit-horizontal"
-            size={15}
-            strokeWidth={1.8}
-          />
-        ),
-        count: state.commits.length,
-      },
-      {
-        key: "checks" as const,
-        label: t("git.pr.tabs.checks", "Checks"),
-        icon: (
-          <HugeiconsIcon
-            icon={ListChecksIcon}
-            data-icon="list-checks"
-            size={15}
-            strokeWidth={1.8}
-          />
-        ),
-        count:
-          (state.checks?.check_runs.length ?? 0) +
-          (state.checks?.statuses.length ?? 0),
-      },
-      {
-        key: "changes" as const,
-        label: t("git.pr.changes.title", "Files changed"),
-        icon: (
-          <HugeiconsIcon
-            icon={FileDiffIcon}
-            data-icon="file-diff"
-            size={15}
-            strokeWidth={1.8}
-          />
-        ),
-        count: formatPrFilesCount(state.files.length),
-      },
-    ],
-    [
-      t,
-      state.conversation.length,
-      state.reviews.length,
-      state.commits.length,
-      state.checks,
-      state.files.length,
-    ]
-  );
 
   return (
-    <DetailTabStrip<PrDetailTab>
+    <GitHubPrDetailTabs
       activeTab={activeTab}
-      ariaLabel={t("git.pr.summary.label", "Pull request summary")}
-      idPrefix="pr-detail"
-      tabs={tabs}
+      counts={
+        state.loading || (state.detail === null && state.error === null)
+          ? undefined
+          : {
+              conversation: state.conversation.length + state.reviews.length,
+              commits: state.commits.length,
+              checks:
+                (state.checks?.check_runs.length ?? 0) +
+                (state.checks?.statuses.length ?? 0),
+              changes: formatPrFilesCount(state.files.length),
+            }
+      }
       trailing={trailing}
       variant={variant}
       onChange={(nextTab) => {
@@ -339,28 +272,35 @@ export const PrDetailPanel: React.FC<PrDetailPanelProps> = ({
   const baseBranch =
     state.baseRef ?? identity.baseBranch ?? t("git.pr.baseBranch", "base");
 
+  const tabs =
+    tabsPlacement === "panel" ? (
+      <PrDetailTabs
+        identity={identity}
+        repoPath={repoPath}
+        repoId={repoId}
+        trailing={
+          tabActions ?? <PrDetailExternalLinkButton identity={identity} />
+        }
+      />
+    ) : null;
+
   if (state.loading || (state.detail === null && state.error === null)) {
     return (
       <GitHubDetailSkeleton
         kind="pr"
         showHeader={false}
         showTabs={tabsPlacement === "panel"}
+        tabs={tabs}
+        activeTab={activeTab}
+        title={identity.title}
+        number={identity.number}
       />
     );
   }
 
   return (
     <div className="allow-select-deep flex h-full min-h-0 flex-col overflow-hidden">
-      {tabsPlacement === "panel" ? (
-        <PrDetailTabs
-          identity={identity}
-          repoPath={repoPath}
-          repoId={repoId}
-          trailing={
-            tabActions ?? <PrDetailExternalLinkButton identity={identity} />
-          }
-        />
-      ) : null}
+      {tabs}
 
       {/* A background reconcile clears `state.error` as soon as it succeeds, so
           the strip holds the message until the reader dismisses it. */}

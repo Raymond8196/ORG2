@@ -21,7 +21,7 @@ import {
   workstationSelectedPrAtomFamily,
 } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
-import { PrDetailPanel } from "./PrDetailPanel";
+import { PrDetailPanel, PrDetailTabs } from "./PrDetailPanel";
 import { formatPrFilesCount } from "./prFilesDisplay";
 
 const childProps = vi.hoisted(() => ({
@@ -736,6 +736,110 @@ describe("PrDetailPanel tabs", () => {
       sidebar?.querySelector("[data-testid='pr-level-actions']")
     ).not.toBeNull();
   });
+
+  it.each(["panel", "hostHeader"] as const)(
+    "keeps %s labels and selection through loading, hydration, and refresh",
+    (tabsPlacement) => {
+      const store = createStore();
+      const scopeKey = workstationPrScopeKey(undefined, "/repo", 42);
+      const selectedPrAtom = workstationSelectedPrAtomFamily(scopeKey);
+      const identity = {
+        number: 42,
+        title: "Render the known title immediately",
+        url: "https://github.com/org/repo/pull/42",
+        status: "open",
+        headBranch: "fix/loading-shell",
+      };
+      act(() => {
+        root.render(
+          createElement(
+            Provider,
+            { store },
+            tabsPlacement === "hostHeader"
+              ? createElement(PrDetailTabs, {
+                  identity,
+                  repoPath: "/repo",
+                  variant: "header",
+                })
+              : null,
+            createElement(PrDetailPanel, {
+              identity,
+              repoPath: "/repo",
+              tabsPlacement,
+            })
+          )
+        );
+      });
+
+      expect(container.querySelectorAll('[role="tablist"]')).toHaveLength(1);
+      const tabs = Array.from(
+        container.querySelectorAll<HTMLButtonElement>('[role="tab"]')
+      );
+      expect(tabs.map((tab) => tab.textContent)).toEqual([
+        "Conversation",
+        "Commits",
+        "Checks",
+        "Files changed",
+      ]);
+      expect(
+        container.querySelectorAll('[data-testid="detail-tab-count-skeleton"]')
+      ).toHaveLength(4);
+      expect(container.querySelector("h2")?.textContent).toContain(
+        identity.title
+      );
+      const sidebar = container.querySelector(
+        '[data-testid="github-pr-detail-skeleton-sidebar"]'
+      );
+      expect(sidebar?.textContent).toBe("ReviewersAssigneesLabelsActions");
+      expect(sidebar?.querySelector("button")).toBeNull();
+
+      act(() => {
+        store.set(selectedPrAtom, (current) => ({ ...current, loading: true }));
+        tabs[1]?.click();
+      });
+      expect(tabs[1]?.getAttribute("aria-selected")).toBe("true");
+      expect(container.querySelector('[role="tabpanel"]')?.id).toBe(
+        "pr-detail-tabpanel-commits"
+      );
+
+      act(() => {
+        store.set(selectedPrAtom, (current) => ({
+          ...current,
+          loading: false,
+          detail: {},
+          commits: [{}, {}],
+        }));
+      });
+      expect(
+        container.querySelector('[data-testid="github-pr-detail-skeleton"]')
+      ).toBeNull();
+      expect(
+        container.querySelector('[data-testid="detail-tab-count-skeleton"]')
+      ).toBeNull();
+      const loadedTabs = Array.from(container.querySelectorAll('[role="tab"]'));
+      expect(loadedTabs.map((tab) => tab.textContent)).toEqual([
+        "Conversation0",
+        "Commits2",
+        "Checks0",
+        "Files changed0",
+      ]);
+      expect(loadedTabs[1]?.getAttribute("aria-selected")).toBe("true");
+      expect(
+        container.querySelector('[data-testid="pr-detail-sidebar-rail"]')
+      ).not.toBeNull();
+
+      act(() => {
+        store.set(selectedPrAtom, (current) => ({
+          ...current,
+          refreshing: true,
+        }));
+      });
+      expect(
+        container.querySelector('[data-testid="detail-tab-count-skeleton"]')
+      ).toBeNull();
+      expect(loadedTabs[1]?.textContent).toBe("Commits2");
+    }
+  );
 
   it("shows the PR skeleton on the first render before detail loading starts", () => {
     const store = createStore();

@@ -15,6 +15,7 @@ import {
   NoTabsPlaceholder,
   type QuickAction,
 } from "@src/modules/WorkStation/shared";
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
 import { useGitHubIssueDetailState } from "@src/modules/shared/hooks/useGitHubIssueDetailState";
 import { workstationRepoScopeKey } from "@src/store/workstation/codeEditor/workstationPrAtom";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
@@ -122,7 +123,16 @@ const SourceControlMainContent: React.FC<SourceControlMainContentProps> = ({
 
   if (prIdentity) {
     return (
-      <Suspense fallback={<DetailFallback />}>
+      <Suspense
+        fallback={
+          <GitHubDetailSkeleton
+            kind="pr"
+            showHeader={false}
+            title={prIdentity.title}
+            number={prIdentity.number}
+          />
+        }
+      >
         <PrDetailPanel
           identity={prIdentity}
           repoPath={repoPath ?? ""}
