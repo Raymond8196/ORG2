@@ -4,6 +4,7 @@ const test = require("node:test");
 
 const {
   createDevUrl,
+  createFrontendScriptName,
   createTauriArgs,
   formatElapsedMs,
   formatStartupMetricsTsv,
@@ -18,6 +19,19 @@ const tauriLauncherSource = fs.readFileSync(
   "utf8"
 );
 const packageJson = JSON.parse(fs.readFileSync("package.json", "utf8"));
+
+test("frontend script name honors light and rspack opt-ins", () => {
+  assert.equal(createFrontendScriptName(), "dev:frontend");
+  assert.equal(createFrontendScriptName({ rspack: true }), "dev:frontend:rspack");
+  // Light dev wins: it has no rspack equivalent yet.
+  assert.equal(
+    createFrontendScriptName({ lightDev: true, rspack: true }),
+    "dev:frontend:light"
+  );
+  // The npm scripts the names resolve to must exist.
+  assert.ok(packageJson.scripts["dev:frontend:rspack"]);
+  assert.ok(tauriLauncherSource.includes('args.includes("--rspack")'));
+});
 
 test("recognizes only the initial successful webpack compile as ready", () => {
   assert.equal(

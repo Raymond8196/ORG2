@@ -11,6 +11,10 @@ if (args.includes("--light")) {
   env.ORGII_LIGHT_DEV = "true";
 }
 
+if (args.includes("--rspack")) {
+  env.ORGII_RSPACK = "true";
+}
+
 // Bound the build caches before the compiler starts.
 //
 // This is the only moment in a dev session when it is safe *and* useful:

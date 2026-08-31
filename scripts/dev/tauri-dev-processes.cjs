@@ -24,8 +24,11 @@ function createTauriArgs({ features = [], devUrl } = {}) {
   return args;
 }
 
-function createFrontendScriptName({ lightDev = false } = {}) {
-  return lightDev ? "dev:frontend:light" : "dev:frontend";
+function createFrontendScriptName({ lightDev = false, rspack = false } = {}) {
+  // Light dev wins over rspack: the light mode's esbuild/no-HMR tradeoffs
+  // have no rspack equivalent yet.
+  if (lightDev) return "dev:frontend:light";
+  return rspack ? "dev:frontend:rspack" : "dev:frontend";
 }
 
 function createDevUrl(env = process.env) {
