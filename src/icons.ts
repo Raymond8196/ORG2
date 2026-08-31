@@ -290,6 +290,8 @@ export { default as Loading03Icon } from "@hugeicons/core-free-icons/Loading03Ic
 export { default as Location01Icon } from "@hugeicons/core-free-icons/Location01Icon";
 export { default as LockIcon } from "@hugeicons/core-free-icons/LockIcon";
 export { default as Login01Icon } from "@hugeicons/core-free-icons/Login01Icon";
+export { default as Login02Icon } from "@hugeicons/core-free-icons/Login02Icon";
+export { default as Logout02Icon } from "@hugeicons/core-free-icons/Logout02Icon";
 export { default as LogsIcon } from "@hugeicons/core-free-icons/LogsIcon";
 export { default as MagicWand02Icon } from "@hugeicons/core-free-icons/MagicWand02Icon";
 export { default as Mail01Icon } from "@hugeicons/core-free-icons/Mail01Icon";

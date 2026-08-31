@@ -217,10 +217,8 @@ core_types = { path = "crates/types" }
 # disk-usage report composes these paths into a per-category summary.
 app_paths = { path = "crates/app-paths" }
 
-# Small JSON file I/O helpers (read, write, merge, atomic save). Used by
-# CLI agent config modules and sensitive-token stores (auth, github,
-# extension secrets). Depends only on `app_paths` for the
-# `set_sensitive_file_permissions` chmod.
+# Small JSON file I/O helpers (read, write, merge) used by CLI agent config
+# modules, plus shared Serde defaults. No workspace-crate dependencies.
 app_utils = { path = "crates/app-utils" }
 
 # Native window helpers (macOS traffic-light positioning + liquid-glass

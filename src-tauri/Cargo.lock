@@ -28,7 +28,6 @@ dependencies = [
  "ignore",
  "lazy_static",
  "llama-cpp-2",
- "regex",
  "reqwest 0.12.28",
  "scopeguard",
  "serde",
@@ -94,7 +93,6 @@ dependencies = [
  "core-foundation",
  "core-graphics 0.24.0",
  "core_types",
- "croner",
  "database",
  "dirs",
  "dispatch2",
@@ -258,10 +256,8 @@ dependencies = [
 name = "app_utils"
 version = "0.1.0"
 dependencies = [
- "app_paths",
  "serde_json",
  "tempfile",
- "tracing",
 ]
 
 [[package]]
@@ -2897,7 +2893,6 @@ dependencies = [
  "log",
  "notify",
  "parking_lot 0.12.5",
- "regex",
  "reqwest 0.13.4",
  "rusqlite",
  "serde",
@@ -3755,7 +3750,6 @@ version = "0.1.0"
 dependencies = [
  "app_paths",
  "app_platform",
- "app_utils",
  "axum",
  "bytes",
  "chrono",
@@ -5408,7 +5402,6 @@ dependencies = [
  "app_paths",
  "chrono",
  "core_types",
- "dirs",
  "git2",
  "memchr",
  "orgtrack_protocol",
@@ -5447,7 +5440,6 @@ dependencies = [
 name = "orgtrack_sync"
 version = "0.1.0"
 dependencies = [
- "chrono",
  "serde",
  "serde_json",
  "sha2",
