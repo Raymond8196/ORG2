@@ -23,11 +23,6 @@ import {
   searchCodeStreaming,
 } from "./regex";
 import {
-  checkAdvancedSearchEnabled,
-  checkSemanticAvailable,
-  searchSemantic,
-} from "./semantic";
-import {
   findReferences,
   getFileSymbols,
   getSupportedLanguages,
@@ -50,10 +45,6 @@ export type {
   LanguageInfo,
   SearchResultEvent,
   SearchCompleteEvent,
-  IncrementalIndexResult,
-  SemanticHit,
-  EmbeddingModelStatus,
-  USearchIndexInfo,
   SearchMode,
 } from "./types";
 
@@ -78,25 +69,6 @@ export {
   merkleDiffSinceSnapshot,
   merkleGetStats,
 } from "./merkle";
-
-export {
-  checkAdvancedSearchEnabled,
-  checkSemanticAvailable,
-  searchSemantic,
-  indexRepositorySemantic,
-  removeRepositorySemantic,
-  cancelSemanticIndexing,
-  incrementalIndexSemantic,
-  checkEmbeddingModelStatus,
-  downloadEmbeddingModel,
-  deleteEmbeddingModel,
-  setModelDir,
-  getModelDirPath,
-  isSemanticSearchAvailable,
-  getSemanticIndexInfo,
-  getModelInfo,
-  stopEmbedder,
-} from "./semantic";
 
 export type { MerkleChange, MerkleDiffResult, MerkleStats } from "./merkle";
 
@@ -124,9 +96,6 @@ export const searchApi = {
   merkleBuildTree,
   merkleDiffSinceSnapshot,
   merkleGetStats,
-  checkAdvancedSearchEnabled,
-  checkSemanticAvailable,
-  searchSemantic,
   isCodeSearchAvailable,
   getTotalMatchCount,
   getTotalSymbolCount,
