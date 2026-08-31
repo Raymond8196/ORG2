@@ -8,7 +8,8 @@
  * There is deliberately no danger / warning / success color variant — `type`
  * only selects the leading icon.
  *
- * Padding (p-3), icon size 14. Header row: icon + title + optional action + close;
+ * Padding (p-3, or py-1 pl-3 pr-1 when compact), icon size 14.
+ * Header row: icon + title + optional action + close;
  * body (children) and subtitle render below the header.
  * When action is an object, InlineAlert builds a secondary Button at 28px height.
  */
@@ -127,6 +128,8 @@ export interface InlineAlertProps {
   subtitle?: React.ReactNode;
   /** Extra className on the outer container */
   className?: string;
+  /** Reduce default-card vertical and right padding without shrinking action buttons. */
+  compact?: boolean;
   /** Compact expandable pill that shows only title until expanded */
   presentation?: "default" | "pill";
   /** Optional action — object builds a 28px secondary Button; ReactNode for custom */
@@ -153,6 +156,7 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
   hideIcon = false,
   subtitle,
   className,
+  compact = false,
   presentation = "default",
   action,
   onClose,
@@ -164,6 +168,7 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
 }) => {
   const [expanded, setExpanded] = React.useState(presentation !== "pill");
   const isPill = presentation === "pill";
+  const cardPaddingClass = compact ? "py-1 pl-3 pr-1" : "p-3";
   const showContent = !isPill || expanded;
   const resolvedIcon =
     icon ??
@@ -260,7 +265,7 @@ const InlineAlert: React.FC<InlineAlertProps> = ({
     <div
       role={role}
       data-testid={dataTestId}
-      className={`${ALERT_SURFACE_CLASS} ${isPill ? `inline-block w-fit max-w-full ${expanded ? ALERT_RADIUS_CLASS : "rounded-full"} px-3 py-2` : `${ALERT_RADIUS_CLASS} p-3`} ${className ?? ""}`}
+      className={`${ALERT_SURFACE_CLASS} ${isPill ? `inline-block w-fit max-w-full ${expanded ? ALERT_RADIUS_CLASS : "rounded-full"} px-3 py-2` : `${ALERT_RADIUS_CLASS} ${cardPaddingClass}`} ${className ?? ""}`}
     >
       <div className={`flex items-center ${isPill ? "gap-1" : "gap-3"}`}>
         {isPill ? (
