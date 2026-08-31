@@ -2,6 +2,7 @@ import { createElement } from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import {
+  ArrowUpRight01Icon,
   Calendar01Icon,
   Cardiogram01Icon,
   CircleDotIcon,
@@ -12,7 +13,6 @@ import {
   Flag01Icon,
   HugeiconsIcon,
   ListChevronsDownUpIcon,
-  SquareArrowUpRight02Icon,
   Tag01Icon,
   Unlink02Icon,
   UserIcon,
@@ -464,7 +464,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
       id: "open",
       label: t("common:actions.open"),
       icon: createElement(HugeiconsIcon, {
-        icon: SquareArrowUpRight02Icon,
+        icon: ArrowUpRight01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary:

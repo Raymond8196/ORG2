@@ -10,11 +10,7 @@ import { IconButton } from "@src/components/IconButton";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
 import Tooltip from "@src/components/Tooltip";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
-import {
-  Cancel01Icon,
-  HugeiconsIcon,
-  SquareArrowUpRight02Icon,
-} from "@src/icons";
+import { ArrowUpRight01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import { RailItemStatus } from "./RailItemStatus";
 import type { FocusedChatRailItem } from "./types";
@@ -73,7 +69,7 @@ export function WorkstationItemRow({
       {item.status ? <RailItemStatus status={item.status} /> : null}
       {item.external ? (
         <HugeiconsIcon
-          icon={SquareArrowUpRight02Icon}
+          icon={ArrowUpRight01Icon}
           data-icon="arrow-up-right"
           aria-hidden
           className="shrink-0 text-text-2"
