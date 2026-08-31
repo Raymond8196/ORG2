@@ -60,3 +60,25 @@ No measured runtime performance improvement is claimed.
 Performance verdict: **pass for this scoped change**. The bounded interaction,
 no-background-save, cleanup, and stale-input invariants pass the targeted tests.
 Desktop resource measurements and end-to-end persistence are not claimed.
+
+## WebKit drag regression (2026-09-01)
+
+Explicitly calling `setPointerCapture` on the range input prevents WebKit's
+native thumb from dragging. The component now leaves capture to the native
+thumb. Native release delivery still handles releases outside the rail; the
+existing one-save-per-gesture, keyboard, cancellation, and stale-value behavior
+is unchanged. No timers, listeners, caches, or persistence paths were added.
+
+A temporary headless Playwright fixture bundled the actual `EffortSlider.tsx`
+and compiled its SCSS, with a controlled parent and only translation stubbed.
+Real mouse movement reproduced the pre-fix WebKit failure: dragging Extra High
+to Ultra left the value at Extra High with no save. With the fix, WebKit 26.5
+and Chromium passed drags in both directions, an outside-rail release, a track
+click, and an arrow-key change. Each completed gesture saved exactly once;
+active drags saved nothing and keyboard focus stayed on the range.
+
+The existing component regression now rejects capture on the input. Injected
+jsdom values only verify coalescing; they must not be used as proof that a
+native slider is draggable. The headless fixture is component-level evidence,
+not a packaged Tauri or full Spotlight end-to-end test. Actual account writes
+and the user's desktop remain untested.

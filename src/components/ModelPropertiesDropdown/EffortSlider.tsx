@@ -163,7 +163,8 @@ export const EffortSlider: React.FC<EffortSliderProps> = ({
               }
             }}
             // Keep rapid input local; persist only the completed gesture.
-            // Pointer capture also delivers releases outside the rail.
+            // Let the native thumb own capture, including outside releases.
+            // Capturing on the input prevents WebKit from dragging its thumb.
             onPointerDown={(event) => {
               if (event.button !== 0 || interactionRef.current) return;
               interactionRef.current = {
@@ -172,7 +173,6 @@ export const EffortSlider: React.FC<EffortSliderProps> = ({
                 level: value,
                 sourceValue: value,
               };
-              event.currentTarget.setPointerCapture(event.pointerId);
             }}
             onPointerUp={(event) => {
               if (interactionRef.current?.pointerId === event.pointerId) {

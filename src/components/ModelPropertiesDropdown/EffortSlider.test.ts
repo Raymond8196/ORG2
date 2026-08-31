@@ -104,11 +104,16 @@ describe("EffortSlider", () => {
     act(() => range().dispatchEvent(event));
   }
 
-  it("previews a drag and commits its final value only once", () => {
+  it("leaves capture to the native thumb and commits the final preview once", () => {
     const onChange = vi.fn();
     render({ onChange });
-    range().setPointerCapture = vi.fn();
+    const capture = vi.fn();
+    range().setPointerCapture = capture;
     pointer("pointerdown");
+    // These injected values test coalescing, not native dragging. A drag
+    // regression also needs real WebKit mouse gestures: input injection
+    // bypasses the native thumb behavior that explicit capture broke.
+    expect(capture).not.toHaveBeenCalled();
     changeValue("0");
     changeValue("2");
     expect(range().getAttribute("aria-valuetext")).toBe("Extra High");
