@@ -100,7 +100,9 @@ export function buildSessionMenuItem({
   const pendingAsking = isSessionPendingAsking(session);
   const statusDotTone = resolveSessionStatusDotTone(session, visitedSessions);
   const statusDot =
-    inProgress && !pendingAsking ? null : renderStatusDot(statusDotTone);
+    inProgress && !pendingAsking
+      ? renderBreathingStatusDot()
+      : renderStatusDot(statusDotTone);
   const gitIndicator = showBranchTag
     ? renderSessionGitIndicator(session, pr)
     : null;
@@ -128,15 +130,13 @@ export function buildSessionMenuItem({
     dataTestId: `sidebar-session-item-${session.session_id}`,
     pinned: session.pinned === true,
     icon: resolveSessionRowIcon(session),
+    iconBadge: statusDot,
     subtitle: liveDetail && pendingAsking ? liveDetail : undefined,
-    workingIndicator:
-      inProgress && !pendingAsking ? renderBreathingStatusDot() : undefined,
     trailingElement:
-      pinIndicator || gitIndicator || statusDot ? (
+      pinIndicator || gitIndicator ? (
         <span className="inline-flex items-center gap-1 leading-none">
           {pinIndicator}
           {gitIndicator}
-          {statusDot}
         </span>
       ) : undefined,
     shortcut: formatRelativeTime(timestampSrc, "nano"),
