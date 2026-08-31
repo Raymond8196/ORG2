@@ -90,7 +90,6 @@ const SessionCreatorChatPanelContent: React.FC<
   initialContent,
   dropdownDirection = "down",
   multiRunnerLauncher = false,
-  onCreateWorkItem,
   onExitMultiRunner,
   onOpenCliTerminal,
   onRegionNoticeChange,
@@ -594,7 +593,6 @@ const SessionCreatorChatPanelContent: React.FC<
       multiRunnerContent={multiRunner.middleContent}
       onAttachedWorkItemContextChange={setAttachedWorkItemContext}
       onCategoryPickerOpen={() => setIsCategorySelectorOpen(true)}
-      onCreateWorkItem={onCreateWorkItem}
       onFileUpload={handleFileUpload}
       onLaunch={handleComposerLaunch}
       onPinnedActionsVisibleChange={setPinnedActionsVisible}

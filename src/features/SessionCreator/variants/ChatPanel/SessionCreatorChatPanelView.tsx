@@ -1,4 +1,4 @@
-import React, { Children, useMemo, useState } from "react";
+import React, { Children, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 
 import type { DispatchCategory } from "@src/api/tauri/session";
@@ -112,7 +112,6 @@ interface SessionCreatorChatPanelViewProps {
     React.SetStateAction<SessionLaunchWorkItemContext | null>
   >;
   onCategoryPickerOpen: () => void;
-  onCreateWorkItem?: () => void;
   onFileUpload: React.ChangeEventHandler<HTMLInputElement>;
   onLaunch: () => void;
   onPinnedActionsVisibleChange: (visible: boolean) => void;
@@ -169,7 +168,6 @@ const SessionCreatorChatPanelView: React.FC<
   multiRunnerContent,
   onAttachedWorkItemContextChange,
   onCategoryPickerOpen,
-  onCreateWorkItem,
   onFileUpload,
   onLaunch,
   onPinnedActionsVisibleChange,
@@ -191,10 +189,6 @@ const SessionCreatorChatPanelView: React.FC<
     visible: pinnedActionsVisible,
     onVisibleChange: onPinnedActionsVisibleChange,
   });
-  const [isLaunchpadWorkItemPickerOpen, setIsLaunchpadWorkItemPickerOpen] =
-    useState(false);
-  const [workItemPickerPortalTarget, setWorkItemPickerPortalTarget] =
-    useState<HTMLDivElement | null>(null);
   const sessionInfoLine = (
     <SessionInfoLine
       {...sessionInfoProps}
@@ -216,17 +210,16 @@ const SessionCreatorChatPanelView: React.FC<
   const repoChromeAboveComposer = isRepoChromeAboveComposer(repoChromePosition);
   const hasRepoChromeMenu = !hideRepoLine && headerLayout !== "compact";
   const showPinnedActionPills = !hasRepoChromeMenu || pinnedActionsVisible;
-  const repoPillsRow =
-    !isLaunchpadWorkItemPickerOpen && hasRepoChromeMenu ? (
-      <RepoChromeRow
-        pinnedActionsVisible={pinnedActionsVisible}
-        position={repoChromePosition}
-        onPinnedActionsVisibleChange={onPinnedActionsVisibleChange}
-        onPositionChange={onRepoChromePositionChange}
-      >
-        {repoPills}
-      </RepoChromeRow>
-    ) : null;
+  const repoPillsRow = hasRepoChromeMenu ? (
+    <RepoChromeRow
+      pinnedActionsVisible={pinnedActionsVisible}
+      position={repoChromePosition}
+      onPinnedActionsVisibleChange={onPinnedActionsVisibleChange}
+      onPositionChange={onRepoChromePositionChange}
+    >
+      {repoPills}
+    </RepoChromeRow>
+  ) : null;
   const compactHeader = headerLayout === "compact" && (
     <div className="session-creator-chat-panel-compact-header flex w-full items-center justify-between gap-2 bg-bg-2 px-1 pb-2 pt-1">
       <SelectorPill
@@ -242,11 +235,9 @@ const SessionCreatorChatPanelView: React.FC<
         ariaLabel={heroContent.name}
         appearance="bare"
       />
-      {!isLaunchpadWorkItemPickerOpen && (
-        <div className="ml-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-0.5">
-          {sessionInfoLine}
-        </div>
-      )}
+      <div className="ml-auto flex min-w-0 flex-1 flex-wrap items-center justify-end gap-0.5">
+        {sessionInfoLine}
+      </div>
     </div>
   );
   const tuiComposerHeader = composerHeaderContent ? (
@@ -263,9 +254,6 @@ const SessionCreatorChatPanelView: React.FC<
       ) : null,
     [browserElementScrollNav]
   );
-  const showWorkItemAttachmentControl =
-    !hideWorkItemAttachmentControl &&
-    (!isLaunchpadLayout || Boolean(multiRunnerContent));
   const sessionSetupActions = !hideSessionSetupControls ? (
     <div
       className={`mx-auto flex w-full items-center ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth}`}
@@ -282,17 +270,6 @@ const SessionCreatorChatPanelView: React.FC<
           <>
             {browserElementRowContent}
             {leadingActionSlot}
-            {showWorkItemAttachmentControl && (
-              <WorkItemAttachmentControl
-                composerInputRef={composerInputRef}
-                currentWorkItemContext={workItemContext}
-                onCreateWorkItem={onCreateWorkItem}
-                onWorkItemContextChange={onAttachedWorkItemContextChange}
-                repoId={sessionInfoProps.repoId}
-                repoPath={sessionInfoProps.repoPath}
-                mode="add"
-              />
-            )}
             {orgMembersPanelProps && (
               <Button
                 variant="secondary"
@@ -433,7 +410,7 @@ const SessionCreatorChatPanelView: React.FC<
       className="mx-auto w-full"
       layoutActionCount={Children.count(heroFooterSlot) + 1}
       presentation="card"
-      collapsible={!isLaunchpadWorkItemPickerOpen}
+      collapsible
       controlAlignment="center"
       collapseLabel={t("common:actions.collapse")}
       expandLabel={t("common:actions.expand")}
@@ -442,14 +419,12 @@ const SessionCreatorChatPanelView: React.FC<
         composerInputRef={composerInputRef}
         currentWorkItemContext={workItemContext}
         onWorkItemContextChange={onAttachedWorkItemContextChange}
-        onPickerOpenChange={setIsLaunchpadWorkItemPickerOpen}
-        pickerPortalTarget={workItemPickerPortalTarget}
         repoId={sessionInfoProps.repoId}
         repoPath={sessionInfoProps.repoPath}
         mode="solve"
         presentation="card"
       />
-      {!isLaunchpadWorkItemPickerOpen && heroFooterSlot}
+      {heroFooterSlot}
     </LaunchpadActionGrid>
   );
   const launchpadMiddleContent = isLaunchpadLayout ? (
@@ -470,11 +445,7 @@ const SessionCreatorChatPanelView: React.FC<
         <>
           {agentHero}
           {launchpadSuggestionContent && (
-            <div
-              className={`session-creator-chat-panel-launchpad-suggestions w-full ${
-                isLaunchpadWorkItemPickerOpen ? "hidden" : ""
-              }`}
-            >
+            <div className="session-creator-chat-panel-launchpad-suggestions w-full">
               {launchpadSuggestionContent}
             </div>
           )}
@@ -483,14 +454,10 @@ const SessionCreatorChatPanelView: React.FC<
     </div>
   ) : null;
   const composerDockClassName = isLaunchpadLayout
-    ? `relative z-10 mt-auto flex w-full shrink-0 flex-col gap-3 ${
-        isLaunchpadWorkItemPickerOpen ? "min-h-0 flex-1 justify-end" : ""
-      }`
+    ? "relative z-10 mt-auto flex w-full shrink-0 flex-col gap-3"
     : "contents";
-  const composerGroupClassName = `session-creator-chat-panel-fullscreen-composer-group ${isLaunchpadLayout && !isCliTuiMode ? "composer-bottom-glow" : ""} mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth} ${
-    isLaunchpadWorkItemPickerOpen
-      ? "flex min-h-0 flex-1 flex-col justify-end"
-      : ""
+  const composerGroupClassName = `session-creator-chat-panel-fullscreen-composer-group mx-auto w-full ${CHAT_PANEL_WIDTH_TOKENS.contentMaxWidth} ${
+    isLaunchpadLayout && !isCliTuiMode ? "composer-bottom-glow" : ""
   }`;
   const composerFrameClassName = `session-creator-chat-panel-fullscreen-composer w-full ${
     headerLayout === "compact"
@@ -522,10 +489,6 @@ const SessionCreatorChatPanelView: React.FC<
     <div
       className={`session-creator-chat-panel-wrapper ${
         isLaunchpadLayout ? "h-full" : ""
-      } ${
-        isLaunchpadWorkItemPickerOpen
-          ? "session-creator-chat-panel-work-item-picker-open"
-          : ""
       } ${className}`}
       data-testid="session-creator-chat-panel"
     >
@@ -572,25 +535,14 @@ const SessionCreatorChatPanelView: React.FC<
             )}
             {isLaunchpadLayout && (
               <>
-                {!isLaunchpadWorkItemPickerOpen && sessionSetupActions}
-                {cliVersionWarning}
+                {" "}
+                {sessionSetupActions} {cliVersionWarning}{" "}
               </>
             )}
             <div
               className={composerGroupClassName}
               onContextMenu={handlePinnedActionsContextMenu}
             >
-              {isLaunchpadLayout && (
-                <div
-                  ref={setWorkItemPickerPortalTarget}
-                  className={
-                    isLaunchpadWorkItemPickerOpen
-                      ? "session-creator-chat-panel-launchpad-suggestions session-creator-chat-panel-work-item-picker-chrome flex min-h-0 w-full flex-1 flex-col border border-border-2"
-                      : "hidden"
-                  }
-                  data-testid="session-creator-work-item-picker-chrome"
-                />
-              )}
               <div className={composerFrameClassName}>
                 {compactHeader}
                 {isCliTuiMode && tuiComposerHeader}
@@ -621,8 +573,8 @@ const SessionCreatorChatPanelView: React.FC<
 
           {!isLaunchpadLayout && (
             <>
-              {sessionSetupActions}
-              {cliVersionWarning}
+              {" "}
+              {sessionSetupActions} {cliVersionWarning}{" "}
             </>
           )}
 

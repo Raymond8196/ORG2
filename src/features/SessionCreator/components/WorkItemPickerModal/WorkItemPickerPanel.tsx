@@ -1,15 +1,13 @@
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import Checkbox from "@src/components/Checkbox";
-import { DROPDOWN_PANEL } from "@src/components/Dropdown/tokens";
 import { getListItemClasses } from "@src/components/ListPanel";
 import PrCiStatusIndicator from "@src/components/PrCiStatusIndicator";
 import SearchInput from "@src/components/SearchInput";
 import {
-  ArrowLeft02Icon,
   CircleDotIcon,
   GitMergeIcon,
   GitPullRequestClosedIcon,
@@ -32,12 +30,8 @@ import type {
 
 interface WorkItemPickerPanelProps {
   error: string | null;
-  expanded?: boolean;
   filteredOptions: readonly WorkItemPickerOption[];
   loading: boolean;
-  onAdd: () => void;
-  onBack?: () => void;
-  onCancel: () => void;
   onFilterChange: (filter: WorkItemPickerFilter) => void;
   onSearchChange: (query: string) => void;
   onRefresh: () => void;
@@ -45,18 +39,16 @@ interface WorkItemPickerPanelProps {
   searchQuery: string;
   refreshing: boolean;
   selectedKeys: readonly string[];
-  showCancel?: boolean;
   sourceFilter: WorkItemPickerFilter;
+  searchInputRef: React.RefObject<
+    HTMLInputElement | HTMLTextAreaElement | null
+  >;
 }
 
 const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
   error,
-  expanded = false,
   filteredOptions,
   loading,
-  onAdd,
-  onBack,
-  onCancel,
   onFilterChange,
   onSearchChange,
   onRefresh,
@@ -64,14 +56,10 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
   searchQuery,
   refreshing,
   selectedKeys,
-  showCancel = true,
   sourceFilter,
+  searchInputRef,
 }) => {
   const { t } = useTranslation(["sessions", "projects", "common"]);
-  const searchInputRef = useRef<HTMLInputElement | HTMLTextAreaElement>(null);
-  useEffect(() => {
-    searchInputRef.current?.focus();
-  }, []);
   const filters: Array<{
     value: WorkItemPickerFilter;
     label: string;
@@ -129,30 +117,10 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
 
   return (
     <div
-      className="flex min-h-0 w-full flex-1 flex-col overflow-hidden"
-      style={{ maxHeight: "inherit" }}
+      className="flex h-[min(60vh,520px)] min-h-0 w-full flex-col overflow-hidden"
       data-testid="work-item-picker-panel"
     >
       <div className="work-item-picker-toolbar flex shrink-0 items-center gap-2 px-2 pb-3 pt-2">
-        {onBack && (
-          <Button
-            variant="secondary"
-            size="small"
-            icon={
-              <HugeiconsIcon
-                icon={ArrowLeft02Icon}
-                data-icon="arrow-left"
-                size={14}
-                strokeWidth={1.8}
-              />
-            }
-            iconOnly
-            title={t("common:actions.back")}
-            aria-label={t("common:actions.back")}
-            data-testid="session-creator-work-item-picker-back"
-            onClick={onBack}
-          />
-        )}
         <SearchInput
           inputRef={searchInputRef}
           variant="sidebar"
@@ -201,9 +169,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
               title={filter.label}
               className={`work-item-picker-tab relative -mb-px flex shrink-0 items-center gap-0 rounded-t-md border px-2.5 py-1.5 text-[12px] font-medium transition-colors @[500px]/workitemtabs:gap-1.5 @[500px]/workitemtabs:px-3 ${
                 active
-                  ? `border-border-2 text-text-1 after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px ${
-                      expanded ? "after:bg-chat-pane" : "after:bg-bg-2"
-                    }`
+                  ? "border-border-2 text-text-1 after:absolute after:-bottom-px after:left-0 after:right-0 after:h-px after:bg-bg-2"
                   : "border-transparent text-text-2 hover:bg-fill-1 hover:text-text-1"
               }`}
               data-testid={`work-item-picker-filter-${filter.value}`}
@@ -222,7 +188,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
         })}
       </div>
       <div
-        className={`work-item-picker-list flex min-h-0 flex-1 flex-col gap-px overflow-y-auto overscroll-contain p-1 scrollbar-hide ${expanded ? "" : DROPDOWN_PANEL.maxHeightClass}`}
+        className="work-item-picker-list flex min-h-0 flex-1 flex-col gap-px overflow-y-auto overscroll-contain p-1 scrollbar-hide"
         data-testid="work-item-picker-list"
       >
         {filteredOptions.length > 0 ? (
@@ -267,7 +233,7 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
             return (
               <div
                 key={option.key}
-                className={`work-item-picker-option ${getListItemClasses(checked)} !block w-full min-w-0 text-left`}
+                className={`work-item-picker-option ${getListItemClasses(checked)} !block w-full min-w-0 !py-1.5 text-left`}
                 data-testid={`work-item-picker-option-${option.key}`}
               >
                 <Checkbox
@@ -345,26 +311,14 @@ const WorkItemPickerPanel: React.FC<WorkItemPickerPanelProps> = ({
           </div>
         )}
       </div>
-      <div className="work-item-picker-footer flex items-center justify-between gap-2 border-t border-border-1 p-2">
-        <span className="min-w-0 truncate text-xs text-text-3">
-          {error && filteredOptions.length > 0 ? error : null}
-        </span>
-        <div className="flex shrink-0 items-center gap-2">
-          {showCancel && (
-            <Button variant="tertiary" size="small" onClick={onCancel}>
-              {t("common:actions.cancel")}
-            </Button>
-          )}
-          <Button
-            variant="secondary"
-            size="small"
-            onClick={onAdd}
-            disabled={selectedKeys.length === 0}
-          >
-            {t("common:actions.add")}
-          </Button>
+      {error && filteredOptions.length > 0 && (
+        <div
+          className="shrink-0 border-t border-border-1 px-3 py-2 text-xs text-text-3"
+          role="status"
+        >
+          {error}
         </div>
-      </div>
+      )}
     </div>
   );
 };
