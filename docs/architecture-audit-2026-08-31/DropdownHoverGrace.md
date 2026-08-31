@@ -29,6 +29,13 @@ The authoritative source is transient component state, not persisted or remote d
 
 ## Verification
 
+The initial CI run exposed two existing session-header tests that still expected immediate hover switching/dismissal. Both failures were reproduced locally. The consumer tests now use paired pointer events with `relatedTarget` and fake timers to verify the 349/350 ms boundary, bridge re-entry cancellation, one open submenu, and a stable direct app action row. No production behavior was changed for this CI follow-up.
+
+- `pnpm test src/engines/ChatPanel/components/SessionHeaderActionsMenu.test.ts src/modules/shared/components/FileHeader/FileHeaderMoreMenu.test.ts src/components/Dropdown src/hooks/dropdown/useMenuHoverGrace.test.ts src/modules/ProjectManager/WorkItems/components/WorkItemContextMenu/WorkItemContextMenu.test.ts` — 97 tests across 13 files pass, including both real shared-action-menu consumers.
+- `pnpm exec eslint src/engines/ChatPanel/components/SessionHeaderActionsMenu.test.ts --max-warnings 0 --report-unused-disable-directives` — passes.
+- `node --test scripts/ci/*.test.cjs` — all 28 CI tooling tests pass.
+- `pnpm typecheck` — passes for the complete clean PR checkout after the consumer-test update.
+- `pnpm test` — the full frontend suite passes: 10,150 tests across 1,288 files, with no failed or skipped tests.
 - `pnpm test src/components/Dropdown src/hooks/dropdown/useMenuHoverGrace.test.ts src/modules/ProjectManager/WorkItems/components/WorkItemContextMenu/WorkItemContextMenu.test.ts` — 59 tests across 11 files pass, including 26 new behavior/lifecycle regressions.
 - `pnpm exec eslint src/hooks/dropdown/useMenuHoverGrace.ts src/hooks/dropdown/useMenuHoverGrace.test.ts src/components/Dropdown/ActionMenuSurface.tsx src/components/Dropdown/ActionMenuSurface.test.ts src/components/Dropdown/index.tsx src/components/Dropdown/index.hover.test.ts src/modules/ProjectManager/WorkItems/components/WorkItemContextMenu/index.tsx src/modules/ProjectManager/WorkItems/components/WorkItemContextMenu/WorkItemContextMenu.test.ts --max-warnings 0 --report-unused-disable-directives` — passes.
 - `pnpm run typecheck --incremental --tsBuildInfoFile .git/.tsbuildinfo` — passes in the clean PR checkout. The earlier failures in the mixed working tree belonged to unrelated untracked Input/Textarea tests; they are not included in this PR.
