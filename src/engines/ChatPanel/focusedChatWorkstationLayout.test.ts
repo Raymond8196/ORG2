@@ -145,15 +145,15 @@ describe("FOCUSED_CHAT_WORKSTATION_MINIMAP_HOST_CLASS", () => {
 });
 
 describe("resolveFocusedChatWorkstationSectionOrder", () => {
-  it("places session and local environments before open tabs", () => {
+  it("places the local environment above the session environment and open tabs", () => {
     expect(resolveFocusedChatWorkstationSectionOrder(true, true)).toEqual([
-      "session",
       "workspace",
+      "session",
       "tabs",
     ]);
     expect(resolveFocusedChatWorkstationSectionOrder(false, true)).toEqual([
-      "session",
       "workspace",
+      "session",
     ]);
   });
 

@@ -29,8 +29,8 @@ export function resolveFocusedChatWorkstationSectionOrder(
   hasSessionEnvironment: boolean
 ): Array<"session" | "workspace" | "tabs"> {
   return [
-    ...(hasSessionEnvironment ? (["session"] as const) : []),
     "workspace",
+    ...(hasSessionEnvironment ? (["session"] as const) : []),
     ...(hasOpenTabs ? (["tabs"] as const) : []),
   ];
 }

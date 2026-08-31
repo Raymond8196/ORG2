@@ -82,7 +82,10 @@ import {
   WorkstationTrailIconButton,
   WorkstationTrailSurface,
 } from "../blocks";
-import { WorkstationGroupToggle } from "./WorkstationGroupToggle";
+import {
+  WORKSTATION_TRAIL_ACTION_REVEAL_CLASS,
+  WorkstationGroupToggle,
+} from "./WorkstationGroupToggle";
 import { WorkstationSections } from "./WorkstationSections";
 import { WorkstationTrailTerminal } from "./WorkstationTrailTerminal";
 import {
@@ -622,10 +625,10 @@ export function FocusedChatWorkstationRail({
     ).map((sectionKey) => ({
       ...FOCUSED_CHAT_RAIL_SECTIONS[sectionKey],
       label:
-        sectionKey === "session"
+        sectionKey === "workspace"
           ? null
-          : sectionKey === "workspace"
-            ? t("navigation:labels.localEnvironment")
+          : sectionKey === "session"
+            ? t("navigation:labels.sessionEnvironment")
             : t("common:git.rail.openTabs"),
       items:
         sectionKey === "tabs"
@@ -653,14 +656,15 @@ export function FocusedChatWorkstationRail({
   ]);
 
   const environmentLabel = t("navigation:labels.sessionEnvironment");
+  const localEnvironmentLabel = t("navigation:labels.localEnvironment");
   const compactSections = useMemo<FocusedChatRailSection[]>(
     () =>
       sections.map((section) =>
-        section.key === "session"
-          ? { ...section, label: environmentLabel }
+        section.key === "workspace"
+          ? { ...section, label: localEnvironmentLabel }
           : section
       ),
-    [environmentLabel, sections]
+    [localEnvironmentLabel, sections]
   );
   const toggleCollapsed = () => {
     setCollapsed((current) => {
@@ -796,16 +800,16 @@ export function FocusedChatWorkstationRail({
             className={`group/workstation-trail ml-auto flex min-h-0 ${WORKSTATION_TRAIL_WIDTH.surfaceResponsiveClass}`}
           >
             <WorkstationTrailHeader
-              title={environmentLabel}
+              title={localEnvironmentLabel}
               collapsed={collapsed}
               titleActions={
-                !collapsed && hasSessionEnvironment ? (
+                !collapsed ? (
                   <WorkstationGroupToggle
                     collapseLabel={t("common:actions.collapse")}
-                    collapsed={collapsedGroupKeys.has("session")}
+                    collapsed={collapsedGroupKeys.has("workspace")}
                     expandLabel={t("common:actions.expand")}
-                    groupKey="session"
-                    onToggle={() => toggleGroup("session")}
+                    groupKey="workspace"
+                    onToggle={() => toggleGroup("workspace")}
                   />
                 ) : null
               }
@@ -825,7 +829,7 @@ export function FocusedChatWorkstationRail({
                           ? "common:git.rail.hideMiniTerminal"
                           : "common:git.rail.openMiniTerminal"
                       )}
-                      className={miniTerminalVisible ? "bg-fill-2" : ""}
+                      className={`${WORKSTATION_TRAIL_ACTION_REVEAL_CLASS} ${miniTerminalVisible ? "bg-fill-2" : ""}`}
                     >
                       <HugeiconsIcon
                         icon={SquareTerminalIcon}
@@ -836,6 +840,11 @@ export function FocusedChatWorkstationRail({
                     </WorkstationTrailIconButton>
                   ) : null}
                   <WorkstationTrailIconButton
+                    className={
+                      collapsed
+                        ? "!h-7 !w-7"
+                        : WORKSTATION_TRAIL_ACTION_REVEAL_CLASS
+                    }
                     onClick={toggleCollapsed}
                     aria-label={t(
                       collapsed
@@ -871,7 +880,7 @@ export function FocusedChatWorkstationRail({
                     <button
                       key={item.key}
                       type="button"
-                      className={`${WORKSTATION_TRAIL_ICON_BUTTON_CLASS} relative`}
+                      className={`${WORKSTATION_TRAIL_ICON_BUTTON_CLASS} relative !h-7 !w-7`}
                       onClick={item.onClick}
                       aria-label={
                         item.status

@@ -35,7 +35,7 @@ export function WorkstationSections({
           !compact && collapsedGroupKeys?.has(section.key) === true;
 
         // In the wide rail, the panel header is also the heading for the first
-        // (session-environment) group. Do not leave an empty spacer for its
+        // (local-environment) group. Do not leave an empty spacer for its
         // unlabelled section when that group is collapsed.
         if (groupCollapsed && !section.label) return null;
 
