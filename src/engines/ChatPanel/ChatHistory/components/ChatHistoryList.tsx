@@ -445,7 +445,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       <div
         ref={setScrollContainerRef}
         data-testid="chat-history-scroll-container"
-        className="allow-select-deep h-full w-full overflow-y-auto overscroll-contain scrollbar-hide"
+        className="allow-select-deep scrollbar-hide h-full w-full overflow-y-auto overscroll-contain"
         style={{ paddingTop: topPaddingPx }}
         onScroll={(event) => {
           const element = event.currentTarget;
@@ -475,7 +475,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                   data-chat-group-index={groupIndex}
                 >
                   <div data-chat-group-header>
-                    <div className="relative z-[30]">
+                    <div className="relative z-30">
                       {renderGroupHeaderProp(groupIndex, "user")}
                     </div>
                     {renderGroupHeaderProp(groupIndex, "collapse")}
@@ -540,13 +540,13 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                     ref={measureVirtualRow}
                     data-index={virtualItem.index}
                     data-chat-group-index={group.groupIndex}
-                    className="absolute left-0 top-0 w-full"
+                    className="absolute top-0 left-0 w-full"
                     style={{
                       transform: `translateY(${virtualItem.start}px)`,
                     }}
                   >
                     <div data-chat-group-header>
-                      <div className="relative z-[30]">
+                      <div className="relative z-30">
                         {renderGroupHeaderProp(group.groupIndex, "user")}
                       </div>
                       {renderGroupHeaderProp(group.groupIndex, "collapse")}

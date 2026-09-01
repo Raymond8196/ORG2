@@ -130,7 +130,7 @@ describe("PrConversationTab", () => {
     expect(editor?.getAttribute("data-max-height")).toBe("500");
     expect(editor?.getAttribute("data-appearance")).toBe("plain");
     expect(editor?.getAttribute("data-editor-kind")).toBe("write-preview");
-    expect(composer?.querySelector(".flex-shrink-0")).toBeNull();
+    expect(composer?.querySelector(".shrink-0")).toBeNull();
     expect(input?.textContent).toContain("Submit review");
     expect(input?.textContent).toContain("Comment");
     expect(modeSwitch).not.toBeNull();
@@ -144,7 +144,7 @@ describe("PrConversationTab", () => {
     expect(commentButton?.style.height).toBe("28px");
     expect(actionRow?.className).not.toContain("border-t");
     expect(input?.className).toContain("px-1.5");
-    expect(input?.className).toContain("!pt-1.5");
+    expect(input?.className).toContain("pt-1.5!");
     expect(input?.className).toContain("pb-1.5");
     expect(actionRow?.className).toContain("px-1");
     expect(composer?.textContent).toContain("Submit review");

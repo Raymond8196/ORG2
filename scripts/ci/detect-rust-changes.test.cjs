@@ -28,7 +28,6 @@ test("frontend configs, assets, and repository tests skip Rust", () => {
       "webpack.config.js",
       "config/commitlint.config.cjs",
       "config/postcss.config.js",
-      "config/tailwind.config.js",
       "config/vitest.config.ts",
       "config/webpack.config.js",
       "assets/demo.png",

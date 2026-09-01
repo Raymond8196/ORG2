@@ -35,7 +35,7 @@ describe("PropertiesPanel", () => {
       )
     );
 
-    expect(markup).toContain("bg-[var(--cm-editor-background)]");
+    expect(markup).toContain("bg-(--cm-editor-background)");
     expect(markup).toContain("border-border-1");
     expect(markup).toContain("rounded-xl");
     expect(markup).toContain("p-1");

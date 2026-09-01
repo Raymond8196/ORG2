@@ -486,13 +486,13 @@ export const GroupItemRenderer: React.FC<GroupItemRendererProps> = memo(
       isStructuralUnloadedTurnItem && !isTurnPreviewItem(chatItem);
     const isStructuralOnlyItem = chatItem?.structuralOnly === true;
     const groupMessageWrapClass = showGroupBubbleSenderChrome
-      ? "!pt-2 !pb-0"
-      : "!pt-1 !pb-0";
+      ? "pt-2! pb-0!"
+      : "pt-1! pb-0!";
 
     const renderedItem =
       chatItem && !isHiddenUnloadedTurnItem && !isStructuralOnlyItem ? (
         inboxTranscriptLabel && event ? (
-          <ChatItemWrap variant="text" className="!py-1">
+          <ChatItemWrap variant="text" className="py-1!">
             <InboxTranscriptCard event={event} title={inboxTranscriptLabel} />
           </ChatItemWrap>
         ) : simpleMessage ? (

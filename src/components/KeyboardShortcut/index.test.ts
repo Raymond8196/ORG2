@@ -41,7 +41,7 @@ describe("KeyboardShortcutTooltipContent", () => {
     );
 
     expect(markup).toContain("min-w-0 max-w-full");
-    expect(markup).toContain("min-w-0 break-words");
+    expect(markup).toContain("min-w-0 wrap-break-word");
     expect(markup).not.toContain("whitespace-nowrap");
   });
 });
