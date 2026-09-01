@@ -142,6 +142,7 @@ export const AgentControlPalette: React.FC<AgentControlPaletteProps> = ({
   const inputTrailingSlot = (
     <AgentControlInputTrailing
       selection={palette.creatorDefaultLastModel}
+      modelLabel={palette.modelLabel}
       selectModelLabel={palette.selectModelLabel}
       modelSelectorActive={isModelOpen}
       onOpenModelSelector={handleOpenModelSelector}
