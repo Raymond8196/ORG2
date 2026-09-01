@@ -65,7 +65,7 @@ const MessageFooterCopyButton: React.FC<MessageFooterCopyButtonProps> = memo(
         data-testid="message-footer-copy"
         title={copyLabel}
         aria-label={copyLabel}
-        className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-text-3 opacity-0 transition-[opacity,background-color,color] hover:bg-fill-2 hover:text-text-1 focus-visible:opacity-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary-6/30 group-focus-within/agent-message:opacity-100 group-hover/agent-message:opacity-100"
+        className="inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center rounded-md border-0 bg-transparent p-0 text-text-3 opacity-0 transition-[opacity,background-color,color] group-focus-within/agent-message:opacity-100 group-hover/agent-message:opacity-100 hover:bg-fill-2 hover:text-text-1 focus-visible:opacity-100 focus-visible:ring-2 focus-visible:ring-primary-6/30 focus-visible:outline-none"
         onClick={handleCopy}
       >
         <HugeiconsIcon

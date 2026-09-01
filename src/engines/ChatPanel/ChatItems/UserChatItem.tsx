@@ -137,7 +137,7 @@ const CachedFileChip: FC<{
           style={{ minWidth: 180, maxWidth: 320 }}
         >
           <button
-            className="absolute right-2 top-2 text-lg text-white/70 hover:text-white"
+            className="absolute top-2 right-2 text-lg text-white/70 hover:text-white"
             onClick={onClosePreview}
           >
             ×
@@ -558,7 +558,7 @@ const UserChatItem = ({
         <div className="relative mt-1 flex min-h-6 items-center px-1 text-[11px] leading-none text-text-3">
           {(fullContent || rawPrompt || toolbarActions) && (
             <div
-              className={`absolute top-1/2 flex -translate-y-1/2 items-center gap-1 focus-within:opacity-100 group-hover/msg:opacity-100 ${
+              className={`absolute top-1/2 flex -translate-y-1/2 items-center gap-1 group-hover/msg:opacity-100 focus-within:opacity-100 ${
                 isRawPromptOpen ? "opacity-100" : "opacity-0"
               } ${isRemoteSharedMessage ? "left-full ml-1" : "right-full mr-1"}`}
             >
