@@ -113,7 +113,7 @@ ActionPill.displayName = "ActionPill";
 
 // ── main component ────────────────────────────────────────────────────────────
 
-interface PinnedActionsBarProps {
+export interface PinnedActionsBarProps {
   /** Ref to the composer, used to insert content when a pill is clicked. */
   composerInputRef: React.RefObject<ComposerInputRef | null>;
   /**

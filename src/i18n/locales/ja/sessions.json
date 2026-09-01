@@ -886,6 +886,8 @@
       "positionUp": "上",
       "positionDown": "下",
       "uiControls": "UI コントロール",
+      "showQuickActions": "クイックアクションを表示",
+      "showSkills": "Skills を表示",
       "showCliUpdate": "CLI の更新を表示",
       "title": "何をしますか？",
       "back": "スタートページに戻る",

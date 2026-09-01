@@ -933,6 +933,8 @@
       "positionUp": "上方",
       "positionDown": "下方",
       "uiControls": "界面控制",
+      "showQuickActions": "显示快捷操作",
+      "showSkills": "显示 Skills",
       "showCliUpdate": "显示 CLI 更新",
       "title": "你想做什么？",
       "back": "返回起始页",

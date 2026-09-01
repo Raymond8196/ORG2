@@ -22,6 +22,7 @@ import {
 import { CreatorContentLayout } from "@src/modules/shared/layouts/blocks";
 import { useAvailableAppUpdate } from "@src/scaffold/AppUpdater";
 import { creatorComposerPositionAtom } from "@src/store/session/creatorComposerPositionAtom";
+import { creatorLaunchpadActionsVisibleAtom } from "@src/store/session/creatorLaunchpadActionsVisibleAtom";
 import {
   CHAT_PANEL_CREATE_TARGET,
   type ChatPanelCreateTarget,
@@ -44,7 +45,10 @@ interface ChatPanelStartPageProps {
   onProjectAgentModeChange: (enabled: boolean) => void;
   onWorkItemAgentModeChange: (enabled: boolean) => void;
   projectAgentMode: boolean;
-  sessionLauncher?: (heroFooterSlot: React.ReactNode) => React.ReactNode;
+  sessionLauncher?: (
+    heroFooterSlot: React.ReactNode,
+    launchpadActionsVisible: boolean
+  ) => React.ReactNode;
   t: TFunction<["sessions", "common", "projects", "navigation"]>;
   workItemAgentMode: boolean;
   workItemLauncher?: (
@@ -100,6 +104,9 @@ export function ChatPanelStartPage({
   workItemLauncher,
 }: ChatPanelStartPageProps): React.ReactNode {
   const composerPosition = useAtomValue(creatorComposerPositionAtom);
+  const launchpadActionsVisible = useAtomValue(
+    creatorLaunchpadActionsVisibleAtom
+  );
   const [isImportSessionDialogOpen, setIsImportSessionDialogOpen] =
     useState(false);
   const availableUpdate = useAvailableAppUpdate();
@@ -177,15 +184,19 @@ export function ChatPanelStartPage({
       : createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM
         ? "work-item"
         : "more";
-  const suggestionActions = utilityActions.map((action) => (
-    <LaunchpadActionCard
-      key={action.id}
-      action={action}
-      presentation={
-        composerPosition === CREATOR_COMPOSER_POSITION.MIDDLE ? "pill" : "card"
-      }
-    />
-  ));
+  const suggestionActions = launchpadActionsVisible
+    ? utilityActions.map((action) => (
+        <LaunchpadActionCard
+          key={action.id}
+          action={action}
+          presentation={
+            composerPosition === CREATOR_COMPOSER_POSITION.MIDDLE
+              ? "pill"
+              : "card"
+          }
+        />
+      ))
+    : null;
   const manualMiddleContent = (
     <div
       className="flex w-full flex-col items-center justify-center gap-4"
@@ -216,7 +227,10 @@ export function ChatPanelStartPage({
       t={t}
     />
   );
-  const sessionLauncherContent = sessionLauncher?.(suggestionActions);
+  const sessionLauncherContent = sessionLauncher?.(
+    suggestionActions,
+    launchpadActionsVisible
+  );
   const workItemLauncherContent = workItemLauncher?.(
     manualMiddleContent,
     workItemModeControl

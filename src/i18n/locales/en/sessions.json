@@ -942,6 +942,8 @@
       "positionUp": "Up",
       "positionDown": "Down",
       "uiControls": "UI controls",
+      "showQuickActions": "Show quick actions",
+      "showSkills": "Show Skills",
       "showCliUpdate": "Show CLI update",
       "title": "What would you like to do?",
       "back": "Back to start page",
