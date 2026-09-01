@@ -62,10 +62,7 @@ export function RepoScopePicker({
   disabled = false,
 }: RepoScopePickerProps) {
   const { t } = useTranslation("navigation");
-  const { repos, repoLoading, loadRepos } = useSharedRepoList({
-    enabled: false,
-    searchQuery: "",
-  });
+  const { repos, repoLoading, loadRepos } = useSharedRepoList("");
   // Re-render when an async remote resolution lands in the shared cache.
   useSyncExternalStore(
     subscribeShareableScopeKeys,

@@ -85,10 +85,7 @@ const ForkSessionSetupForm: React.FC<ForkSessionSetupFormProps> = ({
     () => [...builtInAgents, ...customAgents],
     [builtInAgents, customAgents]
   );
-  const { repos, repoLoading, loadRepos } = useSharedRepoList({
-    enabled: false,
-    searchQuery: "",
-  });
+  const { repos, repoLoading, loadRepos } = useSharedRepoList("");
   const [chosenAccountId, setChosenAccountId] = useState("");
   const [chosenModel, setChosenModel] = useState("");
   const [chosenAgentDefinitionId, setChosenAgentDefinitionId] = useState("");

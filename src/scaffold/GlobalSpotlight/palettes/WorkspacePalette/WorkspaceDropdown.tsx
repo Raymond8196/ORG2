@@ -298,11 +298,7 @@ export const WorkspaceDropdown: React.FC<WorkspaceDropdownProps> = ({
   });
 
   const { repos, filteredRepos, repoLoading, refreshReposForce } =
-    useSharedRepoList({
-      enabled: isOpen,
-      currentRepoId,
-      searchQuery,
-    });
+    useSharedRepoList(searchQuery);
   const cachedRepos = useAtomValue(cachedReposAtom);
 
   const existingRepoPaths = useMemo(
