@@ -87,9 +87,29 @@ const ORGII_SKINS: readonly SkinDefinition[] = [
   },
 ];
 
+/**
+ * Display names ORGII shows in place of the extracted ones.
+ *
+ * `codexSkins.ts` is generated and records the labels Codex actually ships, so
+ * it stays a faithful account of the source and a regeneration cannot quietly
+ * revert an editorial choice made here. Renames therefore live in this file.
+ *
+ * Codex names its Claude-flavoured skin "Absolutely"; this returns the joke.
+ * Only the label changes — the id is what `general.lightSkin` / `general.darkSkin`
+ * persist, so renaming it would silently reset everyone who had it selected.
+ */
+const SKIN_LABEL_OVERRIDES: Readonly<Record<string, string>> = {
+  "codex-codex": "Constantly Reset",
+};
+
+function withLabelOverride(skin: SkinDefinition): SkinDefinition {
+  const label = SKIN_LABEL_OVERRIDES[skin.id];
+  return label ? { ...skin, label } : skin;
+}
+
 export const SKINS: readonly SkinDefinition[] = [
   ...ORGII_SKINS,
-  ...CODEX_SKINS,
+  ...CODEX_SKINS.map(withLabelOverride),
 ];
 
 const SKINS_BY_ID: ReadonlyMap<string, SkinDefinition> = new Map(

@@ -164,6 +164,12 @@ export function deriveSkinTokens(
 
     // Editor
     "--cm-editor-background": editorSurface,
+    // Must be emitted alongside the editor background, not left to alias it.
+    // The base sheets declare `--cm-editor-gutter-bg: var(--cm-editor-background)`
+    // at `:root`, where it computes against `:root`'s value — skin tokens land on
+    // `<body>`, so the alias would keep the stylesheet's background and paint the
+    // line-number column in a different color than the code beside it.
+    "--cm-editor-gutter-bg": editorSurface,
     "--cm-editor-foreground": seed.ink,
     "--cm-editor-gutter-fg": fade(isLight ? 0.5 : 0.45),
     "--cm-editor-selection": tint(seed.accent, isLight ? 0.2 : 0.45),

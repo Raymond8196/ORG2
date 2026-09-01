@@ -80,6 +80,33 @@ describe("skin registry", () => {
     }
   });
 
+  describe("label overrides", () => {
+    it("renames the Codex skin without touching its persisted id", () => {
+      const skin = getSkin("codex-codex");
+      expect(skin?.label).toBe("Constantly Reset");
+      // The id is what settings persist. Renaming it would reset every install
+      // that had this skin selected, because the settings enum would no longer
+      // accept the stored value.
+      expect(skin?.id).toBe("codex-codex");
+    });
+
+    it("leaves the generated data itself untouched", () => {
+      // The generated module stays a faithful record of what Codex ships, so a
+      // regeneration cannot revert the rename.
+      const generated = CODEX_SKINS.find((s) => s.id === "codex-codex");
+      expect(generated?.label).toBe("Codex");
+    });
+
+    it("keeps every other skin on its extracted label", () => {
+      for (const generated of CODEX_SKINS) {
+        if (generated.id === "codex-codex") continue;
+        expect(getSkin(generated.id)?.label, generated.id).toBe(
+          generated.label
+        );
+      }
+    });
+  });
+
   it("treats only the ORGII skin as baseline", () => {
     expect(isBaselineSkin(ORGII_SKIN_ID)).toBe(true);
     expect(isBaselineSkin("codex-dracula")).toBe(false);
