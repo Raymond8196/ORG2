@@ -5,6 +5,10 @@ import { useTranslation } from "react-i18next";
 
 import { trackSessionAsProject } from "@src/api/tauri/agent/session";
 import Button from "@src/components/Button";
+import {
+  ActionMenuSurface,
+  ActionSubmenu,
+} from "@src/components/Dropdown/ActionMenuSurface";
 import DropdownItem from "@src/components/Dropdown/DropdownItem";
 import {
   DROPDOWN_CLASSES,
@@ -20,9 +24,10 @@ import {
   AppWindowMacIcon,
   Copy01Icon,
   CursorInWindowIcon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   FolderOutputIcon,
   HugeiconsIcon,
+  Layers01Icon,
   Link01Icon,
   Link02Icon,
   MoreHorizontalIcon,
@@ -30,7 +35,6 @@ import {
   PanelRightIcon,
   Refresh04Icon,
   Search01Icon,
-  Settings02Icon,
   Share02Icon,
   ThirdBracketIcon,
 } from "@src/icons";
@@ -39,10 +43,6 @@ import { openSessionInNewWindowAtom } from "@src/store/session/sessionTabPlaceme
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 import { isAgentSession } from "@src/util/session/sessionDispatch";
 
-import {
-  SessionActionsMenuSurface,
-  SessionActionsSubmenu,
-} from "./SessionActionsMenuSurface";
 import { SessionOpenInAppMenuItem } from "./SessionOpenInAppMenuItem";
 
 const HEADER_ICON_SIZE = 14;
@@ -215,7 +215,7 @@ export const SessionHeaderActionsMenu: React.FC<
       {isHeaderActionsOpen &&
         isHeaderActionsPositioned &&
         createPortal(
-          <SessionActionsMenuSurface
+          <ActionMenuSurface
             panelRef={headerActionsDropdownRef}
             onClose={toggleHeaderActionsMenu}
             className={`${DROPDOWN_CLASSES.menuPanelBase} ${DROPDOWN_WIDTHS.sidebarMenuClass}`}
@@ -262,7 +262,7 @@ export const SessionHeaderActionsMenu: React.FC<
               {t("common:actions.reload")}
             </DropdownItem>
             {(showMoveSession || showOpenInNewWindow) && (
-              <SessionActionsSubmenu
+              <ActionSubmenu
                 label={t("chat.moveTo")}
                 icon={
                   <HugeiconsIcon
@@ -334,10 +334,10 @@ export const SessionHeaderActionsMenu: React.FC<
                     {t("common:actions.openInNewWindow")}
                   </DropdownItem>
                 )}
-              </SessionActionsSubmenu>
+              </ActionSubmenu>
             )}
             {(showTranscriptActions || canCopyReference) && (
-              <SessionActionsSubmenu
+              <ActionSubmenu
                 label={t("chat.copyAndExport")}
                 icon={
                   <HugeiconsIcon
@@ -412,7 +412,7 @@ export const SessionHeaderActionsMenu: React.FC<
                     {t("chat.importExport.exportJson")}
                   </DropdownItem>
                 )}
-              </SessionActionsSubmenu>
+              </ActionSubmenu>
             )}
             {showCloudShareSettings && (
               <DropdownItem
@@ -433,7 +433,7 @@ export const SessionHeaderActionsMenu: React.FC<
                 {t("navigation:cloud.share.menuItem")}
               </DropdownItem>
             )}
-            <SessionActionsSubmenu
+            <ActionSubmenu
               label={t("chat.projectLinks")}
               icon={
                 <HugeiconsIcon
@@ -454,8 +454,8 @@ export const SessionHeaderActionsMenu: React.FC<
                 dataTestId="session-track-as-project-button"
                 icon={
                   <HugeiconsIcon
-                    icon={FolderKanbanIcon}
-                    data-icon="folder-kanban"
+                    icon={DeliveryBox01Icon}
+                    data-icon="box"
                     size={DROPDOWN_ITEM.iconSize}
                     strokeWidth={1.75}
                   />
@@ -481,7 +481,7 @@ export const SessionHeaderActionsMenu: React.FC<
               >
                 {t("chat.linkWorkItem.menuItem")}
               </DropdownItem>
-            </SessionActionsSubmenu>
+            </ActionSubmenu>
             <SessionOpenInAppMenuItem
               key={currentSessionId}
               sessionId={currentSessionId}
@@ -490,11 +490,11 @@ export const SessionHeaderActionsMenu: React.FC<
             {showTranscriptActions && (
               <>
                 <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
-                <SessionActionsSubmenu
-                  label={t("chat.uiSettings")}
+                <ActionSubmenu
+                  label={t("common:actions.uiSettings")}
                   icon={
                     <HugeiconsIcon
-                      icon={Settings02Icon}
+                      icon={Layers01Icon}
                       size={DROPDOWN_ITEM.iconSize}
                       strokeWidth={1.75}
                     />
@@ -554,10 +554,10 @@ export const SessionHeaderActionsMenu: React.FC<
                       ariaLabel={t("chat.compactDisplayMode")}
                     />
                   </div>
-                </SessionActionsSubmenu>
+                </ActionSubmenu>
               </>
             )}
-          </SessionActionsMenuSurface>,
+          </ActionMenuSurface>,
           document.body
         )}
     </>

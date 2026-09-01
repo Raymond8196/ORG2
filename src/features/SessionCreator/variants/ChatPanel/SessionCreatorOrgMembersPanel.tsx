@@ -15,7 +15,7 @@ import Switch from "@src/components/Switch";
 import { resolveAgentIcon } from "@src/config/agentIcons";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { useModelPillLabel } from "@src/hooks/models";
-import { GripIcon, HugeiconsIcon, UserMultipleIcon } from "@src/icons";
+import { AiSettingIcon, HugeiconsIcon, UserMultipleIcon } from "@src/icons";
 import {
   type AgentDefinition,
   type AvailableCliAgent,
@@ -317,8 +317,8 @@ const SessionCreatorOrgMembersPanel: React.FC<SessionCreatorOrgMembersPanelProps
                             />
                           ) : (
                             <HugeiconsIcon
-                              icon={GripIcon}
-                              data-icon="grip"
+                              icon={AiSettingIcon}
+                              data-icon="ai-setting"
                               size={PILL_SM_ICON_SIZE}
                               strokeWidth={1.75}
                               className="text-primary-6"

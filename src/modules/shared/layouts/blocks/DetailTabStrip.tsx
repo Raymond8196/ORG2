@@ -5,6 +5,8 @@ export interface DetailTabStripItem<Key extends string = string> {
   label: string;
   icon?: ReactNode;
   count?: number | string;
+  /** Reserve the count badge while its value is being loaded. */
+  countLoading?: boolean;
   disabled?: boolean;
   dataTestId?: string;
 }
@@ -57,6 +59,7 @@ export default function DetailTabStrip<Key extends string>({
             id={`${idPrefix}-tab-${tab.key}`}
             aria-controls={`${idPrefix}-tabpanel-${tab.key}`}
             aria-selected={selected}
+            aria-busy={tab.countLoading || undefined}
             disabled={tab.disabled}
             data-testid={tab.dataTestId}
             className={`relative -mb-px flex shrink-0 items-center gap-1.5 rounded-t-md border px-3 py-1.5 text-[12px] font-medium transition-colors disabled:cursor-not-allowed disabled:opacity-50 ${
@@ -72,9 +75,15 @@ export default function DetailTabStrip<Key extends string>({
               </span>
             ) : null}
             <span>{tab.label}</span>
-            {tab.count !== undefined ? (
-              <span className="inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-fill-2 px-1.5 text-[10px] font-semibold tabular-nums text-text-2">
-                {tab.count}
+            {tab.countLoading || tab.count !== undefined ? (
+              <span
+                aria-hidden={tab.countLoading || undefined}
+                data-testid={
+                  tab.countLoading ? "detail-tab-count-skeleton" : undefined
+                }
+                className={`inline-flex h-5 min-w-5 shrink-0 items-center justify-center rounded-full bg-fill-2 px-1.5 text-[10px] font-semibold tabular-nums text-text-2 ${tab.countLoading ? "animate-pulse motion-reduce:animate-none" : ""}`.trim()}
+              >
+                {tab.countLoading ? null : tab.count}
               </span>
             ) : null}
           </button>

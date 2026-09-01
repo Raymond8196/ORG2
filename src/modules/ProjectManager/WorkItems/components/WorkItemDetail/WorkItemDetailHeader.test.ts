@@ -101,7 +101,7 @@ describe("WorkItemDetailHeaderActions", () => {
     );
 
     expect(markup).toContain('data-icon="trash-2"');
-    expect(markup).not.toContain('data-icon="square-arrow-out-up-right"');
+    expect(markup).not.toContain('data-icon="link-square-02"');
     expect(markup).not.toContain("common:actions.openInNewTab");
   });
 });

@@ -3,7 +3,7 @@
  */
 import {
   ArchiveIcon,
-  CodeIcon,
+  CodeXmlIcon,
   File01Icon,
   File02Icon,
   FolderClosedIcon,
@@ -70,7 +70,7 @@ export const getFileTypeIcon = (
       "go",
     ].includes(ext || "")
   ) {
-    return CodeIcon;
+    return CodeXmlIcon;
   }
 
   // Text files

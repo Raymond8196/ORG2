@@ -9,7 +9,7 @@ import {
   ClipboardListIcon,
   HugeiconsIcon,
   InternetIcon,
-  SquareArrowUpRight02Icon,
+  LinkSquare02Icon,
 } from "@src/icons";
 import { WorkItemThreadSurface } from "@src/modules/ProjectManager/WorkItems/components";
 import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
@@ -361,11 +361,11 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       unread={item.readAt === null}
       markReadLabel={t("teamInbox.actions.markRead")}
       markUnreadLabel={t("teamInbox.actions.markUnread")}
-      openLabel={t("teamInbox.actions.openWorkItem")}
+      openLabel={t("common:actions.openInNewTab")}
       openIcon={
         <HugeiconsIcon
-          icon={SquareArrowUpRight02Icon}
-          data-icon="square-arrow-out-up-right"
+          icon={LinkSquare02Icon}
+          data-icon="link-square-02"
           size={14}
           strokeWidth={1.75}
           aria-hidden

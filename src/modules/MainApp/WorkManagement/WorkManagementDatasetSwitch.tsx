@@ -3,8 +3,8 @@ import { useTranslation } from "react-i18next";
 
 import Select, { type SelectOption } from "@src/components/Select";
 import {
-  BoxesIcon,
   CircleDotIcon,
+  DeliveryBox01Icon,
   GitPullRequestIcon,
   HugeiconsIcon,
   ListTodoIcon,
@@ -37,8 +37,8 @@ export function WorkManagementDatasetSwitch({
         triggerLabel: projectsLabel,
         icon: (
           <HugeiconsIcon
-            icon={BoxesIcon}
-            data-icon="boxes"
+            icon={DeliveryBox01Icon}
+            data-icon="box"
             size={14}
             strokeWidth={1.9}
             aria-hidden="true"

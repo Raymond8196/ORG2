@@ -13,7 +13,7 @@ import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
  * `HugeiconsIcon` — or a hand-authored SVG component. `GitHubRailIcon` is the
  * only component today; it wraps a brand mark that is not part of any icon set.
  */
-export type FocusedChatRailIcon =
+type FocusedChatRailIcon =
   | IconSvgElement
   | ComponentType<{ size?: number; [key: string]: unknown }>;
 
@@ -27,6 +27,9 @@ export type FocusedChatRailItem = {
   onClick?: () => void;
   onClose?: () => void;
   closeLabel?: string;
+  /** Process termination stays distinct from closing a document or view. */
+  onStop?: () => void;
+  stopLabel?: string;
   /** Working-tree +/- shown after the label (the Review row). */
   additions?: number;
   deletions?: number;

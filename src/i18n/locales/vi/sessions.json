@@ -877,6 +877,14 @@
     "typeYourAnswer": "Nhập câu trả lời của bạn…",
     "newSession": "Phiên mới",
     "startPage": {
+      "inputPosition": "Ô nhập",
+      "positionBottom": "Dưới",
+      "positionMiddle": "Giữa",
+      "trailPosition": "Thanh ngữ cảnh",
+      "positionUp": "Trên",
+      "positionDown": "Dưới",
+      "uiControls": "Điều khiển giao diện",
+      "showCliUpdate": "Hiển thị bản cập nhật CLI",
       "title": "Bạn muốn làm gì?",
       "back": "Quay lại trang bắt đầu",
       "newSession": {
@@ -1007,7 +1015,6 @@
     "copyEventJsonCopied": "Đã sao chép!",
     "copyEventJsonFailed": "Sao chép thất bại",
     "moveTo": "Chuyển trang đến…",
-    "uiSettings": "Cài đặt giao diện",
     "projectLinks": "Liên kết dự án",
     "moveToWorkstation": "Chuyển sang Workstation của tôi",
     "moveToChatPanel": "Chuyển sang bảng trò chuyện",

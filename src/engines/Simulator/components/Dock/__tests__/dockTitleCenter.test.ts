@@ -13,11 +13,11 @@ vi.mock("../config", () => ({
 vi.mock("@hugeicons/core-free-icons/InternetIcon", () => ({
   default: "ChromiumIcon",
 }));
-vi.mock("@hugeicons/core-free-icons/CodeIcon", () => ({
-  default: "CodeIcon",
+vi.mock("@hugeicons/core-free-icons/CodeXmlIcon", () => ({
+  default: "CodeXmlIcon",
 }));
-vi.mock("@hugeicons/core-free-icons/ListTodoIcon", () => ({
-  default: "ListTodoIcon",
+vi.mock("@hugeicons/core-free-icons/DeliveryBox01Icon", () => ({
+  default: "DeliveryBox01Icon",
 }));
 
 const navigationT = ((key: string) => key) as TFunction<"navigation">;
@@ -25,7 +25,7 @@ const navigationT = ((key: string) => key) as TFunction<"navigation">;
 describe("getWorkStationStationTitleCenter", () => {
   it("maps app modes to stable icon tokens and navigation keys", () => {
     expect(getWorkStationStationTitleCenter("code", navigationT)).toEqual({
-      icon: "CodeIcon",
+      icon: "CodeXmlIcon",
       label: "labels.codeEditor",
     });
     expect(getWorkStationStationTitleCenter("browser", navigationT)).toEqual({
@@ -33,7 +33,7 @@ describe("getWorkStationStationTitleCenter", () => {
       label: "labels.browser",
     });
     expect(getWorkStationStationTitleCenter("project", navigationT)).toEqual({
-      icon: "ListTodoIcon",
+      icon: "DeliveryBox01Icon",
       label: "labels.projectManager",
     });
   });
@@ -42,7 +42,7 @@ describe("getWorkStationStationTitleCenter", () => {
     expect(
       getWorkStationStationTitleCenter("unknown-mode", navigationT)
     ).toEqual({
-      icon: "CodeIcon",
+      icon: "CodeXmlIcon",
       label: "labels.codeEditor",
     });
   });

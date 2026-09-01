@@ -32,7 +32,7 @@ import {
   ArrowDown01Icon,
   ArrowRight01Icon,
   HugeiconsIcon,
-  SquareArrowUpRight02Icon,
+  LinkSquare02Icon,
 } from "@src/icons";
 import { HUMANTOOLS_TEXT_KEYS } from "@src/modules/WorkStation/shared";
 import { HEADER_BUTTON } from "@src/modules/WorkStation/shared/tokens";
@@ -390,11 +390,12 @@ export const SearchContent = forwardRef<
                 <button
                   onClick={handleOpenInTab}
                   className={HEADER_BUTTON.actionTreeRow}
-                  title={t("tooltips.openInEditorTab")}
+                  title={t("common:actions.openInNewTab")}
+                  aria-label={t("common:actions.openInNewTab")}
                 >
                   <HugeiconsIcon
-                    icon={SquareArrowUpRight02Icon}
-                    data-icon="arrow-up-right-from-square"
+                    icon={LinkSquare02Icon}
+                    data-icon="link-square-02"
                     size={14}
                     strokeWidth={1.75}
                   />
@@ -464,8 +465,16 @@ export const SearchContent = forwardRef<
                 size="small"
                 className="w-full"
                 onClick={handleOpenInTab}
+                icon={
+                  <HugeiconsIcon
+                    icon={LinkSquare02Icon}
+                    data-icon="link-square-02"
+                    size={14}
+                    aria-hidden
+                  />
+                }
               >
-                {t("actions.openInTab")}
+                {t("common:actions.openInNewTab")}
               </Button>
             </div>
           ) : null}

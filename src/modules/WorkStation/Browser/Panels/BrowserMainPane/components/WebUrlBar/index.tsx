@@ -23,7 +23,7 @@ import {
   ArrowRight02Icon,
   Camera01Icon,
   Cancel01Icon,
-  CodeIcon,
+  CodeXmlIcon,
   HugeiconsIcon,
   Loading03Icon,
   PenTool01Icon,
@@ -40,7 +40,7 @@ import { normalizeBrowserInput } from "@src/util/url/browserUrl";
 // Types
 // ============================================
 
-export interface WebUrlBarProps {
+interface WebUrlBarProps {
   /** Current URL */
   url: string;
   /** Whether the page is loading */
@@ -507,7 +507,7 @@ export const WebUrlBar: React.FC<WebUrlBarProps> = memo(
                   aria-label={t("tooltips.openNativeDevTools")}
                   icon={
                     <HugeiconsIcon
-                      icon={CodeIcon}
+                      icon={CodeXmlIcon}
                       data-icon="code"
                       size={HEADER_ICON_SIZE.md}
                     />

@@ -31,7 +31,7 @@ import {
   subscribeShareableScopeKeys,
 } from "../../repoScopeResolver";
 
-export interface RepoScopePickerProps {
+interface RepoScopePickerProps {
   /** Currently selected scope keys (normalized remote keys). */
   selectedKeys: string[];
   /** Called with the next full selection (deduped scope keys). */

@@ -13,7 +13,7 @@ import { serializePillNode } from "@src/components/ComposerInput/utils";
 import "@src/components/MarkdownFormattingToolbar/index.scss";
 import Textarea from "@src/components/Textarea";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   Heading02Icon,
   HugeiconsIcon,
   LeftToRightListNumberIcon,
@@ -39,10 +39,7 @@ import {
 } from "./formatting";
 
 export { default as MarkdownEditorModeSwitch } from "./ModeSwitch";
-export type {
-  MarkdownEditorMode,
-  MarkdownEditorModeSwitchProps,
-} from "./ModeSwitch";
+export type { MarkdownEditorMode } from "./ModeSwitch";
 
 const TOOLBAR_ICON_SIZE = 14;
 const COMPACT_TOOLBAR_CLASS = "!min-h-0 !border-b-0 !pb-0.5 [&_svg]:size-3.5";
@@ -54,7 +51,7 @@ type InlineTrigger = {
   hasTriggerCharacter: boolean;
 };
 
-export interface MarkdownTextareaInsertOptions {
+interface MarkdownTextareaInsertOptions {
   separateFromAdjacentText?: boolean;
   clientX?: number;
   clientY?: number;
@@ -79,7 +76,7 @@ export interface MarkdownTextareaEditorRef {
   triggerSlashContext: () => void;
 }
 
-export interface MarkdownTextareaEditorProps {
+interface MarkdownTextareaEditorProps {
   value: string;
   onChange: (markdown: string, plainText: string) => void;
   placeholder?: string;
@@ -462,7 +459,7 @@ const MarkdownTextareaEditor = forwardRef<
       label: t("creator.toolbar.inlineCode"),
       icon: (
         <HugeiconsIcon
-          icon={CodeIcon}
+          icon={CodeXmlIcon}
           data-icon="code"
           size={TOOLBAR_ICON_SIZE}
         />
@@ -527,7 +524,7 @@ const MarkdownTextareaEditor = forwardRef<
 
   const surfaceClassName =
     appearance === "outlined"
-      ? "rounded-md border border-border-2 bg-primary-container"
+      ? "composer-surface-shadow relative rounded-md border border-border-2 bg-primary-container"
       : "";
 
   return (

@@ -102,6 +102,17 @@ function click(testId: string) {
   act(() => element(testId).click());
 }
 
+function movePointer(from: HTMLElement | null, to: HTMLElement) {
+  act(() => {
+    from?.dispatchEvent(
+      new MouseEvent("mouseout", { bubbles: true, relatedTarget: to })
+    );
+    to.dispatchEvent(
+      new MouseEvent("mouseover", { bubbles: true, relatedTarget: from })
+    );
+  });
+}
+
 function submenuIds(): (string | null)[] {
   return [
     ...props.headerActionsDropdownRef.current!.querySelectorAll(
@@ -390,7 +401,7 @@ describe("SessionHeaderActionsMenu", () => {
     render();
     expect(document.querySelector('[role="switch"]')).toBeNull();
     expect(element("session-ui-settings-submenu").textContent).toBe(
-      "chat.uiSettings"
+      "common:actions.uiSettings"
     );
     click("session-ui-settings-submenu");
     const panel = element("session-ui-settings-submenu-panel");
@@ -436,7 +447,9 @@ describe("SessionHeaderActionsMenu", () => {
     expect(props.toggleHeaderActionsMenu).not.toHaveBeenCalled();
 
     render({ showTranscriptActions: false });
-    expect(document.body.textContent).not.toContain("chat.uiSettings");
+    expect(document.body.textContent).not.toContain(
+      "common:actions.uiSettings"
+    );
     expect(document.querySelector('[role="switch"]')).toBeNull();
   });
 
@@ -462,40 +475,46 @@ describe("SessionHeaderActionsMenu", () => {
     ).toBeNull();
   });
 
-  it("opens one submenu at a time on hover and keeps it open through its bridge", () => {
+  it("preserves the hover grace through the bridge and switches one submenu at a time", () => {
+    vi.useFakeTimers();
     render({ showCloudShareSettings: true });
-    act(() =>
-      element("session-copy-submenu").dispatchEvent(
-        new MouseEvent("mouseover", { bubbles: true })
-      )
-    );
+    const copy = element("session-copy-submenu");
+    const move = element("session-move-submenu");
+    const parent = props.headerActionsDropdownRef.current!;
+    movePointer(null, copy);
     const flyout = element("session-copy-submenu-panel").parentElement!;
     click("session-copy-submenu");
-    act(() =>
-      props.headerActionsDropdownRef.current!.dispatchEvent(
-        new MouseEvent("mouseover", { bubbles: true })
-      )
-    );
+    movePointer(copy, parent);
     element("session-copy-submenu-panel");
-    act(() =>
-      flyout.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
-    );
+    movePointer(parent, flyout);
     element("session-copy-submenu-panel");
-    act(() =>
-      element("session-move-submenu").dispatchEvent(
-        new MouseEvent("mouseover", { bubbles: true })
-      )
-    );
+    movePointer(flyout, move);
+    act(() => vi.advanceTimersByTime(349));
+    element("session-copy-submenu-panel");
+    expect(
+      document.querySelectorAll("[data-action-menu-submenu]")
+    ).toHaveLength(1);
+    // Reaching the flyout bridge cancels the pending sibling switch.
+    movePointer(move, flyout);
+    act(() => vi.advanceTimersByTime(350));
+    element("session-copy-submenu-panel");
+    expect(
+      document.querySelector('[data-testid="session-move-submenu-panel"]')
+    ).toBeNull();
+
+    movePointer(flyout, move);
+    act(() => vi.advanceTimersByTime(349));
+    element("session-copy-submenu-panel");
+    act(() => vi.advanceTimersByTime(1));
     element("session-move-submenu-panel");
     expect(
       document.querySelector('[data-testid="session-copy-submenu-panel"]')
     ).toBeNull();
-    act(() =>
-      element("cloud-session-share-settings-button").dispatchEvent(
-        new MouseEvent("mouseover", { bubbles: true })
-      )
-    );
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    movePointer(move, element("cloud-session-share-settings-button"));
+    act(() => vi.advanceTimersByTime(349));
+    element("session-move-submenu-panel");
+    act(() => vi.advanceTimersByTime(1));
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
   });
 
   it("navigates into the left submenu and back without closing the parent", () => {
@@ -521,7 +540,7 @@ describe("SessionHeaderActionsMenu", () => {
     key("Enter");
     element("session-copy-submenu-panel");
     key("Escape");
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
     key("Escape");
     expect(props.toggleHeaderActionsMenu).toHaveBeenCalledOnce();
   });
@@ -542,7 +561,7 @@ describe("SessionHeaderActionsMenu", () => {
         "getBoundingClientRect"
       ).mockImplementation(function (this: HTMLElement) {
         const isFlyout = this.className === "fixed";
-        const isPanel = this.hasAttribute("data-session-actions-submenu");
+        const isPanel = this.hasAttribute("data-action-menu-submenu");
         const width = isFlyout
           ? panelWidth + DROPDOWN_PANEL.submenuGap
           : isPanel
@@ -581,7 +600,7 @@ describe("SessionHeaderActionsMenu", () => {
     key("Escape");
     expect(props.toggleHeaderActionsMenu).not.toHaveBeenCalled();
     render({ isHeaderActionsOpen: true });
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
     key("Escape");
     expect(props.toggleHeaderActionsMenu).toHaveBeenCalledOnce();
   });
@@ -777,6 +796,7 @@ describe("SessionHeaderActionsMenu native app action", () => {
   });
 
   it("keeps the direct app row mounted while switching the remaining flyouts", async () => {
+    vi.useFakeTimers();
     mocks.appOpenPlan.mockResolvedValue(appPlan());
     await act(async () => render({ currentSessionId: "claudecodeapp-a" }));
     const row = element("session-open-in-app-menu-item");
@@ -789,15 +809,18 @@ describe("SessionHeaderActionsMenu native app action", () => {
     ]) {
       click(testId);
       expect(
-        document.querySelectorAll("[data-session-actions-submenu]")
+        document.querySelectorAll("[data-action-menu-submenu]")
       ).toHaveLength(1);
       expect(element(`${testId}-panel`)).toBeDefined();
       expect(element("session-open-in-app-menu-item")).toBe(row);
     }
-    act(() =>
-      row.dispatchEvent(new MouseEvent("mouseover", { bubbles: true }))
-    );
-    expect(document.querySelector("[data-session-actions-submenu]")).toBeNull();
+    movePointer(element("session-move-submenu"), row);
+    act(() => vi.advanceTimersByTime(349));
+    element("session-move-submenu-panel");
+    expect(element("session-open-in-app-menu-item")).toBe(row);
+    act(() => vi.advanceTimersByTime(1));
+    expect(document.querySelector("[data-action-menu-submenu]")).toBeNull();
+    expect(element("session-open-in-app-menu-item")).toBe(row);
     expect(mocks.appOpenPlan).toHaveBeenCalledOnce();
     expect(mocks.openInApp).not.toHaveBeenCalled();
     expect(props.toggleHeaderActionsMenu).not.toHaveBeenCalled();

@@ -33,8 +33,8 @@ import {
   Add01Icon,
   Cancel01Icon,
   HugeiconsIcon,
+  LayoutAlignLeftIcon,
   PanelLeftIcon,
-  SidebarLeft01Icon,
 } from "@src/icons";
 import {
   PANE_WIDTH_TRANSITION_CLASSES,
@@ -112,6 +112,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     const sidebarEdgeDepthEnabled = useSettingValue(
       "layout.sidebarEdgeDepthEnabled"
     );
+    const translucentSidebar = useSettingValue("general.translucentSidebar");
     useEffect(() => {
       document.body.style.setProperty(
         "--sidebar-selected-row-opacity",
@@ -425,21 +426,21 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                         className="group flex h-[28px] w-[28px] cursor-pointer items-center justify-center rounded-[100px] border-none bg-transparent p-0 transition-colors duration-150 hover:bg-sidebar-selected"
                         onClick={handleCollapse}
                       >
-                        <span className="relative flex h-4 w-4 items-center justify-center">
+                        <span className="flex h-4 w-4 items-center justify-center">
                           <HugeiconsIcon
                             icon={PanelLeftIcon}
                             data-icon="panel-left"
                             size={16}
                             strokeWidth={2}
-                            className="absolute text-text-2 transition-opacity duration-150 group-hover:opacity-0"
+                            className="text-text-2 group-hover:hidden"
                             style={iconThemeStyle}
                           />
                           <HugeiconsIcon
-                            icon={SidebarLeft01Icon}
-                            data-icon="sidebar-left-01"
+                            icon={LayoutAlignLeftIcon}
+                            data-icon="layout-align-left"
                             size={16}
                             strokeWidth={2}
-                            className="absolute text-text-2 opacity-0 transition-opacity duration-150 group-hover:opacity-100"
+                            className="hidden text-text-2 group-hover:block"
                             style={iconThemeStyle}
                           />
                         </span>
@@ -517,10 +518,24 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       : IS_MACOS_HOST && sidebarEdgeDepthEnabled
         ? "var(--sidebar-edge-shadow)"
         : "none";
-    const sidebarBackdropFilter = "none";
+    // Translucency is opt-out. When it is off the sidebar must read as a solid
+    // panel: no backdrop blur, no alpha in the surface color, and the opacity
+    // slider is ignored rather than merely clamped — a half-transparent
+    // "opaque" sidebar would be worse than either end of the setting.
+    //
+    // A floating/hover sidebar overlays workspace content and is always solid,
+    // regardless of this preference, so it stays legible over whatever it covers.
+    const isTranslucentSurface =
+      translucentSidebar && !shouldForceVisible && !solidSurface;
+    const sidebarBackdropFilter = isTranslucentSurface
+      ? "var(--sidebar-backdrop)"
+      : "none";
     const floatingSurfaceOverride: React.CSSProperties = shouldForceVisible
       ? { backgroundColor: "var(--color-bg-1)" }
       : {};
+    const opaqueSurfaceOverride: React.CSSProperties = isTranslucentSurface
+      ? {}
+      : { backgroundColor: "var(--color-bg-1)" };
     const surfaceStyle = themeStyles
       ? {
           ...themeStyles,
@@ -537,9 +552,10 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           boxShadow: sidebarBoxShadow,
           backdropFilter: sidebarBackdropFilter,
           WebkitBackdropFilter: sidebarBackdropFilter,
-          ...(IS_WINDOWS_HOST || shouldForceVisible || solidSurface
+          ...(IS_WINDOWS_HOST || !isTranslucentSurface
             ? {}
             : sidebarOpacityStyle),
+          ...opaqueSurfaceOverride,
           ...floatingSurfaceOverride,
         };
 

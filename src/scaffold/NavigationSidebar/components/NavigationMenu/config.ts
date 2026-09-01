@@ -20,7 +20,7 @@ export interface NavigationMenuRowAction {
   onClick: (event: MouseEvent<HTMLButtonElement>) => void;
 }
 
-export type NavigationMenuIconAction = NavigationMenuRowAction;
+type NavigationMenuIconAction = NavigationMenuRowAction;
 
 /**
  * Navigation menu item configuration
@@ -43,6 +43,8 @@ export interface NavigationMenuItem {
   iconName?: string;
   /** Arbitrary rendered icon — takes precedence over `icon` when set. */
   iconElement?: ReactNode;
+  /** Small status badge overlaid on the leading icon, including when collapsed. */
+  iconBadge?: ReactNode;
   /** Optional hover/focus action that replaces the leading icon in-place. */
   iconAction?: NavigationMenuIconAction;
   /**

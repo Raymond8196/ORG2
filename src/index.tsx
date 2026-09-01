@@ -7,6 +7,7 @@ import {
   applyWindowsNativeChromeAttribute,
 } from "@src/config/windowChromeRadius";
 import { configureCloudAuthCallbackForIdentifier } from "@src/features/Org2Cloud/config";
+import { installLeadingBlankLineGuard } from "@src/hooks/keyboard/installLeadingBlankLineGuard";
 import { installGlobalTauriSelectAllShortcut } from "@src/hooks/keyboard/useTauriSelectAllShortcut";
 import { createLogger, initializeLogging } from "@src/hooks/logger/useLogger";
 import { i18nReady } from "@src/i18n";
@@ -24,6 +25,8 @@ import { initializeTauriAPIs, invokeTauri } from "./util/platform/tauri/init";
 applyHostDesktopWindowChromeRadius();
 initializeLogging();
 installGlobalTauriSelectAllShortcut();
+const disposeLeadingBlankLineGuard = installLeadingBlankLineGuard();
+module.hot?.dispose(disposeLeadingBlankLineGuard);
 
 const log = createLogger("Init");
 

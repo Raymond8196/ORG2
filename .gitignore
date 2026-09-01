@@ -31,8 +31,8 @@ newmain
 lib/
 # Allow src/lib/ to be tracked (important utilities and wrappers)
 !src/lib/
-!tools/orgii-diagnostics/lib/
-!tools/orgii-diagnostics/lib/**
+!tools/org2-diagnostics/lib/
+!tools/org2-diagnostics/lib/**
 *storybook.log
 
 # Orgii Session - Critical Excludes (auto-added)

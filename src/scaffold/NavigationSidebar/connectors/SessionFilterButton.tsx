@@ -26,6 +26,7 @@ import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip"
 import { useDropdownEngine } from "@src/hooks/dropdown";
 import {
   ArrowRight01Icon,
+  ArrowUpRight01Icon,
   FilterMailIcon,
   FolderInputIcon,
   FolderOutputIcon,
@@ -35,7 +36,6 @@ import {
   ListChevronsDownUpIcon,
   Refresh04Icon,
   SlidersHorizontalIcon,
-  SquareArrowUpRight02Icon,
   TickDouble01Icon,
 } from "@src/icons";
 import { getViewportSize } from "@src/util/ui/window/viewport";
@@ -462,7 +462,7 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
                       }
                       suffix={
                         <HugeiconsIcon
-                          icon={SquareArrowUpRight02Icon}
+                          icon={ArrowUpRight01Icon}
                           data-icon="arrow-up-right"
                           size={DROPDOWN_ITEM.iconSize}
                           strokeWidth={2}
@@ -495,9 +495,6 @@ export const SessionFilterButton: FC<SessionFilterButtonProps> = React.memo(
               onMouseDown={handleSubmenuMouseDown}
             >
               <div className={DROPDOWN_CLASSES.itemsColumnPadded}>
-                <div className={DROPDOWN_CLASSES.sectionLabel}>
-                  {t("sidebar.groupBy.title")}
-                </div>
                 {groupByModes.map((mode) => (
                   <DropdownItem
                     key={mode}

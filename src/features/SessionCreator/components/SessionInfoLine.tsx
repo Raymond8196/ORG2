@@ -425,7 +425,7 @@ const SessionInfoLine: React.FC<SessionInfoLineProps> = ({
 
   const handleBranchPaletteSelect = useCallback(
     async (branch: string) => {
-      await handleBranchSelect(branch);
+      return handleBranchSelect(branch);
     },
     [handleBranchSelect]
   );

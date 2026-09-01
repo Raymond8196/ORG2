@@ -16,7 +16,7 @@ import { ROUTES } from "@src/config/routes";
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { createLogger } from "@src/hooks/logger";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   FolderClosedIcon,
   FolderLibraryIcon,
   HugeiconsIcon,
@@ -304,7 +304,7 @@ const RepoListContent: React.FC<RepoListContentProps> = ({
                     />
                   ) : (
                     <HugeiconsIcon
-                      icon={CodeIcon}
+                      icon={CodeXmlIcon}
                       data-icon="code"
                       size={20}
                       className="text-white"

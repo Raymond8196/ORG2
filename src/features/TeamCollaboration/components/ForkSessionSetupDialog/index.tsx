@@ -32,7 +32,7 @@ export interface ForkSessionSetupSelection {
   execution: ForkExecutionSelection;
 }
 
-export interface ForkSessionSetupRequest {
+interface ForkSessionSetupRequest {
   sourceTitle: string;
   sourceScopeKey?: string;
   sourceModel?: string;

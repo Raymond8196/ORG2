@@ -1,6 +1,6 @@
 import { SETTINGS_SECTION_SLOT_IDS } from "@src/config/settingsUiManifest/slotIds";
 import type { SettingsSectionDefinition } from "@src/config/settingsUiManifest/types";
-import { CodeIcon, RecordIcon } from "@src/icons";
+import { CodeXmlIcon, RecordIcon } from "@src/icons";
 
 /**
  * Agent settings sections.
@@ -30,7 +30,7 @@ export const AGENT_SETTINGS_UI_SECTIONS: SettingsSectionDefinition[] = [
     tab: "agent",
     labelKey: "sdeAgentConfig",
     headingTitleKey: "sections.sdeAgentConfig",
-    icon: CodeIcon,
+    icon: CodeXmlIcon,
     customSectionSlotId: SETTINGS_SECTION_SLOT_IDS.AGENT_SDE_CONFIG,
     coveredKeys: [],
   },

@@ -19,9 +19,9 @@ import {
   ArrowRight02Icon,
   CircleDotIcon,
   HugeiconsIcon,
+  LinkSquare02Icon,
   ListChevronsDownUpIcon,
   Refresh04Icon,
-  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import { ExternalBrowserButton } from "@src/modules/WorkStation/shared/ExternalBrowserButton";
 import type { SourceControlFilterMode } from "@src/modules/WorkStation/shared/SidebarModules";
@@ -174,10 +174,11 @@ export const SourceControlHeaderContent: React.FC<
               className="flex-shrink-0"
               onClick={() => onOpenHistoryInNewTab(historySelection)}
               title={t("common:actions.openInNewTab")}
+              aria-label={t("common:actions.openInNewTab")}
               icon={
                 <HugeiconsIcon
-                  icon={SquareArrowUpRight02Icon}
-                  data-icon="square-arrow-out-up-right"
+                  icon={LinkSquare02Icon}
+                  data-icon="link-square-02"
                   size={HEADER_ICON_SIZE.sm}
                 />
               }

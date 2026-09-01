@@ -31,7 +31,7 @@ test("source changes lint exactly the files they touch", () => {
 });
 
 test("non-lintable paths are dropped, not linted", () => {
-  // .eslintrc.js confines linting to src/ and skips CSS/SCSS, so handing these
+  // package.json#eslintConfig confines linting to src/ and skips CSS/SCSS, so handing these
   // to ESLint would cost a process start and report nothing.
   assert.equal(isLintable("src/styles/_utilities.scss"), false);
   assert.equal(isLintable("src/assets/logo.svg"), false);
@@ -66,6 +66,7 @@ test("rule-changing diffs fall back to the full run", () => {
     ".eslintrc.js",
     ".prettierrc",
     ".prettierignore",
+    "config/tailwind.config.js",
     "package.json",
     "pnpm-lock.yaml",
     "tsconfig.json",

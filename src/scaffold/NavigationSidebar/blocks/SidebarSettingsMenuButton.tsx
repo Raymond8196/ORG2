@@ -1,4 +1,4 @@
-import { useAtomValue } from "jotai";
+import { useAtomValue, useStore } from "jotai";
 import React, {
   useCallback,
   useEffect,
@@ -27,6 +27,8 @@ import {
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import type { AppearanceMode } from "@src/config/appearance/globalThemes";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
+import { org2CloudAuthAtom } from "@src/features/Org2Cloud/org2CloudAuthAtom";
+import { resetOrgEntitlementCoordinator } from "@src/features/Org2Cloud/org2CloudEntitlementCoordinator";
 import {
   type DropdownEnginePosition,
   useDropdownEngine,
@@ -36,18 +38,14 @@ import {
   ArrowRight01Icon,
   CircleIcon,
   ContrastIcon,
-  Cursor02Icon,
   GaugeIcon,
-  HelpCircleIcon,
   HugeiconsIcon,
   Layout01Icon,
-  Login01Icon,
+  Login02Icon,
+  Logout02Icon,
   Settings01Icon,
 } from "@src/icons";
 import { useAppearanceState } from "@src/modules/MainApp/Settings/sections/useAppearanceState";
-import { openAgentControlSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
-import { ADE_MANAGER_TOGGLE_SHORTCUT_ID } from "@src/scaffold/GlobalSpotlight/palettes/AgentControlPalette/constants";
-import { TUTORIALS_OPEN_EVENT } from "@src/scaffold/Tutorials/tutorialRegistry";
 import { devModeEnabledAtom } from "@src/store/platform/devModeAtom";
 import { getViewportSize } from "@src/util/ui/window/viewport";
 
@@ -100,6 +98,8 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
   const { t } = useTranslation("navigation");
   const { t: tSettings } = useTranslation("settings");
   const { goToSettings } = useAppNavigation();
+  const store = useStore();
+  const signedIn = useAtomValue(org2CloudAuthAtom) !== null;
   const devModeEnabled = useAtomValue(devModeEnabledAtom);
   const utilityPanelRef = useRef<HTMLDivElement | null>(null);
   const submenuPanelRef = useRef<HTMLDivElement | null>(null);
@@ -162,14 +162,13 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
   const {
     appearanceMode,
     appearanceModeOptions,
-    globalThemeId,
-    themeOptions,
+    activeSkinId,
+    activeSkinOptions,
     handleAppearanceModeChange,
-    handleThemeChange,
+    handleActiveSkinChange,
   } = useAppearanceState();
 
   const openSettingsShortcut = getShortcutKeys("open_settings");
-  const guiControlShortcut = getShortcutKeys(ADE_MANAGER_TOGGLE_SHORTCUT_ID);
   const settingsButtonClassName = isOpen ? "text-text-1" : "text-text-2";
 
   useEffect(() => {
@@ -244,20 +243,16 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
     handleOpenUtilityPanel("ram");
   }, [handleOpenUtilityPanel]);
 
-  const handleOpenTutorials = useCallback(() => {
-    window.dispatchEvent(new CustomEvent(TUTORIALS_OPEN_EVENT));
-    closeAll();
-  }, [closeAll]);
-
   const handleSignIn = useCallback(() => {
     closeAll();
     onSignIn?.();
   }, [closeAll, onSignIn]);
 
-  const handleOpenGuiControl = useCallback(() => {
-    openAgentControlSpotlight();
+  const handleSignOut = useCallback(() => {
     closeAll();
-  }, [closeAll]);
+    resetOrgEntitlementCoordinator(store);
+    store.set(org2CloudAuthAtom, null);
+  }, [closeAll, store]);
 
   const handleSelectAppearanceMode = useCallback(
     async (mode: AppearanceMode) => {
@@ -267,12 +262,12 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
     [closeAll, handleAppearanceModeChange]
   );
 
-  const handleSelectTheme = useCallback(
-    async (themeId: string) => {
-      await handleThemeChange(themeId);
+  const handleSelectSkin = useCallback(
+    (skinId: string) => {
+      handleActiveSkinChange(skinId);
       closeAll();
     },
-    [closeAll, handleThemeChange]
+    [closeAll, handleActiveSkinChange]
   );
 
   const handleSubmenuPointerDown = useCallback(
@@ -341,51 +336,27 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
             }}
           >
             <div className={DROPDOWN_CLASSES.itemsColumn}>
-              {onSignIn && (
+              {signedIn && (
                 <>
                   <button
                     type="button"
                     className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
                     onMouseEnter={() => setActiveSubmenu(null)}
                     onFocus={() => setActiveSubmenu(null)}
-                    onClick={handleSignIn}
-                    data-testid="sidebar-menu-sign-in"
+                    onClick={handleSignOut}
+                    data-testid="sidebar-menu-sign-out"
                   >
                     <HugeiconsIcon
-                      icon={Login01Icon}
-                      data-icon="log-in"
+                      icon={Logout02Icon}
+                      data-icon="log-out"
                       size={DROPDOWN_ITEM.iconSize}
                       className={MENU_ICON_CLASS_NAME}
                     />
-                    <span>{t("cloud.signIn")}</span>
+                    <span>{t("cloud.signOut")}</span>
                   </button>
                   <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
                 </>
               )}
-              <button
-                type="button"
-                className={`${DROPDOWN_CLASSES.menuActionItem} justify-between`}
-                onMouseEnter={() => setActiveSubmenu(null)}
-                onFocus={() => setActiveSubmenu(null)}
-                onClick={handleOpenGuiControl}
-              >
-                <span className="flex min-w-0 items-center gap-2">
-                  <HugeiconsIcon
-                    icon={Cursor02Icon}
-                    data-icon="mouse-pointer-2"
-                    size={DROPDOWN_ITEM.iconSize}
-                    className={MENU_ICON_CLASS_NAME}
-                  />
-                  <span className="truncate">
-                    {t("common:adeManager.menuToggle")}
-                  </span>
-                </span>
-                <KeyboardShortcut
-                  shortcut={guiControlShortcut}
-                  variant={KEYBOARD_SHORTCUT_VARIANT.dropdown}
-                />
-              </button>
-              <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
               {devModeEnabled && (
                 <button
                   type="button"
@@ -403,26 +374,6 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   <span>{t("sidebar.settingsMenu.viewRam")}</span>
                 </button>
               )}
-              {/*
-                TODO(changelog-web): Restore the Changelog item here, directly
-                above Tutorials, once the maintained web destination is ready.
-              */}
-              <button
-                type="button"
-                className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
-                onMouseEnter={() => setActiveSubmenu(null)}
-                onFocus={() => setActiveSubmenu(null)}
-                onClick={handleOpenTutorials}
-              >
-                <HugeiconsIcon
-                  icon={HelpCircleIcon}
-                  data-icon="help-circle"
-                  size={DROPDOWN_ITEM.iconSize}
-                  className={MENU_ICON_CLASS_NAME}
-                />
-                <span>{t("sidebar.settingsMenu.tutorials")}</span>
-              </button>
-              <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
               <button
                 type="button"
                 className={`${DROPDOWN_CLASSES.menuActionItem} ${activeSubmenu === "presence" ? DROPDOWN_CLASSES.itemActive : ""} justify-between`}
@@ -530,6 +481,27 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
                   variant={KEYBOARD_SHORTCUT_VARIANT.dropdown}
                 />
               </button>
+              {!signedIn && onSignIn && (
+                <>
+                  <div className={DROPDOWN_CLASSES.menuGroupSeparator} />
+                  <button
+                    type="button"
+                    className={`${DROPDOWN_CLASSES.menuActionItem} gap-2`}
+                    onMouseEnter={() => setActiveSubmenu(null)}
+                    onFocus={() => setActiveSubmenu(null)}
+                    onClick={handleSignIn}
+                    data-testid="sidebar-menu-sign-in"
+                  >
+                    <HugeiconsIcon
+                      icon={Login02Icon}
+                      data-icon="log-in"
+                      size={DROPDOWN_ITEM.iconSize}
+                      className={MENU_ICON_CLASS_NAME}
+                    />
+                    <span>{t("cloud.signIn")}</span>
+                  </button>
+                </>
+              )}
             </div>
           </div>,
           document.body
@@ -539,14 +511,14 @@ const SidebarSettingsMenuButton: React.FC<SidebarSettingsMenuButtonProps> = ({
         appearanceMode={appearanceMode}
         appearanceModeLabel={tSettings("general.appearanceMode")}
         appearanceModeOptions={appearanceModeOptions}
-        globalThemeId={globalThemeId}
+        skinId={activeSkinId}
         submenuPanelRef={submenuPanelRef}
         submenuPosition={submenuPosition}
-        themeOptions={themeOptions}
-        themePresetLabel={tSettings("general.themePreset")}
+        skinOptions={activeSkinOptions}
+        skinLabel={tSettings("general.skins")}
         onPresenceSelectionComplete={closeAll}
         onSelectAppearanceMode={(mode) => void handleSelectAppearanceMode(mode)}
-        onSelectTheme={(themeId) => void handleSelectTheme(themeId)}
+        onSelectSkin={handleSelectSkin}
         onSubmenuMouseDown={handleSubmenuMouseDown}
         onSubmenuPointerDown={handleSubmenuPointerDown}
       />

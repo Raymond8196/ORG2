@@ -12,7 +12,7 @@ import {
   vi,
 } from "vitest";
 
-import { InternetIcon, SquareArrowUpRight02Icon } from "@src/icons";
+import { InternetIcon, LinkSquare02Icon } from "@src/icons";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import AssignedWorkItemDetail from "../components/AssignedWorkItemDetail";
@@ -281,13 +281,13 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     });
 
     expect(mocks.detailLayoutProps?.openLabel).toBe(
-      "teamInbox.actions.openWorkItem"
+      "common:actions.openInNewTab"
     );
     const openIcon = mocks.detailLayoutProps?.openIcon;
     expect(React.isValidElement(openIcon)).toBe(true);
     expect(
       (openIcon as React.ReactElement<{ icon?: unknown }>).props.icon
-    ).toBe(SquareArrowUpRight02Icon);
+    ).toBe(LinkSquare02Icon);
     const browserAction = mocks.detailLayoutProps?.headerAuxiliaryAction as
       | {
           label: string;
@@ -358,7 +358,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
       title: "Add Team Inbox",
     });
     expect(mocks.detailLayoutProps?.openLabel).toBe(
-      "teamInbox.actions.openWorkItem"
+      "common:actions.openInNewTab"
     );
     expect(mocks.getGitRemotes).toHaveBeenCalledWith({
       repo_id: "default",
@@ -470,7 +470,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     });
 
     expect(mocks.detailLayoutProps?.openLabel).toBe(
-      "teamInbox.actions.openWorkItem"
+      "common:actions.openInNewTab"
     );
     expect(mocks.detailLayoutProps?.headerContent).toBeUndefined();
     expect(mocks.detailLayoutProps?.headerAuxiliaryAction).toBeUndefined();
@@ -478,7 +478,7 @@ describe("AssignedWorkItemDetail navigation actions", () => {
     expect(React.isValidElement(openIcon)).toBe(true);
     expect(
       (openIcon as React.ReactElement<{ icon?: unknown }>).props.icon
-    ).toBe(SquareArrowUpRight02Icon);
+    ).toBe(LinkSquare02Icon);
     act(() => {
       (mocks.detailLayoutProps?.onOpen as (() => void) | undefined)?.();
     });

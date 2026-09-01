@@ -38,7 +38,7 @@ import type { SidebarTab } from "../types";
 // Types
 // ============================================
 
-export interface NavigationSidebarSearchConfig {
+interface NavigationSidebarSearchConfig {
   value: string;
   filterValue?: string;
   onChange: (value: string) => void;

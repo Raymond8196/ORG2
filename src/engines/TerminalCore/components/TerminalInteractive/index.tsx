@@ -41,6 +41,7 @@ import {
 // Direct leaf import to avoid pulling @src/store's barrel — which transitively
 // reaches SidebarModules/Terminal → engines/TerminalCore → this file.
 import {
+  activeSkinIdAtom,
   primaryColorPresetAtom,
   terminalFontSizeAtom,
   terminalLetterSpacingAtom,
@@ -89,6 +90,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       forceRepoCwd,
       nameOverride,
       backgroundColor,
+      fontSize,
       shellIntegration,
     },
     ref
@@ -118,7 +120,8 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     const [_isBrowserMode, setIsBrowserMode] = useState(false);
     const [isReady, setIsReady] = useState(false);
     const terminalTheme = useAtomValue(terminalThemeAtom);
-    const terminalFontSize = useAtomValue(terminalFontSizeAtom);
+    const configuredFontSize = useAtomValue(terminalFontSizeAtom);
+    const terminalFontSize = fontSize ?? configuredFontSize;
     const terminalLetterSpacing = useAtomValue(terminalLetterSpacingAtom);
     const codeFontFamily = useAtomValue(resolvedTerminalFontFamilyAtom);
     const shellType = useAtomValue(shellTypeAtom);
@@ -128,6 +131,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
     // The cursor color comes from --terminal-caret (an alias of
     // --color-primary-6); tracking the preset re-resolves it on accent change.
     const primaryColorPreset = useAtomValue(primaryColorPresetAtom);
+    const activeSkinId = useAtomValue(activeSkinIdAtom);
 
     const initialAppearanceRef = useRef({
       terminalTheme,
@@ -360,7 +364,7 @@ export const TerminalView = forwardRef<TerminalViewHandle, TerminalViewProps>(
       isReady,
       terminalTheme,
       isDarkTheme,
-      primaryColorPreset,
+      appearanceRevision: `${activeSkinId}:${primaryColorPreset}`,
       terminalFontSize,
       terminalLetterSpacing,
       codeFontFamily,

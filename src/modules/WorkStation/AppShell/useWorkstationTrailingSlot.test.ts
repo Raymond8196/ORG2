@@ -25,7 +25,7 @@ describe("WorkstationMaximizeChatIcon", () => {
     );
 
     expect(markup).toContain('data-icon="panel-right"');
-    expect(markup).toContain('data-icon="panel-right-close"');
-    expect(markup).toContain("group-hover:opacity-100");
+    expect(markup).toContain('data-icon="layout-align-right"');
+    expect(markup).toContain("hidden group-hover:block");
   });
 });

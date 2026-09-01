@@ -19,7 +19,7 @@ export interface GitStatus {
   behind: number;
 }
 
-export interface UseRepoGitStatusOptions {
+interface UseRepoGitStatusOptions {
   /** Repository IDs to fetch status for */
   repoIds: string[];
   /** Selected repo ID (fetched with higher priority) */
@@ -28,7 +28,7 @@ export interface UseRepoGitStatusOptions {
   enabled?: boolean;
 }
 
-export interface UseRepoGitStatusReturn {
+interface UseRepoGitStatusReturn {
   /** Git status map (repoId -> status) */
   gitStatusMap: Record<string, GitStatus>;
   /** Attach git status to repos */

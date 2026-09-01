@@ -5,10 +5,10 @@
 import type { TFunction } from "i18next";
 
 import {
-  CodeIcon,
+  CodeXmlIcon,
+  DeliveryBox01Icon,
   type IconSvgElement,
   InternetIcon,
-  ListTodoIcon,
   MonitorDotIcon,
   Package01Icon,
 } from "@src/icons";
@@ -22,17 +22,17 @@ export function getWorkStationStationTitleCenter(
 ): { icon: IconSvgElement; label: string } {
   switch (appMode) {
     case "code":
-      return { icon: CodeIcon, label: t("labels.codeEditor") };
+      return { icon: CodeXmlIcon, label: t("labels.codeEditor") };
     case "browser":
       return { icon: InternetIcon, label: t("labels.browser") };
     case "chat":
       return { icon: Package01Icon, label: t("labels.session") };
     case "project":
-      return { icon: ListTodoIcon, label: t("labels.projectManager") };
+      return { icon: DeliveryBox01Icon, label: t("labels.projectManager") };
     case "other":
       return { icon: MonitorDotIcon, label: t("labels.other") };
     default:
-      return { icon: CodeIcon, label: t("labels.codeEditor") };
+      return { icon: CodeXmlIcon, label: t("labels.codeEditor") };
   }
 }
 
@@ -45,7 +45,7 @@ export function getSimulatorDockTitleCenter(
   }
 
   const dockApp = getAppById(appType);
-  const icon = dockApp?.icon ?? CodeIcon;
+  const icon = dockApp?.icon ?? CodeXmlIcon;
 
   switch (appType) {
     case AppType.CODE_EDITOR:
@@ -85,7 +85,7 @@ export function getSimulatorDockTitleCenterEnglish(appType: AppType | null): {
   }
 
   const dockApp = getAppById(appType);
-  const icon = dockApp?.icon ?? CodeIcon;
+  const icon = dockApp?.icon ?? CodeXmlIcon;
   return {
     icon,
     label: dockApp?.name ?? "Other",

@@ -935,6 +935,14 @@
     "typeYourAnswer": "Type your answer…",
     "newSession": "New Session",
     "startPage": {
+      "inputPosition": "Input",
+      "positionBottom": "Bottom",
+      "positionMiddle": "Middle",
+      "trailPosition": "Trail",
+      "positionUp": "Up",
+      "positionDown": "Down",
+      "uiControls": "UI controls",
+      "showCliUpdate": "Show CLI update",
       "title": "What would you like to do?",
       "back": "Back to start page",
       "newSession": {
@@ -1065,7 +1073,6 @@
     "copyEventJsonCopied": "Copied!",
     "copyEventJsonFailed": "Copy failed",
     "moveTo": "Move page to…",
-    "uiSettings": "UI settings",
     "projectLinks": "Project links",
     "moveToWorkstation": "Move to My Station",
     "moveToChatPanel": "Move to Chat Panel",

@@ -250,7 +250,9 @@
     "copyName": "复制名称",
     "dismiss": "忽略",
     "comingSoon": "即将推出",
-    "clearSelection": "清除选择"
+    "clearSelection": "清除选择",
+    "uiSettings": "界面设置",
+    "clearAll": "全部清除"
   },
   "refreshToast": {
     "successName": "{{name}} 已刷新"
@@ -1141,7 +1143,10 @@
       "newMiniTerminal": "新建迷你终端",
       "showMiniTerminals": "迷你终端",
       "sessionInMiniTerminal": "正在迷你终端中运行",
-      "returnFromMiniTerminal": "在此处显示"
+      "returnFromMiniTerminal": "在此处显示",
+      "resizeTerminal": "调整终端大小",
+      "terminalProcessCount_one": "{{count}} 个进程",
+      "terminalProcessCount_other": "{{count}} 个进程"
     },
     "pr": {
       "title": "Pull request",
@@ -1454,11 +1459,19 @@
       "selectAccount": "选择账号"
     },
     "modelProperties": {
-      "options": "选项",
       "effort": "Effort",
       "default": "默认",
-      "faster": "更快",
-      "smarter": "更智能"
+      "settings": "模型设置",
+      "model": "模型",
+      "speed": "速度",
+      "standard": "标准",
+      "fast": "快速",
+      "standardDescription": "默认速度",
+      "fastDescription": "优先响应速度",
+      "ultraDescription": "更快消耗使用额度",
+      "thinking": "思考",
+      "on": "开启",
+      "off": "关闭"
     },
     "repo": {
       "workspaceFolders": "工作区文件夹",
@@ -1553,7 +1566,8 @@
         "refresh": "刷新分支",
         "checkoutDetachedSuccess": "已切换到 detached HEAD 状态（当前提交）",
         "removeWorktree": "移除 Worktree",
-        "newWorktree": "新建 Worktree..."
+        "newWorktree": "新建 Worktree...",
+        "refreshPullRequests": "刷新 Pull requests"
       },
       "messages": {
         "deletedCount_one": "已删除 {{count}} 个分支",
@@ -1570,12 +1584,21 @@
         "worktreeInUse": "使用中",
         "checkedOutInWorktree": "已在 Worktree 中检出：{{path}}",
         "mainWorktreeSection": "主 Worktree",
-        "linkedWorktrees": "链接 Worktree"
+        "linkedWorktrees": "链接 Worktree",
+        "noGithubRemote": "未配置 GitHub 远程仓库",
+        "prSearchScope": "搜索范围为已加载的 {{count}} 个 Pull requests",
+        "prLimit": "最多显示 {{count}} 个未关闭的 PR",
+        "noPullRequests": "没有匹配的 Pull requests"
       },
       "placeholders": {
         "checkout": "分支",
-        "add": "新分支名称",
-        "remove": "分支"
+        "add": "新分支名称...",
+        "remove": "分支",
+        "pullRequests": "搜索 Pull requests..."
+      },
+      "tabs": {
+        "branches": "分支",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1607,6 +1630,7 @@
       "switchColumn": "切换栏",
       "switchSection": "切换分区",
       "showPath": "显示路径",
+      "showBranchInfo": "显示分支信息",
       "compatibleKeys": "兼容",
       "planSupport": "Plan",
       "byokSupport": "Keys",

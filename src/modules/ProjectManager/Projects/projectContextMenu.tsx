@@ -2,17 +2,17 @@ import { createElement } from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import {
+  ArrowUpRight01Icon,
   Calendar01Icon,
   Cardiogram01Icon,
   CircleDotIcon,
   CircleIcon,
-  CodeIcon,
+  CodeXmlIcon,
   Copy01Icon,
   Delete02Icon,
   Flag01Icon,
   HugeiconsIcon,
   ListChevronsDownUpIcon,
-  SquareArrowUpRight02Icon,
   Tag01Icon,
   Unlink02Icon,
   UserIcon,
@@ -161,7 +161,7 @@ function createRepoSubmenu(
     id: `repo-${repo.id}`,
     label: getRepoDisplayName(repo),
     icon: createElement(HugeiconsIcon, {
-      icon: CodeIcon,
+      icon: CodeXmlIcon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     secondary: selectedRepoIds.has(repo.id) ? "✓" : undefined,
@@ -398,7 +398,7 @@ export function getProjectPropertyContextMenuItems({
       id: "linkedRepos",
       label: t("properties.repos"),
       icon: createElement(HugeiconsIcon, {
-        icon: CodeIcon,
+        icon: CodeXmlIcon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary: project.linkedRepos?.length
@@ -464,7 +464,7 @@ export function getProjectContextMenuItems(options: ProjectContextMenuOptions) {
       id: "open",
       label: t("common:actions.open"),
       icon: createElement(HugeiconsIcon, {
-        icon: SquareArrowUpRight02Icon,
+        icon: ArrowUpRight01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary:

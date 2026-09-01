@@ -35,7 +35,7 @@ export interface SetupRepoEnvVar {
   description?: string;
 }
 
-export interface SetupRepoBlockProps {
+interface SetupRepoBlockProps {
   action: string;
   status?: SetupRepoStatus;
   message?: string;

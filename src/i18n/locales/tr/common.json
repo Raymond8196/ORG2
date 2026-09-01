@@ -413,7 +413,9 @@
     "switchMethod": "Yöntemi değiştir",
     "dismiss": "Yoksay",
     "comingSoon": "Yakında",
-    "clearSelection": "Seçimi temizle"
+    "clearSelection": "Seçimi temizle",
+    "uiSettings": "Arayüz ayarları",
+    "clearAll": "Tümünü temizle"
   },
   "refreshToast": {
     "successName": "{{name}} yenilendi"
@@ -1266,7 +1268,10 @@
       "newMiniTerminal": "Yeni mini terminal",
       "showMiniTerminals": "Mini terminaller",
       "sessionInMiniTerminal": "Mini terminalde çalışıyor",
-      "returnFromMiniTerminal": "Burada göster"
+      "returnFromMiniTerminal": "Burada göster",
+      "resizeTerminal": "Terminali yeniden boyutlandır",
+      "terminalProcessCount_one": "{{count}} işlem",
+      "terminalProcessCount_other": "{{count}} işlem"
     },
     "pr": {
       "title": "Pull request",
@@ -1574,11 +1579,8 @@
       "selectAccount": "Hesap seç"
     },
     "modelProperties": {
-      "options": "Seçenekler",
       "effort": "Çaba",
-      "default": "Varsayılan",
-      "faster": "Daha hızlı",
-      "smarter": "Daha akıllı"
+      "default": "Varsayılan"
     },
     "repo": {
       "workspaceFolders": "Workspace Klasörleri",
@@ -1672,7 +1674,8 @@
         "refresh": "Branch yenile",
         "checkoutDetachedSuccess": "Mevcut commit'te detached HEAD durumunda",
         "removeWorktree": "Worktree kaldır",
-        "newWorktree": "Yeni worktree..."
+        "newWorktree": "Yeni worktree...",
+        "refreshPullRequests": "Pull requests yenile"
       },
       "messages": {
         "deletedCount_one": "{{count}} branch silindi",
@@ -1689,12 +1692,21 @@
         "worktreeInUse": "Kullanımda",
         "checkedOutInWorktree": "Worktree içinde checkout edilmiş: {{path}}",
         "mainWorktreeSection": "Ana worktree",
-        "linkedWorktrees": "Bağlı worktree'ler"
+        "linkedWorktrees": "Bağlı worktree'ler",
+        "noGithubRemote": "GitHub uzak deposu yapılandırılmamış",
+        "prSearchScope": "Yüklenen {{count}} Pull requests içinde ara",
+        "prLimit": "En fazla {{count}} açık PR gösteriliyor",
+        "noPullRequests": "Eşleşen Pull requests yok"
       },
       "placeholders": {
         "checkout": "branch",
-        "add": "yeni branch adı",
-        "remove": "branch"
+        "add": "yeni branch adı...",
+        "remove": "branch",
+        "pullRequests": "Pull requests ara..."
+      },
+      "tabs": {
+        "branches": "Dallar",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1725,6 +1737,7 @@
       "switchColumn": "Sütun değiştir",
       "switchSection": "Bölüm değiştir",
       "showPath": "Yolu göster",
+      "showBranchInfo": "Dal bilgilerini göster",
       "compatibleKeys": "Uyumlu",
       "planSupport": "Plan",
       "byokSupport": "Keys",

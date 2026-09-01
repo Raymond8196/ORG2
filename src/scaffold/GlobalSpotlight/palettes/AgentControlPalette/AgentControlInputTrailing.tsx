@@ -5,7 +5,7 @@ import type { LastModelSelection } from "@src/store/session/creatorDefaultModelA
 
 import { AgentControlSubmitButton } from "./AgentControlSubmitButton";
 
-export interface AgentControlInputTrailingProps {
+interface AgentControlInputTrailingProps {
   selection: LastModelSelection | null;
   selectModelLabel: string;
   modelSelectorActive: boolean;

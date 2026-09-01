@@ -46,8 +46,8 @@ import { createLogger } from "@src/hooks/logger";
 import {
   BubbleChatIcon,
   HugeiconsIcon,
+  LinkSquare02Icon,
   PencilEdit02Icon,
-  SquareArrowUpRight02Icon,
 } from "@src/icons";
 import {
   activeChatPanelTabTypeAtom,
@@ -104,7 +104,7 @@ const SIDE_CHAT_MIN_HEIGHT = 360;
 const SIDE_CHAT_MAX_WIDTH = 640;
 const SIDE_CHAT_MAX_HEIGHT = 720;
 
-export interface ChatPanelSideChatProps {
+interface ChatPanelSideChatProps {
   /**
    * Same injected creator the chat pane start page renders — passed through
    * so new-session mode shares the pane's launch surface (and its ADE
@@ -227,11 +227,12 @@ const SideChatWindow: React.FC<ChatPanelSideChatProps> = ({
               <button
                 className={HEADER_BUTTON.action}
                 onClick={handleOpenInTab}
-                title={tCommon("actions.openInTab")}
+                title={tCommon("actions.openInNewTab")}
+                aria-label={tCommon("actions.openInNewTab")}
               >
                 <HugeiconsIcon
-                  icon={SquareArrowUpRight02Icon}
-                  data-icon="square-arrow-out-up-right"
+                  icon={LinkSquare02Icon}
+                  data-icon="link-square-02"
                   size={HEADER_ICON_SIZE.sm}
                 />
               </button>

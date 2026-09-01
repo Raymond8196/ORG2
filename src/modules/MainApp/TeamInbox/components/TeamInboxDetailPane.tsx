@@ -8,12 +8,10 @@ import type { TFunction } from "i18next";
 import React from "react";
 
 import { Placeholder } from "@src/components/Placeholder";
-import {
-  HugeiconsIcon,
-  InternetIcon,
-  SquareArrowUpRight02Icon,
-} from "@src/icons";
+import { HugeiconsIcon, InternetIcon, LinkSquare02Icon } from "@src/icons";
 import type { ManagedPrItem } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
+import GitHubDetailSkeleton from "@src/modules/shared/components/GitHubDetailSkeleton";
+import GitHubPrDetailTabs from "@src/modules/shared/components/GitHubPrDetailTabs";
 import { LoadingBar } from "@src/modules/shared/layouts/blocks";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import type { WorkItem } from "@src/types/core/workItem";
@@ -67,54 +65,60 @@ export const TeamInboxDetailPane: React.FC<TeamInboxDetailPaneProps> = ({
   onWorkItemUpdated,
 }) => {
   if (selectedPullRequest && selectedPullRequestIdentity) {
+    const tabActions = (
+      <div
+        className="flex items-center gap-px"
+        data-testid="team-inbox-pr-detail-actions"
+      >
+        <TeamInboxHeaderIconAction
+          label={t("previews.openInExternalBrowser")}
+          icon={
+            <HugeiconsIcon
+              icon={InternetIcon}
+              data-icon="chrome"
+              size={14}
+              strokeWidth={1.75}
+              aria-hidden
+            />
+          }
+          onClick={() => void openExternalLink(selectedPullRequestIdentity.url)}
+          testId="team-inbox-open-github-pr"
+        />
+        {onOpenPullRequestTab ? (
+          <TeamInboxHeaderIconAction
+            label={t("common:actions.openInNewTab")}
+            icon={
+              <HugeiconsIcon
+                icon={LinkSquare02Icon}
+                data-icon="link-square-02"
+                size={14}
+                strokeWidth={1.75}
+                aria-hidden
+              />
+            }
+            onClick={() => onOpenPullRequestTab(selectedPullRequest)}
+            testId="team-inbox-open-pr-tab"
+          />
+        ) : null}
+      </div>
+    );
     return (
-      <React.Suspense fallback={<LoadingBar />}>
+      <React.Suspense
+        fallback={
+          <GitHubDetailSkeleton
+            kind="pr"
+            showHeader={false}
+            title={selectedPullRequestIdentity.title}
+            number={selectedPullRequestIdentity.number}
+            tabs={<GitHubPrDetailTabs trailing={tabActions} />}
+          />
+        }
+      >
         <PullRequestDetailPanel
           identity={selectedPullRequestIdentity}
           repoPath={selectedPullRequest.repoPath}
           repoId={selectedPullRequest.repoId}
-          tabActions={
-            <div
-              className="flex items-center gap-px"
-              data-testid="team-inbox-pr-detail-actions"
-            >
-              <TeamInboxHeaderIconAction
-                label={t("previews.openInExternalBrowser")}
-                icon={
-                  <HugeiconsIcon
-                    icon={InternetIcon}
-                    data-icon="chrome"
-                    size={14}
-                    strokeWidth={1.75}
-                    aria-hidden
-                  />
-                }
-                onClick={() =>
-                  void openExternalLink(selectedPullRequestIdentity.url)
-                }
-                testId="team-inbox-open-github-pr"
-              />
-              {onOpenPullRequestTab ? (
-                <TeamInboxHeaderIconAction
-                  label={t(
-                    "teamInbox.actions.openPullRequest",
-                    "Open pull request"
-                  )}
-                  icon={
-                    <HugeiconsIcon
-                      icon={SquareArrowUpRight02Icon}
-                      data-icon="square-arrow-out-up-right"
-                      size={14}
-                      strokeWidth={1.75}
-                      aria-hidden
-                    />
-                  }
-                  onClick={() => onOpenPullRequestTab(selectedPullRequest)}
-                  testId="team-inbox-open-pr-tab"
-                />
-              ) : null}
-            </div>
-          }
+          tabActions={tabActions}
         />
       </React.Suspense>
     );

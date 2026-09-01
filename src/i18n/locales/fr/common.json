@@ -413,7 +413,9 @@
     "switchMethod": "Changer de méthode",
     "dismiss": "Ignorer",
     "comingSoon": "Bientôt",
-    "clearSelection": "Effacer la sélection"
+    "clearSelection": "Effacer la sélection",
+    "uiSettings": "Paramètres d’interface",
+    "clearAll": "Tout effacer"
   },
   "refreshToast": {
     "successName": "{{name}} actualisé"
@@ -1265,7 +1267,10 @@
       "newMiniTerminal": "Nouveau mini-terminal",
       "showMiniTerminals": "Mini-terminaux",
       "sessionInMiniTerminal": "En cours d'exécution dans le mini-terminal",
-      "returnFromMiniTerminal": "Afficher ici"
+      "returnFromMiniTerminal": "Afficher ici",
+      "resizeTerminal": "Redimensionner le terminal",
+      "terminalProcessCount_one": "{{count}} processus",
+      "terminalProcessCount_other": "{{count}} processus"
     },
     "pr": {
       "title": "Pull request",
@@ -1573,11 +1578,8 @@
       "selectAccount": "Sélectionner un compte"
     },
     "modelProperties": {
-      "options": "Options",
       "effort": "Effort",
-      "default": "Par défaut",
-      "faster": "Plus rapide",
-      "smarter": "Plus intelligent"
+      "default": "Par défaut"
     },
     "repo": {
       "workspaceFolders": "Dossiers du Workspace",
@@ -1671,7 +1673,8 @@
         "refresh": "Actualiser la branche",
         "checkoutDetachedSuccess": "État detached HEAD au commit actuel",
         "removeWorktree": "Supprimer le Worktree",
-        "newWorktree": "Nouveau worktree..."
+        "newWorktree": "Nouveau worktree...",
+        "refreshPullRequests": "Actualiser les Pull requests"
       },
       "messages": {
         "deletedCount_one": "{{count}} branche supprimée",
@@ -1688,12 +1691,21 @@
         "worktreeInUse": "En cours d’utilisation",
         "checkedOutInWorktree": "Checkout dans le Worktree : {{path}}",
         "mainWorktreeSection": "Worktree principal",
-        "linkedWorktrees": "Worktrees liés"
+        "linkedWorktrees": "Worktrees liés",
+        "noGithubRemote": "Aucun dépôt distant GitHub configuré",
+        "prSearchScope": "La recherche porte sur les {{count}} Pull requests chargées",
+        "prLimit": "Affichage de {{count}} PR ouvertes au maximum",
+        "noPullRequests": "Aucune Pull requests correspondante"
       },
       "placeholders": {
         "checkout": "branche",
-        "add": "nom de nouvelle branche",
-        "remove": "branche"
+        "add": "nom de nouvelle branche...",
+        "remove": "branche",
+        "pullRequests": "Rechercher des Pull requests..."
+      },
+      "tabs": {
+        "branches": "Branches",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1724,6 +1736,7 @@
       "switchColumn": "Changer de colonne",
       "switchSection": "Changer de section",
       "showPath": "Afficher le chemin",
+      "showBranchInfo": "Afficher les infos de branche",
       "compatibleKeys": "Compatible",
       "planSupport": "Plan",
       "byokSupport": "Keys",

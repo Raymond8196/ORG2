@@ -31,12 +31,12 @@ import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import SessionIdentityIcon from "@src/engines/ChatPanel/components/SessionIdentityIcon";
 import {
   Infinity01Icon as Infinity,
-  BoxIcon as Box,
+  DeliveryBox01Icon as Box,
   Building02Icon as Building2,
   ChartNoAxesGanttIcon as ChartNoAxesGantt,
   CircleDotIcon as CircleDot,
-  CodeIcon as Code,
-  CodeIcon as Code2,
+  CodeXmlIcon as Code,
+  CodeXmlIcon as Code2,
   FileDiffIcon as FileDiff,
   FolderClosedIcon as Folder,
   WorkflowCircle05Icon as GitBranch,
@@ -129,10 +129,7 @@ function resolveWorkstationTabIcon(name: string): IconSvgElement | null {
 export function resolveWorkstationTabIntegrationIcon(
   tab: WorkStationTab
 ): ProjectSyncAdapterType | null {
-  if (
-    tab.type === "project-linear-projects" ||
-    tab.type === "project-linear-work-items"
-  ) {
+  if (tab.type === "project-linear-work-items") {
     return STORY_SYNC_ADAPTER.LINEAR;
   }
   if (
@@ -165,7 +162,7 @@ const ChatSessionTabIcon: React.FC<ChatSessionTabIconProps> = memo(
 
 ChatSessionTabIcon.displayName = "ChatSessionTabIcon";
 
-export interface SortableTabProps {
+interface SortableTabProps {
   tab: WorkStationTab;
   isActive: boolean;
   isDraggable: boolean;
@@ -292,8 +289,6 @@ export const SortableTab: React.FC<SortableTabProps> = memo(
           );
         case "terminal":
           return <FileTypeIcon fileName="terminal.sh" size="small" />;
-        case "settings":
-          return <FileTypeIcon fileName="settings.json" size="small" />;
         case "browser-session":
           return (
             <FaviconIcon

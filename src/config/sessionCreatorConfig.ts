@@ -8,7 +8,7 @@
 import {
   Infinity01Icon,
   CloudIcon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   LaptopIcon,
   ListTodoIcon,
   Search01Icon,
@@ -32,6 +32,14 @@ export const SESSION_CONFIG = {
   EDITOR_MAX_WIDTH: 650,
   EDITOR_MIN_HEIGHT: 100,
 } as const;
+
+export const CREATOR_COMPOSER_POSITION = {
+  BOTTOM: "bottom",
+  MIDDLE: "middle",
+} as const;
+
+export type CreatorComposerPosition =
+  (typeof CREATOR_COMPOSER_POSITION)[keyof typeof CREATOR_COMPOSER_POSITION];
 
 // ============================================
 // Agent exec mode (Rust `AgentExecMode`)
@@ -163,7 +171,7 @@ export const COMPOSER_MODES: ComposerModeEntry[] = [
   ...AGENT_EXEC_MODES,
   {
     id: PRODUCT_MODE_PROJECT,
-    icon: FolderKanbanIcon,
+    icon: DeliveryBox01Icon,
     i18nKey: "planner.modes.project",
     name: "Project",
     description:

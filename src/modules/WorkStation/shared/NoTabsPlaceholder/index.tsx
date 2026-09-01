@@ -17,9 +17,9 @@ import {
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import {
   BubbleChatIcon,
-  ChartNoAxesGanttIcon,
   ContentWritingIcon,
   DatabaseIcon,
+  DeliveryBox01Icon,
   type IconSvgElement,
   InternetIcon,
   Layout01Icon,
@@ -48,7 +48,7 @@ export type PlaceholderIcon =
   | "cargo"
   | "canvas";
 
-export interface NoTabsPlaceholderProps {
+interface NoTabsPlaceholderProps {
   /** Tool icon to display */
   icon: PlaceholderIcon;
   /** Optional line shown below the icon (e.g. simulator awaiting Agent) */
@@ -70,7 +70,7 @@ const ICON_MAP: Record<PlaceholderIcon, IconSvgElement> = {
   "source-control": WorkflowCircle05Icon,
   browser: InternetIcon,
   database: DatabaseIcon,
-  project: ChartNoAxesGanttIcon,
+  project: DeliveryBox01Icon,
   simulator: PowerServiceIcon,
   messages: MessageMultiple01Icon,
   chat: BubbleChatIcon,

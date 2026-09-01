@@ -8,13 +8,10 @@ import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { IconButton } from "@src/components/IconButton";
 import { KeyboardShortcutTooltipContent } from "@src/components/KeyboardShortcut";
+import { ProcessStopButton } from "@src/components/ProcessStopButton";
 import Tooltip from "@src/components/Tooltip";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
-import {
-  Cancel01Icon,
-  HugeiconsIcon,
-  SquareArrowUpRight02Icon,
-} from "@src/icons";
+import { ArrowUpRight01Icon, Cancel01Icon, HugeiconsIcon } from "@src/icons";
 
 import { RailItemStatus } from "./RailItemStatus";
 import type { FocusedChatRailItem } from "./types";
@@ -73,7 +70,7 @@ export function WorkstationItemRow({
       {item.status ? <RailItemStatus status={item.status} /> : null}
       {item.external ? (
         <HugeiconsIcon
-          icon={SquareArrowUpRight02Icon}
+          icon={ArrowUpRight01Icon}
           data-icon="arrow-up-right"
           aria-hidden
           className="shrink-0 text-text-2"
@@ -112,7 +109,15 @@ export function WorkstationItemRow({
       ) : (
         action
       )}
-      {item.onClose && (
+      {item.onStop ? (
+        <ProcessStopButton
+          size="sm"
+          label={item.stopLabel ?? item.label}
+          className={`opacity-0 group-focus-within:opacity-100 group-hover:opacity-100 ${compact ? "ml-0.5" : "mr-1"}`}
+          onClick={item.onStop}
+          role={compact ? "menuitem" : undefined}
+        />
+      ) : item.onClose ? (
         <IconButton
           size="sm"
           variant="defaultTreeRow"
@@ -128,7 +133,7 @@ export function WorkstationItemRow({
         >
           <HugeiconsIcon icon={Cancel01Icon} data-icon="x" size={12} />
         </IconButton>
-      )}
+      ) : null}
     </div>
   );
 }

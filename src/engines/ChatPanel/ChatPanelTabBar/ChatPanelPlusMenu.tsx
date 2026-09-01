@@ -14,12 +14,12 @@ import { TabBarTrailingIconButton } from "@src/components/TabPill/TabBarTrailing
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import {
   Add01Icon,
-  BoxIcon,
   Briefcase02Icon,
-  DashboardSquare01Icon,
+  DeliveryBox01Icon,
   GaugeIcon,
   HugeiconsIcon,
   KanbanIcon,
+  MessageAdd02Icon,
   PictureInPicture01Icon,
 } from "@src/icons";
 import { isMacOS } from "@src/util/platform/tauri";
@@ -57,8 +57,8 @@ export function PlusMenuContent({
       id: "launchpad",
       icon: (
         <HugeiconsIcon
-          icon={DashboardSquare01Icon}
-          data-icon="layout-grid"
+          icon={MessageAdd02Icon}
+          data-icon="message-add"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}
         />
@@ -97,7 +97,7 @@ export function PlusMenuContent({
       id: "new-project",
       icon: (
         <HugeiconsIcon
-          icon={BoxIcon}
+          icon={DeliveryBox01Icon}
           data-icon="box"
           size={HEADER_ICON_SIZE.sm}
           strokeWidth={1.8}

@@ -51,7 +51,9 @@ function printCycles(cycles) {
   }
 }
 
-const madgeConfig = JSON.parse(readFileSync(join(ROOT, ".madgerc"), "utf8"));
+const madgeConfig = JSON.parse(
+  readFileSync(join(ROOT, "config", "madge.json"), "utf8")
+);
 const result = await madge(join(ROOT, "src"), {
   ...madgeConfig,
   fileExtensions: ["ts", "tsx"],

@@ -1,12 +1,12 @@
 import React from "react";
 
 import {
+  DeliveryBox01Icon,
   GaugeIcon,
   GithubIcon,
   InboxIcon,
   KanbanIcon,
   MessageAdd02Icon,
-  PackageAdd01Icon,
   PencilEdit02Icon,
 } from "@src/icons";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
@@ -55,7 +55,7 @@ interface BuildTeamInboxMenuItemParams {
   teamInboxUnreadAriaLabel?: string;
 }
 
-export function buildTeamInboxMenuItem({
+function buildTeamInboxMenuItem({
   teamInboxLabel,
   teamInboxUnreadCount = 0,
   teamInboxUnreadAriaLabel,
@@ -152,8 +152,8 @@ export function buildProjectsPinnedMenuItems({
       id: PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
       key: PROJECTS_NEW_PROJECT_MENU_ITEM_ID,
       label: createProjectLabel,
-      icon: PackageAdd01Icon,
-      iconName: "package-add",
+      icon: DeliveryBox01Icon,
+      iconName: "box",
       dataTestId: "sidebar-create-project",
     },
     {
@@ -213,7 +213,7 @@ export function buildDraftMenuItems({
         }),
         shortcut: formatRelativeTime(draft.createdAt, "nano"),
         openContextMenuOnSelectedClick: true,
-        trailingElement: (
+        iconBadge: (
           <span className="h-1.5 w-1.5 rounded-full border border-border-3 bg-transparent" />
         ),
       } satisfies NavigationMenuItem;

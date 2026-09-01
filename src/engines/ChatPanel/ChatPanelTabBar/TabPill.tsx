@@ -20,8 +20,8 @@ import { TabPillSurface } from "@src/components/TabPill/TabPillSurface";
 import { SURFACE_TOKENS } from "@src/config/surfaceTokens";
 import { TERMINAL_AGENT_STATUS } from "@src/engines/TerminalCore/types";
 import {
-  BoxIcon,
   CircleDotIcon,
+  DeliveryBox01Icon,
   GaugeIcon,
   GitPullRequestIcon,
   HashtagIcon,
@@ -34,7 +34,6 @@ import {
   LockIcon,
   MessageAdd01Icon,
   MessageAdd02Icon,
-  PackageAdd01Icon,
   PencilEdit02Icon,
   Settings02Icon,
   SquareTerminalIcon,
@@ -146,8 +145,8 @@ export const TabPill = memo(function TabPill({
     if (createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT) {
       icon = (
         <HugeiconsIcon
-          icon={PackageAdd01Icon}
-          data-icon="package-add"
+          icon={DeliveryBox01Icon}
+          data-icon="box"
           size={16}
           strokeWidth={1.75}
           className={`shrink-0 ${iconColorClass}`}
@@ -271,17 +270,6 @@ export const TabPill = memo(function TabPill({
         className={`shrink-0 ${iconColorClass}`}
       />
     );
-  } else if (
-    tab.type === "project" &&
-    tab.project?.projectSyncAdapterId === STORY_SYNC_ADAPTER.GITHUB
-  ) {
-    icon = (
-      <IntegrationIcon
-        type={STORY_SYNC_ADAPTER.GITHUB}
-        size={16}
-        className={`shrink-0 ${iconColorClass}`}
-      />
-    );
   } else if (isGitHubIssueTab) {
     icon = (
       <IntegrationIcon
@@ -293,7 +281,7 @@ export const TabPill = memo(function TabPill({
   } else if (tab.type === "project") {
     icon = (
       <HugeiconsIcon
-        icon={BoxIcon}
+        icon={DeliveryBox01Icon}
         data-icon="box"
         size={16}
         strokeWidth={1.75}

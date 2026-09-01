@@ -20,7 +20,7 @@ import {
   ChevronsLeftRightEllipsisIcon as ChevronsLeftRightEllipsis,
   CircleDollarSignIcon as CircleDollarSign,
   CirclePileIcon as CirclePile,
-  CodeIcon as Code,
+  CodeXmlIcon as Code,
   Coins01Icon as Coins,
   CommandIcon as Command,
   CompassIcon as Compass,

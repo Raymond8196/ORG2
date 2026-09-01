@@ -7,11 +7,11 @@ import React from "react";
 
 import { DROPDOWN_ITEM } from "@src/components/Dropdown/tokens";
 import {
-  BookOpen01Icon,
   Calendar01Icon,
   CircleDotIcon,
   CircleIcon,
   Delete02Icon,
+  DeliveryBox01Icon,
   DiamondIcon,
   Flag01Icon,
   HugeiconsIcon,
@@ -140,7 +140,7 @@ export const PROPERTY_FIELDS: PropertyFieldConfig[] = [
     key: "project",
     label: "workItems.propertyFields.project",
     icon: React.createElement(HugeiconsIcon, {
-      icon: BookOpen01Icon,
+      icon: DeliveryBox01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     type: "project",
@@ -205,7 +205,7 @@ export function createProjectOption(
     value: project.id,
     label: project.name,
     icon: React.createElement(HugeiconsIcon, {
-      icon: BookOpen01Icon,
+      icon: DeliveryBox01Icon,
       size: DROPDOWN_ITEM.iconSize,
     }),
     color: project.color || ENTITY_COLORS.blue,
@@ -387,7 +387,7 @@ function createProjectSubmenu(
       id: `project-${project.id}`,
       label: project.name,
       icon: React.createElement(HugeiconsIcon, {
-        icon: BookOpen01Icon,
+        icon: DeliveryBox01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       iconColor: project.color,
@@ -542,7 +542,7 @@ export const getContextMenuItems = (
       id: "project",
       label: tr("workItems.contextMenu.project", "Project"),
       icon: React.createElement(HugeiconsIcon, {
-        icon: BookOpen01Icon,
+        icon: DeliveryBox01Icon,
         size: DROPDOWN_ITEM.iconSize,
       }),
       secondary:

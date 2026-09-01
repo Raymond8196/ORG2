@@ -10,7 +10,7 @@ import { Placeholder } from "@src/components/Placeholder";
 import { getToolIcon } from "@src/config/toolIcons";
 import {
   Cancel01Icon,
-  CodeIcon,
+  CodeXmlIcon,
   HugeiconsIcon,
   UnfoldMoreIcon,
 } from "@src/icons";
@@ -349,7 +349,7 @@ export const SearchResultsContent: React.FC<{
             >
               {isGit ? (
                 <HugeiconsIcon
-                  icon={CodeIcon}
+                  icon={CodeXmlIcon}
                   data-icon="code-2"
                   size={14}
                   className="flex-shrink-0 text-primary-6"

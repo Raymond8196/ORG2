@@ -417,7 +417,9 @@
     "switchMethod": "Zmień metodę",
     "dismiss": "Odrzuć",
     "comingSoon": "Wkrótce",
-    "clearSelection": "Wyczyść zaznaczenie"
+    "clearSelection": "Wyczyść zaznaczenie",
+    "uiSettings": "Ustawienia interfejsu",
+    "clearAll": "Wyczyść wszystko"
   },
   "refreshToast": {
     "successName": "Odświeżono: {{name}}"
@@ -1269,7 +1271,12 @@
       "newMiniTerminal": "Nowy miniterminal",
       "showMiniTerminals": "Miniterminale",
       "sessionInMiniTerminal": "Działa w miniterminalu",
-      "returnFromMiniTerminal": "Pokaż tutaj"
+      "returnFromMiniTerminal": "Pokaż tutaj",
+      "resizeTerminal": "Zmień rozmiar terminala",
+      "terminalProcessCount_one": "{{count}} proces",
+      "terminalProcessCount_other": "{{count}} procesu",
+      "terminalProcessCount_few": "{{count}} procesy",
+      "terminalProcessCount_many": "{{count}} procesów"
     },
     "pr": {
       "title": "Pull request",
@@ -1575,11 +1582,8 @@
       "selectAccount": "Wybierz konto"
     },
     "modelProperties": {
-      "options": "Opcje",
       "effort": "Wysiłek",
-      "default": "Domyślnie",
-      "faster": "Szybciej",
-      "smarter": "Mądrzej"
+      "default": "Domyślnie"
     },
     "shared": {
       "repo": "repo",
@@ -1681,7 +1685,8 @@
         "refresh": "Odśwież gałąź",
         "checkoutDetachedSuccess": "Jesteś teraz w stanie detached HEAD na bieżącym commicie",
         "removeWorktree": "Usuń Worktree",
-        "newWorktree": "Nowy worktree..."
+        "newWorktree": "Nowy worktree...",
+        "refreshPullRequests": "Odśwież Pull requests"
       },
       "messages": {
         "deletedCount_one": "Usunięto {{count}} gałąź",
@@ -1698,12 +1703,21 @@
         "worktreeInUse": "W użyciu",
         "checkedOutInWorktree": "Checkout w Worktree: {{path}}",
         "mainWorktreeSection": "Główny worktree",
-        "linkedWorktrees": "Połączone worktree"
+        "linkedWorktrees": "Połączone worktree",
+        "noGithubRemote": "Nie skonfigurowano zdalnego repozytorium GitHub",
+        "prSearchScope": "Wyszukiwanie wśród {{count}} wczytanych Pull requests",
+        "prLimit": "Wyświetlono do {{count}} otwartych PR",
+        "noPullRequests": "Brak pasujących Pull requests"
       },
       "placeholders": {
         "checkout": "gałąź",
-        "add": "nazwa nowej gałęzi",
-        "remove": "gałąź"
+        "add": "nazwa nowej gałęzi...",
+        "remove": "gałąź",
+        "pullRequests": "Szukaj Pull requests..."
+      },
+      "tabs": {
+        "branches": "Gałęzie",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1734,6 +1748,7 @@
       "switchColumn": "Zmień kolumnę",
       "switchSection": "Zmień sekcję",
       "showPath": "Pokaż ścieżkę",
+      "showBranchInfo": "Pokaż informacje o gałęzi",
       "compatibleKeys": "Zgodne",
       "planSupport": "Plan",
       "byokSupport": "Klucze",

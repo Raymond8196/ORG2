@@ -15,6 +15,7 @@ import {
   CHAT_BUBBLE_TOOLBAR_BUTTON_CLASS,
   ChatBubbleCopyButton,
 } from "@src/components/ChatBubble";
+import ClampedContent from "@src/components/ClampedContent";
 import ExpandOverlay from "@src/components/ExpandOverlay";
 import PersonAvatar from "@src/components/PersonAvatar";
 import { REPO_SETUP_PROMPT_MARKER } from "@src/config/repoSetupMarker";
@@ -67,6 +68,8 @@ function readConversationSenderStamp(
 
 const USER_MSG_MAX_LINES = 3;
 const USER_MSG_MAX_CHARS = 120;
+// Continuous chat leaves roughly ten rendered lines visible before folding.
+const USER_MSG_CONTINUOUS_PREVIEW_HEIGHT = 10 * 24;
 const AGENT_ORG_INBOX_TRANSCRIPT_PREFIX = "Acknowledged inbox batch";
 const PLAN_APPROVED_PREFIX = "[Plan approved";
 
@@ -76,6 +79,8 @@ const PLAN_APPROVED_PREFIX = "[Plan approved";
 
 interface UserChatItemProps {
   chatItem: OptimizedChatItem;
+  /** Keep the short preview used by paginated/pinned turn headers. */
+  compactPreview?: boolean;
   onEditSubmit?: (newText: string, imageDataUrls?: string[]) => void;
   /** Extra actions rendered in the message's copy / restore / edit toolbar. */
   toolbarActions?: React.ReactNode;
@@ -192,6 +197,7 @@ const DISPLAY_CONTAINER_BASE =
 
 const UserChatItem = ({
   chatItem,
+  compactPreview = true,
   onEditSubmit,
   toolbarActions,
   onRestoreCheckpoint,
@@ -289,11 +295,12 @@ const UserChatItem = ({
   const messageImages = isAgentOrgInboxTranscript ? undefined : activityImages;
 
   const needsTruncation = useMemo(() => {
+    if (!compactPreview) return false;
     const textToCheck = fullContent || editedText;
     if (!textToCheck) return false;
     if (textToCheck.split("\n").length > USER_MSG_MAX_LINES) return true;
     return textToCheck.length > USER_MSG_MAX_CHARS;
-  }, [editedText, fullContent]);
+  }, [compactPreview, editedText, fullContent]);
 
   // The wire prompt behind this bubble. `fullContent` is a rendering of it
   // (pills as badges, expansion block stripped, envelope normalized), so the
@@ -433,6 +440,13 @@ const UserChatItem = ({
       "Shared user";
 
   const containerClass = `${DISPLAY_CONTAINER_BASE} ${isEditableDisplay ? "cursor-pointer outline-none" : ""}`;
+  const messageContent = (
+    <UserMessageContent
+      text={fullContent}
+      images={messageImages}
+      mentions={mentions}
+    />
+  );
 
   // Display mode
   const display = (
@@ -474,48 +488,52 @@ const UserChatItem = ({
             </div>
           ) : (
             <>
-              {(fullContent || (messageImages && messageImages.length > 0)) && (
-                <div className="group/expand relative w-full">
-                  <div
-                    ref={messageContentRef}
-                    className={`allow-select ${isExpanded && displayNeedsTruncation ? "scrollbar-hide" : ""}`}
-                    style={
-                      displayNeedsTruncation && !isExpanded
-                        ? { maxHeight: 72, overflow: "hidden" }
-                        : isExpanded && displayNeedsTruncation
-                          ? {
-                              maxHeight: 240,
-                              overflowY: "auto",
-                              overflowX: "hidden",
-                            }
-                          : undefined
-                    }
+              {(fullContent || (messageImages && messageImages.length > 0)) &&
+                (!compactPreview ? (
+                  <ClampedContent
+                    maxHeight={USER_MSG_CONTINUOUS_PREVIEW_HEIGHT}
+                    className="allow-select"
                   >
-                    <UserMessageContent
-                      text={fullContent}
-                      images={messageImages}
-                      mentions={mentions}
-                    />
+                    {messageContent}
+                  </ClampedContent>
+                ) : (
+                  <div className="group/expand relative w-full">
+                    <div
+                      ref={messageContentRef}
+                      className={`allow-select ${isExpanded && displayNeedsTruncation ? "scrollbar-hide" : ""}`}
+                      style={
+                        displayNeedsTruncation && !isExpanded
+                          ? { maxHeight: 72, overflow: "hidden" }
+                          : isExpanded && displayNeedsTruncation
+                            ? {
+                                maxHeight: 240,
+                                overflowY: "auto",
+                                overflowX: "hidden",
+                              }
+                            : undefined
+                      }
+                    >
+                      {messageContent}
 
-                    {displayNeedsTruncation && isExpanded && (
+                      {displayNeedsTruncation && isExpanded && (
+                        <ExpandOverlay
+                          isExpanded
+                          onToggle={handleToggleTruncation}
+                          fadeFrom="from-fill-2"
+                        />
+                      )}
+                    </div>
+
+                    {displayNeedsTruncation && !isExpanded && (
                       <ExpandOverlay
-                        isExpanded
+                        isExpanded={false}
                         onToggle={handleToggleTruncation}
+                        collapsedFadeHeightClass="h-8"
                         fadeFrom="from-fill-2"
                       />
                     )}
                   </div>
-
-                  {displayNeedsTruncation && !isExpanded && (
-                    <ExpandOverlay
-                      isExpanded={false}
-                      onToggle={handleToggleTruncation}
-                      collapsedFadeHeightClass="h-8"
-                      fadeFrom="from-fill-2"
-                    />
-                  )}
-                </div>
-              )}
+                ))}
 
               {cachedFiles.length > 0 && (
                 <div className="scrollbar-x-hover flex max-w-full flex-nowrap gap-2">

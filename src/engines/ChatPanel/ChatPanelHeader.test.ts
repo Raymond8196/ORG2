@@ -42,6 +42,7 @@ function render({
   return renderToStaticMarkup(
     createElement(ChatPanelHeader, {
       activeSessionExists: true,
+      chatPanelPosition: "left",
       copyEventJsonLabel: "idle" as const,
       currentSessionId: "session-a",
       displayMode: "full" as const,
@@ -111,6 +112,7 @@ describe("ChatPanelHeader tab row collapse", () => {
     expect(markup).toContain('data-testid="chat-panel-collapsed-tab-controls"');
     // + / restore / close all survive the fold.
     expect(markup).toContain('data-plus-menu="true"');
+    expect(markup).toContain('data-icon="layout-align-right"');
     expect(markup).toContain('data-icon="panel-right"');
     // Swapped, never cross-faded — overlapping the two near-identical
     // outlines is what made the icon shake on hover.

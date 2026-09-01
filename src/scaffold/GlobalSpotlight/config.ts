@@ -8,7 +8,7 @@ import {
   CenterFocusIcon,
   Clock01Icon,
   CloudIcon,
-  CodeIcon,
+  CodeXmlIcon,
   Delete02Icon,
   Download02Icon,
   FolderAddIcon,
@@ -56,7 +56,7 @@ export const ICONS = {
   addWorkspace: FolderImportIcon,
 
   // Shared UI
-  repo: CodeIcon,
+  repo: CodeXmlIcon,
   config: Settings01Icon,
   done: Tick01Icon,
   language: LanguageCircleIcon,
@@ -104,12 +104,12 @@ export const ICONS = {
   aiSpark: SparklesIcon,
 
   // Selector-specific icons
-  switchRepo: CodeIcon,
+  switchRepo: CodeXmlIcon,
   removeRepo: Delete02Icon,
   removeBranch: Delete02Icon,
   editRepo: Pen01Icon,
   recent: Clock01Icon,
-  local: CodeIcon,
+  local: CodeXmlIcon,
   github: GithubIcon,
   githubPublic: InternetIcon,
   githubPrivate: LockIcon,
@@ -188,4 +188,4 @@ export const TAG_COLORS: Record<string, string> = {
 
 // ============ SPOTLIGHT POSITIONING CONFIG ============
 // Re-export from constants.ts to avoid circular dependency
-export { LIMITS, SPOTLIGHT_CONFIG } from "./constants";
+export { SPOTLIGHT_CONFIG } from "./constants";

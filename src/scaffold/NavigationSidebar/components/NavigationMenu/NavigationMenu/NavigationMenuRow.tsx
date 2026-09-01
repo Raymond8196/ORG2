@@ -459,35 +459,46 @@ function renderLeadingIcon({
     item.iconElement
   );
   const action = item.iconAction;
-  if (!action) return icon;
+  if (!action && !item.iconBadge) return icon;
 
-  const ActionIcon = action.icon ?? ArrowDown01Icon;
+  const ActionIcon = action?.icon ?? ArrowDown01Icon;
 
   return (
-    <span className="relative inline-flex h-[14px] w-[14px] flex-shrink-0 items-center justify-center leading-none">
-      <span className="inline-flex items-center justify-center leading-none transition-opacity duration-150 group-focus-within:pointer-events-none group-focus-within:opacity-0 group-hover:pointer-events-none group-hover:opacity-0">
-        {icon}
-      </span>
-      <button
-        type="button"
-        aria-label={action.label}
-        title={action.label}
-        className={`pointer-events-none absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-[background-color,color,opacity] duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:pointer-events-auto focus:opacity-100 focus:outline-none group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 ${
-          action.active ? "text-text-1" : "text-text-3"
-        }`}
-        onClick={(event) => {
-          event.preventDefault();
-          event.stopPropagation();
-          action.onClick(event);
-        }}
-      >
-        <AnyIcon
-          icon={ActionIcon}
-          size={14}
-          strokeWidth={2}
-          className={action.iconClassName}
-        />
-      </button>
+    <span className="relative inline-flex h-3.5 w-3.5 flex-shrink-0 items-center justify-center leading-none">
+      {action ? (
+        <>
+          <span className="inline-flex items-center justify-center leading-none transition-opacity duration-150 group-focus-within:pointer-events-none group-focus-within:opacity-0 group-hover:pointer-events-none group-hover:opacity-0">
+            {icon}
+          </span>
+          <button
+            type="button"
+            aria-label={action.label}
+            title={action.label}
+            className={`pointer-events-none absolute left-1/2 top-1/2 flex h-5 w-5 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded opacity-0 transition-[background-color,color,opacity] duration-150 hover:bg-sidebar-selected hover:text-text-1 focus:pointer-events-auto focus:opacity-100 focus:outline-none group-focus-within:pointer-events-auto group-focus-within:opacity-100 group-hover:pointer-events-auto group-hover:opacity-100 ${
+              action.active ? "text-text-1" : "text-text-3"
+            }`}
+            onClick={(event) => {
+              event.preventDefault();
+              event.stopPropagation();
+              action.onClick(event);
+            }}
+          >
+            <AnyIcon
+              icon={ActionIcon}
+              size={14}
+              strokeWidth={2}
+              className={action.iconClassName}
+            />
+          </button>
+        </>
+      ) : (
+        icon
+      )}
+      {item.iconBadge && (
+        <span className="pointer-events-none absolute -bottom-0.5 -right-0.5 inline-flex rounded-full bg-bg-1 ring-1 ring-bg-1">
+          {item.iconBadge}
+        </span>
+      )}
     </span>
   );
 }

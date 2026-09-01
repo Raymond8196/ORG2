@@ -39,7 +39,12 @@ import {
 import SplitButton from "@src/components/SplitButton";
 import { createLogger } from "@src/hooks/logger";
 import type { CursorRepo } from "@src/hooks/policies";
-import { CodeIcon, HugeiconsIcon, ShieldAlertIcon, UserIcon } from "@src/icons";
+import {
+  CodeXmlIcon,
+  HugeiconsIcon,
+  ShieldAlertIcon,
+  UserIcon,
+} from "@src/icons";
 import { getFileManagerRevealLabelKey } from "@src/util/platform/fileManagerLabels";
 import { openFileInWorkStation } from "@src/util/ui/openFileInWorkStation";
 
@@ -80,7 +85,7 @@ const SOURCE_ICON_MODEL_TYPE: Record<SourceAgent, ModelType> = {
   codex: CLI_AGENT.CODEX,
 };
 
-export interface ExternalImportColumnLabels {
+interface ExternalImportColumnLabels {
   /** Header for the leftmost (item-name) column. */
   itemColumnHeader: string;
 }
@@ -457,7 +462,7 @@ export function useExternalImport({
           return labelA.localeCompare(labelB);
         },
         renderCell: (row) => {
-          const Icon = row.targetRepoPath ? CodeIcon : UserIcon;
+          const Icon = row.targetRepoPath ? CodeXmlIcon : UserIcon;
           return (
             <span
               className={`${SETTINGS_TABLE_CELL.muted} inline-flex items-center gap-2 whitespace-nowrap`}

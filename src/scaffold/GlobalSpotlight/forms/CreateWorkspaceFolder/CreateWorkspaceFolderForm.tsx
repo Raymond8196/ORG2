@@ -8,7 +8,7 @@ import React, { useEffect } from "react";
 import { useTranslation } from "react-i18next";
 
 import Input from "@src/components/Input";
-import { CodeIcon, FolderClosedIcon, HugeiconsIcon } from "@src/icons";
+import { CodeXmlIcon, FolderClosedIcon, HugeiconsIcon } from "@src/icons";
 import { PanelFooter } from "@src/modules/shared/layouts/blocks";
 import { joinPathForDisplay } from "@src/util/file/pathUtils";
 
@@ -98,7 +98,7 @@ const CreateWorkspaceFolderForm: React.FC<CreateWorkspaceFolderFormProps> = ({
               className="h-[32px] rounded-lg bg-fill-1 text-[14px]"
               prefix={
                 <HugeiconsIcon
-                  icon={CodeIcon}
+                  icon={CodeXmlIcon}
                   data-icon="code"
                   className="text-[16px] text-text-2"
                   size={16}

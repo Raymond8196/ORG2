@@ -413,7 +413,9 @@
     "switchMethod": "Cambiar método",
     "dismiss": "Ignorar",
     "comingSoon": "Próximamente",
-    "clearSelection": "Borrar selección"
+    "clearSelection": "Borrar selección",
+    "uiSettings": "Ajustes de interfaz",
+    "clearAll": "Limpiar todo"
   },
   "refreshToast": {
     "successName": "{{name}} actualizado"
@@ -1265,7 +1267,10 @@
       "newMiniTerminal": "Nuevo miniterminal",
       "showMiniTerminals": "Miniterminales",
       "sessionInMiniTerminal": "En ejecución en el miniterminal",
-      "returnFromMiniTerminal": "Mostrar aquí"
+      "returnFromMiniTerminal": "Mostrar aquí",
+      "resizeTerminal": "Cambiar tamaño del terminal",
+      "terminalProcessCount_one": "{{count}} proceso",
+      "terminalProcessCount_other": "{{count}} procesos"
     },
     "pr": {
       "title": "Pull request",
@@ -1573,11 +1578,8 @@
       "selectAccount": "Seleccionar una cuenta"
     },
     "modelProperties": {
-      "options": "Opciones",
       "effort": "Esfuerzo",
-      "default": "Predeterminado",
-      "faster": "Más rápido",
-      "smarter": "Más inteligente"
+      "default": "Predeterminado"
     },
     "repo": {
       "workspaceFolders": "Carpetas del Workspace",
@@ -1671,7 +1673,8 @@
         "refresh": "Actualizar rama",
         "checkoutDetachedSuccess": "En estado detached HEAD en el commit actual",
         "removeWorktree": "Eliminar Worktree",
-        "newWorktree": "Nuevo worktree..."
+        "newWorktree": "Nuevo worktree...",
+        "refreshPullRequests": "Actualizar Pull requests"
       },
       "messages": {
         "deletedCount_one": "{{count}} rama eliminada",
@@ -1688,12 +1691,21 @@
         "worktreeInUse": "En uso",
         "checkedOutInWorktree": "Checkout en Worktree: {{path}}",
         "mainWorktreeSection": "Worktree principal",
-        "linkedWorktrees": "Worktrees vinculados"
+        "linkedWorktrees": "Worktrees vinculados",
+        "noGithubRemote": "No hay un remoto de GitHub configurado",
+        "prSearchScope": "Buscar en {{count}} Pull requests cargadas",
+        "prLimit": "Se muestran hasta {{count}} PR abiertas",
+        "noPullRequests": "No hay Pull requests coincidentes"
       },
       "placeholders": {
         "checkout": "rama",
-        "add": "nombre de nueva rama",
-        "remove": "rama"
+        "add": "nombre de nueva rama...",
+        "remove": "rama",
+        "pullRequests": "Buscar Pull requests..."
+      },
+      "tabs": {
+        "branches": "Ramas",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1724,6 +1736,7 @@
       "switchColumn": "Cambiar columna",
       "switchSection": "Cambiar sección",
       "showPath": "Mostrar ruta",
+      "showBranchInfo": "Mostrar información de rama",
       "compatibleKeys": "Compatible",
       "planSupport": "Plan",
       "byokSupport": "Keys",

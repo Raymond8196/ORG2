@@ -411,7 +411,9 @@
     "switchMethod": "Đổi phương thức",
     "dismiss": "Bỏ qua",
     "comingSoon": "Sắp ra mắt",
-    "clearSelection": "Xóa lựa chọn"
+    "clearSelection": "Xóa lựa chọn",
+    "uiSettings": "Cài đặt giao diện",
+    "clearAll": "Xóa tất cả"
   },
   "refreshToast": {
     "successName": "Đã làm mới {{name}}"
@@ -1264,7 +1266,10 @@
       "newMiniTerminal": "Terminal thu nhỏ mới",
       "showMiniTerminals": "Terminal thu nhỏ",
       "sessionInMiniTerminal": "Đang chạy trong terminal thu nhỏ",
-      "returnFromMiniTerminal": "Hiển thị tại đây"
+      "returnFromMiniTerminal": "Hiển thị tại đây",
+      "resizeTerminal": "Thay đổi kích thước terminal",
+      "terminalProcessCount_one": "{{count}} tiến trình",
+      "terminalProcessCount_other": "{{count}} tiến trình"
     },
     "pr": {
       "title": "Pull request",
@@ -1572,11 +1577,8 @@
       "selectAccount": "Chọn tài khoản"
     },
     "modelProperties": {
-      "options": "Tùy chọn",
       "effort": "Effort",
-      "default": "Mặc định",
-      "faster": "Nhanh hơn",
-      "smarter": "Thông minh hơn"
+      "default": "Mặc định"
     },
     "repo": {
       "workspaceFolders": "Thư mục Workspace",
@@ -1670,7 +1672,8 @@
         "refresh": "Làm mới nhánh",
         "checkoutDetachedSuccess": "Đang ở trạng thái detached HEAD tại commit hiện tại",
         "removeWorktree": "Xóa Worktree",
-        "newWorktree": "Worktree mới..."
+        "newWorktree": "Worktree mới...",
+        "refreshPullRequests": "Làm mới Pull requests"
       },
       "messages": {
         "deletedCount_one": "Đã xóa {{count}} nhánh",
@@ -1687,12 +1690,21 @@
         "worktreeInUse": "Đang dùng",
         "checkedOutInWorktree": "Đã checkout trong Worktree: {{path}}",
         "mainWorktreeSection": "Worktree chính",
-        "linkedWorktrees": "Worktree liên kết"
+        "linkedWorktrees": "Worktree liên kết",
+        "noGithubRemote": "Chưa cấu hình kho từ xa GitHub",
+        "prSearchScope": "Tìm trong {{count}} Pull requests đã tải",
+        "prLimit": "Hiển thị tối đa {{count}} PR đang mở",
+        "noPullRequests": "Không có Pull requests phù hợp"
       },
       "placeholders": {
         "checkout": "nhánh",
-        "add": "tên nhánh mới",
-        "remove": "nhánh"
+        "add": "tên nhánh mới...",
+        "remove": "nhánh",
+        "pullRequests": "Tìm kiếm Pull requests..."
+      },
+      "tabs": {
+        "branches": "Nhánh",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1723,6 +1735,7 @@
       "switchColumn": "Đổi cột",
       "switchSection": "Đổi phần",
       "showPath": "Hiện đường dẫn",
+      "showBranchInfo": "Hiện thông tin nhánh",
       "compatibleKeys": "Tương thích",
       "planSupport": "Plan",
       "byokSupport": "Keys",

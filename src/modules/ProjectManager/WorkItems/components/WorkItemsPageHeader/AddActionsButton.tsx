@@ -11,7 +11,12 @@ import {
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { useDropdownEngine } from "@src/hooks/dropdown";
-import { Add01Icon, BoxIcon, HugeiconsIcon, ListChecksIcon } from "@src/icons";
+import {
+  Add01Icon,
+  DeliveryBox01Icon,
+  HugeiconsIcon,
+  ListChecksIcon,
+} from "@src/icons";
 
 interface AddActionsButtonProps {
   onAddProject?: () => void;
@@ -145,7 +150,7 @@ export function AddActionsButton({
               data-testid="work-items-create-project"
             >
               <HugeiconsIcon
-                icon={BoxIcon}
+                icon={DeliveryBox01Icon}
                 data-icon="box"
                 size={DROPDOWN_ITEM.iconSize}
                 strokeWidth={1.75}

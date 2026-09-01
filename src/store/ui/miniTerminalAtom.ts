@@ -17,6 +17,7 @@
  */
 import { atom } from "jotai";
 
+import type { AddSessionOptions } from "@src/engines/TerminalCore/types";
 import { selectedRepoPathAtom } from "@src/store/repo";
 import {
   activeTerminalIdAtom,
@@ -24,6 +25,8 @@ import {
   editorAddTerminalSessionAtom,
   terminalSessionsAtom,
 } from "@src/store/workstation/codeEditor/terminal";
+
+export const MINI_TERMINAL_SESSION_LIMIT = 3;
 
 /** Panel shown. Suppression lifts whenever it hides. */
 export const miniTerminalVisibleAtom = atom<boolean>(false);
@@ -98,17 +101,26 @@ setMiniTerminalActiveIdAtom.debugLabel = "chatPanel/miniTerminal/setActiveId";
 /**
  * Show the panel on `sessionId`, or on a brand-new Workstation PTY when
  * called with `null`. Claiming an already-claimed session just focuses it.
+ * Check capacity before creating anything so a full dock cannot leave an
+ * extra Workstation session behind, including from stale UI callbacks.
  */
 export const openMiniTerminalAtom = atom(
   null,
-  (get, set, sessionId: string | null) => {
+  (get, set, sessionId: string | null, options?: AddSessionOptions) => {
+    const claimed = get(miniTerminalClaimedIdsAtom);
+    if (
+      claimed.length >= MINI_TERMINAL_SESSION_LIMIT &&
+      (sessionId === null || !claimed.includes(sessionId))
+    ) {
+      return null;
+    }
     const targetId =
       sessionId ??
       set(editorAddTerminalSessionAtom, {
         cwd: get(selectedRepoPathAtom) || undefined,
+        ...options,
       });
     if (!targetId) return null;
-    const claimed = get(miniTerminalClaimedIdsAtom);
     if (!claimed.includes(targetId)) {
       set(miniTerminalClaimedIdsStateAtom, [...claimed, targetId]);
     }

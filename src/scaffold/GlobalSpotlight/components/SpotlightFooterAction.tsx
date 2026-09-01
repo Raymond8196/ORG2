@@ -5,9 +5,9 @@
  */
 import React from "react";
 
-import { HugeiconsIcon, SquareArrowUpRight02Icon } from "@src/icons";
+import { ArrowUpRight01Icon, HugeiconsIcon } from "@src/icons";
 
-export interface SpotlightFooterActionProps {
+interface SpotlightFooterActionProps {
   label: string;
   onClick: () => void;
 }
@@ -25,7 +25,7 @@ export const SpotlightFooterAction: React.FC<SpotlightFooterActionProps> = ({
       >
         <span>{label}</span>
         <HugeiconsIcon
-          icon={SquareArrowUpRight02Icon}
+          icon={ArrowUpRight01Icon}
           data-icon="arrow-up-right"
           size={10}
           strokeWidth={2.5}

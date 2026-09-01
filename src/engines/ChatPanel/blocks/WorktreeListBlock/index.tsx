@@ -22,18 +22,18 @@ import {
 } from "../primitives";
 import { useBlockHeader } from "../useBlockLocate";
 
-export interface WorktreeEntryItem {
+interface WorktreeEntryItem {
   path: string;
   branch: string;
 }
 
-export interface WorktreeDetailRow {
+interface WorktreeDetailRow {
   key: string;
   label: string;
   value: string;
 }
 
-export interface WorktreeListBlockProps {
+interface WorktreeListBlockProps {
   action: string;
   entries?: WorktreeEntryItem[];
   rows?: WorktreeDetailRow[];

@@ -1,11 +1,5 @@
 import { useAtomValue, useSetAtom } from "jotai";
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
@@ -15,8 +9,10 @@ import AnyIcon from "@src/components/AnyIcon";
 import Button from "@src/components/Button";
 import Dropdown from "@src/components/Dropdown";
 import { DROPDOWN_CLASSES } from "@src/components/Dropdown/tokens";
+import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { getShortcutKeys } from "@src/config/keyboard/shortcutDisplay";
 import { ROUTES } from "@src/config/routes";
+import { BUTTON_SIZE } from "@src/config/workstation/tokens";
 import {
   FOCUSED_CHAT_WORKSTATION_MINIMAP_HOST_CLASS,
   isSameFocusedChatGitEnvironment,
@@ -30,7 +26,6 @@ import { useBranchPullRequestStatus } from "@src/hooks/git/useBranchPullRequestS
 import { useRepoSelection } from "@src/hooks/git/useRepoSelection";
 import { useWorkingTreeDiffTotals } from "@src/hooks/git/useWorkingTreeDiffTotals";
 import { useCloseTabWithGuard } from "@src/hooks/tabHost/useCloseTabWithGuard";
-import { useResizeHandle } from "@src/hooks/ui";
 import {
   ArrowLeftDoubleIcon,
   ArrowRightDoubleIcon,
@@ -44,11 +39,12 @@ import {
   SquareTerminalIcon,
 } from "@src/icons";
 import { openBranchSpotlight } from "@src/scaffold/GlobalSpotlight/openSpotlight";
-import { VerticalResizeHandle } from "@src/scaffold/Resize";
 import { WorkStationViewService } from "@src/services/workStation/WorkStationViewService";
 import { chatPanelMaximizedAtom } from "@src/store/ui/chatPanelAtom";
 import {
   closeMiniTerminalAtom,
+  miniTerminalClaimedIdsAtom,
+  miniTerminalCollapsedAtom,
   miniTerminalHostMountedAtom,
   miniTerminalVisibleAtom,
   openMiniTerminalAtom,
@@ -73,6 +69,8 @@ import {
 } from "@src/store/workstation/tabRegistry";
 import type { WorkStationTab } from "@src/store/workstation/tabs/types";
 import { openExternalLink } from "@src/util/platform/ipcRenderer";
+import { isChatPanelTerminalId } from "@src/util/ui/terminal/chatPanelSessionId";
+import { isAgentPtySessionId } from "@src/util/ui/terminal/ptySessionId";
 
 import {
   WORKSTATION_TRAIL_ICON_BUTTON_CLASS,
@@ -82,30 +80,25 @@ import {
   WorkstationTrailIconButton,
   WorkstationTrailSurface,
 } from "../blocks";
-import { WorkstationGroupToggle } from "./WorkstationGroupToggle";
+import {
+  WORKSTATION_TRAIL_ACTION_REVEAL_CLASS,
+  WorkstationGroupToggle,
+} from "./WorkstationGroupToggle";
 import { WorkstationSections } from "./WorkstationSections";
 import { WorkstationTrailTerminal } from "./WorkstationTrailTerminal";
 import {
   getStoredRailCollapsed,
-  getStoredRailMinWidth,
-  getStoredRailWidth,
   persistRailCollapsed,
-  persistRailMinWidth,
-  persistRailWidth,
   resolveRailStatusDotClass,
 } from "./railStorage";
-import {
-  WORKSTATION_TRAIL_WIDTH_LIMITS,
-  clampTrailWidth,
-  resolveTrailMinWidth,
-  resolveTrailWidthVariables,
-} from "./trailWidth";
+import { resolveTrailWidthVariables } from "./trailWidth";
 import type {
   FocusedChatRailItem,
   FocusedChatRailSection,
   FocusedChatSessionContext,
   FocusedChatWorkstationRailProps,
 } from "./types";
+import { useTrailPanelDimensions } from "./useTrailPanelDimensions";
 import { useWorkstationTrailMenu } from "./useWorkstationTrailMenu";
 
 export type { FocusedChatSessionContext } from "./types";
@@ -137,8 +130,6 @@ function getRailTabFileName(tab: WorkStationTab): string | undefined {
       return (tab.data.filePath as string | undefined) || tab.title;
     case "directory":
       return "folder";
-    case "settings":
-      return "settings.json";
     default:
       return undefined;
   }
@@ -154,72 +145,7 @@ export function FocusedChatWorkstationRail({
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
   const [collapsed, setCollapsed] = useState(getStoredRailCollapsed);
-  // Expanded width and the user's own floor. `minWidth` only ever gates the
-  // width the user is actively changing — "set current width as minimum"
-  // pins the trail where it stands and never resizes it.
-  const [minWidth, setMinWidth] = useState(() =>
-    resolveTrailMinWidth(getStoredRailMinWidth())
-  );
-  const [width, setWidth] = useState(() =>
-    clampTrailWidth(
-      getStoredRailWidth(),
-      resolveTrailMinWidth(getStoredRailMinWidth())
-    )
-  );
-  // Latest width for `onResizeEnd`, which must persist without re-subscribing
-  // the drag listeners on every RAF-throttled width update.
-  const widthRef = useRef(width);
-
-  // Drag: state only, so the RAF-throttled stream never touches storage.
-  const handleWidthChange = useCallback((next: number) => {
-    widthRef.current = next;
-    setWidth(next);
-  }, []);
-  const handleResizeEnd = useCallback(() => {
-    persistRailWidth(widthRef.current);
-  }, []);
-  const { handleMouseDown: handleResizeMouseDown, isResizing } =
-    useResizeHandle(width, handleWidthChange, {
-      direction: "horizontal",
-      minSize: minWidth,
-      maxSize: WORKSTATION_TRAIL_WIDTH_LIMITS.max,
-      // The trail sits at the pane's right edge: dragging left grows it.
-      isReversed: true,
-      onResizeEnd: handleResizeEnd,
-    });
-
-  /** Menu-driven width change: clamp and persist immediately. */
-  const applyWidth = useCallback(
-    (next: number) => {
-      const clamped = clampTrailWidth(next, minWidth);
-      widthRef.current = clamped;
-      setWidth(clamped);
-      persistRailWidth(clamped);
-    },
-    [minWidth]
-  );
-
-  /** Pin the current width as the floor. Deliberately does not resize. */
-  const setCurrentWidthAsMinimum = useCallback(() => {
-    const nextMinimum = resolveTrailMinWidth(width);
-    setMinWidth(nextMinimum);
-    persistRailMinWidth(nextMinimum);
-  }, [width]);
-
-  /**
-   * Restore the shipped width. The user-set floor is cleared with it — a
-   * floor above 256px would otherwise leave this command a no-op with no
-   * way back from the menu.
-   */
-  const restoreDefaultWidth = useCallback(() => {
-    const nextMinimum = WORKSTATION_TRAIL_WIDTH_LIMITS.floor;
-    const nextWidth = WORKSTATION_TRAIL_WIDTH_LIMITS.default;
-    widthRef.current = nextWidth;
-    setMinWidth(nextMinimum);
-    setWidth(nextWidth);
-    persistRailMinWidth(nextMinimum);
-    persistRailWidth(nextWidth);
-  }, []);
+  const panelDimensions = useTrailPanelDimensions();
 
   const [collapsedGroupKeys, setCollapsedGroupKeys] = useState<Set<string>>(
     () => new Set()
@@ -297,6 +223,8 @@ export function FocusedChatWorkstationRail({
   const setChatPanelMaximized = useSetAtom(chatPanelMaximizedAtom);
   const requestNewBrowserSession = useSetAtom(requestNewBrowserSessionAtom);
   const miniTerminalVisible = useAtomValue(miniTerminalVisibleAtom);
+  const miniTerminalClaimedIds = useAtomValue(miniTerminalClaimedIdsAtom);
+  const miniTerminalCollapsed = useAtomValue(miniTerminalCollapsedAtom);
   const openMiniTerminal = useSetAtom(openMiniTerminalAtom);
   const closeMiniTerminal = useSetAtom(closeMiniTerminalAtom);
   const setMiniTerminalHostMounted = useSetAtom(miniTerminalHostMountedAtom);
@@ -310,7 +238,7 @@ export function FocusedChatWorkstationRail({
 
   /**
    * Show the docked terminal. The terminal carries its own width, so the
-   * trail above it keeps whatever width the user gave it — only the column
+   * trail above it keeps its fixed width — only the column
    * grows, and only when the terminal is the wider of the two.
    */
   const showMiniTerminal = useCallback(
@@ -378,6 +306,12 @@ export function FocusedChatWorkstationRail({
       .filter(
         (session) =>
           !session.readOnly &&
+          // Opened Tabs is a My Station list, not the shared PTY pool.
+          !isChatPanelTerminalId(session.id) &&
+          !isAgentPtySessionId(session.id) &&
+          // Pinned terminals belong only in their docked panel, even when
+          // collapsed; Opened Tabs must not repeat them.
+          !miniTerminalClaimedIds.includes(session.id) &&
           initializedTerminalIds.has(session.id) &&
           (!session.isDefaultSession || session.hasUserInput === true)
       )
@@ -385,11 +319,9 @@ export function FocusedChatWorkstationRail({
         key: `terminal-session:${session.id}`,
         label: getTerminalDisplayTitle(session),
         icon: SquareTerminalIcon,
-        closeLabel: t("common:git.rail.closeItem", {
-          label: getTerminalDisplayTitle(session),
-        }),
         onClick: () => openTerminalSession(session.id),
-        onClose: () => closePtySession(session.id),
+        stopLabel: t("common:tooltips.killTerminal"),
+        onStop: () => closePtySession(session.id),
       }));
 
     const tabItems = openTabs
@@ -418,6 +350,7 @@ export function FocusedChatWorkstationRail({
     closePtySession,
     closeTab,
     initializedTerminalIds,
+    miniTerminalClaimedIds,
     openTabs,
     openTerminalSession,
     openWorkstationTab,
@@ -624,10 +557,10 @@ export function FocusedChatWorkstationRail({
     ).map((sectionKey) => ({
       ...FOCUSED_CHAT_RAIL_SECTIONS[sectionKey],
       label:
-        sectionKey === "session"
+        sectionKey === "workspace"
           ? null
-          : sectionKey === "workspace"
-            ? t("navigation:labels.localEnvironment")
+          : sectionKey === "session"
+            ? t("navigation:labels.sessionEnvironment")
             : t("common:git.rail.openTabs"),
       items:
         sectionKey === "tabs"
@@ -655,14 +588,15 @@ export function FocusedChatWorkstationRail({
   ]);
 
   const environmentLabel = t("navigation:labels.sessionEnvironment");
+  const localEnvironmentLabel = t("navigation:labels.localEnvironment");
   const compactSections = useMemo<FocusedChatRailSection[]>(
     () =>
       sections.map((section) =>
-        section.key === "session"
-          ? { ...section, label: environmentLabel }
+        section.key === "workspace"
+          ? { ...section, label: localEnvironmentLabel }
           : section
       ),
-    [environmentLabel, sections]
+    [localEnvironmentLabel, sections]
   );
   const toggleCollapsed = () => {
     setCollapsed((current) => {
@@ -676,11 +610,6 @@ export function FocusedChatWorkstationRail({
   const showTrailTerminal = miniTerminalVisible && !collapsed;
 
   const handleTrailContextMenu = useWorkstationTrailMenu({
-    width,
-    minWidth,
-    onWidthChange: applyWidth,
-    onSetMinimum: setCurrentWidthAsMinimum,
-    onRestoreDefault: restoreDefaultWidth,
     miniTerminalVisible,
     onOpenMiniTerminal: () => showMiniTerminal(null),
     onHideMiniTerminal: closeMiniTerminal,
@@ -744,53 +673,32 @@ export function FocusedChatWorkstationRail({
   return (
     <>
       {compactMenu}
-      {/* Expanded column is continuously resizable (drag its leading edge, or
-          right-click the trail for the native width menu); the collapsed
-          column stays the fixed 44px button-controlled rail. */}
+      {/* Only the terminal can widen this column; the trail keeps its fixed width. */}
       <div
         data-workstation-pane-control
         data-workstation-trail-track
         className={`relative flex h-full shrink-0 flex-col items-start ${
-          isResizing
+          panelDimensions.isCornerResizing
             ? ""
             : "transition-[width] duration-200 ease-out motion-reduce:transition-none"
         } ${resolveFocusedChatWorkstationRailTrackClass(collapsed)}`}
         style={{
           ...resolveFocusedChatWorkstationRailInsetStyle(topInset),
-          ...resolveTrailWidthVariables(width, {
+          ...resolveTrailWidthVariables({
             collapsed,
-            terminalShown: showTrailTerminal,
+            // A folded terminal fills the trail's width; only its expanded
+            // body needs the wider column. Keep the panel mounted in both.
+            terminalShown: showTrailTerminal && !miniTerminalCollapsed,
+            terminalWidth: panelDimensions.terminalWidth,
           }),
         }}
       >
-        {/* Trail + terminal, grouped so the resize edge spans exactly them
-            and stops where they stop — the minimap track below is not part
-            of the resizable surface. */}
-        {/* The trail's own `max-h-full` is inert here — it resolves against
-            this group, whose height is content-driven — so the group carries
-            the cap instead: `max-h-full` against the full-height column plus
-            `min-h-0` so it can actually shrink into it. Without both, a long
-            trail outgrows the column and starves the minimap track below.
-            No `overflow-hidden`: it would clip the resize edge's hit area,
-            which reaches 6px past this box. */}
+        {/* Cap the panel group so long content still leaves the minimap in
+            the column. Each panel can shrink within the available height. */}
         <div className="relative hidden max-h-full min-h-0 w-full flex-col @[1100px]/focusedchat:flex">
-          {!collapsed ? (
-            <div className="absolute inset-y-0 left-0 z-30 flex">
-              <VerticalResizeHandle
-                className="h-full"
-                isResizing={isResizing}
-                onMouseDown={handleResizeMouseDown}
-                onContextMenu={handleTrailContextMenu}
-                tooltipLabel={t("common:git.rail.resizeTrail")}
-                variant="transparent"
-              />
-            </div>
-          ) : null}
           <WorkstationTrailSurface
             as="aside"
             aria-label={environmentLabel}
-            // Right-click anywhere on the trail opens the same native width
-            // menu as its resize edge — the edge alone is a 13px target.
             onContextMenu={handleTrailContextMenu}
             // `min-h-0` unconditionally: inside the capped group the trail
             // has to be able to shrink past its content height, whether what
@@ -798,21 +706,21 @@ export function FocusedChatWorkstationRail({
             className={`group/workstation-trail ml-auto flex min-h-0 ${WORKSTATION_TRAIL_WIDTH.surfaceResponsiveClass}`}
           >
             <WorkstationTrailHeader
-              title={environmentLabel}
+              title={localEnvironmentLabel}
               collapsed={collapsed}
               titleActions={
-                !collapsed && hasSessionEnvironment ? (
+                !collapsed ? (
                   <WorkstationGroupToggle
                     collapseLabel={t("common:actions.collapse")}
-                    collapsed={collapsedGroupKeys.has("session")}
+                    collapsed={collapsedGroupKeys.has("workspace")}
                     expandLabel={t("common:actions.expand")}
-                    groupKey="session"
-                    onToggle={() => toggleGroup("session")}
+                    groupKey="workspace"
+                    onToggle={() => toggleGroup("workspace")}
                   />
                 ) : null
               }
               actions={
-                <div className="flex items-center">
+                <>
                   {!collapsed ? (
                     <WorkstationTrailIconButton
                       onClick={toggleMiniTerminal}
@@ -827,7 +735,7 @@ export function FocusedChatWorkstationRail({
                           ? "common:git.rail.hideMiniTerminal"
                           : "common:git.rail.openMiniTerminal"
                       )}
-                      className={miniTerminalVisible ? "bg-fill-2" : ""}
+                      className={`${WORKSTATION_TRAIL_ACTION_REVEAL_CLASS} ${miniTerminalVisible ? "bg-fill-2" : ""}`}
                     >
                       <HugeiconsIcon
                         icon={SquareTerminalIcon}
@@ -838,6 +746,11 @@ export function FocusedChatWorkstationRail({
                     </WorkstationTrailIconButton>
                   ) : null}
                   <WorkstationTrailIconButton
+                    className={
+                      collapsed
+                        ? BUTTON_SIZE.lg
+                        : WORKSTATION_TRAIL_ACTION_REVEAL_CLASS
+                    }
                     onClick={toggleCollapsed}
                     aria-label={t(
                       collapsed
@@ -862,7 +775,7 @@ export function FocusedChatWorkstationRail({
                       />
                     )}
                   </WorkstationTrailIconButton>
-                </div>
+                </>
               }
             />
             {collapsed ? (
@@ -870,28 +783,33 @@ export function FocusedChatWorkstationRail({
                 {collapsedWorkspaceItems.map((item) => {
                   const icon = item.icon;
                   return (
-                    <button
+                    <ToolbarTooltip
                       key={item.key}
-                      type="button"
-                      className={`${WORKSTATION_TRAIL_ICON_BUTTON_CLASS} relative`}
-                      onClick={item.onClick}
-                      aria-label={
-                        item.status
-                          ? `${item.label}, ${item.status.label}`
-                          : item.label
-                      }
-                      title={item.status?.title ?? item.label}
+                      label={item.status?.title ?? item.label}
+                      shortcut={item.shortcut}
+                      position="left"
                     >
-                      <AnyIcon icon={icon} size={16} strokeWidth={1.75} />
-                      {item.status ? (
-                        <span
-                          aria-hidden
-                          className={`absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full ring-1 ring-bg-1 ${resolveRailStatusDotClass(
-                            item.status.state
-                          )}`}
-                        />
-                      ) : null}
-                    </button>
+                      <button
+                        type="button"
+                        className={`${WORKSTATION_TRAIL_ICON_BUTTON_CLASS} ${BUTTON_SIZE.lg} relative`}
+                        onClick={item.onClick}
+                        aria-label={
+                          item.status
+                            ? `${item.label}, ${item.status.label}`
+                            : item.label
+                        }
+                      >
+                        <AnyIcon icon={icon} size={16} strokeWidth={1.75} />
+                        {item.status ? (
+                          <span
+                            aria-hidden
+                            className={`absolute bottom-1 right-1 h-1.5 w-1.5 rounded-full ring-1 ring-bg-1 ${resolveRailStatusDotClass(
+                              item.status.state
+                            )}`}
+                          />
+                        ) : null}
+                      </button>
+                    </ToolbarTooltip>
                   );
                 })}
               </div>
@@ -907,7 +825,15 @@ export function FocusedChatWorkstationRail({
               </WorkstationTrailBody>
             )}
           </WorkstationTrailSurface>
-          {showTrailTerminal ? <WorkstationTrailTerminal /> : null}
+          {showTrailTerminal ? (
+            <WorkstationTrailTerminal
+              width={panelDimensions.terminalWidth}
+              height={panelDimensions.terminalHeight}
+              onResize={panelDimensions.resizeTerminal}
+              onResizeEnd={panelDimensions.commitTerminalSize}
+              onResizingChange={panelDimensions.setIsCornerResizing}
+            />
+          ) : null}
         </div>
         <div
           ref={conversationMinimapHostRef}

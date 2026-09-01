@@ -4,6 +4,7 @@
  * Manages action button configurations for EditorPrimarySidebar tabs.
  */
 import { useMemo } from "react";
+import { useTranslation } from "react-i18next";
 
 import AnyIcon from "@src/components/AnyIcon";
 import type { SectionHeaderAction } from "@src/components/TreePanelSidebar/types";
@@ -53,6 +54,7 @@ export function useExplorerActions({
   onSearchCollapseAll,
   onOpenSearchTab,
 }: UseExplorerActionsOptions): UseExplorerActionsResult {
+  const { t } = useTranslation("common");
   const {
     spinClass: filesRefreshSpinClass,
     handleClick: handleFilesRefreshClick,
@@ -161,7 +163,7 @@ export function useExplorerActions({
             strokeWidth={PANEL_CONSTANTS.ACTION_ICON_STROKE}
           />
         ),
-        tooltip: "Open in Tab",
+        tooltip: t("actions.openInNewTab"),
         onClick: onOpenSearchTab,
       });
     }
@@ -203,6 +205,7 @@ export function useExplorerActions({
     onToggleSearchFilters,
     onSearchCollapseAll,
     onOpenSearchTab,
+    t,
   ]);
 
   return {

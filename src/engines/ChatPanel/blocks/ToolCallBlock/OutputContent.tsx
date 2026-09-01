@@ -7,7 +7,7 @@ import {
   CancelCircleIcon,
   CheckmarkCircle01Icon,
   CircleIcon,
-  CodeIcon,
+  CodeXmlIcon,
   ComputerTerminal01Icon,
   Delete02Icon,
   FolderClosedIcon,
@@ -131,7 +131,7 @@ const ListWorkspacesOutput: React.FC<{ workspaces: WorkspaceEntry[] }> = ({
         leading={
           workspace.kind === "git" ? (
             <HugeiconsIcon
-              icon={CodeIcon}
+              icon={CodeXmlIcon}
               data-icon="code-2"
               size={14}
               className="shrink-0 text-primary-6"

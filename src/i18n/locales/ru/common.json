@@ -417,7 +417,9 @@
     "switchMethod": "Сменить способ",
     "dismiss": "Отклонить",
     "comingSoon": "Скоро",
-    "clearSelection": "Очистить выбор"
+    "clearSelection": "Очистить выбор",
+    "uiSettings": "Настройки интерфейса",
+    "clearAll": "Очистить всё"
   },
   "refreshToast": {
     "successName": "{{name}} обновлено"
@@ -1269,7 +1271,12 @@
       "newMiniTerminal": "Новый мини-терминал",
       "showMiniTerminals": "Мини-терминалы",
       "sessionInMiniTerminal": "Выполняется в мини-терминале",
-      "returnFromMiniTerminal": "Показать здесь"
+      "returnFromMiniTerminal": "Показать здесь",
+      "resizeTerminal": "Изменить размер терминала",
+      "terminalProcessCount_one": "{{count}} процесс",
+      "terminalProcessCount_other": "{{count}} процесса",
+      "terminalProcessCount_few": "{{count}} процесса",
+      "terminalProcessCount_many": "{{count}} процессов"
     },
     "pr": {
       "title": "Pull request",
@@ -1583,11 +1590,8 @@
       "selectAccount": "Выберите аккаунт"
     },
     "modelProperties": {
-      "options": "Параметры",
       "effort": "Усилие",
-      "default": "По умолчанию",
-      "faster": "Быстрее",
-      "smarter": "Умнее"
+      "default": "По умолчанию"
     },
     "repo": {
       "workspaceFolders": "Папки Workspace",
@@ -1681,7 +1685,8 @@
         "refresh": "Обновить ветку",
         "checkoutDetachedSuccess": "В состоянии detached HEAD на текущем коммите",
         "removeWorktree": "Удалить Worktree",
-        "newWorktree": "Новый worktree..."
+        "newWorktree": "Новый worktree...",
+        "refreshPullRequests": "Обновить Pull requests"
       },
       "messages": {
         "deletedCount_one": "Удалена {{count}} ветка",
@@ -1698,12 +1703,21 @@
         "worktreeInUse": "Используется",
         "checkedOutInWorktree": "Checkout в Worktree: {{path}}",
         "mainWorktreeSection": "Основной worktree",
-        "linkedWorktrees": "Связанные worktree"
+        "linkedWorktrees": "Связанные worktree",
+        "noGithubRemote": "Удалённый репозиторий GitHub не настроен",
+        "prSearchScope": "Поиск среди {{count}} загруженных Pull requests",
+        "prLimit": "Показано до {{count}} открытых PR",
+        "noPullRequests": "Нет подходящих Pull requests"
       },
       "placeholders": {
         "checkout": "ветка",
-        "add": "имя новой ветки",
-        "remove": "ветка"
+        "add": "имя новой ветки...",
+        "remove": "ветка",
+        "pullRequests": "Поиск Pull requests..."
+      },
+      "tabs": {
+        "branches": "Ветки",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1734,6 +1748,7 @@
       "switchColumn": "Сменить колонку",
       "switchSection": "Сменить раздел",
       "showPath": "Показывать путь",
+      "showBranchInfo": "Показывать информацию о ветках",
       "compatibleKeys": "Совместимые",
       "planSupport": "Plan",
       "byokSupport": "Keys",

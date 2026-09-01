@@ -52,6 +52,9 @@ export interface PaletteBodyProps {
   isLoading?: boolean;
   containerHeight?: number;
   fixedHeight?: boolean;
+  isLoadingMore?: boolean;
+  hasMore?: boolean;
+  onLoadMore?: () => void;
   hideActionClose?: boolean;
 
   topSlot?: React.ReactNode;
@@ -78,6 +81,9 @@ export const PaletteBody: React.FC<PaletteBodyProps> = ({
   isLoading = false,
   containerHeight = 350,
   fixedHeight = false,
+  isLoadingMore,
+  hasMore,
+  onLoadMore,
   hideActionClose = false,
   topSlot,
   hintSlot,
@@ -133,6 +139,9 @@ export const PaletteBody: React.FC<PaletteBodyProps> = ({
           containerHeight={containerHeight}
           isLoadingInitial={isLoading}
           fixedHeight={fixedHeight}
+          isLoadingMore={isLoadingMore}
+          hasMore={hasMore}
+          onLoadMore={onLoadMore}
         />
       )}
 

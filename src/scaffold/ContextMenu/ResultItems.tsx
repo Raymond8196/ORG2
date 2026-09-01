@@ -16,9 +16,9 @@ import {
 import FileTypeIcon from "@src/components/FileTypeIcon";
 import { Placeholder } from "@src/components/Placeholder";
 import {
-  CodeIcon,
+  CodeXmlIcon,
   ComputerTerminal01Icon,
-  FolderKanbanIcon,
+  DeliveryBox01Icon,
   HugeiconsIcon,
   type IconSvgElement,
   InternetIcon,
@@ -137,7 +137,7 @@ export const ResultItemIcon: React.FC<{
   if (item.iconType === "repo") {
     return (
       <HugeiconsIcon
-        icon={CodeIcon}
+        icon={CodeXmlIcon}
         data-icon="code"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
@@ -149,8 +149,8 @@ export const ResultItemIcon: React.FC<{
   if (item.iconType === "project") {
     return (
       <HugeiconsIcon
-        icon={FolderKanbanIcon}
-        data-icon="folder-kanban"
+        icon={DeliveryBox01Icon}
+        data-icon="box"
         size={DROPDOWN_ITEM.iconSize}
         strokeWidth={1.75}
         className={iconAccent}
@@ -184,7 +184,7 @@ ResultItemIcon.displayName = "ResultItemIcon";
 // Menu Item Row
 // ============================================
 
-export interface MenuItemRowProps {
+interface MenuItemRowProps {
   icon: IconSvgElement;
   label: string;
   description?: string;

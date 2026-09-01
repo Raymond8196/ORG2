@@ -255,7 +255,9 @@
     "copyName": "Copy Name",
     "dismiss": "Dismiss",
     "comingSoon": "Coming soon",
-    "clearSelection": "Clear selection"
+    "clearSelection": "Clear selection",
+    "uiSettings": "UI settings",
+    "clearAll": "Clear All"
   },
   "refreshToast": {
     "successName": "{{name}} refreshed"
@@ -1153,7 +1155,10 @@
       "newMiniTerminal": "New mini terminal",
       "showMiniTerminals": "Mini terminals",
       "sessionInMiniTerminal": "Running in the mini terminal",
-      "returnFromMiniTerminal": "Show it here"
+      "returnFromMiniTerminal": "Show it here",
+      "resizeTerminal": "Resize terminal",
+      "terminalProcessCount_one": "{{count}} process",
+      "terminalProcessCount_other": "{{count}} processes"
     },
     "messages": {
       "pushSuccess": "Successfully pushed changes to remote",
@@ -1492,11 +1497,19 @@
       "selectAccount": "Select an account"
     },
     "modelProperties": {
-      "options": "Options",
       "effort": "Effort",
       "default": "Default",
-      "faster": "Faster",
-      "smarter": "Smarter"
+      "settings": "Model settings",
+      "model": "Model",
+      "speed": "Speed",
+      "standard": "Standard",
+      "fast": "Fast",
+      "standardDescription": "Default speed",
+      "fastDescription": "Prioritize response speed",
+      "ultraDescription": "Uses usage limits faster",
+      "thinking": "Thinking",
+      "on": "On",
+      "off": "Off"
     },
     "shared": {
       "repo": "repo",
@@ -1599,7 +1612,8 @@
         "refresh": "Refresh branch",
         "checkoutDetachedSuccess": "Now in detached HEAD state at current commit",
         "removeWorktree": "Remove Worktree",
-        "newWorktree": "New Worktree..."
+        "newWorktree": "New Worktree...",
+        "refreshPullRequests": "Refresh Pull requests"
       },
       "messages": {
         "deletedCount_one": "Deleted {{count}} branch",
@@ -1616,12 +1630,21 @@
         "worktreeInUse": "In use",
         "checkedOutInWorktree": "Checked out in worktree: {{path}}",
         "mainWorktreeSection": "Main worktree",
-        "linkedWorktrees": "Linked worktrees"
+        "linkedWorktrees": "Linked worktrees",
+        "noGithubRemote": "No GitHub remote configured",
+        "prSearchScope": "Search covers {{count}} loaded Pull requests",
+        "prLimit": "Showing up to {{count}} open PRs",
+        "noPullRequests": "No matching Pull requests"
       },
       "placeholders": {
         "checkout": "branch",
-        "add": "new branch name",
-        "remove": "branch"
+        "add": "new branch name...",
+        "remove": "branch",
+        "pullRequests": "Search Pull requests..."
+      },
+      "tabs": {
+        "branches": "Branches",
+        "prs": "PR"
       }
     },
     "sessionInfo": {
@@ -1653,6 +1676,7 @@
       "switchColumn": "Switch column",
       "switchSection": "Switch section",
       "showPath": "Show path",
+      "showBranchInfo": "Show branch info",
       "compatibleKeys": "Compatible",
       "planSupport": "Plan",
       "byokSupport": "Keys",

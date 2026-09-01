@@ -16,7 +16,7 @@ import { compactRepoPathForDisplay } from "@src/util/file/repoPathDisplay";
 import { ICONS } from "../../config";
 import type { RepoItem, SpotlightItem, SpotlightItemData } from "../../types";
 
-export interface BuildRepoItemOptions {
+interface BuildRepoItemOptions {
   currentRepoId?: string;
   onAction: (repo: RepoItem) => void;
   /** Prefix for item IDs (avoids collisions in combined lists) */

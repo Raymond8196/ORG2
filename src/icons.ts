@@ -28,6 +28,7 @@ export { default as Add01Icon } from "@hugeicons/core-free-icons/Add01Icon";
 export { default as AiGenerativeIcon } from "@hugeicons/core-free-icons/AiGenerativeIcon";
 export { default as AiNetworkIcon } from "@hugeicons/core-free-icons/AiNetworkIcon";
 export { default as AiProgrammingIcon } from "@hugeicons/core-free-icons/AiProgrammingIcon";
+export { default as AiSettingIcon } from "@hugeicons/core-free-icons/AiSettingIcon";
 export { default as Airplane01Icon } from "@hugeicons/core-free-icons/Airplane01Icon";
 export { default as Alert01Icon } from "@hugeicons/core-free-icons/Alert01Icon";
 export { default as AlertCircleIcon } from "@hugeicons/core-free-icons/AlertCircleIcon";
@@ -140,7 +141,7 @@ export { default as CloudDownloadIcon } from "@hugeicons/core-free-icons/CloudDo
 export { default as CloudIcon } from "@hugeicons/core-free-icons/CloudIcon";
 export { default as CloudLoadingIcon } from "@hugeicons/core-free-icons/CloudLoadingIcon";
 export { default as CloudUploadIcon } from "@hugeicons/core-free-icons/CloudUploadIcon";
-export { default as CodeIcon } from "@hugeicons/core-free-icons/CodeIcon";
+export { default as CodeXmlIcon } from "@hugeicons/core-free-icons/CodeXmlIcon";
 export { default as ContentWritingIcon } from "@hugeicons/core-free-icons/ContentWritingIcon";
 export { default as Coffee01Icon } from "@hugeicons/core-free-icons/Coffee01Icon";
 export { default as CogIcon } from "@hugeicons/core-free-icons/CogIcon";
@@ -171,6 +172,7 @@ export { default as DashboardSquare01Icon } from "@hugeicons/core-free-icons/Das
 export { default as DatabaseIcon } from "@hugeicons/core-free-icons/DatabaseIcon";
 export { default as Delete01Icon } from "@hugeicons/core-free-icons/Delete01Icon";
 export { default as Delete02Icon } from "@hugeicons/core-free-icons/Delete02Icon";
+export { default as DeliveryBox01Icon } from "@hugeicons/core-free-icons/DeliveryBox01Icon";
 export { default as DiamondIcon } from "@hugeicons/core-free-icons/DiamondIcon";
 export { default as DockIcon } from "@hugeicons/core-free-icons/DockIcon";
 export { default as Download01Icon } from "@hugeicons/core-free-icons/Download01Icon";
@@ -278,6 +280,7 @@ export { default as LeftToRightListNumberIcon } from "@hugeicons/core-free-icons
 export { default as LegalHammerIcon } from "@hugeicons/core-free-icons/LegalHammerIcon";
 export { default as Link01Icon } from "@hugeicons/core-free-icons/Link01Icon";
 export { default as Link02Icon } from "@hugeicons/core-free-icons/Link02Icon";
+export { default as LinkSquare02Icon } from "@hugeicons/core-free-icons/LinkSquare02Icon";
 export { default as ListChecksIcon } from "@hugeicons/core-free-icons/ListChecksIcon";
 export { default as ListChevronsDownUpIcon } from "@hugeicons/core-free-icons/ListChevronsDownUpIcon";
 export { default as ListFilterIcon } from "@hugeicons/core-free-icons/ListFilterIcon";
@@ -289,6 +292,8 @@ export { default as Loading03Icon } from "@hugeicons/core-free-icons/Loading03Ic
 export { default as Location01Icon } from "@hugeicons/core-free-icons/Location01Icon";
 export { default as LockIcon } from "@hugeicons/core-free-icons/LockIcon";
 export { default as Login01Icon } from "@hugeicons/core-free-icons/Login01Icon";
+export { default as Login02Icon } from "@hugeicons/core-free-icons/Login02Icon";
+export { default as Logout02Icon } from "@hugeicons/core-free-icons/Logout02Icon";
 export { default as LogsIcon } from "@hugeicons/core-free-icons/LogsIcon";
 export { default as MagicWand02Icon } from "@hugeicons/core-free-icons/MagicWand02Icon";
 export { default as Mail01Icon } from "@hugeicons/core-free-icons/Mail01Icon";
@@ -307,6 +312,7 @@ export { default as MessageCircleMoreIcon } from "@hugeicons/core-free-icons/Mes
 export { default as MessageCircleQuestionMarkIcon } from "@hugeicons/core-free-icons/MessageCircleQuestionMarkIcon";
 export { default as MessageCircleWarningIcon } from "@hugeicons/core-free-icons/MessageCircleWarningIcon";
 export { default as MessageMultiple01Icon } from "@hugeicons/core-free-icons/MessageMultiple01Icon";
+export { default as MessagesSquareIcon } from "@hugeicons/core-free-icons/MessagesSquareIcon";
 export { default as MessageSquareMoreIcon } from "@hugeicons/core-free-icons/MessageSquareMoreIcon";
 export { default as MessageSquareReplyIcon } from "@hugeicons/core-free-icons/MessageSquareReplyIcon";
 export { default as Mic01Icon } from "@hugeicons/core-free-icons/Mic01Icon";
@@ -386,6 +392,8 @@ export { default as Shield02Icon } from "@hugeicons/core-free-icons/Shield02Icon
 export { default as ShieldAlertIcon } from "@hugeicons/core-free-icons/ShieldAlertIcon";
 export { default as SidebarBottomIcon } from "@hugeicons/core-free-icons/SidebarBottomIcon";
 export { default as SidebarLeft01Icon } from "@hugeicons/core-free-icons/SidebarLeft01Icon";
+export { default as SidebarLeftIcon } from "@hugeicons/core-free-icons/SidebarLeftIcon";
+export { default as SidebarRightIcon } from "@hugeicons/core-free-icons/SidebarRightIcon";
 export { default as SignalFull01Icon } from "@hugeicons/core-free-icons/SignalFull01Icon";
 export { default as SkipBackIcon } from "@hugeicons/core-free-icons/SkipBackIcon";
 export { default as SlashIcon } from "@hugeicons/core-free-icons/SlashIcon";
@@ -429,6 +437,7 @@ export { default as Timer01Icon } from "@hugeicons/core-free-icons/Timer01Icon";
 export { default as ToolboxIcon } from "@hugeicons/core-free-icons/ToolboxIcon";
 export { default as TrelloIcon } from "@hugeicons/core-free-icons/TrelloIcon";
 export { default as TriangleAlertIcon } from "@hugeicons/core-free-icons/TriangleAlertIcon";
+export { default as TwentyFourHoursClockIcon } from "@hugeicons/core-free-icons/TwentyFourHoursClockIcon";
 export { default as TypeIcon } from "@hugeicons/core-free-icons/TypeIcon";
 export { default as Undo02Icon } from "@hugeicons/core-free-icons/Undo02Icon";
 export { default as UnfoldMoreIcon } from "@hugeicons/core-free-icons/UnfoldMoreIcon";

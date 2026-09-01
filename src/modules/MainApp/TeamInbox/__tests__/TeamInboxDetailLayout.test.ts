@@ -16,7 +16,7 @@ import {
   ClipboardListIcon,
   HugeiconsIcon,
   InternetIcon,
-  SquareArrowUpRight02Icon,
+  LinkSquare02Icon,
 } from "@src/icons";
 
 import TeamInboxDetailLayout from "../components/TeamInboxDetailLayout";
@@ -65,9 +65,9 @@ describe("TeamInboxDetailLayout header actions", () => {
           unread: false,
           markReadLabel: "Mark read",
           markUnreadLabel: "Mark unread",
-          openLabel: "Open work item",
+          openLabel: "Open in New Tab",
           openIcon: createElement(HugeiconsIcon, {
-            icon: SquareArrowUpRight02Icon,
+            icon: LinkSquare02Icon,
             "aria-hidden": true,
           }),
           headerAuxiliaryAction: {
@@ -89,7 +89,7 @@ describe("TeamInboxDetailLayout header actions", () => {
       'button[aria-label="Mark unread"]'
     );
     const open = container.querySelector<HTMLButtonElement>(
-      'button[aria-label="Open work item"]'
+      'button[aria-label="Open in New Tab"]'
     );
     const openInBrowser = container.querySelector<HTMLButtonElement>(
       'button[aria-label="Open in browser"]'
@@ -122,7 +122,7 @@ describe("TeamInboxDetailLayout header actions", () => {
       Array.from(actions?.querySelectorAll("button") ?? []).map((button) =>
         button.getAttribute("aria-label")
       )
-    ).toEqual(["Mark unread", "Open in browser", "Open work item"]);
+    ).toEqual(["Mark unread", "Open in browser", "Open in New Tab"]);
     expect(header?.className).toContain("h-10");
     expect(header?.className).toContain("items-center");
     expect(header?.className).toContain("!pl-4");
@@ -148,9 +148,9 @@ describe("TeamInboxDetailLayout header actions", () => {
             unread: false,
             markReadLabel: "Mark read",
             markUnreadLabel: "Mark unread",
-            openLabel: "Open work item",
+            openLabel: "Open in New Tab",
             openIcon: createElement(HugeiconsIcon, {
-              icon: SquareArrowUpRight02Icon,
+              icon: LinkSquare02Icon,
               "aria-hidden": true,
             }),
             openPlacement: "header",
