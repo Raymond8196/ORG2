@@ -13,7 +13,7 @@ import type { BranchCiStatus } from "@src/services/git/branchPullRequestStatus";
  * `HugeiconsIcon` — or a hand-authored SVG component. `GitHubRailIcon` is the
  * only component today; it wraps a brand mark that is not part of any icon set.
  */
-export type FocusedChatRailIcon =
+type FocusedChatRailIcon =
   | IconSvgElement
   | ComponentType<{ size?: number; [key: string]: unknown }>;
 

@@ -209,7 +209,7 @@ const OpenPathRow: React.FC<OpenPathRowProps> = ({ item, keyboardProps }) => {
   );
 };
 
-export interface WorkspaceDropdownProps {
+interface WorkspaceDropdownProps {
   isOpen: boolean;
   onClose: () => void;
   onSelect: (repoId: string, repo: RepoItem) => void;

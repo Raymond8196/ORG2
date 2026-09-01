@@ -120,7 +120,7 @@ const ProposalCreatorPanel: React.FC<ProposalCreatorPanelProps> = ({
   );
 };
 
-export interface AgentControlPaletteProps extends BasePaletteProps {
+interface AgentControlPaletteProps extends BasePaletteProps {
   asBody?: boolean;
 }
 

@@ -44,7 +44,7 @@ export type ManageAgentDefAction =
   | "remove_org"
   | string;
 
-export interface ManageAgentDefBlockProps {
+interface ManageAgentDefBlockProps {
   action: ManageAgentDefAction;
   /** Agent / team name */
   agentName?: string;

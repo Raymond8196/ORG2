@@ -201,4 +201,4 @@ export function generateJsoncContent(settings: SettingsObject): string {
   return lines.join("\n");
 }
 
-export { SETTINGS_CATEGORY_LABELS, SETTINGS_REGISTRY };
+export { SETTINGS_REGISTRY };
