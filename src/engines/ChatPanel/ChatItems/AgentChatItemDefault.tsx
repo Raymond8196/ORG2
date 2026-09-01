@@ -113,7 +113,7 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
                     placement="message-corner"
                   />
                 )}
-              <div className="resultBgc allow-select w-full overflow-visible break-words font-normal">
+              <div className="resultBgc allow-select w-full overflow-visible font-normal wrap-break-word">
                 {isStreaming ? (
                   children?.length > 0 ? (
                     <Markdown
@@ -147,7 +147,7 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
                 {handleResultClick &&
                   (curCheckStatus === title ? (
                     <div
-                      className={`chat-text-sm mr-3 mt-3 flex h-6 w-[6rem] items-center justify-center rounded-[1.75rem] border border-solid border-primary-5 bg-primary-1 ${
+                      className={`chat-text-sm mt-3 mr-3 flex h-6 w-24 items-center justify-center rounded-[1.75rem] border border-solid border-primary-5 bg-primary-1 ${
                         isThemeCssPathDark(themes)
                           ? "text-text-1"
                           : "text-primary-5"
@@ -160,7 +160,7 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
                       <Button
                         variant="secondary"
                         onClick={handleResultClick}
-                        className="chat-text-sm mb-1 mt-3 h-[24px] rounded-[100px] py-[2px]"
+                        className="chat-text-sm mt-3 mb-1 h-[24px] rounded-[100px] py-[2px]"
                       >
                         {"Result"}
                       </Button>

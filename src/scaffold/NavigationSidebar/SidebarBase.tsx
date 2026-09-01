@@ -304,7 +304,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
                 {hostTopBarLeadingContent}
               </div>
             ) : (
-              <span className="select-none text-[13px] font-semibold tracking-wide text-text-2">
+              <span className="text-[13px] font-semibold tracking-wide text-text-2 select-none">
                 ORG2
               </span>
             )
@@ -460,7 +460,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
 
     const renderResizeHandle = () => (
       <div
-        className="absolute right-0 top-0 z-50 h-full"
+        className="absolute top-0 right-0 z-50 h-full"
         style={{ pointerEvents: "auto" }}
       >
         <VerticalResizeHandle
@@ -486,7 +486,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       <>
         {wrapInSurface && (
           <div
-            className="h-2 flex-shrink-0"
+            className="h-2 shrink-0"
             data-tauri-drag-region
             style={{ WebkitAppRegion: "drag" } as React.CSSProperties}
             aria-hidden
@@ -610,7 +610,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     return (
       <div
         ref={sidebarContainerRef}
-        className={`group/sidebar relative flex h-full flex-shrink-0 ${
+        className={`group/sidebar relative flex h-full shrink-0 ${
           isDragging ? "" : PANE_WIDTH_TRANSITION_CLASSES
         } ${className}`}
         style={containerStyle}

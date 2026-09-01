@@ -15,7 +15,6 @@ const FRONTEND_ONLY_PREFIXES = Object.freeze([
 const FRONTEND_ONLY_FILES = new Set([
   "config/commitlint.config.cjs",
   "config/postcss.config.js",
-  "config/tailwind.config.js",
   "config/vitest.config.ts",
   "config/webpack.config.js",
   "commitlint.config.cjs",
@@ -23,7 +22,6 @@ const FRONTEND_ONLY_FILES = new Set([
   "pnpm-lock.yaml",
   "pnpm-workspace.yaml",
   "postcss.config.js",
-  "tailwind.config.js",
   "tsconfig.json",
   "vitest.config.ts",
   "webpack.config.js",
