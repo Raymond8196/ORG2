@@ -42,7 +42,6 @@ export type { IconProvider } from "./config";
 export {
   getIconProvider,
   getIconProviderFromModelName,
-  hasModelIcon,
   THEMEABLE_ICONS,
 } from "./config";
 
@@ -50,7 +49,7 @@ export {
 // Types
 // ============================================
 
-export interface ModelIconProps {
+interface ModelIconProps {
   /** ModelType for business logic lookups (preferred) */
   agentType?: ModelType | string;
   /** Direct icon provider type (UI layer) */

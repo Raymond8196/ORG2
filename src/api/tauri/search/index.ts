@@ -53,7 +53,6 @@ export {
   searchCodeStreaming,
   cancelSearch,
   searchCodeFast,
-  clearSearchCache,
 } from "./regex";
 
 export {
@@ -65,15 +64,6 @@ export {
 } from "./symbol";
 
 export {
-  merkleBuildTree,
-  merkleDiffSinceSnapshot,
-  merkleGetStats,
-} from "./merkle";
-
-export type { MerkleChange, MerkleDiffResult, MerkleStats } from "./merkle";
-
-export {
-  isCodeSearchAvailable,
   getTotalMatchCount,
   getTotalSymbolCount,
   groupSymbolsByKind,

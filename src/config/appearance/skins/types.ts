@@ -16,7 +16,7 @@ export const SKIN_VARIANTS = ["light", "dark"] as const;
 export type SkinVariant = (typeof SKIN_VARIANTS)[number];
 
 /** Syntax token colors, keyed to the `--cm-syntax-*` custom properties. */
-export interface SkinSyntaxPalette {
+interface SkinSyntaxPalette {
   comment: string;
   string: string;
   keyword: string;
@@ -33,7 +33,7 @@ export interface SkinSyntaxPalette {
 }
 
 /** Diff and skill hues that must stay recognizable independent of the accent. */
-export interface SkinSemanticColors {
+interface SkinSemanticColors {
   diffAdded: string;
   diffRemoved: string;
   skill: string;
@@ -55,13 +55,13 @@ export interface SkinSeed {
   syntax: Partial<SkinSyntaxPalette>;
 }
 
-export interface SkinVariantDefinition {
+interface SkinVariantDefinition {
   seed: SkinSeed;
   /** Upstream theme name this variant was derived from, for attribution. */
   sourceName?: string;
 }
 
-export type SkinSource = "orgii" | "codex";
+type SkinSource = "orgii" | "codex";
 
 export interface SkinDefinition {
   id: string;

@@ -38,7 +38,7 @@ import { HighlightText } from "./highlightUtils";
 // ============ CONSTANTS ============
 
 export const ITEM_HEIGHT = SPOTLIGHT_TOKENS.itemHeight;
-export const ITEM_HEIGHT_WITH_DESC = SPOTLIGHT_TOKENS.itemHeightWithDesc;
+const ITEM_HEIGHT_WITH_DESC = SPOTLIGHT_TOKENS.itemHeightWithDesc;
 
 const TAG_BASE_CLASSES =
   "flex items-center gap-[6px] rounded-full font-medium cursor-default";

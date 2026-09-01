@@ -55,7 +55,7 @@
     "test": "vitest run --config config/vitest.config.ts",
     "test:coverage": "vitest run --config config/vitest.config.ts --coverage",
     "test:watch": "vitest --config config/vitest.config.ts",
-    "check:unused-exports": "ts-unused-exports tsconfig.json --excludePathsFromReport='src/index.tsx;src/app/;src/i18n/;.test.ts;.test.tsx;/types.ts;/index.ts;src/scaffold/;src/types/ambient/'",
+    "check:unused-exports": "ts-unused-exports tsconfig.json --excludePathsFromReport='src/index.tsx;.test.ts;.test.tsx;src/types/ambient/'",
     "check:unused-exports:all": "ts-unused-exports tsconfig.json",
     "check:e2e-oauth-guards": "node scripts/quality/check-e2e-oauth-guards.mjs",
     "check:i18n:cloud": "node scripts/quality/check-missing-i18n-keys.mjs --namespace navigation --prefix cloud && node scripts/quality/check-missing-i18n-keys.mjs --namespace navigation --prefix collaboration.forkImported"

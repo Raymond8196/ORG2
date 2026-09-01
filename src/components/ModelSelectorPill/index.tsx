@@ -36,7 +36,7 @@ import {
 
 import ModelSettingsMenu from "./ModelSettingsMenu";
 
-export interface ModelSelectorPillProps {
+interface ModelSelectorPillProps {
   selection: LastModelSelection | null | undefined;
   defaultLabel: string;
   active: boolean;
