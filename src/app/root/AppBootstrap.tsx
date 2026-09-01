@@ -27,6 +27,7 @@ import {
   usePointerCursorPreference,
   useSleepInhibitor,
 } from "@src/hooks/settings";
+import { useAppSkin } from "@src/hooks/theme/useAppSkin";
 import { router } from "@src/router";
 import QuitConfirmationModal from "@src/scaffold/ModalSystem/variants/Quit";
 import { useAgentLiveStatusSync } from "@src/store/session/agentLiveStatusAtom";
@@ -62,6 +63,7 @@ export const AppBootstrap: FC = () => {
   }, [settingsLoaded, hydrateLastModel]);
   useCrossWindowSettingsSync();
   useEditorAppearanceStyles();
+  useAppSkin();
   usePointerCursorPreference();
   useDevModeGuard();
   useSleepInhibitor();
