@@ -2,9 +2,7 @@ import Button from "@/src/components/Button";
 import { useAtomValue } from "jotai";
 import React, { memo, useEffect, useMemo, useState } from "react";
 
-import { ChatBubbleCopyButton } from "@src/components/ChatBubble";
 import Markdown from "@src/components/MarkDown";
-import { containsMarkdownFence } from "@src/components/MarkDown/markdownUtils";
 import { projectMarkdownSessionReferences } from "@src/components/MarkDown/sessionReferenceProjection";
 import { isThemeCssPathDark } from "@src/config/appearance/globalThemes";
 import { themesAtom } from "@src/store";
@@ -37,8 +35,6 @@ interface AgentChatItemProps {
   codeBlockContainerWidth?: number;
   /** Current check status (for showing result indicator) */
   curCheckStatus?: string;
-  /** Whether to render the legacy hover copy button over the message body. */
-  showCopyButton?: boolean;
 }
 const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
   children,
@@ -49,14 +45,12 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
   messageTimestamp,
   codeBlockContainerWidth,
   curCheckStatus,
-  showCopyButton = true,
 }) => {
   const [isShow, setIsShow] = useState(expand);
   const themes = useAtomValue(themesAtom);
   const chatAppearance = useAtomValue(chatAppearanceAtom);
 
   const isStreaming = Boolean(streamHtml);
-  const hasCodeBlockCopy = !isStreaming && containsMarkdownFence(children);
   const hasSessionReferences = useMemo(
     () =>
       !isStreaming &&
@@ -103,16 +97,6 @@ const AgentChatItemDefault: React.FC<AgentChatItemProps> = ({
               className="chat-text relative flex flex-col items-start gap-3 self-stretch text-text-1"
               data-testid="chat-message-assistant"
             >
-              {showCopyButton &&
-                !isStreaming &&
-                children &&
-                !hasCodeBlockCopy && (
-                  <ChatBubbleCopyButton
-                    content={children}
-                    hoverGroupClass="group-hover/agent-msg:opacity-100"
-                    placement="message-corner"
-                  />
-                )}
               <div className="resultBgc allow-select w-full overflow-visible font-normal wrap-break-word">
                 {isStreaming ? (
                   children?.length > 0 ? (

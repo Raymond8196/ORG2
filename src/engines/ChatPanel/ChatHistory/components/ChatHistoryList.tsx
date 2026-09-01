@@ -72,10 +72,7 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
     flatItems,
     groupCounts,
     turnIds,
-    assistantCopyEventIdsByGroup,
-    resolveAssistantTurnCopyContent,
     totalFlatItems,
-    lastAssistantFlatIndexPerItem,
     codeBlockContainerWidth,
     footerSpacerHeight,
     bottomInset,
@@ -124,10 +121,6 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
 
     const turnIdsRef = useRef(turnIds);
     turnIdsRef.current = turnIds;
-    const assistantCopyEventIdsByGroupRef = useRef(
-      assistantCopyEventIdsByGroup
-    );
-    assistantCopyEventIdsByGroupRef.current = assistantCopyEventIdsByGroup;
 
     // When the planning indicator or the status trail has something to show,
     // inject the footer as a virtual item in the last group so it renders
@@ -310,9 +303,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
       ]
     );
     const rowGroupMeta = useMemo(
-      () =>
-        buildRowGroupMeta(effectiveGroupCounts, lastAssistantFlatIndexPerItem),
-      [effectiveGroupCounts, lastAssistantFlatIndexPerItem]
+      () => buildRowGroupMeta(effectiveGroupCounts),
+      [effectiveGroupCounts]
     );
     const rowGroupMetaRef = useRef<RowGroupMeta[]>(rowGroupMeta);
     rowGroupMetaRef.current = rowGroupMeta;
@@ -385,13 +377,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
             flatIndex={flatIndex}
             groupIndex={groupIndex}
             turnId={turnIdsRef.current[groupIndex] ?? null}
-            assistantCopyEventIds={
-              assistantCopyEventIdsByGroupRef.current[groupIndex] ?? []
-            }
-            resolveAssistantTurnCopyContent={resolveAssistantTurnCopyContent}
             chatItem={currentFlatItems[flatIndex]}
             previousChatItem={previousChatItemsRef.current[flatIndex]}
-            lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}
             isLastItemInGroup={rowMeta.isLastItemInGroup}
             isLastGroup={rowMeta.isLastGroup}
             isWpGeneWorking={getIsWpGeneWorking()}
@@ -414,7 +401,6 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
         onSkip,
         onEditUserMessage,
         newEventDividerLabel,
-        resolveAssistantTurnCopyContent,
       ]
     );
 
@@ -504,15 +490,8 @@ const ChatHistoryList: React.FC<ChatHistoryListProps> = memo(
                         flatIndex={itemFlatIndex}
                         groupIndex={groupIndex}
                         turnId={turnIds[groupIndex] ?? null}
-                        assistantCopyEventIds={
-                          assistantCopyEventIdsByGroup[groupIndex] ?? []
-                        }
-                        resolveAssistantTurnCopyContent={
-                          resolveAssistantTurnCopyContent
-                        }
                         chatItem={flatItems[itemFlatIndex]}
                         previousChatItem={previousChatItems[itemFlatIndex]}
-                        lastAssistantFlatIndex={rowMeta.lastAssistantFlatIndex}
                         isLastItemInGroup={rowMeta.isLastItemInGroup}
                         isLastGroup={rowMeta.isLastGroup}
                         isWpGeneWorking={false}

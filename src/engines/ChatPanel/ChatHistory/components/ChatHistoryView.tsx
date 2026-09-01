@@ -136,7 +136,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     displayGroupCounts,
     displayGroupHeaders,
     displayGroupMeta,
-    displayLastAssistantFlatIndexPerItem,
     displaySourceGroupIndices,
     displayTotalFlatItems,
     displayTurnIds,
@@ -150,7 +149,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     pages,
     planningIndicatorEnabled,
     projection: projectionResult,
-    resolveAssistantTurnCopyContent,
     selectTurnPage,
     setTurnPageListOpen,
     setTurnPageSortAscending,
@@ -207,10 +205,6 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
     [isExploringRef]
   );
   const hasCloudDownloadProgress = useCloudSessionHasDownloadSurface(activeId);
-  const assistantCopyEventIdsByGroup = useMemo(
-    () => displayGroupMeta.map((meta) => meta.assistantCopyEventIds),
-    [displayGroupMeta]
-  );
   // Anchor for the live status trail's elapsed readout. Read from the FULL
   // projection, not the current page: with turn pagination on, the visible
   // page may not hold the running round, and the trail is about that round.
@@ -498,16 +492,7 @@ const ChatHistoryView: React.FC<ChatHistoryViewProps> = ({
                       flatItems={displayFlatItems}
                       groupCounts={displayGroupCounts}
                       turnIds={displayTurnIds}
-                      assistantCopyEventIdsByGroup={
-                        assistantCopyEventIdsByGroup
-                      }
-                      resolveAssistantTurnCopyContent={
-                        resolveAssistantTurnCopyContent
-                      }
                       totalFlatItems={displayTotalFlatItems}
-                      lastAssistantFlatIndexPerItem={
-                        displayLastAssistantFlatIndexPerItem
-                      }
                       codeBlockContainerWidth={codeBlockContainerWidth ?? 0}
                       footerSpacerHeight={footerSpacerHeight}
                       bottomInset={bottomInset}
