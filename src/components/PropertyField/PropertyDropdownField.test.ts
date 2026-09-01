@@ -233,7 +233,7 @@ describe("PropertyDropdownField", () => {
       })
     );
 
-    expect(markup).toContain("left-0 right-0");
+    expect(markup).toContain("right-0 left-0");
     expect(markup).not.toContain(DROPDOWN_WIDTHS.wideMenuClass);
   });
 });

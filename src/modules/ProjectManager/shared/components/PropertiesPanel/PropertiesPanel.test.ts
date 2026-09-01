@@ -43,7 +43,7 @@ describe("PropertiesPanel", () => {
     expect(markup).toContain("mb-1");
     expect(markup).toContain("h-6");
     expect(markup).toContain("h-5 w-5");
-    expect(markup).toContain("justify-between pl-1 pr-[3px]");
+    expect(markup).toContain("justify-between pr-[3px] pl-1");
     expect(markup).toContain("px-1 text-[11px]");
     expect(markup).toContain("max-h-full");
     expect(markup).not.toContain("flex-1 overflow-y-auto");

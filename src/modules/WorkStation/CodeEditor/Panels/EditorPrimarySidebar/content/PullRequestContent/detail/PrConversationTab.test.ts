@@ -130,7 +130,9 @@ describe("PrConversationTab", () => {
     expect(editor?.getAttribute("data-max-height")).toBe("500");
     expect(editor?.getAttribute("data-appearance")).toBe("plain");
     expect(editor?.getAttribute("data-editor-kind")).toBe("write-preview");
-    expect(composer?.querySelector(".shrink-0")).toBeNull();
+    // Guards against the pinned composer bar (a border-t wrapper) coming
+    // back; its old flex-shrink-0 spelling no longer exists post-Tailwind-v4.
+    expect(composer?.querySelector(".border-t")).toBeNull();
     expect(input?.textContent).toContain("Submit review");
     expect(input?.textContent).toContain("Comment");
     expect(modeSwitch).not.toBeNull();
