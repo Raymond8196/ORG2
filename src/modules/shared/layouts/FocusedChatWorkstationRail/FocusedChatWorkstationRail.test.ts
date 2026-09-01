@@ -17,6 +17,10 @@ import {
   releaseMiniTerminalSessionAtom,
 } from "@src/store/ui/miniTerminalAtom";
 import {
+  sideChatSessionIdAtom,
+  sideChatVisibleAtom,
+} from "@src/store/ui/sideChatAtom";
+import {
   editorAddTerminalSessionAtom,
   markTerminalInitializedAtom,
   terminalSessionsAtom,
@@ -24,6 +28,7 @@ import {
 import { workstationLayoutAtom } from "@src/store/workstation/tabs";
 
 import { FocusedChatWorkstationRail } from ".";
+import type { FocusedChatRailSubagent } from "./types";
 
 vi.mock("@src/hooks/git/useActiveRepoRef", () => ({
   useActiveRepoRef: () => ({ repoId: null, repoPath: "" }),
@@ -114,7 +119,7 @@ describe.each(["wide rail", "compact menu"])(
       return id;
     }
 
-    async function mount() {
+    async function mount(subagents?: FocusedChatRailSubagent[]) {
       await act(async () => {
         root.render(
           React.createElement(
@@ -129,6 +134,7 @@ describe.each(["wide rail", "compact menu"])(
                 React.createElement(FocusedChatWorkstationRail, {
                   compactMenuHost: menuHost,
                   conversationMinimapHostRef: () => {},
+                  subagents,
                 })
               )
             )
@@ -232,6 +238,80 @@ describe.each(["wide rail", "compact menu"])(
       expect(tabSection()?.textContent).not.toContain("Chat shell");
       expect(tabSection()?.textContent).not.toContain("Agent shell");
       expect(store.get(terminalSessionsAtom)).toHaveLength(4);
+    });
+
+    it("folds subagents by default and lists the rest in the load-more submenu", async () => {
+      const subagents: FocusedChatRailSubagent[] = Array.from(
+        { length: 6 },
+        (_, index) => ({
+          sessionId: `parent:subagent:${index}`,
+          name: "Explore",
+          description: `Task ${index}`,
+          status: index === 0 ? "running" : "completed",
+        })
+      );
+      await mount(subagents);
+
+      const host = view === "wide rail" ? container : menuHost;
+      const subagentSection = () =>
+        [...host.querySelectorAll("section")].find((section) =>
+          section.textContent?.includes("Subagents")
+        );
+
+      // Default collapsed: heading only, no rows.
+      expect(subagentSection()?.textContent).not.toContain("Task 0");
+
+      act(() =>
+        host
+          .querySelector<HTMLButtonElement>(
+            '[data-workstation-group-toggle="subagents"]'
+          )!
+          .click()
+      );
+
+      const expanded = subagentSection()!;
+      for (const label of ["Task 0", "Task 1", "Task 2", "Task 3", "Task 4"]) {
+        expect(expanded.textContent).toContain(label);
+      }
+      expect(expanded.textContent).not.toContain("Task 5");
+      expect(expanded.textContent).toContain("Load more (+1)");
+      // Status is a glyph with a localized tooltip, not row text.
+      expect(expanded.textContent).not.toContain("Completed");
+      expect(
+        expanded.querySelector(
+          '[title="Completed"] [data-icon="check-circle-2"]'
+        )
+      ).not.toBeNull();
+
+      // The sixth row opens the second-level panel with the full list.
+      act(() =>
+        subagentSection()!
+          .querySelector<HTMLButtonElement>('[aria-haspopup="menu"]')!
+          .click()
+      );
+      const submenu = document.querySelector(
+        '[data-testid="workstation-trail-subagents-submenu"]'
+      );
+      expect(submenu).not.toBeNull();
+      expect(container.contains(submenu)).toBe(false);
+      for (const label of ["Task 0", "Task 5"]) {
+        expect(submenu!.textContent).toContain(label);
+      }
+      // Title only — no secondary agent-name text, no status words.
+      expect(submenu!.textContent).not.toContain("Explore");
+      expect(submenu!.textContent).not.toContain("Completed");
+
+      // Picking a subagent opens it in the side chat and closes the panel.
+      const submenuRows = [...submenu!.querySelectorAll('[role="menuitem"]')];
+      const lastRow = submenuRows[submenuRows.length - 1] as HTMLElement;
+      act(() => lastRow.click());
+      expect(store.get(sideChatVisibleAtom)).toBe(true);
+      expect(store.get(sideChatSessionIdAtom)).toBe("parent:subagent:5");
+      expect(
+        document.querySelector(
+          '[data-testid="workstation-trail-subagents-submenu"]'
+        )
+      ).toBeNull();
     });
 
     it("keeps pins excluded while collapsed and restores them only on release", async () => {

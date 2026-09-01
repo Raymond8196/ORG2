@@ -329,8 +329,8 @@
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
       "removeDraft": "刪除草稿",
-      "showSubagents": "顯示子代理",
-      "hideSubagents": "隱藏子代理"
+      "showSubagents": "顯示subagent",
+      "hideSubagents": "隱藏subagent"
     },
     "resultStatus": {
       "completed": "已完成",
@@ -1448,8 +1448,8 @@
     "categorySearch": "搜索",
     "categoryGlob": "Glob",
     "categoryList": "列表",
-    "subagentFailed": "Sub Agent 失敗",
-    "subagentDefaultName": "Sub Agent",
+    "subagentFailed": "Subagent 失敗",
+    "subagentDefaultName": "Subagent",
     "assignedTaskToSubagent": "將任務分配給 Subagent",
     "subagentRunning": "Subagent 執行中",
     "subagentDone": "Subagent 完成",
@@ -1459,9 +1459,9 @@
     "createPlanRunning": "正在建立計畫",
     "createPlanDone": "建立計畫",
     "createPlanFailed": "建立計畫失敗",
-    "subagentResultTabFallbackTitle": "Sub Agent 結果",
+    "subagentResultTabFallbackTitle": "Subagent 結果",
     "openResultInTab": "在標籤頁中打開",
-    "openSubagentChatInTab": "在編輯器中打開 Sub Agent 詳情",
+    "openSubagentChatInTab": "在編輯器中打開 Subagent 詳情",
     "executing": "執行中",
     "argumentsLabel": "參數",
     "resultLabel": "結果",
@@ -2937,7 +2937,7 @@
     }
   },
   "sessionBadge": {
-    "subagent": "Sub Agent"
+    "subagent": "Subagent"
   },
   "tooltips": {
     "hidePanel": "隱藏面板"

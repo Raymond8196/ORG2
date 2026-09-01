@@ -82,4 +82,54 @@ describe("WorkstationSections", () => {
     expect(markup).toContain('role="menu"');
     expect(markup).not.toContain("data-workstation-group-toggle");
   });
+
+  it.each([false, true])(
+    "folds a collapsible section behind its heading (compact: %s)",
+    (compact) => {
+      const collapsibleSections: FocusedChatRailSection[] = [
+        ...sections,
+        {
+          key: "subagents",
+          label: "Subagents",
+          collapsible: true,
+          items: [
+            {
+              key: "subagent:child",
+              label: "Scan the changelog",
+              icon: FolderClosedIcon,
+            },
+          ],
+        },
+      ];
+
+      const collapsedMarkup = renderToStaticMarkup(
+        createElement(WorkstationSections, {
+          compact,
+          collapseGroupLabel: "Collapse",
+          collapsedGroupKeys: new Set(["subagents"]),
+          expandGroupLabel: "Expand",
+          onToggleGroup: () => {},
+          sections: collapsibleSections,
+        })
+      );
+      expect(collapsedMarkup).toContain("Subagents");
+      expect(collapsedMarkup).not.toContain("Scan the changelog");
+      expect(collapsedMarkup).toContain(
+        'data-workstation-group-toggle="subagents"'
+      );
+      expect(collapsedMarkup).toContain('aria-expanded="false"');
+
+      const expandedMarkup = renderToStaticMarkup(
+        createElement(WorkstationSections, {
+          compact,
+          collapseGroupLabel: "Collapse",
+          collapsedGroupKeys: new Set<string>(),
+          expandGroupLabel: "Expand",
+          onToggleGroup: () => {},
+          sections: collapsibleSections,
+        })
+      );
+      expect(expandedMarkup).toContain("Scan the changelog");
+    }
+  );
 });

@@ -4,9 +4,12 @@
  */
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
 import {
+  ArrowDown01Icon,
+  ArrowRight01Icon,
   FolderClosedIcon,
   FolderKanbanIcon,
   GitForkIcon,
+  HugeiconsIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
 
@@ -31,8 +34,11 @@ export function WorkstationSections({
       role={compact ? "menu" : undefined}
     >
       {sections.map((section) => {
+        // Collapsible sections fold in both presentations; regular sections
+        // only fold in the wide rail (the compact menu keeps them expanded).
         const groupCollapsed =
-          !compact && collapsedGroupKeys?.has(section.key) === true;
+          (!compact || section.collapsible === true) &&
+          collapsedGroupKeys?.has(section.key) === true;
 
         // In the wide rail, the panel header is also the heading for the first
         // (local-environment) group. Do not leave an empty spacer for its
@@ -46,25 +52,56 @@ export function WorkstationSections({
               compact ? "space-y-0.5" : WORKSTATION_TRAIL_CONTENT.section
             }
           >
-            {section.label && (
-              <div className="flex h-6 items-center">
-                <div className={WORKSTATION_TRAIL_CONTENT.sectionLabelInline}>
-                  {section.label}
-                </div>
-                {!compact &&
-                collapseGroupLabel &&
-                expandGroupLabel &&
-                onToggleGroup ? (
-                  <WorkstationGroupToggle
-                    collapseLabel={collapseGroupLabel}
-                    collapsed={groupCollapsed}
-                    expandLabel={expandGroupLabel}
-                    groupKey={section.key}
-                    onToggle={() => onToggleGroup(section.key)}
+            {section.label &&
+              (section.collapsible &&
+              collapseGroupLabel &&
+              expandGroupLabel &&
+              onToggleGroup ? (
+                // The heading itself toggles: unlike the hover-revealed wide
+                // rail toggle, this works in the compact menu too.
+                <button
+                  type="button"
+                  className="flex h-6 w-full items-center"
+                  data-workstation-group-toggle={section.key}
+                  aria-expanded={!groupCollapsed}
+                  aria-label={
+                    groupCollapsed ? expandGroupLabel : collapseGroupLabel
+                  }
+                  onClick={() => onToggleGroup(section.key)}
+                >
+                  <div className={WORKSTATION_TRAIL_CONTENT.sectionLabelInline}>
+                    {section.label}
+                  </div>
+                  <HugeiconsIcon
+                    icon={groupCollapsed ? ArrowRight01Icon : ArrowDown01Icon}
+                    data-icon={
+                      groupCollapsed ? "chevron-right" : "chevron-down"
+                    }
+                    aria-hidden
+                    className="shrink-0 text-text-3"
+                    size={14}
+                    strokeWidth={1.75}
                   />
-                ) : null}
-              </div>
-            )}
+                </button>
+              ) : (
+                <div className="flex h-6 items-center">
+                  <div className={WORKSTATION_TRAIL_CONTENT.sectionLabelInline}>
+                    {section.label}
+                  </div>
+                  {!compact &&
+                  collapseGroupLabel &&
+                  expandGroupLabel &&
+                  onToggleGroup ? (
+                    <WorkstationGroupToggle
+                      collapseLabel={collapseGroupLabel}
+                      collapsed={groupCollapsed}
+                      expandLabel={expandGroupLabel}
+                      groupKey={section.key}
+                      onToggle={() => onToggleGroup(section.key)}
+                    />
+                  ) : null}
+                </div>
+              ))}
             {!groupCollapsed &&
               section.environment &&
               (section.environment.repoName ||
