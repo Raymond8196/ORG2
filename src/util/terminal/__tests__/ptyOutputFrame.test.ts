@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  decodePtyOutputFrame,
   PTY_FRAME_HEADER_BYTES,
+  decodePtyOutputFrame,
 } from "../ptyOutputFrame";
 
 /**

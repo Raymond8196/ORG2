@@ -23,7 +23,11 @@ import type { MutableRefObject } from "react";
 import { createLogger } from "@src/hooks/logger";
 
 import { shouldLoadTerminalWebgl } from "./terminalRendererPolicy";
-import { acquireWebglSlot, onWebglSlotReleased, releaseWebglSlot } from "./webglContextManager";
+import {
+  acquireWebglSlot,
+  onWebglSlotReleased,
+  releaseWebglSlot,
+} from "./webglContextManager";
 
 const log = createLogger("Terminal");
 
@@ -120,7 +124,10 @@ export function createTerminalWebglController(
       terminal.loadAddon(addon);
       webglAddonRef.current = addon;
     } catch (error) {
-      log.warn("[Terminal] WebGL addon failed to load, using DOM renderer:", error);
+      log.warn(
+        "[Terminal] WebGL addon failed to load, using DOM renderer:",
+        error
+      );
       // If `loadAddon`/`activate` threw after the GL context was created, the
       // addon still owns that context (10-30 MB GPU); dispose it before
       // handing the budget slot back so the live-context count stays honest.

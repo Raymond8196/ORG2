@@ -60,13 +60,13 @@ import {
   initializeWhenContainerVisible,
 } from "./terminalSetup";
 import {
-  createTerminalWebglController,
-  type TerminalWebglController,
-} from "./terminalWebglLifecycle";
-import {
   createFitTerminal,
   createRedrawTerminalAfterLayoutChange,
 } from "./terminalSizing";
+import {
+  type TerminalWebglController,
+  createTerminalWebglController,
+} from "./terminalWebglLifecycle";
 import type { TerminalViewHandle, TerminalViewProps } from "./types";
 import { useTerminalAppearance } from "./useTerminalAppearance";
 import { useTerminalResizeListeners } from "./useTerminalResizeListeners";

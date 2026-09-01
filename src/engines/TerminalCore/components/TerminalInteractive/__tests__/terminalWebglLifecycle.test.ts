@@ -32,9 +32,8 @@ vi.mock("../terminalRendererPolicy", () => ({
   shouldLoadTerminalWebgl: () => webglAllowed,
 }));
 
-const { createTerminalWebglController } = await import(
-  "../terminalWebglLifecycle"
-);
+const { createTerminalWebglController } =
+  await import("../terminalWebglLifecycle");
 const { _getActiveContextCount, _resetForTests, acquireWebglSlot } =
   await import("../webglContextManager");
 

@@ -154,9 +154,7 @@ function getTracker(): typeof import("@src/util/monitoring/apiTracker") | null {
  * Tauri serializes it to the channel handle the backend needs. Throws when the
  * APIs have not been initialized, matching `invokeTauri`.
  */
-export function createTauriChannel<T>(
-  onmessage: (message: T) => void
-): object {
+export function createTauriChannel<T>(onmessage: (message: T) => void): object {
   if (!tauriState.Channel) {
     throw new Error(
       "Tauri Channel is not available. Make sure to call initializeTauriAPIs() first."
