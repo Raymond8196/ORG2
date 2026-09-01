@@ -15,7 +15,6 @@ import {
 
 import { EnvironmentKindRow } from "./EnvironmentKindRow";
 import { WorkspaceContextRow } from "./WorkspaceContextRow";
-import { WorkstationGroupToggle } from "./WorkstationGroupToggle";
 import { WorkstationItemRow } from "./WorkstationItemRow";
 import type { WorkstationSectionsProps } from "./types";
 
@@ -34,11 +33,8 @@ export function WorkstationSections({
       role={compact ? "menu" : undefined}
     >
       {sections.map((section) => {
-        // Collapsible sections fold in both presentations; regular sections
-        // only fold in the wide rail (the compact menu keeps them expanded).
-        const groupCollapsed =
-          (!compact || section.collapsible === true) &&
-          collapsedGroupKeys?.has(section.key) === true;
+        // Every section folds behind its heading, in both presentations.
+        const groupCollapsed = collapsedGroupKeys?.has(section.key) === true;
 
         // In the wide rail, the panel header is also the heading for the first
         // (local-environment) group. Do not leave an empty spacer for its
@@ -53,12 +49,10 @@ export function WorkstationSections({
             }
           >
             {section.label &&
-              (section.collapsible &&
-              collapseGroupLabel &&
-              expandGroupLabel &&
-              onToggleGroup ? (
-                // The heading itself toggles: unlike the hover-revealed wide
-                // rail toggle, this works in the compact menu too.
+              (collapseGroupLabel && expandGroupLabel && onToggleGroup ? (
+                // The whole heading row is the fold toggle, with an
+                // always-visible chevron right after the label — matching the
+                // panel header's own title toggle.
                 <button
                   type="button"
                   className="flex h-6 w-full items-center"
@@ -88,18 +82,6 @@ export function WorkstationSections({
                   <div className={WORKSTATION_TRAIL_CONTENT.sectionLabelInline}>
                     {section.label}
                   </div>
-                  {!compact &&
-                  collapseGroupLabel &&
-                  expandGroupLabel &&
-                  onToggleGroup ? (
-                    <WorkstationGroupToggle
-                      collapseLabel={collapseGroupLabel}
-                      collapsed={groupCollapsed}
-                      expandLabel={expandGroupLabel}
-                      groupKey={section.key}
-                      onToggle={() => onToggleGroup(section.key)}
-                    />
-                  ) : null}
                 </div>
               ))}
             {!groupCollapsed &&

@@ -84,10 +84,6 @@ import {
   WorkstationTrailIconButton,
   WorkstationTrailSurface,
 } from "../blocks";
-import {
-  WORKSTATION_TRAIL_ACTION_REVEAL_CLASS,
-  WorkstationGroupToggle,
-} from "./WorkstationGroupToggle";
 import { WorkstationSections } from "./WorkstationSections";
 import {
   WorkstationSubagentsSubmenu,
@@ -100,6 +96,7 @@ import {
   persistRailCollapsed,
   resolveRailStatusDotClass,
 } from "./railStorage";
+import { WORKSTATION_TRAIL_ACTION_REVEAL_CLASS } from "./trailActionReveal";
 import { resolveTrailWidthVariables } from "./trailWidth";
 import type {
   FocusedChatRailItem,
@@ -661,7 +658,6 @@ export function FocusedChatWorkstationRail({
           : sectionKey === "workspace"
             ? localEnvironment
             : undefined,
-      ...(sectionKey === "subagents" ? { collapsible: true } : {}),
     }));
   }, [
     activeBranchName,
@@ -818,17 +814,16 @@ export function FocusedChatWorkstationRail({
             <WorkstationTrailHeader
               title={localEnvironmentLabel}
               collapsed={collapsed}
-              titleActions={
-                !collapsed ? (
-                  <WorkstationGroupToggle
-                    collapseLabel={t("common:actions.collapse")}
-                    collapsed={collapsedGroupKeys.has("workspace")}
-                    expandLabel={t("common:actions.expand")}
-                    groupKey="workspace"
-                    onToggle={() => toggleGroup("workspace")}
-                  />
-                ) : null
-              }
+              // With its own group folded, the next visible line is another
+              // section title, so the gap below must match the section rhythm
+              // instead of hugging rows that are not there.
+              bodyGap={collapsedGroupKeys.has("workspace") ? "section" : "row"}
+              onTitleToggle={() => toggleGroup("workspace")}
+              titleToggleCollapsed={collapsedGroupKeys.has("workspace")}
+              titleToggleLabels={{
+                collapse: t("common:actions.collapse"),
+                expand: t("common:actions.expand"),
+              }}
               actions={
                 <>
                   {!collapsed ? (

@@ -54,12 +54,6 @@ export type FocusedChatRailSection = {
   label: string | null;
   items: FocusedChatRailItem[];
   environment?: FocusedChatSessionContext;
-  /**
-   * Section folds behind its heading in the compact menu too, not only in the
-   * wide rail, and its heading is the toggle. Regular sections keep the wide
-   * rail's hover-revealed toggle and stay expanded in the compact menu.
-   */
-  collapsible?: boolean;
 };
 
 /** One agent-spawned child session of the rail's active session. */

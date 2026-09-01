@@ -63,7 +63,7 @@ describe("WorkstationSections", () => {
     expect(markup).toContain('data-icon="chevron-down"');
   });
 
-  it("keeps compact-menu groups expanded and omits wide-rail toggles", () => {
+  it("folds compact-menu groups behind their clickable headings", () => {
     const markup = renderToStaticMarkup(
       createElement(WorkstationSections, {
         compact: true,
@@ -75,12 +75,17 @@ describe("WorkstationSections", () => {
       })
     );
 
-    expect(markup).toContain("session-repository");
-    expect(markup).toContain("local-repository");
-    expect(markup).toContain("Files");
-    expect(markup).toContain("README.md");
+    // The unlabelled session group leaves no empty spacer when folded.
+    expect(markup).not.toContain("session-repository");
+    expect(markup).toContain("Local Environment");
+    expect(markup).not.toContain("local-repository");
+    expect(markup).not.toContain("Files");
+    expect(markup).toContain("Open Tabs");
+    expect(markup).not.toContain("README.md");
     expect(markup).toContain('role="menu"');
-    expect(markup).not.toContain("data-workstation-group-toggle");
+    expect(markup).toContain('data-workstation-group-toggle="workspace"');
+    expect(markup).toContain('data-workstation-group-toggle="tabs"');
+    expect(markup).toContain('data-icon="chevron-right"');
   });
 
   it.each([false, true])(
@@ -91,7 +96,6 @@ describe("WorkstationSections", () => {
         {
           key: "subagents",
           label: "Subagents",
-          collapsible: true,
           items: [
             {
               key: "subagent:child",

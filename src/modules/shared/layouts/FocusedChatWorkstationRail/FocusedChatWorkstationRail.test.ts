@@ -214,6 +214,26 @@ describe.each(["wide rail", "compact menu"])(
         act(() => vi.advanceTimersByTime(250));
         expect(document.querySelector(".native-tooltip")).toBeNull();
       });
+
+      it("folds the workspace group from the panel title and widens the gap to section rhythm", async () => {
+        await mount();
+        const titleButton = () =>
+          [...container.querySelectorAll("button")].find((candidate) =>
+            candidate.textContent?.includes("Local env")
+          )!;
+        const headerRow = () => titleButton().parentElement!;
+
+        expect(headerRow().className).toContain("mb-1");
+        expect(container.textContent).toContain("Review");
+
+        act(() => titleButton().click());
+        expect(container.textContent).not.toContain("Review");
+        expect(headerRow().className).toContain("mb-3");
+
+        act(() => titleButton().click());
+        expect(container.textContent).toContain("Review");
+        expect(headerRow().className).toContain("mb-1");
+      });
     }
 
     it("lists My Station files and terminals without docked or chat-panel terminals", async () => {
