@@ -63,6 +63,7 @@ const IS_WINDOWS_HOST = HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS;
 const IS_WINDOWS_OR_LINUX_HOST =
   HOST_DESKTOP_KIND === HOST_DESKTOP.WINDOWS ||
   HOST_DESKTOP_KIND === HOST_DESKTOP.LINUX;
+const SHOW_RESTING_SIDEBAR_EDGE = HOST_DESKTOP_KIND === HOST_DESKTOP.LINUX;
 
 const IDLE_SIDEBAR_RESIZE_HANDLE_CLASS_NAME =
   "h-full [&>div:first-child]:origin-right [&>div:first-child]:scale-x-50 [&>div:first-child]:transition-transform hover:[&>div:first-child]:scale-x-100";
@@ -471,7 +472,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
           onContextMenu={handleResizeContextMenu}
           tooltipLabel={i18next.t("common:tooltips.hideSidebar")}
           tooltipShortcut={hideSidebarShortcut}
-          variant={IS_WINDOWS_HOST ? "transparent" : "border"}
+          variant={SHOW_RESTING_SIDEBAR_EDGE ? "border" : "transparent"}
         />
       </div>
     );
@@ -566,8 +567,9 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
     // radius (`--border-radius-window`) so the sidebar surface aligns with
     // the rounded window/body clip instead of leaving a sliver of the body
     // Modern chrome keeps the sidebar flush against the rounded window edge.
-    // On Windows, the rounded content surface owns the shared edge; a straight
-    // sidebar separator would remain visible behind its curved top-left corner.
+    // On macOS the native AbuttedSidebar material already defines the shared
+    // edge, while on Windows the rounded content surface owns it. Drawing a
+    // separate separator on either platform creates a redundant vertical line.
     const modernSurfaceStyle = {
       // The Windows header spans the full native top edge and owns both top
       // radii. Rounding the sidebar again below it creates a detached inner
@@ -579,7 +581,7 @@ const SidebarBase: React.FC<SidebarBaseProps> = React.memo(
       borderTopWidth: 0,
       borderLeftWidth: 0,
       borderBottomWidth: 0,
-      borderRightWidth: IS_WINDOWS_HOST ? 0 : 1,
+      borderRightWidth: SHOW_RESTING_SIDEBAR_EDGE ? 1 : 0,
     } as const;
     const wrappedContent = wrapInSurface ? (
       <div
