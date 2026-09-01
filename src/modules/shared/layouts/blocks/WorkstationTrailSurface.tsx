@@ -99,7 +99,7 @@ export const WorkstationTrailHeader: FC<WorkstationTrailHeaderProps> = ({
         <>
           <button
             type="button"
-            className="flex h-full min-w-0 flex-1 items-center gap-px text-left"
+            className="group/trail-title flex h-full min-w-0 flex-1 items-center gap-px text-left"
             onClick={onTitleToggle}
             aria-expanded={!titleToggleCollapsed}
             aria-label={
@@ -109,7 +109,9 @@ export const WorkstationTrailHeader: FC<WorkstationTrailHeaderProps> = ({
             }
           >
             {title != null ? (
-              <span className={WORKSTATION_TRAIL_HEADER_TITLE_CLASS}>
+              <span
+                className={`${WORKSTATION_TRAIL_HEADER_TITLE_CLASS} transition-colors group-hover/trail-title:text-text-2`}
+              >
                 {title}
               </span>
             ) : null}
@@ -119,7 +121,7 @@ export const WorkstationTrailHeader: FC<WorkstationTrailHeaderProps> = ({
                 titleToggleCollapsed ? "chevron-right" : "chevron-down"
               }
               aria-hidden
-              className="shrink-0 text-text-3"
+              className="shrink-0 text-text-3 transition-colors group-hover/trail-title:text-text-2"
               size={14}
               strokeWidth={1.75}
             />

@@ -55,7 +55,7 @@ export function WorkstationSections({
                 // panel header's own title toggle.
                 <button
                   type="button"
-                  className="flex h-6 w-full items-center"
+                  className="group/section-toggle flex h-6 w-full items-center"
                   data-workstation-group-toggle={section.key}
                   aria-expanded={!groupCollapsed}
                   aria-label={
@@ -63,7 +63,9 @@ export function WorkstationSections({
                   }
                   onClick={() => onToggleGroup(section.key)}
                 >
-                  <div className={WORKSTATION_TRAIL_CONTENT.sectionLabelInline}>
+                  <div
+                    className={`${WORKSTATION_TRAIL_CONTENT.sectionLabelInline} transition-colors group-hover/section-toggle:text-text-2`}
+                  >
                     {section.label}
                   </div>
                   <HugeiconsIcon
@@ -72,7 +74,7 @@ export function WorkstationSections({
                       groupCollapsed ? "chevron-right" : "chevron-down"
                     }
                     aria-hidden
-                    className="shrink-0 text-text-3"
+                    className="shrink-0 text-text-3 transition-colors group-hover/section-toggle:text-text-2"
                     size={14}
                     strokeWidth={1.75}
                   />
