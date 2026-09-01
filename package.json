@@ -40,7 +40,8 @@
     "analyze": "webpack --config config/webpack.config.js --mode production --profile --json > build/stats.json && webpack-bundle-analyzer build/stats.json",
     "typecheck": "tsc --noEmit --pretty false",
     "typecheck:fast": "tsgo --noEmit --pretty false",
-    "lint": "eslint src/ --ext .ts,.tsx,.js,.jsx --max-warnings 0 --report-unused-disable-directives",
+    "lint": "pnpm lint:fast && eslint src/ --ext .ts,.tsx,.js,.jsx --max-warnings 0 --report-unused-disable-directives",
+    "lint:fast": "oxlint -c .oxlintrc.json --max-warnings 0 src",
     "lint:fix": "eslint src/ --ext .ts,.tsx,.js,.jsx --fix --report-unused-disable-directives",
     "lint:file": "eslint",
     "lint:file:fix": "eslint --fix",
@@ -208,6 +209,7 @@
     "jsdom": "^29.1.1",
     "lint-staged": "^15.2.0",
     "madge": "8.0.0",
+    "oxlint": "^1.80.0",
     "mini-css-extract-plugin": "^2.9.2",
     "postcss": "^8.4.32",
     "postcss-loader": "^8.2.1",
@@ -455,6 +457,7 @@
   },
   "lint-staged": {
     "src/**/*.{ts,tsx,js,jsx}": [
+      "oxlint -c .oxlintrc.json --max-warnings 0",
       "eslint --fix",
       "prettier --write"
     ],
