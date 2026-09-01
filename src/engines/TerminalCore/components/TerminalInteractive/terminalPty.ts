@@ -19,6 +19,7 @@ import { deleteTerminalBuffer, getTerminalBuffer } from "./bufferCache";
 import {
   ackBytesWithoutWrite,
   flushBacklog,
+  isPaneForeground,
   notifyUserInput,
   registerPane,
   resumePane,
@@ -27,6 +28,7 @@ import {
   suspendPane,
   unregisterPane,
 } from "./terminalOutputScheduler";
+import { writeWithRenderSettle } from "./terminalRenderSettle";
 import type { TerminalViewProps } from "./types";
 import { writeBrowserModeMessage } from "./utils/browserModeMessage";
 
@@ -96,11 +98,18 @@ export function writeToLiveTerminal(
   terminalRef: MutableRefObject<Terminal | null>,
   terminal: Terminal,
   isAborted: () => boolean,
-  data: string | Uint8Array
+  data: string | Uint8Array,
+  sessionId?: string
 ): boolean {
   if (isAborted() || terminalRef.current !== terminal) return false;
   try {
-    terminal.write(data);
+    // Only a visible pane earns repaint coordination; a hidden one would pay
+    // for frames nobody sees.
+    if (sessionId && isPaneForeground(sessionId)) {
+      writeWithRenderSettle(terminal, data);
+    } else {
+      terminal.write(data);
+    }
     return true;
   } catch (error) {
     // xterm renderer disposal must never replace the whole application with
@@ -430,7 +439,7 @@ export async function initPtyConnection({
     // deliberately inside the callback: a scheduler turn already queued
     // before cleanup must also be harmless after this terminal is replaced.
     const terminalWrite = (d: string | Uint8Array) =>
-      writeToLiveTerminal(terminalRef, terminal, isAborted, d);
+      writeToLiveTerminal(terminalRef, terminal, isAborted, d, sessionId);
 
     // Register this pane with the output scheduler, suspended: chunks that
     // arrive during connect queue up in order but nothing is written until
