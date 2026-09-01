@@ -2549,7 +2549,16 @@
       "Üzerinde çalışılıyor, olağandan uzun sürüyor...",
       "Sırada ne olacağı değerlendiriliyor, olağandan uzun sürüyor..."
     ],
-    "compacting": "Bağlam sıkıştırılıyor..."
+    "compacting": "Bağlam sıkıştırılıyor...",
+    "statusTrail": {
+      "agentWorking": "Agent çalışıyor",
+      "agentWorkingFor": "Agent {{value}} süredir çalışıyor",
+      "runningTask_one": "{{count}} çalışan görev",
+      "runningTask_other": "{{count}} çalışan görev",
+      "idle": "Agent boşta",
+      "lastRefreshed": "Son yenileme {{value}}",
+      "asking": "Yanıtınız bekleniyor"
+    }
   },
   "revertConfirm": {
     "title": "Kaydedilmemiş dosya değişiklikleri",

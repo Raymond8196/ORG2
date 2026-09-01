@@ -2546,7 +2546,16 @@
       "Arbeite daran, dauert länger als üblich...",
       "Überlege, was als Nächstes kommt, dauert länger als üblich..."
     ],
-    "compacting": "Kontext wird komprimiert..."
+    "compacting": "Kontext wird komprimiert...",
+    "statusTrail": {
+      "agentWorking": "Agent arbeitet",
+      "agentWorkingFor": "Agent arbeitet seit {{value}}",
+      "runningTask_one": "{{count}} laufende Aufgabe",
+      "runningTask_other": "{{count}} laufende Aufgaben",
+      "idle": "Agent ist inaktiv",
+      "lastRefreshed": "Zuletzt aktualisiert {{value}}",
+      "asking": "Wartet auf deine Antwort"
+    }
   },
   "revertConfirm": {
     "title": "Nicht gespeicherte Dateiänderungen",

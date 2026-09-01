@@ -49,9 +49,11 @@ export type { ExpandableItemListProps } from "./ExpandableItemList";
 // Stacked block primitive (paginated same-category grouping)
 export { default as StackedBlock } from "./StackedBlock";
 
-// Planning indicator footer
-export { default as PlanningFooter } from "./PlanningFooter";
-export type { PlanningFooterMode } from "./PlanningFooter";
+// Live end-of-conversation status trail. It absorbed the old PlanningFooter
+// row: what the agent is doing is now a segment on this line, not a second
+// line above it.
+export { default as AgentStatusTrail } from "./AgentStatusTrail";
+export type { PlanningIndicatorMode } from "./chatActivityLabel";
 
 // Stroke-draw animation hook for loading icons
 export { useStrokeDraw } from "./useStrokeDraw";
