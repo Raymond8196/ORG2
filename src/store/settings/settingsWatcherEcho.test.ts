@@ -72,29 +72,37 @@ describe("settings watcher echoes", () => {
     const store = createStore();
 
     store.set(updateSettingAtom, {
-      key: "general.iconStyle",
-      value: "monochrome",
+      key: "general.spotlightPlacement",
+      value: "center",
     });
-    expect(store.get(settingsAtom)["general.iconStyle"]).toBe("monochrome");
+    expect(store.get(settingsAtom)["general.spotlightPlacement"]).toBe(
+      "center"
+    );
 
     // Watcher fires with file state that predates the write.
-    store.set(handleExternalChangeAtom, { "general.iconStyle": "colorful" });
+    store.set(handleExternalChangeAtom, {
+      "general.spotlightPlacement": "top",
+    });
 
-    expect(store.get(settingsAtom)["general.iconStyle"]).toBe("monochrome");
+    expect(store.get(settingsAtom)["general.spotlightPlacement"]).toBe(
+      "center"
+    );
   });
 
   it("keeps a local write that races the initial read", async () => {
-    stubRpc({ "general.iconStyle": "colorful" });
+    stubRpc({ "general.spotlightPlacement": "top" });
     const store = createStore();
 
     store.set(updateSettingAtom, {
-      key: "general.iconStyle",
-      value: "monochrome",
+      key: "general.spotlightPlacement",
+      value: "center",
     });
     await store.set(initSettingsAtom);
 
     // The read predates the change, so the change must survive it.
-    expect(store.get(settingsAtom)["general.iconStyle"]).toBe("monochrome");
+    expect(store.get(settingsAtom)["general.spotlightPlacement"]).toBe(
+      "center"
+    );
   });
 
   it("accepts a genuine external edit to an untouched key", () => {
@@ -102,15 +110,17 @@ describe("settings watcher echoes", () => {
     const store = createStore();
 
     store.set(updateSettingAtom, {
-      key: "general.iconStyle",
-      value: "monochrome",
+      key: "general.spotlightPlacement",
+      value: "center",
     });
     store.set(handleExternalChangeAtom, {
-      "general.iconStyle": "colorful",
+      "general.spotlightPlacement": "top",
       "general.uiScale": 125,
     });
 
-    expect(store.get(settingsAtom)["general.iconStyle"]).toBe("monochrome");
+    expect(store.get(settingsAtom)["general.spotlightPlacement"]).toBe(
+      "center"
+    );
     expect(store.get(settingsAtom)["general.uiScale"]).toBe(125);
   });
 
@@ -119,18 +129,22 @@ describe("settings watcher echoes", () => {
     const store = createStore();
 
     store.set(updateSettingAtom, {
-      key: "general.iconStyle",
-      value: "monochrome",
+      key: "general.spotlightPlacement",
+      value: "center",
     });
     pendingWrites.forEach((resolve) => resolve());
     await flush();
 
     // Confirming echo: the file now holds our value, so the claim is released.
-    store.set(handleExternalChangeAtom, { "general.iconStyle": "monochrome" });
+    store.set(handleExternalChangeAtom, {
+      "general.spotlightPlacement": "center",
+    });
     // A later genuine external edit must now win.
-    store.set(handleExternalChangeAtom, { "general.iconStyle": "colorful" });
+    store.set(handleExternalChangeAtom, {
+      "general.spotlightPlacement": "top",
+    });
 
-    expect(store.get(settingsAtom)["general.iconStyle"]).toBe("colorful");
+    expect(store.get(settingsAtom)["general.spotlightPlacement"]).toBe("top");
   });
 
   it("lets the newest of two rapid writes to one key win", () => {
