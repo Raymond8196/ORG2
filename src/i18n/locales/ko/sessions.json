@@ -2548,7 +2548,16 @@
       "작업 중, 평소보다 오래 걸리고 있습니다...",
       "다음에 무엇을 할지 고민 중, 평소보다 오래 걸리고 있습니다..."
     ],
-    "compacting": "컨텍스트 압축 중..."
+    "compacting": "컨텍스트 압축 중...",
+    "statusTrail": {
+      "agentWorking": "Agent 작업 중",
+      "agentWorkingFor": "Agent가 {{value}} 작업 중",
+      "runningTask_one": "실행 중인 작업 {{count}}개",
+      "runningTask_other": "실행 중인 작업 {{count}}개",
+      "idle": "Agent 대기 중",
+      "lastRefreshed": "마지막 새로 고침 {{value}}",
+      "asking": "답변을 기다리는 중"
+    }
   },
   "revertConfirm": {
     "title": "저장되지 않은 파일 변경사항",

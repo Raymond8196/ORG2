@@ -2645,7 +2645,16 @@
       "正在处理，比平时更久...",
       "正在琢磨下一步，比平时更久..."
     ],
-    "compacting": "正在压缩上下文…"
+    "compacting": "正在压缩上下文…",
+    "statusTrail": {
+      "agentWorking": "Agent 工作中",
+      "agentWorkingFor": "Agent 已工作 {{value}}",
+      "runningTask_one": "{{count}} 个运行中的任务",
+      "runningTask_other": "{{count}} 个运行中的任务",
+      "idle": "Agent 空闲中",
+      "lastRefreshed": "上次刷新于 {{value}}",
+      "asking": "等待你的回复"
+    }
   },
   "revertConfirm": {
     "title": "文件有未保存的变更",

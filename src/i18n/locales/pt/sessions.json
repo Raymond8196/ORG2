@@ -1294,7 +1294,16 @@
       "Trabalhando nisso, demorando mais que o habitual...",
       "Refletindo, demorando mais que o habitual..."
     ],
-    "compacting": "Compactando contexto..."
+    "compacting": "Compactando contexto...",
+    "statusTrail": {
+      "agentWorking": "Agent trabalhando",
+      "agentWorkingFor": "Agent trabalhando há {{value}}",
+      "runningTask_one": "{{count}} tarefa em execução",
+      "runningTask_other": "{{count}} tarefas em execução",
+      "idle": "Agent inativo",
+      "lastRefreshed": "Última atualização {{value}}",
+      "asking": "Aguardando sua resposta"
+    }
   },
   "tools": {
     "noResultsFound": "Nenhum resultado encontrado",

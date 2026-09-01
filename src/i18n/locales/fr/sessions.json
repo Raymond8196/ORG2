@@ -2548,7 +2548,16 @@
       "En cours, plus long que d’habitude...",
       "En train de décider de la suite, plus long que d’habitude..."
     ],
-    "compacting": "Compactage du contexte..."
+    "compacting": "Compactage du contexte...",
+    "statusTrail": {
+      "agentWorking": "Agent en cours",
+      "agentWorkingFor": "Agent travaille depuis {{value}}",
+      "runningTask_one": "{{count}} tâche en cours",
+      "runningTask_other": "{{count}} tâches en cours",
+      "idle": "Agent inactif",
+      "lastRefreshed": "Dernière actualisation {{value}}",
+      "asking": "En attente de votre réponse"
+    }
   },
   "revertConfirm": {
     "title": "Modifications de fichiers non enregistrées",

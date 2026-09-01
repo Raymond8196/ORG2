@@ -2548,7 +2548,16 @@
       "Trabajando en ello, tardando más de lo habitual...",
       "Decidiendo el siguiente paso, tardando más de lo habitual..."
     ],
-    "compacting": "Compactando contexto..."
+    "compacting": "Compactando contexto...",
+    "statusTrail": {
+      "agentWorking": "Agent trabajando",
+      "agentWorkingFor": "Agent trabajando durante {{value}}",
+      "runningTask_one": "{{count}} tarea en curso",
+      "runningTask_other": "{{count}} tareas en curso",
+      "idle": "Agent inactivo",
+      "lastRefreshed": "Última actualización {{value}}",
+      "asking": "Esperando tu respuesta"
+    }
   },
   "revertConfirm": {
     "title": "Cambios de archivo no guardados",
