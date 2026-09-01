@@ -319,8 +319,8 @@
       "cliAgent": "CLI Agent",
       "rustAgent": "Rust Agent",
       "removeDraft": "Taslağı kaldır",
-      "showSubagents": "Alt aracıları göster",
-      "hideSubagents": "Alt aracıları gizle"
+      "showSubagents": "subagent'ları göster",
+      "hideSubagents": "subagent'ları gizle"
     },
     "resultStatus": {
       "completed": "Tamamlandı",
@@ -1438,8 +1438,8 @@
     "categorySearch": "Ara",
     "categoryGlob": "Glob",
     "categoryList": "Listele",
-    "subagentFailed": "Sub Agent başarısız",
-    "subagentDefaultName": "Sub Agent",
+    "subagentFailed": "Subagent başarısız",
+    "subagentDefaultName": "Subagent",
     "assignedTaskToSubagent": "Görev subagent'e atandı",
     "subagentRunning": "Subagent çalışıyor",
     "subagentDone": "Subagent tamamlandı",
@@ -1449,9 +1449,9 @@
     "createPlanRunning": "Plan oluşturuluyor",
     "createPlanDone": "Plan oluşturuldu",
     "createPlanFailed": "Plan oluşturulamadı",
-    "subagentResultTabFallbackTitle": "Sub Agent sonucu",
+    "subagentResultTabFallbackTitle": "Subagent sonucu",
     "openResultInTab": "Sekmede aç",
-    "openSubagentChatInTab": "Sub Agent ayrıntılarını editörde aç",
+    "openSubagentChatInTab": "Subagent ayrıntılarını editörde aç",
     "executing": "Çalıştırılıyor",
     "argumentsLabel": "Argümanlar",
     "resultLabel": "Sonuç",
@@ -1700,7 +1700,7 @@
     "awaitOutputSummaryUnknown_one": "bir arka plan görevi",
     "awaitOutputSummaryUnknown_other": "{{count}} arka plan görevi",
     "awaitOutputSummaryMixed": "{{shell}}, {{subagent}}",
-    "runningSubagent": "Alt ajana delege ediliyor...",
+    "runningSubagent": "subagent'a delege ediliyor...",
     "subagentStatusCompleted": "Tamamlandı",
     "subagentStatusError": "Başarısız",
     "openSubagentSessionTab": "Oturum oynatmayı aç",
@@ -2863,7 +2863,7 @@
     }
   },
   "sessionBadge": {
-    "subagent": "Sub Agent"
+    "subagent": "Subagent"
   },
   "tooltips": {
     "hidePanel": "Paneli gizle"
