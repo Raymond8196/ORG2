@@ -70,7 +70,6 @@ export function buildRepoSpotlightItem(
         name: repo.name,
         path: copyPath || undefined,
       },
-      gitStatus: inManageMode ? undefined : repo.gitStatus,
       rightContent: inManageMode ? manageAction(repo) : undefined,
       selectionState: getSelectionState?.(repo),
     },

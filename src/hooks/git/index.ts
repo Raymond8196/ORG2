@@ -10,7 +10,6 @@
  *
  * Git status is now handled by:
  * - GitStatusContext: Single repo status (see contexts/)
- * - MultiRepoGitStatusContext: Multi-repo status for badges (see contexts/)
  */
 
 // Unified git operations hook (push, pull, fetch, publish, sync)

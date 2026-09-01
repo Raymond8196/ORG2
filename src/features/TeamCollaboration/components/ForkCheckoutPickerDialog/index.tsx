@@ -53,10 +53,7 @@ function repoScopeKeys(repo: RepoItem): string[] | null | undefined {
 const ForkCheckoutPickerDialog: React.FC = () => {
   const { t } = useTranslation("navigation");
   const [request, setRequest] = useAtom(forkCheckoutRequestAtom);
-  const { repos, repoLoading, loadRepos } = useSharedRepoList({
-    enabled: false,
-    searchQuery: "",
-  });
+  const { repos, repoLoading, loadRepos } = useSharedRepoList("");
   // Re-render when async remote resolutions land in the shared cache.
   React.useSyncExternalStore(
     subscribeShareableScopeKeys,
