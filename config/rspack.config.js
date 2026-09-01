@@ -6,9 +6,10 @@
 // Measured vs the webpack dev server (2026-09-01, macOS, footprint method):
 // idle 1.65 GB vs 2.4 GB, warm-start peak 2.1 GB vs 3.6 GB, HMR rebuild
 // ~0.6 s vs ~3 s, cold compile 10.7 s with no persistent cache.
-// Deliberately omits: the production branch, the Linux/WebKitGTK eager-App +
-// retry-loader mode (Linux dev should keep the webpack server for now), and
-// a persistent cache (rspack's is still experimental; default memory cache).
+// Deliberately omits: the production branch and a persistent cache (rspack's
+// is still experimental; default memory cache). The Linux/WebKitGTK
+// eager-App + retry-loader mode is ported from webpack.config.js below, but
+// Linux still defaults to the webpack server (ORGII_RSPACK=true opts in).
 const path = require("path");
 const rspack = require("@rspack/core");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
@@ -23,6 +24,18 @@ module.exports = () => {
     process.env.WEBPACK_DEV_SERVER_PORT ?? process.env.PORT ?? "1998",
     10
   );
+
+  // Same platform gates as config/webpack.config.js (lines 35-48). Linux dev
+  // runs under WebKitGTK, which cannot load App as a runtime dynamic-import
+  // chunk (see commit 291f95be6) and stalls on the injected <script> tag.
+  const retryMainScriptLoad =
+    process.env.ORGII_RETRY_MAIN_SCRIPT_LOAD === "true" ||
+    (process.env.ORGII_RETRY_MAIN_SCRIPT_LOAD !== "false" &&
+      process.platform === "linux");
+  const eagerDevApp =
+    process.env.ORGII_DEV_EAGER_APP === "true" ||
+    (process.env.ORGII_DEV_EAGER_APP !== "false" &&
+      process.platform === "linux");
 
   // Mirror dotenv-webpack(systemvars) for the env keys src actually reads.
   const envKeys = [
@@ -42,7 +55,9 @@ module.exports = () => {
   const envDefinitions = Object.fromEntries(
     envKeys.map((k) => [
       `process.env.${k}`,
-      process.env[k] === undefined ? "undefined" : JSON.stringify(process.env[k]),
+      process.env[k] === undefined
+        ? "undefined"
+        : JSON.stringify(process.env[k]),
     ])
   );
 
@@ -299,13 +314,13 @@ module.exports = () => {
         template: "./public/index.html",
         chunks: ["main"],
         filename: "index.html",
-        inject: "body",
-        retryMainScriptLoad: false,
+        inject: retryMainScriptLoad ? false : "body",
+        retryMainScriptLoad,
       }),
       new ReactRefreshPlugin({ overlay: false }),
       new rspack.DefinePlugin({
         "process.env.NODE_ENV": JSON.stringify("development"),
-        "process.env.ORGII_DEV_EAGER_APP": JSON.stringify("false"),
+        "process.env.ORGII_DEV_EAGER_APP": JSON.stringify(String(eagerDevApp)),
         "process.env.ORGII_IDE_SERVER_PORT": JSON.stringify(
           process.env.ORGII_IDE_SERVER_PORT ?? "13847"
         ),
@@ -361,6 +376,9 @@ module.exports = () => {
       timings: true,
       colors: true,
     },
-    devtool: "eval-cheap-module-source-map",
+    // eagerDevApp inlines App into main.js; eval-* would additionally inline
+    // every module's source there, pushing it past the ~80 MB WebKitGTK can
+    // load. Linux therefore writes separate .map files (webpack.config.js:694).
+    devtool: eagerDevApp ? "cheap-source-map" : "eval-cheap-module-source-map",
   };
 };
