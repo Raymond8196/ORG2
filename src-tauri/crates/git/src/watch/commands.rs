@@ -79,7 +79,6 @@ pub async fn unwatch_repo(repo_id: String) -> Result<(), String> {
 // ============================================
 
 /// Get watch status summary
-#[tauri::command]
 pub async fn get_watch_status() -> Result<WatchStatus, String> {
     let manager_lock = REPO_WATCH_MANAGER.read();
     let manager = manager_lock

@@ -136,7 +136,7 @@ const SetupRepoBlock: React.FC<SetupRepoBlockProps> = memo(
       handleHeaderMouseEnter,
       handleHeaderMouseLeave,
     } = useEventBlockHeader({
-      defaultCollapsed: false,
+      defaultCollapsed: true,
       collapseAllValue: true,
     });
 

@@ -8,7 +8,6 @@
 mod conversion;
 mod merge;
 mod patch;
-mod structured;
 mod types;
 mod unified;
 
@@ -22,7 +21,6 @@ use conversion::convert_patch_to_unified_impl;
 use merge::collect_changes;
 pub(crate) use patch::parse_patch;
 use patch::{apply_hunk_at, extract_context_lines, failed_hunk_result, find_best_match};
-use structured::{compute_structured_diff_internal, generate_split_rows, group_into_hunks};
 
 // ============================================
 // Diff Command
@@ -488,12 +486,11 @@ pub fn compute_dirty_diff_markers(
 }
 
 // ============================================
-// Patch Conversion Command
+// Patch Conversion
 // ============================================
 
 /// Convert "*** Begin Patch / *** Add File: / *** Modify File:" syntax
 /// into unified diff format with statistics.
-#[command]
 pub fn convert_patch_to_unified(patch_text: String) -> PatchConversionResult {
     convert_patch_to_unified_impl(&patch_text)
 }
@@ -501,39 +498,6 @@ pub fn convert_patch_to_unified(patch_text: String) -> PatchConversionResult {
 // ============================================
 // Diff with Hunks Command
 // ============================================
-
-/// Compute diff with hunks and split rows in one call.
-#[command]
-pub fn compute_diff_with_hunks(
-    old_text: String,
-    new_text: String,
-    context_lines: Option<usize>,
-) -> DiffWithHunksResult {
-    let context = context_lines.unwrap_or(3);
-
-    let lines = compute_structured_diff_internal(&old_text, &new_text);
-
-    let additions = lines.iter().filter(|l| l.line_type == "add").count();
-    let deletions = lines.iter().filter(|l| l.line_type == "remove").count();
-
-    let old_lines = old_text.split('\n').count();
-    let new_lines = new_text.split('\n').count();
-    let max_line_number = old_lines.max(new_lines);
-
-    let hunks = group_into_hunks(&lines, context);
-    let split_rows = generate_split_rows(&hunks);
-
-    DiffWithHunksResult {
-        hunks,
-        split_rows,
-        stats: DiffWithHunksStats {
-            additions,
-            deletions,
-            total_changes: additions + deletions,
-        },
-        max_line_number,
-    }
-}
 
 // ============================================
 // Tests

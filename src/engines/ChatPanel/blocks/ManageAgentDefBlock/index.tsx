@@ -165,7 +165,7 @@ const ManageAgentDefBlock: React.FC<ManageAgentDefBlockProps> = ({
     handleHeaderMouseEnter,
     handleHeaderMouseLeave,
   } = useBlockHeader({
-    defaultCollapsed: false,
+    defaultCollapsed: true,
     eventId,
     collapseAllValue: true,
   });
