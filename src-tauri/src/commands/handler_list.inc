@@ -42,7 +42,6 @@ browser::reload_inline_webview,
 // Browser commands - Logging & Cookies
 browser::get_webview_console_logs,
 browser::get_webview_network_logs,
-browser::get_webview_cookies,
 // Browser commands - Element Inspector
 browser::toggle_webview_inspect_mode,
 browser::enable_webview_inspect_mode,
@@ -78,18 +77,7 @@ browser::browser_webviews_set_layer_for_all,
 // Browser commands - Active internal browser target state
 browser::set_active_internal_browser_state,
 browser::clear_active_internal_browser_state,
-browser::get_active_internal_browser_state,
-browser::list_internal_browser_targets,
 // Browser commands - Internal browser automation (DOM automation for inline webviews)
-browser::internal_browser_get_state,
-browser::internal_browser_click,
-browser::internal_browser_input,
-browser::internal_browser_select,
-browser::internal_browser_scroll,
-browser::internal_browser_show_mask,
-browser::internal_browser_hide_mask,
-browser::internal_browser_clean_up,
-browser::internal_browser_is_ready,
 // Runner commands - Cursor session capture
 agent_sessions::cli::platform_adapters::cursor::session_capture::start_cursor_native_oauth_login,
 agent_sessions::cli::platform_adapters::cursor::session_capture::poll_cursor_native_oauth_token,
@@ -203,7 +191,6 @@ infrastructure::spreadsheet_xlsx::spreadsheet_xlsx_save_patches,
 // Repository Watch commands (event-driven git status)
 git::watch::commands::watch_repos,
 git::watch::commands::unwatch_repo,
-git::watch::commands::get_watch_status,
 git::watch::commands::set_window_focus,
 git::watch::commands::set_source_control_attention,
 git::watch::commands::set_active_git_polling_repo,
@@ -271,9 +258,7 @@ session_persistence::get_session_llm_usage_spans,
 session_persistence::get_session_tool_usage_attributions,
 session_persistence::get_session_tool_usage_attributions_for_call,
 // Git Bundle commands (for cloud session upload - preserves git history)
-git::bundle::get_git_repo_info,
 // Git Bundle Sync commands (for pull/push during cloud sessions)
-git::bundle::calculate_ahead_behind,
 // Git operations for conflict resolution
 git::bundle::git_commit,
 // Worktree PR base resolution (fetch PR head → git-resolvable base ref)
@@ -395,7 +380,6 @@ api::websocket_handler::subscribe_session_events,
 api::websocket_handler::unsubscribe_session_events,
 // Code session commands (spawn CLI agents, manage sessions)
 agent_sessions::cli::commands::cli_agent_create,
-agent_sessions::cli::commands::cli_agent_run,
 agent_sessions::cli::commands::cli_agent_message,
 agent_sessions::cli::commands::cli_agent_approval_response,
 agent_sessions::cli::commands::cli_agent_status,
@@ -599,8 +583,6 @@ perf_utils::diff_patch::apply_fuzzy_patch,
 perf_utils::diff_patch::merge_three_way,
 perf_utils::diff_patch::compute_dirty_diff_markers,
 perf_utils::diff_patch::compute_structured_diff,
-perf_utils::diff_patch::convert_patch_to_unified,
-perf_utils::diff_patch::compute_diff_with_hunks,
 // - Process metrics (memory, CPU monitoring)
 perf_utils::get_process_metrics,
 perf_utils::get_memory_usage,
