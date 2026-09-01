@@ -175,6 +175,9 @@ const LinkSessionToWorkItemModal: React.FC<LinkSessionToWorkItemModalProps> = ({
 
         <div className="border-b border-solid border-border-1 p-3">
           <Input
+            // This dialog renders its own overlay instead of the shared
+            // `ModalSystem`, so its opening focus is not handled centrally.
+            autoFocus
             value={query}
             onChange={(value) => setQuery(value)}
             placeholder={t("chat.linkWorkItem.searchPlaceholder")}
