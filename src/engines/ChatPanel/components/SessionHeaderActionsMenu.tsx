@@ -39,7 +39,7 @@ import {
   ThirdBracketIcon,
 } from "@src/icons";
 import { sessionByIdAtom, upsertSession } from "@src/store/session";
-import { pinnedActionsVisibleAtom } from "@src/store/session/creatorPinnedActionsVisibleAtom";
+import { pinnedActionsVisibleAtom } from "@src/store/session/pinnedActionsVisibleAtom";
 import { openSessionInNewWindowAtom } from "@src/store/session/sessionTabPlacementAtom";
 import type { ChatHistoryDisplayMode } from "@src/store/ui/chatPanelAtom";
 import { isAgentSession } from "@src/util/session/sessionDispatch";

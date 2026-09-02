@@ -25,7 +25,7 @@ type TabSidebarExtraContext = Partial<
   Omit<TabSidebarRuntimeContext, "repoPath" | "repoId" | "git">
 >;
 
-interface UseTabSidebarOptions {
+interface TabSidebarOptions {
   activeTab: WorkStationTab | null;
   repoPath: string | null;
   repoId: string | null;
@@ -38,7 +38,7 @@ interface UseTabSidebarOptions {
   extraContext?: TabSidebarExtraContext;
 }
 
-interface SidebarSlotProps extends UseTabSidebarOptions {
+interface SidebarSlotProps extends TabSidebarOptions {
   defaultSidebar: React.ReactNode;
 }
 
@@ -66,7 +66,7 @@ function buildSidebarContext({
   onGitFilesChange,
   onGitHistorySelectionChange,
   extraContext,
-}: Omit<UseTabSidebarOptions, "activeTab"> & {
+}: Omit<TabSidebarOptions, "activeTab"> & {
   repoPath: string;
 }): TabSidebarRuntimeContext {
   return {
@@ -90,31 +90,6 @@ const TabSidebarRenderer: React.FC<TabSidebarRendererProps> = memo(
   }
 );
 TabSidebarRenderer.displayName = "TabSidebarRenderer";
-
-export function useTabSidebar({
-  activeTab,
-  repoPath,
-  repoId,
-  isMultiRoot,
-  onGitFileSelect,
-  onGitFilesChange,
-  onGitHistorySelectionChange,
-  extraContext,
-}: UseTabSidebarOptions): React.ReactElement | null {
-  if (!activeTab || !repoPath || !shouldRenderSidebar(activeTab)) return null;
-
-  const context = buildSidebarContext({
-    repoPath,
-    repoId,
-    isMultiRoot,
-    onGitFileSelect,
-    onGitFilesChange,
-    onGitHistorySelectionChange,
-    extraContext,
-  });
-
-  return <TabSidebarRenderer tab={activeTab} context={context} />;
-}
 
 export const SidebarSlot: React.FC<SidebarSlotProps> = memo(
   ({

@@ -1,7 +1,5 @@
 /**
- * useGitErrorDialog Hook
- *
- * Handles showing the git error dialog and performing actions based on user choice.
+ * Shows the git error dialog and performs actions based on user choice.
  *
  * Actions:
  * - Stash and Continue: Stash local changes and retry operation
@@ -9,8 +7,6 @@
  * - Show Command Output: Switches to Output panel in bottom panel
  * - Cancel: Dismisses dialog without action
  */
-import { useCallback } from "react";
-
 import { gitApi } from "@src/api/http/git";
 import { ROUTES } from "@src/config/routes";
 import { getRepoContext } from "@src/services/git/operations/types";
@@ -24,36 +20,10 @@ import { getInstrumentedStore } from "@src/util/core/state/instrumentedStore";
 import { showGitActionDialogSafely } from "@src/util/dialogs/gitActionDialog";
 import {
   type GitErrorDialogOptions,
-  type GitErrorDialogResult,
   buildGitErrorInfo,
   showGitErrorDialog,
 } from "@src/util/dialogs/gitErrorDialog";
 import { askNativeDialogSafely } from "@src/util/dialogs/nativeDialog";
-
-// ============================================
-// Types
-// ============================================
-
-export interface UseGitErrorDialogOptions {
-  /** Callback to retry the failed operation */
-  onRetry?: () => void | Promise<void>;
-}
-
-export interface UseGitErrorDialogReturn {
-  /**
-   * Show the git error dialog
-   * Returns the user's choice
-   */
-  showErrorDialog: (
-    options: GitErrorDialogOptions
-  ) => Promise<GitErrorDialogResult>;
-
-  /**
-   * Handle git operation error with full dialog flow
-   * Automatically performs the chosen action
-   */
-  handleGitError: (options: GitErrorDialogOptions) => Promise<void>;
-}
 
 async function stashAndRetryOperation(
   options: GitErrorDialogOptions,
@@ -232,91 +202,6 @@ function navigateToCodeEditorIfNeeded(): void {
   );
 }
 
-// ============================================
-// Hook Implementation
-// ============================================
-
-export function useGitErrorDialog(
-  hookOptions: UseGitErrorDialogOptions = {}
-): UseGitErrorDialogReturn {
-  const { onRetry } = hookOptions;
-
-  /**
-   * Open a git log tab with the error details
-   */
-  const openGitLogTab = useCallback((options: GitErrorDialogOptions) => {
-    navigateToCodeEditorIfNeeded();
-
-    const store = getInstrumentedStore();
-    const errorInfo = buildGitErrorInfo(options);
-    const workspace = store.get(presentedWorkstationWorkspaceKeyAtom);
-
-    const tab = createGitLogTab(
-      errorInfo.operation,
-      errorInfo.errorMessage,
-      errorInfo.commandOutput,
-      errorInfo.timestamp
-    );
-
-    store.set(openWorkstationTabAtom, {
-      workspace,
-      tab,
-    });
-  }, []);
-
-  /**
-   * Show the error dialog and return user's choice
-   */
-  const showErrorDialog = useCallback(
-    async (options: GitErrorDialogOptions): Promise<GitErrorDialogResult> => {
-      return showGitErrorDialog(options);
-    },
-    []
-  );
-
-  /**
-   * Handle git error with full dialog flow
-   * Shows dialog and performs the chosen action
-   */
-  const handleGitError = useCallback(
-    async (options: GitErrorDialogOptions): Promise<void> => {
-      const result = await showErrorDialog(options);
-
-      switch (result) {
-        case "stash-and-continue":
-          await stashAndRetryOperation(options, onRetry);
-          break;
-
-        case "open-git-log":
-          openGitLogTab(options);
-          break;
-
-        case "cancel":
-        default:
-          // Do nothing
-          break;
-      }
-
-      // If retry callback provided and user might want to retry after viewing
-      // The retry button is available in the GitLogViewer component
-      if (onRetry && result === "open-git-log") {
-        // Retry callback is passed to GitLogViewer via tab data
-        // No immediate action needed here
-      }
-    },
-    [showErrorDialog, openGitLogTab, onRetry]
-  );
-
-  return {
-    showErrorDialog,
-    handleGitError,
-  };
-}
-
-// ============================================
-// Standalone function for use outside React
-// ============================================
-
 /**
  * Show git error dialog and handle result (standalone, no React hooks)
  *
@@ -359,5 +244,3 @@ export async function showGitErrorAndHandle(
       break;
   }
 }
-
-export default useGitErrorDialog;
