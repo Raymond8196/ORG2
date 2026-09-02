@@ -1266,7 +1266,7 @@
       "loadingConversation": "Wczytywanie…",
       "reviewNoBody": "Dodano komentarze do przeglądu.",
       "submitReview": "Prześlij recenzję",
-      "reviewHeadNotice": "Recenzja zostanie zastosowana tylko wtedy, gdy wyświetlony commit HEAD nadal będzie zgodny.",
+      "reviewHeadNotice": "Recenzja zostanie zastosowana tylko wtedy, gdy wyświetlony commit HEAD nadal będzie zgodny",
       "reviewDecision": "Decyzja recenzji",
       "reviewComment": "Komentarz do recenzji",
       "reviewCommentPlaceholder": "Dodaj komentarz…",

@@ -1259,7 +1259,7 @@
       "loadingConversation": "Đang tải…",
       "reviewNoBody": "Đã để lại nhận xét đánh giá.",
       "submitReview": "Gửi bản xem xét",
-      "reviewHeadNotice": "Bản xem xét chỉ được áp dụng nếu commit đầu được hiển thị vẫn khớp.",
+      "reviewHeadNotice": "Bản xem xét chỉ được áp dụng nếu commit đầu được hiển thị vẫn khớp",
       "reviewDecision": "Quyết định xem xét",
       "reviewComment": "Nhận xét xem xét",
       "reviewCommentPlaceholder": "Thêm nhận xét…",

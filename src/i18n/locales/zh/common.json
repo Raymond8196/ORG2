@@ -1164,7 +1164,7 @@
       "loadingConversation": "正在加载…",
       "reviewNoBody": "留下了审查评论。",
       "submitReview": "提交审查",
-      "reviewHeadNotice": "仅当显示的头部提交仍然匹配时，此审查才会生效。",
+      "reviewHeadNotice": "仅当显示的头部提交仍然匹配时，此审查才会生效",
       "reviewDecision": "审查决定",
       "reviewComment": "审查评论",
       "reviewCommentPlaceholder": "添加评论…",

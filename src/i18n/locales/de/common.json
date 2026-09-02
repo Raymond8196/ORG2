@@ -1260,7 +1260,7 @@
       "loadingConversation": "Wird geladen…",
       "reviewNoBody": "Hat Review-Kommentare hinterlassen.",
       "submitReview": "Überprüfung einreichen",
-      "reviewHeadNotice": "Die Überprüfung wird nur angewendet, wenn der angezeigte Head-Commit weiterhin übereinstimmt.",
+      "reviewHeadNotice": "Die Überprüfung wird nur angewendet, wenn der angezeigte Head-Commit weiterhin übereinstimmt",
       "reviewDecision": "Überprüfungsentscheidung",
       "reviewComment": "Überprüfungskommentar",
       "reviewCommentPlaceholder": "Einen Kommentar hinzufügen…",

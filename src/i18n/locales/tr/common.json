@@ -1261,7 +1261,7 @@
       "loadingConversation": "Yükleniyor…",
       "reviewNoBody": "İnceleme yorumları bıraktı.",
       "submitReview": "İncelemeyi gönder",
-      "reviewHeadNotice": "İnceleme yalnızca görüntülenen baş commit hâlâ eşleşiyorsa uygulanır.",
+      "reviewHeadNotice": "İnceleme yalnızca görüntülenen baş commit hâlâ eşleşiyorsa uygulanır",
       "reviewDecision": "İnceleme kararı",
       "reviewComment": "İnceleme yorumu",
       "reviewCommentPlaceholder": "Yorum ekle…",

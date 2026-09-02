@@ -1260,7 +1260,7 @@
       "loadingConversation": "Chargement…",
       "reviewNoBody": "A laissé des commentaires de revue.",
       "submitReview": "Envoyer la revue",
-      "reviewHeadNotice": "La revue ne s’applique que si le commit de tête affiché correspond toujours.",
+      "reviewHeadNotice": "La revue ne s’applique que si le commit de tête affiché correspond toujours",
       "reviewDecision": "Décision de revue",
       "reviewComment": "Commentaire de revue",
       "reviewCommentPlaceholder": "Ajouter un commentaire…",

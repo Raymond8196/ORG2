@@ -1259,7 +1259,7 @@
       "loadingConversation": "読み込み中…",
       "reviewNoBody": "レビューコメントを残しました。",
       "submitReview": "レビューを送信",
-      "reviewHeadNotice": "表示されているヘッドコミットが引き続き一致する場合にのみ、レビューが適用されます。",
+      "reviewHeadNotice": "表示されているヘッドコミットが引き続き一致する場合にのみ、レビューが適用されます",
       "reviewDecision": "レビューの判断",
       "reviewComment": "レビューコメント",
       "reviewCommentPlaceholder": "コメントを追加…",

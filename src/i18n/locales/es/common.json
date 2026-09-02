@@ -1260,7 +1260,7 @@
       "loadingConversation": "Cargando…",
       "reviewNoBody": "Dejó comentarios de revisión.",
       "submitReview": "Enviar revisión",
-      "reviewHeadNotice": "La revisión se aplica solo si el commit principal mostrado sigue coincidiendo.",
+      "reviewHeadNotice": "La revisión se aplica solo si el commit principal mostrado sigue coincidiendo",
       "reviewDecision": "Decisión de revisión",
       "reviewComment": "Comentario de revisión",
       "reviewCommentPlaceholder": "Añadir un comentario…",

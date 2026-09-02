@@ -600,7 +600,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
           <p className="text-[13px] leading-5 text-text-3">
             {t(
               "git.pr.reviewHeadNotice",
-              "The review applies only if the displayed head commit still matches."
+              "The review applies only if the displayed head commit still matches"
             )}
           </p>
 
@@ -608,16 +608,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
             <legend className="sr-only">
               {t("git.pr.reviewDecision", "Review decision")}
             </legend>
-            <div
-              className="grid grid-cols-[112px_minmax(0,1fr)] items-start gap-x-4"
-              data-testid="pr-review-decision-row"
-            >
-              <span
-                aria-hidden
-                className="pt-0.5 text-[13px] font-medium text-text-1"
-              >
-                {t("git.pr.reviewDecision", "Review decision")}
-              </span>
+            <div data-testid="pr-review-decision-row">
               <Radio.Group
                 value={reviewDecision}
                 onChange={handleReviewDecisionChange}
@@ -637,10 +628,10 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
 
           <label
             htmlFor="pr-review-comment"
-            className="grid grid-cols-[112px_minmax(0,1fr)] items-start gap-x-4"
+            className="block"
             data-testid="pr-review-comment-row"
           >
-            <span className="pt-1.5 text-[13px] font-medium text-text-1">
+            <span className="sr-only">
               {t("git.pr.reviewComment", "Review comment")}
             </span>
             <Textarea

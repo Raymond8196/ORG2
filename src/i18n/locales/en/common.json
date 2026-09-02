@@ -1212,7 +1212,7 @@
       "loadingConversation": "Loading…",
       "reviewNoBody": "Left review comments.",
       "submitReview": "Submit review",
-      "reviewHeadNotice": "The review applies only if the displayed head commit still matches.",
+      "reviewHeadNotice": "The review applies only if the displayed head commit still matches",
       "reviewDecision": "Review decision",
       "reviewComment": "Review comment",
       "reviewCommentPlaceholder": "Add a comment…",

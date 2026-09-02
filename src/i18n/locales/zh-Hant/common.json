@@ -1272,7 +1272,7 @@
       "loadingConversation": "正在載入…",
       "reviewNoBody": "留下了審查留言。",
       "submitReview": "提交審查",
-      "reviewHeadNotice": "只有顯示的 head commit 仍相符時，此審查才會生效。",
+      "reviewHeadNotice": "只有顯示的 head commit 仍相符時，此審查才會生效",
       "reviewDecision": "審查決定",
       "reviewComment": "審查評論",
       "reviewCommentPlaceholder": "新增評論…",

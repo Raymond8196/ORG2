@@ -195,7 +195,7 @@ describe("PrConversationTab", () => {
       const dialog =
         document.body.querySelector<HTMLElement>('[role="dialog"]');
       expect(dialog?.textContent).toContain("Submit review");
-      expect(dialog?.textContent).toContain("Review decision");
+      expect(dialog?.querySelector("legend")?.className).toBe("sr-only");
       expect(dialog?.textContent).toContain("Comment");
       expect(dialog?.textContent).toContain("Approve");
       expect(dialog?.textContent).toContain("Request changes");
@@ -214,12 +214,10 @@ describe("PrConversationTab", () => {
       expect(modalBody?.className).toContain("p-0");
       expect(reviewModalBody?.className).toContain("px-5");
       expect(reviewModalBody?.className).toContain("py-4");
-      expect(decisionRow?.className).toContain(
-        "grid-cols-[112px_minmax(0,1fr)]"
-      );
-      expect(commentRow?.className).toContain(
-        "grid-cols-[112px_minmax(0,1fr)]"
-      );
+      expect(decisionRow?.className).not.toContain("grid-cols-");
+      expect(commentRow?.className).toContain("block");
+      expect(commentRow?.textContent).toContain("Review comment");
+      expect(commentRow?.querySelector("span")?.className).toBe("sr-only");
 
       const submitButton = Array.from(
         dialog?.querySelectorAll<HTMLButtonElement>("button") ?? []

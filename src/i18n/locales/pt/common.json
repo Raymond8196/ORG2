@@ -1260,7 +1260,7 @@
       "loadingConversation": "Carregando…",
       "reviewNoBody": "Deixou comentários de revisão.",
       "submitReview": "Enviar revisão",
-      "reviewHeadNotice": "A revisão só será aplicada se o commit de cabeçalho exibido ainda corresponder.",
+      "reviewHeadNotice": "A revisão só será aplicada se o commit de cabeçalho exibido ainda corresponder",
       "reviewDecision": "Decisão da revisão",
       "reviewComment": "Comentário da revisão",
       "reviewCommentPlaceholder": "Adicionar um comentário…",
