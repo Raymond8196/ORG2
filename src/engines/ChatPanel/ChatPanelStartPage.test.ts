@@ -136,7 +136,7 @@ describe("ChatPanelStartPage", () => {
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
         createTarget: CHAT_PANEL_CREATE_TARGET.AGENT_SESSION,
-        sessionLauncher: (heroFooterSlot) =>
+        agentLauncher: ({ heroFooterSlot }) =>
           createElement("div", null, "Session launcher", heroFooterSlot),
         t,
       })
@@ -193,7 +193,7 @@ describe("ChatPanelStartPage", () => {
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
         createTarget: CHAT_PANEL_CREATE_TARGET.AGENT_SESSION,
-        sessionLauncher: (heroFooterSlot) =>
+        agentLauncher: ({ heroFooterSlot }) =>
           createElement("div", null, "Session launcher", heroFooterSlot),
         t,
       })
@@ -245,7 +245,7 @@ describe("ChatPanelStartPage", () => {
         createElement(ChatPanelStartPage, {
           ...createTargetProps,
           createTarget: CHAT_PANEL_CREATE_TARGET.AGENT_SESSION,
-          sessionLauncher: (heroFooterSlot, launchpadActionsVisible) => {
+          agentLauncher: ({ heroFooterSlot, launchpadActionsVisible }) => {
             receivedVisibility = launchpadActionsVisible;
             return createElement(
               "div",
@@ -292,7 +292,7 @@ describe("ChatPanelStartPage", () => {
         createTarget: CHAT_PANEL_CREATE_TARGET.WORK_ITEM,
         t,
         workItemAgentMode: false,
-        workItemLauncher: (manualMiddleContent, modeControl) =>
+        manualWorkItemLauncher: (manualMiddleContent, modeControl) =>
           createElement(
             "div",
             { "data-testid": "full-work-item-creator" },
@@ -377,7 +377,7 @@ describe("ChatPanelStartPage", () => {
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
         createTarget: CHAT_PANEL_CREATE_TARGET.AGENT_SESSION,
-        sessionLauncher: (heroFooterSlot) =>
+        agentLauncher: ({ heroFooterSlot }) =>
           createElement("div", null, "Session launcher", heroFooterSlot),
         t,
       })

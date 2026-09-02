@@ -23,6 +23,10 @@ import {
 import { STORY_PERSONAL_ORG_FILTER_ID } from "@src/store/workstation/tabs";
 
 import { ChatPanelStartPage } from "./ChatPanelStartPage";
+import {
+  type DefaultAiWorkItemExecutionTarget,
+  StartPageAgentComposer,
+} from "./StartPageAgentComposer";
 import type { ChatPanelProps, ChatPanelRegionNotice } from "./types";
 
 const CreateProjectView = React.lazy(
@@ -42,13 +46,6 @@ interface EmbeddedAgentComposerOptions {
   onSessionStart: NonNullable<SessionCreatorSlotProps["onSessionStart"]>;
   resolveWorkItemContext?: SessionCreatorSlotProps["resolveWorkItemContext"];
   workItemContext?: SessionCreatorSlotProps["workItemContext"];
-}
-
-interface DefaultAiWorkItemExecutionTarget {
-  id: string;
-  name: string;
-  type: "agent" | "org";
-  agentDefinitionId?: string;
 }
 
 interface WorkspaceScopedCreateContext {
@@ -301,17 +298,6 @@ export function ChatPanelEmptyContent({
   };
 
   if (showStartPage) {
-    const sessionLauncher = (
-      heroFooterSlot: React.ReactNode,
-      launchpadActionsVisible: boolean
-    ) =>
-      renderSessionLauncher(
-        "h-full",
-        "launchpad",
-        heroFooterSlot,
-        false,
-        !launchpadActionsVisible
-      );
     const moreCreateTarget =
       createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT ||
       createTarget === CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN
@@ -327,6 +313,35 @@ export function ChatPanelEmptyContent({
 
     return (
       <ChatPanelStartPage
+        agentLauncher={
+          SessionCreatorSlot
+            ? ({
+                createTarget: agentCreateTarget,
+                heroFooterSlot,
+                launchpadActionsVisible,
+                workItemModeControl,
+              }) => (
+                <StartPageAgentComposer
+                  createTarget={agentCreateTarget}
+                  creatorModeControl={workItemModeControl}
+                  creatorVariant={creatorVariant}
+                  defaultAiWorkItemExecutionTarget={
+                    defaultAiWorkItemExecutionTarget
+                  }
+                  handleAiWorkItemSessionStart={handleAiWorkItemSessionStart}
+                  handleOpenCliTerminal={handleOpenCliTerminal}
+                  handleRegionNoticeChange={handleRegionNoticeChange}
+                  handleStartPageSessionStart={handleStartPageSessionStart}
+                  heroFooterSlot={heroFooterSlot}
+                  launchpadActionsVisible={launchpadActionsVisible}
+                  onDraftChange={setWorkItemCreateDraft}
+                  orgId={createProjectContext?.orgId}
+                  resolveAiWorkItemContext={resolveAiWorkItemContext}
+                  SessionCreatorSlot={SessionCreatorSlot}
+                />
+              )
+            : undefined
+        }
         className={creatorClassName}
         createTarget={createTarget}
         createTargetOptions={createTargetOptions}
@@ -337,11 +352,10 @@ export function ChatPanelEmptyContent({
         onProjectAgentModeChange={handleProjectAgentCreatorToggle}
         onWorkItemAgentModeChange={handleWorkItemAgentCreatorToggle}
         moreLauncher={moreLauncher}
-        sessionLauncher={sessionLauncher}
         t={t}
         projectAgentMode={showProjectAgentCreator}
         workItemAgentMode={showWorkItemAgentCreator}
-        workItemLauncher={(manualMiddleContent, creatorModeControl) =>
+        manualWorkItemLauncher={(manualMiddleContent, creatorModeControl) =>
           renderWorkItemCreator(manualMiddleContent, creatorModeControl)
         }
       />
