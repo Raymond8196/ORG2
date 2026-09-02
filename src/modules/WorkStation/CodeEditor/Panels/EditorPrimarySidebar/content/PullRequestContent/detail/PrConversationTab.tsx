@@ -579,10 +579,7 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
         visible={reviewModalVisible}
         title={t("git.pr.submitReview", "Submit review")}
         width={640}
-        bodyClassName="px-5 py-4"
-        footerTopBorder={false}
-        primaryButtonSize="default"
-        secondaryButtonSize="default"
+        bodyClassName="p-0"
         okText={t("git.pr.submitReview", "Submit review")}
         cancelText={t("actions.cancel", "Cancel")}
         onCancel={closeReviewModal}
@@ -596,7 +593,10 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
         }}
         cancelButtonProps={{ disabled: submittingReview }}
       >
-        <div className="flex flex-col gap-5">
+        <div
+          className="flex flex-col gap-4 px-5 py-4"
+          data-testid="pr-review-modal-body"
+        >
           <p className="text-[13px] leading-5 text-text-3">
             {t(
               "git.pr.reviewHeadNotice",
@@ -604,30 +604,45 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
             )}
           </p>
 
-          <fieldset className="flex flex-col gap-2">
-            <legend className="mb-2 text-[13px] font-medium text-text-1">
+          <fieldset className="m-0 min-w-0 border-0 p-0">
+            <legend className="sr-only">
               {t("git.pr.reviewDecision", "Review decision")}
             </legend>
-            <Radio.Group
-              value={reviewDecision}
-              onChange={handleReviewDecisionChange}
-              disabled={submittingReview}
-              direction="horizontal"
-              className="flex-wrap gap-x-5 gap-y-2"
+            <div
+              className="grid grid-cols-[112px_minmax(0,1fr)] items-start gap-x-4"
+              data-testid="pr-review-decision-row"
             >
-              <Radio value="COMMENT">{t("git.pr.comment", "Comment")}</Radio>
-              <Radio value="APPROVE">{t("git.pr.approve", "Approve")}</Radio>
-              <Radio value="REQUEST_CHANGES">
-                {t("git.pr.requestChanges", "Request changes")}
-              </Radio>
-            </Radio.Group>
+              <span
+                aria-hidden
+                className="pt-0.5 text-[13px] font-medium text-text-1"
+              >
+                {t("git.pr.reviewDecision", "Review decision")}
+              </span>
+              <Radio.Group
+                value={reviewDecision}
+                onChange={handleReviewDecisionChange}
+                disabled={submittingReview}
+                direction="horizontal"
+                size="small"
+                className="flex-wrap gap-x-5 gap-y-2"
+              >
+                <Radio value="COMMENT">{t("git.pr.comment", "Comment")}</Radio>
+                <Radio value="APPROVE">{t("git.pr.approve", "Approve")}</Radio>
+                <Radio value="REQUEST_CHANGES">
+                  {t("git.pr.requestChanges", "Request changes")}
+                </Radio>
+              </Radio.Group>
+            </div>
           </fieldset>
 
           <label
             htmlFor="pr-review-comment"
-            className="flex flex-col gap-2 text-[13px] font-medium text-text-1"
+            className="grid grid-cols-[112px_minmax(0,1fr)] items-start gap-x-4"
+            data-testid="pr-review-comment-row"
           >
-            {t("git.pr.reviewComment", "Review comment")}
+            <span className="pt-1.5 text-[13px] font-medium text-text-1">
+              {t("git.pr.reviewComment", "Review comment")}
+            </span>
             <Textarea
               id="pr-review-comment"
               data-testid="pr-review-comment"
@@ -637,8 +652,8 @@ export const PrConversationTab: React.FC<PrConversationTabProps> = ({
                 "git.pr.reviewCommentPlaceholder",
                 "Add a comment…"
               )}
-              rows={7}
-              resize="vertical"
+              autoSize={{ minRows: 4, maxRows: 8 }}
+              resize="none"
               disabled={submittingReview}
             />
           </label>

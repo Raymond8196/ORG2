@@ -200,10 +200,33 @@ describe("PrConversationTab", () => {
       expect(dialog?.textContent).toContain("Approve");
       expect(dialog?.textContent).toContain("Request changes");
 
+      const modalBody =
+        dialog?.querySelector<HTMLElement>(".liquid-modal-body");
+      const reviewModalBody = dialog?.querySelector<HTMLElement>(
+        '[data-testid="pr-review-modal-body"]'
+      );
+      const decisionRow = dialog?.querySelector<HTMLElement>(
+        '[data-testid="pr-review-decision-row"]'
+      );
+      const commentRow = dialog?.querySelector<HTMLElement>(
+        '[data-testid="pr-review-comment-row"]'
+      );
+      expect(modalBody?.className).toContain("p-0");
+      expect(reviewModalBody?.className).toContain("px-5");
+      expect(reviewModalBody?.className).toContain("py-4");
+      expect(decisionRow?.className).toContain(
+        "grid-cols-[112px_minmax(0,1fr)]"
+      );
+      expect(commentRow?.className).toContain(
+        "grid-cols-[112px_minmax(0,1fr)]"
+      );
+
       const submitButton = Array.from(
         dialog?.querySelectorAll<HTMLButtonElement>("button") ?? []
       ).find((button) => button.textContent?.trim() === "Submit review");
       expect(submitButton?.disabled).toBe(true);
+      expect(submitButton?.style.height).toBe("28px");
+      expect(submitButton?.parentElement?.className).toContain("border-t");
 
       await act(async () => {
         dialog
@@ -214,6 +237,7 @@ describe("PrConversationTab", () => {
       const reviewComment = dialog?.querySelector<HTMLTextAreaElement>(
         '[data-testid="pr-review-comment"]'
       );
+      expect(reviewComment?.style.resize).toBe("none");
       await act(async () => {
         const valueSetter = Object.getOwnPropertyDescriptor(
           HTMLTextAreaElement.prototype,
