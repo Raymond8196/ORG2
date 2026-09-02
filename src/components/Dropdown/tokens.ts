@@ -384,7 +384,10 @@ export const DROPDOWN_CLASSES = {
     DROPDOWN_ITEM.hoverBgClass,
   ].join(" "),
 
-  /** 32px menu row for label + right-side control such as Switch. */
+  /**
+   * 32px menu row for a label + right-side control such as a Switch or pill.
+   * The embedded control owns its hover state; the containing row stays clear.
+   */
   menuControlItem: [
     "flex",
     "w-full",
@@ -401,7 +404,6 @@ export const DROPDOWN_CLASSES = {
     DROPDOWN_ITEM.fontSizeClass,
     DROPDOWN_ITEM.transitionClass,
     "text-text-1",
-    DROPDOWN_ITEM.hoverBgClass,
   ].join(" "),
 
   /** Inset rule between menu-item groups with a tight 2px local offset. */
