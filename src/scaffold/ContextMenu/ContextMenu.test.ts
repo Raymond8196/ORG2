@@ -24,7 +24,6 @@ vi.mock("react-i18next", () => ({
 
 vi.mock("./contextMenuSearchHandlers", () => ({
   searchFiles: vi.fn(async () => []),
-  searchProjects: vi.fn(async () => []),
   searchSessions: vi.fn(() => []),
 }));
 
@@ -133,5 +132,80 @@ describe("ContextMenu shared + / @ contract", () => {
     expect(
       container.querySelector('[data-testid="context-menu-mode-option-ask"]')
     ).not.toBeNull();
+  });
+
+  it("routes Work Items as an action instead of opening a nested list", async () => {
+    const onClose = vi.fn();
+    const onSelect = vi.fn();
+
+    await act(async () => {
+      root.render(
+        React.createElement(
+          Provider,
+          null,
+          React.createElement(ContextMenu, {
+            visible: true,
+            onClose,
+            onSelect,
+            currentMode: "build",
+            onModeSelect: vi.fn(),
+          })
+        )
+      );
+    });
+
+    const workItems = container.querySelector<HTMLElement>(
+      '[data-testid="context-menu-command-projects"]'
+    );
+    expect(workItems).not.toBeNull();
+    expect(workItems?.querySelector('[data-icon="arrow-right-02"]')).toBeNull();
+
+    act(() => {
+      workItems?.dispatchEvent(
+        new MouseEvent("mousedown", { bubbles: true, cancelable: true })
+      );
+    });
+
+    expect(onSelect).toHaveBeenCalledWith("projects", undefined, undefined);
+    expect(onClose).toHaveBeenCalledOnce();
+    expect(container.textContent).not.toContain("creator.contextMenu.back");
+  });
+
+  it("uses a title-only header for file and session submenus", async () => {
+    await act(async () => {
+      root.render(
+        React.createElement(
+          Provider,
+          null,
+          React.createElement(ContextMenu, {
+            visible: true,
+            onClose: vi.fn(),
+            onSelect: vi.fn(),
+            currentMode: "build",
+            onModeSelect: vi.fn(),
+          })
+        )
+      );
+    });
+
+    await act(async () => {
+      container
+        .querySelector<HTMLElement>(
+          '[data-testid="context-menu-command-files"]'
+        )
+        ?.dispatchEvent(
+          new MouseEvent("mousedown", { bubbles: true, cancelable: true })
+        );
+    });
+
+    expect(container.textContent).toContain("Files & Folders");
+    const title = container.querySelector<HTMLElement>(
+      '[data-testid="context-menu-section-title"]'
+    );
+    expect(title?.classList.contains("uppercase")).toBe(true);
+    expect(title?.classList.contains("text-text-3")).toBe(true);
+    expect(
+      container.querySelector('[aria-label="creator.contextMenu.back"]')
+    ).toBeNull();
   });
 });

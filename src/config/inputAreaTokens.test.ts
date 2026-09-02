@@ -24,9 +24,10 @@ describe("input area tokens", () => {
     );
   });
 
-  it("keeps composer menus above the input with 24px side insets", () => {
+  it("matches composer menu width to the input with an 8px vertical gap", () => {
     expect(INPUT_AREA_MENU_FRAME).toEqual({
-      horizontalInset: 24,
+      horizontalInset: 0,
+      gap: 8,
       placement: "up",
     });
   });

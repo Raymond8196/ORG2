@@ -40,7 +40,6 @@ export const SecondLayerEmptyState: React.FC<{ layerId: SecondLayerId }> = memo(
     const emptyTextMap: Record<SecondLayerId, string> = {
       files: t("placeholders.typeToSearchFiles"),
       sessions: t("placeholders.noSessionsFound"),
-      projects: t("placeholders.noProjectsFound", "No projects found"),
     };
     return (
       <Placeholder

@@ -105,7 +105,10 @@ export const INPUT_AREA_CONTROL_GROUP_CLASS =
 
 /** Shared frame for the +, /, and @ menus rendered above a composer. */
 export const INPUT_AREA_MENU_FRAME = {
-  horizontalInset: 24,
+  /** Match the full input shell width instead of insetting the menu. */
+  horizontalInset: 0,
+  /** Vertical distance between the input shell and its menu. */
+  gap: 8,
   placement: "up",
 } as const;
 

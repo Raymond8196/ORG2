@@ -141,7 +141,6 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
     onRemoveEditImage,
     surfaceBg = false,
     omitChatHeader = false,
-    chatPanelPosition = "right",
     sessionId: propSessionId,
     onSubmitOverride,
     customMentionOptions,
@@ -269,7 +268,6 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
     const currentInputEmpty = currentTextEmpty && !hasImages;
     const stopSuppressedForEmptyInput =
       disableStopWhenEmpty && currentInputEmpty && !isWpGeneWorking;
-    const mentionTreePosition = chatPanelPosition === "left" ? "right" : "left";
     const voiceFeatureEnabled = useAtomValue(voiceInputEnabledAtom);
     const [pinnedActionsVisible, setPinnedActionsVisible] = useAtom(
       pinnedActionsVisibleAtom
@@ -603,7 +601,6 @@ const InputAreaInteractive: React.FC<InputAreaProps> = memo(
           atSearchQuery={atSearchQuery}
           currentRepoPath={currentRepoPath}
           contextMenuKeyboardHandlerRef={contextMenuKeyboardHandlerRef}
-          mentionTreePosition={mentionTreePosition}
           isEditMode={isEditMode}
           showSlashMenu={showSlashMenu}
           filteredSlashItems={visibleSlashItems}

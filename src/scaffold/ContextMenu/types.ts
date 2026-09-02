@@ -143,12 +143,8 @@ export interface UseContextMenuReturn {
     value?: string,
     displayName?: string
   ) => void;
-  /** Go back to main menu (or from drilled project back to project list) */
-  goBack: () => void;
   /** Reset state */
   reset: () => void;
-  /** Name of the drilled-into project (null if at project list level) */
-  drilledProjectName: string | null;
 }
 
 // ============================================

@@ -53,7 +53,6 @@ describe("InputAreaPortals", () => {
         onCustomMentionSelect: vi.fn(),
         atSearchQuery: "",
         contextMenuKeyboardHandlerRef: { current: null },
-        mentionTreePosition: "right",
         isEditMode: false,
         showSlashMenu: false,
         filteredSlashItems: [

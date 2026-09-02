@@ -43,12 +43,7 @@ import { workspaceFoldersAtom } from "@src/store/ui/workspaceFoldersAtom";
 import { activeWorkspaceRootAtom } from "@src/store/workspace";
 import { LatestRequestGuard } from "@src/util/core/latestRequestGuard";
 
-import {
-  type DrilledProject,
-  searchFiles,
-  searchProjects,
-  searchSessions,
-} from "./contextMenuSearchHandlers";
+import { searchFiles, searchSessions } from "./contextMenuSearchHandlers";
 import {
   attachSearchRootMetadata,
   buildContextMenuSearchRoots,
@@ -89,8 +84,6 @@ export function useContextMenu(
     [activeWorkspaceRoot]
   );
   const workspaceFolders = useAtomValue(workspaceFoldersAtom);
-  const effectiveRepoPath = opts.repoPath || activeWorkspaceRoot?.path || "";
-
   const searchRoots = useMemo(
     () =>
       buildContextMenuSearchRoots({
@@ -112,11 +105,6 @@ export function useContextMenu(
   const localSessionIdSet = useMemo(
     () => new Set(allSessions.map((session) => session.session_id)),
     [allSessions]
-  );
-
-  const drilledProjectRef = useRef<DrilledProject | null>(null);
-  const [drilledProjectName, setDrilledProjectName] = useState<string | null>(
-    null
   );
 
   // State is owned by the menu for both + and @ entry points.
@@ -210,12 +198,6 @@ export function useContextMenu(
               localSessionIds: localSessionIdSet,
             }),
           ];
-        } else if (type === "projects") {
-          results = await searchProjects(
-            query,
-            effectiveRepoPath,
-            drilledProjectRef.current
-          );
         } else {
           results = [];
         }
@@ -234,7 +216,6 @@ export function useContextMenu(
       }
     },
     [
-      effectiveRepoPath,
       searchRoots,
       allSessions,
       updateSearchResults,
@@ -287,44 +268,19 @@ export function useContextMenu(
   ]);
 
   // Handle item selection - uses refs to avoid stale closures
-  // Intercepts "project" clicks in the projects layer to drill in
   const handleSelect = useCallback(
     (type: MenuItemId, value?: string, displayName?: string) => {
-      if (
-        type === "project" &&
-        secondLayer === "projects" &&
-        !drilledProjectRef.current &&
-        value
-      ) {
-        drilledProjectRef.current = {
-          slug: value,
-          name: displayName || value,
-        };
-        setDrilledProjectName(displayName || value);
-        setSecondLayerActiveIndex(0);
-        // Bypass debounce — drill-down must fire immediately
-        performSearch("", "projects", true);
-        return;
-      }
       onSelectRef.current?.(type, value, displayName);
       onCloseRef.current?.();
     },
-    [secondLayer, performSearch]
+    []
   );
 
-  // Go back — from drilled project to project list, or from project list to main menu
+  // Go back from a second layer to the main menu.
   const goBack = useCallback(() => {
-    if (drilledProjectRef.current) {
-      drilledProjectRef.current = null;
-      setDrilledProjectName(null);
-      setSecondLayerActiveIndex(0);
-      // Bypass debounce — back navigation must fire immediately
-      performSearch("", "projects", true);
-    } else {
-      setSecondLayer(null);
-      updateSearchResults([]);
-    }
-  }, [updateSearchResults, setSecondLayer, performSearch]);
+    setSecondLayer(null);
+    updateSearchResults([]);
+  }, [updateSearchResults, setSecondLayer]);
 
   // Reset state
   const reset = useCallback(() => {
@@ -334,8 +290,6 @@ export function useContextMenu(
     setSecondLayer(null);
     updateSearchResults([]);
     setSearchLoading(false);
-    drilledProjectRef.current = null;
-    setDrilledProjectName(null);
   }, [updateSearchResults, setSecondLayer]);
 
   const selectSearchResult = useCallback(
@@ -519,9 +473,7 @@ export function useContextMenu(
     setSecondLayerActiveIndex,
     handleKeyDown,
     handleSelect,
-    goBack,
     reset,
-    drilledProjectName,
   };
 }
 
