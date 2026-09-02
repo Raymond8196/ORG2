@@ -20,3 +20,10 @@ describe("dropdown section labels", () => {
     expect(DROPDOWN_CLASSES.sectionLabel).toContain("bg-bg-2");
   });
 });
+
+describe("dropdown control rows", () => {
+  it("leaves row hover styling to the embedded option control", () => {
+    expect(DROPDOWN_CLASSES.menuControlItem).not.toContain("hover:bg-");
+    expect(DROPDOWN_CLASSES.menuActionItem).toContain("hover:bg-");
+  });
+});
