@@ -64,6 +64,7 @@ import { resolveRecentDefinitions } from "./recentSpotlightActions";
 import {
   AGENT_SESSION_ACTIONS,
   APP_ACTIONS,
+  ORGANIZATION_ACTIONS,
   QUICK_NAVIGATION_ACTIONS,
   STATION_MODE_ACTIONS,
   type SpotlightEditorActionId,
@@ -279,6 +280,7 @@ export function useSpotlightItems(
         staticCommandActions: [
           ...AGENT_SESSION_ACTIONS,
           ...WORKSPACE_ACTIONS,
+          ...ORGANIZATION_ACTIONS,
           ...themeActions,
           ...chatPanelSettingsActions,
           ...quickNavigationActions,
@@ -345,6 +347,11 @@ export function useSpotlightItems(
         onSelectStaticAction,
         translate
       ),
+      ...buildStaticActionItems(
+        ORGANIZATION_ACTIONS,
+        onSelectStaticAction,
+        translate
+      ),
       ...buildActionItems(onSelectAction, translate),
     ];
     const quickNavigationItems = buildStaticActionItems(
@@ -381,6 +388,7 @@ export function useSpotlightItems(
       resolveRecentDefinitions(recentActionIds, [
         ...AGENT_SESSION_ACTIONS,
         ...WORKSPACE_ACTIONS,
+        ...ORGANIZATION_ACTIONS,
         ...themeActions,
         ...chatPanelSettingsActions,
         ...quickNavigationActions,

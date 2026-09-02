@@ -1906,6 +1906,12 @@
         },
         "createWorkItem": {
           "label": "Crear Work Item"
+        },
+        "createOrganization": {
+          "label": "Crear organización"
+        },
+        "joinOrganization": {
+          "label": "Unirse a una organización"
         }
       },
       "toast": {

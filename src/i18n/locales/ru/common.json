@@ -1918,6 +1918,12 @@
         },
         "createWorkItem": {
           "label": "Создать Work Item"
+        },
+        "createOrganization": {
+          "label": "Создать организацию"
+        },
+        "joinOrganization": {
+          "label": "Присоединиться к организации"
         }
       },
       "toast": {

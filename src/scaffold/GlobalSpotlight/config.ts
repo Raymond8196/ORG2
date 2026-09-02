@@ -36,6 +36,7 @@ import {
   SparklesIcon,
   SquareArrowUpRight02Icon,
   Tick01Icon,
+  UserMultipleIcon,
   WorkHistoryIcon,
   WorkflowCircle05Icon,
 } from "@src/icons";
@@ -54,6 +55,7 @@ export type {
 export const ICONS = {
   // Actions
   addWorkspace: FolderImportIcon,
+  organization: UserMultipleIcon,
 
   // Shared UI
   repo: CodeXmlIcon,

@@ -1797,6 +1797,12 @@
         },
         "createWorkItem": {
           "label": "创建 Work Item"
+        },
+        "createOrganization": {
+          "label": "创建组织"
+        },
+        "joinOrganization": {
+          "label": "加入组织"
         }
       },
       "toast": {

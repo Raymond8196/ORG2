@@ -22,6 +22,7 @@ import {
   AGENT_SESSION_ACTIONS,
   APP_ACTIONS,
   EDITOR_ACTIONS,
+  ORGANIZATION_ACTIONS,
   QUICK_NAVIGATION_ACTIONS,
   STATION_MODE_ACTIONS,
   WORKSPACE_ACTIONS,
@@ -47,6 +48,7 @@ function getRepresentativeSpotlightActionIds(): Set<string> {
   return new Set([
     ...AGENT_SESSION_ACTIONS.map((action) => action.actionId),
     ...WORKSPACE_ACTIONS.map((action) => action.actionId),
+    ...ORGANIZATION_ACTIONS.map((action) => action.actionId),
     ...buildThemeActions("custom-theme").map((action) => action.actionId),
     ...buildChatPanelSettingsActions({
       chatPanelPosition: "left",
@@ -212,6 +214,25 @@ describe("app-level spotlightZodActions", () => {
     expect(ids.has(ACTION_ID.SPOTLIGHT_OPEN_EDITOR_FILE)).toBe(true);
     expect(ids.has(ACTION_ID.SPOTLIGHT_OPEN_EDITOR_COMMAND)).toBe(true);
     expect(ids.has(ACTION_ID.SPOTLIGHT_OPEN_EDITOR_SYMBOL)).toBe(true);
+    expect(ids.has(ACTION_ID.SPOTLIGHT_OPEN_COLLAB_ORG)).toBe(true);
+  });
+
+  it("accepts only valid organization create and join contexts", () => {
+    const action = spotlightZodActions.find(
+      (candidate) => candidate.meta.id === ACTION_ID.SPOTLIGHT_OPEN_COLLAB_ORG
+    );
+
+    expect(action).toBeDefined();
+    expect(action?.meta.params.safeParse({ mode: "create" }).success).toBe(
+      true
+    );
+    expect(
+      action?.meta.params.safeParse({ mode: "create", source: "local" }).success
+    ).toBe(true);
+    expect(action?.meta.params.safeParse({ mode: "join" }).success).toBe(true);
+    expect(
+      action?.meta.params.safeParse({ mode: "join", source: "local" }).success
+    ).toBe(false);
   });
 
   it("covers every representative Spotlight static action with a registered Zod action", () => {

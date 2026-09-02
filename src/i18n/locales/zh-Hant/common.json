@@ -1920,6 +1920,12 @@
         },
         "createWorkItem": {
           "label": "創建 Work Item"
+        },
+        "createOrganization": {
+          "label": "建立組織"
+        },
+        "joinOrganization": {
+          "label": "加入組織"
         }
       },
       "toast": {

@@ -21,11 +21,7 @@ const createTargetProps = {
   createTarget: CHAT_PANEL_CREATE_TARGET.PROJECT,
   createTargetOptions: [
     { value: CHAT_PANEL_CREATE_TARGET.PROJECT, label: "Create project" },
-    {
-      value: CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT,
-      label: "GitHub Issues project",
-    },
-    { value: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG, label: "Add ORG" },
+    { value: CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN, label: "Parallel run" },
   ],
   onCreateTarget: vi.fn(),
   onProjectAgentModeChange: vi.fn(),
@@ -55,7 +51,7 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
-        createTarget: CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT,
+        createTarget: CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN,
         moreLauncher: (_manualMiddleContent, modeControl) =>
           createElement(
             "div",
@@ -90,7 +86,7 @@ describe("ChatPanelStartPage", () => {
     expect(markup).toContain("select-bare");
     expect(markup).toContain("select-title-row");
     expect(markup).not.toContain("select-ghost");
-    expect(markup).toContain("GitHub Issues project");
+    expect(markup).toContain("Parallel run");
     expect(markup).toContain(
       'data-testid="chat-panel-start-page-trailing-control"'
     );
@@ -358,7 +354,7 @@ describe("ChatPanelStartPage", () => {
     const markup = renderToStaticMarkup(
       createElement(ChatPanelStartPage, {
         ...createTargetProps,
-        createTarget: CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT,
+        createTarget: CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN,
         t,
       })
     );

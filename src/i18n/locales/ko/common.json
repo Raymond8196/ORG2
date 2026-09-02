@@ -1905,6 +1905,12 @@
         },
         "createWorkItem": {
           "label": "Work Item 생성"
+        },
+        "createOrganization": {
+          "label": "조직 만들기"
+        },
+        "joinOrganization": {
+          "label": "조직 참여"
         }
       },
       "toast": {

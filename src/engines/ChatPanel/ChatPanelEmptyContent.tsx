@@ -6,7 +6,6 @@ import type { SelectOption } from "@src/components/Select";
 import { PRODUCT_MODE_PROJECT } from "@src/config/sessionCreatorConfig";
 import type { SessionLaunchSuccessInfo } from "@src/engines/SessionCore/hooks/session/useSessionCreator/useSessionLaunch/types";
 import { SESSION_CREATOR_LAUNCH_MODE } from "@src/features/SessionCreator/types";
-import type { CreatedOrgResult } from "@src/features/TeamCollaboration/components/CreateCollabOrgView";
 import type { CreatedProjectResult } from "@src/modules/ProjectManager/Projects/components/CreateProjectView";
 import type { CreatedWorkItemResult } from "@src/modules/ProjectManager/WorkItems/components/CreateWorkItemView";
 import { openOrFocusSessionInChatPanelTabAtom } from "@src/store/chatPanel/chatPanelTabsAtom";
@@ -26,16 +25,9 @@ import { STORY_PERSONAL_ORG_FILTER_ID } from "@src/store/workstation/tabs";
 import { ChatPanelStartPage } from "./ChatPanelStartPage";
 import type { ChatPanelProps, ChatPanelRegionNotice } from "./types";
 
-const CreateCollabOrgView = React.lazy(
-  () => import("@src/features/TeamCollaboration/components/CreateCollabOrgView")
-);
 const CreateProjectView = React.lazy(
   () =>
     import("@src/modules/ProjectManager/Projects/components/CreateProjectView")
-);
-const GitHubIssuesImportWizard = React.lazy(
-  () =>
-    import("@src/modules/ProjectManager/Projects/components/GitHubIssuesImportWizard")
 );
 const CreateWorkItemView = React.lazy(
   () =>
@@ -88,10 +80,7 @@ interface ChatPanelEmptyContentProps {
     React.ComponentProps<SessionCreatorSlot>["onSessionStart"]
   >;
   handleCancelWorkItemCreate: () => void;
-  handleCancelCollabOrgCreate: () => void;
-  handleCancelProjectCreate: () => void;
   handleChatPanelProjectCreated: (result?: CreatedProjectResult) => void;
-  handleChatPanelCollabOrgCreated: (result: CreatedOrgResult) => void;
   handleChatPanelWorkItemCreated: (result?: CreatedWorkItemResult) => void;
   handleOpenCliTerminal: NonNullable<
     React.ComponentProps<SessionCreatorSlot>["onOpenCliTerminal"]
@@ -124,10 +113,7 @@ export function ChatPanelEmptyContent({
   defaultAiWorkItemExecutionTarget,
   handleAiWorkItemSessionStart,
   handleCancelWorkItemCreate,
-  handleCancelCollabOrgCreate,
-  handleCancelProjectCreate,
   handleChatPanelProjectCreated,
-  handleChatPanelCollabOrgCreated,
   handleChatPanelWorkItemCreated,
   handleOpenCliTerminal,
   handleRegionNoticeChange,
@@ -314,39 +300,6 @@ export function ChatPanelEmptyContent({
     );
   };
 
-  const renderGithubIssuesCreator = () => (
-    <WorkspaceScopedContent>
-      {({ workspaceName, workspacePath }) => (
-        <div
-          className={`flex w-full min-w-0 overflow-hidden ${creatorClassName}`}
-        >
-          <Suspense fallback={null}>
-            <GitHubIssuesImportWizard
-              repoPath={workspacePath}
-              repoName={workspaceName}
-              orgId={
-                createProjectContext?.orgId ?? STORY_PERSONAL_ORG_FILTER_ID
-              }
-              onCancel={handleCancelProjectCreate}
-              onProjectCreated={handleChatPanelProjectCreated}
-            />
-          </Suspense>
-        </div>
-      )}
-    </WorkspaceScopedContent>
-  );
-
-  const renderCollabOrgCreator = () => (
-    <div className={`flex w-full min-w-0 overflow-hidden ${creatorClassName}`}>
-      <Suspense fallback={null}>
-        <CreateCollabOrgView
-          onCancel={handleCancelCollabOrgCreate}
-          onCreated={handleChatPanelCollabOrgCreated}
-        />
-      </Suspense>
-    </div>
-  );
-
   if (showStartPage) {
     const sessionLauncher = (
       heroFooterSlot: React.ReactNode,
@@ -361,9 +314,7 @@ export function ChatPanelEmptyContent({
       );
     const moreCreateTarget =
       createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT ||
-      createTarget === CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN ||
-      createTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT ||
-      createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
+      createTarget === CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN
         ? createTarget
         : CHAT_PANEL_CREATE_TARGET.PROJECT;
     const moreLauncher = (
@@ -372,11 +323,7 @@ export function ChatPanelEmptyContent({
     ) =>
       moreCreateTarget === CHAT_PANEL_CREATE_TARGET.PROJECT
         ? renderProjectCreator(manualMiddleContent, creatorModeControl)
-        : moreCreateTarget === CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN
-          ? renderSessionLauncher("h-full", "launchpad", undefined, true)
-          : moreCreateTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT
-            ? renderGithubIssuesCreator()
-            : renderCollabOrgCreator();
+        : renderSessionLauncher("h-full", "launchpad", undefined, true);
 
     return (
       <ChatPanelStartPage
@@ -405,16 +352,8 @@ export function ChatPanelEmptyContent({
     return renderProjectCreator();
   }
 
-  if (createTarget === CHAT_PANEL_CREATE_TARGET.GITHUB_ISSUES_PROJECT) {
-    return renderGithubIssuesCreator();
-  }
-
   if (createTarget === CHAT_PANEL_CREATE_TARGET.WORK_ITEM) {
     return renderWorkItemCreator();
-  }
-
-  if (createTarget === CHAT_PANEL_CREATE_TARGET.COLLAB_ORG) {
-    return renderCollabOrgCreator();
   }
 
   if (createTarget === CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN) {

@@ -1905,6 +1905,12 @@
         },
         "createWorkItem": {
           "label": "Tạo Work Item"
+        },
+        "createOrganization": {
+          "label": "Tạo tổ chức"
+        },
+        "joinOrganization": {
+          "label": "Tham gia tổ chức"
         }
       },
       "toast": {

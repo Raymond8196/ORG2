@@ -1905,6 +1905,12 @@
         },
         "createWorkItem": {
           "label": "Work Item を作成"
+        },
+        "createOrganization": {
+          "label": "組織を作成"
+        },
+        "joinOrganization": {
+          "label": "組織に参加"
         }
       },
       "toast": {

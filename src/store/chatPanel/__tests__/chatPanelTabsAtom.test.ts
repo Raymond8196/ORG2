@@ -7,12 +7,9 @@ import {
   sessionViewAtom,
 } from "@src/store/session/viewAtom";
 import {
-  CHAT_PANEL_COLLAB_ORG_MODE,
-  CHAT_PANEL_COLLAB_ORG_SOURCE,
   CHAT_PANEL_CREATE_TARGET,
   CHAT_PANEL_SURFACE_KIND,
   activeChatPanelSurfaceAtom,
-  chatPanelCollabOrgCreateIntentAtom,
   chatPanelCreateProjectContextAtom,
   chatPanelCreateTargetAtom,
   chatPanelMaximizedAtom,
@@ -111,8 +108,6 @@ async function loadChatPanelTabAtoms() {
     activeSessionIdAtom,
     addChatPanelLaunchpadTabAtom,
     CHAT_PANEL_CREATE_TARGET,
-    CHAT_PANEL_COLLAB_ORG_MODE,
-    CHAT_PANEL_COLLAB_ORG_SOURCE,
     CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
     CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
@@ -120,7 +115,6 @@ async function loadChatPanelTabAtoms() {
     chatPanelMaximizedAtom,
     chatPanelNavigateAtom,
     chatPanelCreateProjectContextAtom,
-    chatPanelCollabOrgCreateIntentAtom,
     chatPanelCreateTargetAtom,
     chatPanelStartPageOpenAtom,
     closeChatPanelTabAtom,
@@ -1178,10 +1172,7 @@ describe("ChatPanel navigation tabs", () => {
 
   it("opens creator targets inside the singleton start page", async () => {
     const {
-      CHAT_PANEL_COLLAB_ORG_MODE,
-      CHAT_PANEL_COLLAB_ORG_SOURCE,
       CHAT_PANEL_CREATE_TARGET,
-      chatPanelCollabOrgCreateIntentAtom,
       chatPanelCreateProjectContextAtom,
       chatPanelCreateTargetAtom,
       chatPanelStartPageOpenAtom,
@@ -1197,32 +1188,22 @@ describe("ChatPanel navigation tabs", () => {
       sessionName: "Session A",
     });
     const openedTabId = store.set(openCreateTargetInChatPanelStartPageAtom, {
-      target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
+      target: CHAT_PANEL_CREATE_TARGET.PROJECT,
       title: "Launchpad",
       createProjectContext: {
         orgId: "org-a",
         scopeBreadcrumbLabel: "ORG A",
-      },
-      collabOrgCreateIntent: {
-        requestId: 7,
-        source: CHAT_PANEL_COLLAB_ORG_SOURCE.CLOUD,
-        mode: CHAT_PANEL_COLLAB_ORG_MODE.CREATE,
       },
     });
 
     expect(openedTabId).toBe(launchpadTabId);
     expect(store.get(chatPanelTabsAtom).activeTabId).toBe(launchpadTabId);
     expect(store.get(chatPanelCreateTargetAtom)).toBe(
-      CHAT_PANEL_CREATE_TARGET.COLLAB_ORG
+      CHAT_PANEL_CREATE_TARGET.PROJECT
     );
     expect(store.get(chatPanelCreateProjectContextAtom)).toEqual({
       orgId: "org-a",
       scopeBreadcrumbLabel: "ORG A",
-    });
-    expect(store.get(chatPanelCollabOrgCreateIntentAtom)).toEqual({
-      requestId: 7,
-      source: CHAT_PANEL_COLLAB_ORG_SOURCE.CLOUD,
-      mode: CHAT_PANEL_COLLAB_ORG_MODE.CREATE,
     });
     expect(store.get(chatPanelStartPageOpenAtom)).toBe(true);
     expect(
@@ -1230,12 +1211,6 @@ describe("ChatPanel navigation tabs", () => {
         .get(chatPanelTabsAtom)
         .tabs.filter((tab) => tab.type === "start-page")
     ).toHaveLength(1);
-
-    store.set(openCreateTargetInChatPanelStartPageAtom, {
-      target: CHAT_PANEL_CREATE_TARGET.COLLAB_ORG,
-      title: "Launchpad",
-    });
-    expect(store.get(chatPanelCollabOrgCreateIntentAtom)).toBeNull();
   });
 
   it("keeps the Work Item creator selected after switching back to Launchpad", async () => {

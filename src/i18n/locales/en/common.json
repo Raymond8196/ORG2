@@ -1843,6 +1843,12 @@
         },
         "createWorkItem": {
           "label": "Create work item"
+        },
+        "createOrganization": {
+          "label": "Create ORG"
+        },
+        "joinOrganization": {
+          "label": "Join ORG"
         }
       },
       "toast": {

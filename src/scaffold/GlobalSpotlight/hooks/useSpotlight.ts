@@ -29,6 +29,7 @@ import type { IconSvgElement } from "@src/icons";
 import { checkForUpdatesManually } from "@src/scaffold/AppUpdater";
 import {
   openAgentControlSpotlight,
+  openCollabOrgSpotlight,
   openSessionCreatorSpotlight,
 } from "@src/scaffold/GlobalSpotlight/openSpotlight";
 import { AppViewService } from "@src/services/app";
@@ -205,6 +206,12 @@ export function useSpotlight(
         "workspace-switch": () => onOpenWorkspacePicker?.("switch"),
         "workspace-add": () => onOpenWorkspacePicker?.("add"),
         "workspace-create": () => onOpenWorkspacePicker?.("create"),
+        "organization-create": () => {
+          openCollabOrgSpotlight({ mode: "create" });
+        },
+        "organization-join": () => {
+          openCollabOrgSpotlight({ source: "cloud", mode: "join" });
+        },
         "branch-picker": () => onOpenBranchPicker?.(),
         "toggle-sidebar": () => {
           void AppViewService.toggleSidebar();

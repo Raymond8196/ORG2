@@ -1,13 +1,12 @@
-/**
- * GitHubIssuesImportWizard
- *
- * Chat-panel wizard for creating an ORGII project backed by a GitHub repo's
- * issues. The wizard creates the project, attaches the GitHub sync adapter with
- * `{ owner, repo }`, then lets the backend import issues asynchronously.
- */
 import { emit } from "@tauri-apps/api/event";
-import { useAtomValue } from "jotai";
-import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useSetAtom } from "jotai";
+import React, {
+  useCallback,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+} from "react";
 import { useTranslation } from "react-i18next";
 
 import {
@@ -17,55 +16,55 @@ import {
 } from "@src/api/http/integrations/syncConnections";
 import { projectApi } from "@src/api/http/project";
 import { projectSyncApi } from "@src/api/http/project/sync";
-import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
 import Input from "@src/components/Input";
 import { Message } from "@src/components/Message";
-import Select from "@src/components/Select";
-import type { SelectOption } from "@src/components/Select";
-import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
-import { CREATOR_COMPOSER_POSITION } from "@src/config/sessionCreatorConfig";
+import Select, { type SelectOption } from "@src/components/Select";
 import { createLogger } from "@src/hooks/logger";
 import { HugeiconsIcon, Loading03Icon } from "@src/icons";
-import {
-  SectionContainer,
-  SectionRow,
-} from "@src/modules/shared/layouts/SectionLayout";
-import WizardShell from "@src/scaffold/WizardSystem/primitives/WizardShell";
-import { creatorComposerPositionAtom } from "@src/store/session/creatorComposerPositionAtom";
+import { PanelFooter } from "@src/modules/shared/layouts/blocks";
+import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import { STORY_PERSONAL_ORG_FILTER_ID } from "@src/store/workstation/tabs";
 
-interface GitHubIssuesImportWizardProps {
-  repoPath?: string | null;
-  repoName?: string;
+import { SpotlightSearchBar } from "../../components";
+import { ICONS } from "../../config";
+import type { PathSegment } from "../../types";
+import { SpotlightFormBody, SpotlightFormShell } from "../shared";
+import {
+  createProjectSlug,
+  createWorkItemPrefix,
+  formatGitHubRepoInput,
+  parseGitHubRepo,
+} from "./githubIssuesImport";
+
+interface GitHubIssuesImportFormProps {
   orgId?: string;
+  repoName?: string;
+  repoPath?: string;
+  repoUrl?: string;
   onCancel: () => void;
-  onProjectCreated: () => void;
+  onImported: () => void;
 }
 
-interface ParsedGitHubRepo {
-  owner: string;
-  repo: string;
-}
+const logger = createLogger("GitHubIssuesImportForm");
 
-const logger = createLogger("GitHubIssuesImportWizard");
-
-const DEFAULT_PROJECT_NAME = "ORGII issues";
-const GITHUB_REPO_PATTERN = /^[A-Za-z0-9_.-]+\/[A-Za-z0-9_.-]+$/;
-
-const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
-  repoPath,
-  repoName,
+const GitHubIssuesImportForm: React.FC<GitHubIssuesImportFormProps> = ({
   orgId = STORY_PERSONAL_ORG_FILTER_ID,
+  repoName,
+  repoPath,
+  repoUrl,
   onCancel,
-  onProjectCreated,
+  onImported,
 }) => {
   const { t } = useTranslation(["projects", "common"]);
-  const composerPosition = useAtomValue(creatorComposerPositionAtom);
-  const isCenteredComposer =
-    composerPosition === CREATOR_COMPOSER_POSITION.MIDDLE;
-  const [projectName, setProjectName] = useState(DEFAULT_PROJECT_NAME);
-  const [repoInput, setRepoInput] = useState("ORGII/ORGII");
+  const bumpProjectListRefresh = useSetAtom(projectListRefreshAtom);
+  const hiddenInputRef = useRef<HTMLInputElement>(null);
+  const [projectName, setProjectName] = useState(() =>
+    repoName ? `${repoName} issues` : ""
+  );
+  const [repoInput, setRepoInput] = useState(() =>
+    formatGitHubRepoInput(repoUrl)
+  );
   const [connectionId, setConnectionId] = useState("");
   const [connections, setConnections] = useState<SyncConnection[]>([]);
   const [connectionsLoading, setConnectionsLoading] = useState(true);
@@ -84,7 +83,7 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
           (connection) => connection.adapter_id === STORY_SYNC_ADAPTER.GITHUB
         );
         setConnections(githubConnections);
-        setConnectionId((current) => current || githubConnections[0]?.id || "");
+        setConnectionId(githubConnections[0]?.id ?? "");
       } catch (error) {
         logger.error("Failed to load GitHub sync connections", error);
         Message.error(formatErrorMessage(error));
@@ -100,13 +99,10 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
   }, []);
 
   const parsedRepo = useMemo(() => parseGitHubRepo(repoInput), [repoInput]);
-  const shouldShowRepoError =
-    Boolean(repoInput.trim()) &&
-    !parsedRepo &&
-    (repoInputTouched || submitAttempted);
-  const repoError = shouldShowRepoError
-    ? t("projects:githubIssuesImport.errors.invalidRepo")
-    : undefined;
+  const repoError =
+    repoInput.trim() && !parsedRepo && (repoInputTouched || submitAttempted)
+      ? t("projects:githubIssuesImport.errors.invalidRepo")
+      : undefined;
   const connectionOptions = useMemo<SelectOption[]>(
     () =>
       connections.map((connection) => ({
@@ -118,6 +114,19 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
   );
   const canSubmit = Boolean(
     projectName.trim() && parsedRepo && connectionId && !saving
+  );
+  const title = t("projects:githubIssuesImport.title");
+  const path = useMemo<PathSegment[]>(
+    () => [
+      {
+        type: "action",
+        id: "import-github-issues",
+        label: title,
+        icon: ICONS.github,
+        color: "primary",
+      },
+    ],
+    [title]
   );
 
   const handleClear = useCallback(() => {
@@ -172,7 +181,8 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
       );
 
       await emit("orgii-data-changed");
-      onProjectCreated();
+      bumpProjectListRefresh((previous) => previous + 1);
+      onImported();
     } catch (error) {
       logger.error("Failed to import GitHub issues project", error);
       Message.error(formatErrorMessage(error));
@@ -181,8 +191,9 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
     }
   }, [
     canSubmit,
+    bumpProjectListRefresh,
     connectionId,
-    onProjectCreated,
+    onImported,
     orgId,
     parsedRepo,
     projectName,
@@ -191,65 +202,82 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
   ]);
 
   return (
-    <WizardShell
-      title={t("projects:githubIssuesImport.title")}
-      onCancel={onCancel}
-      testId="github-issues-import-wizard"
-    >
-      <div className="flex h-full w-full min-w-0 flex-col overflow-hidden">
-        <div className="min-h-0 flex-1 overflow-hidden">
-          <div
-            className={`${DETAIL_PANEL_TOKENS.headerWidth} flex h-full flex-col gap-4 overflow-y-auto px-4`}
-            data-testid="github-issues-import-form"
-          >
-            <SectionContainer
-              className={
-                isCenteredComposer
-                  ? `mt-auto shrink-0 ${repoName ? "" : "mb-auto"}`
-                  : undefined
-              }
-            >
-              <SectionRow
-                label={t("projects:githubIssuesImport.fields.projectName")}
-                layout="vertical"
-                required
-              >
+    <div data-testid="github-issues-import-spotlight">
+      <SpotlightSearchBar
+        inputRef={hiddenInputRef}
+        searchQuery=""
+        onSearchQueryChange={() => undefined}
+        onKeyDown={() => undefined}
+        placeholder=""
+        path={path}
+        onRemoveSegment={onCancel}
+        hideInput
+      />
+      <form
+        data-testid="github-issues-import-form"
+        onSubmit={(event) => {
+          event.preventDefault();
+          void handleSubmit();
+        }}
+      >
+        <SpotlightFormShell>
+          <SpotlightFormBody>
+            <div className="flex flex-col gap-4">
+              <label className="flex flex-col gap-2 text-sm text-text-2">
+                <span>
+                  {t("projects:githubIssuesImport.fields.projectName")}
+                  <span className="text-danger-6" aria-hidden>
+                    *
+                  </span>
+                </span>
                 <Input
                   value={projectName}
                   onChange={setProjectName}
+                  aria-label={t(
+                    "projects:githubIssuesImport.fields.projectName"
+                  )}
                   placeholder={t(
                     "projects:githubIssuesImport.placeholders.projectName"
                   )}
                   size="default"
                   autoFocus
+                  required
                 />
-              </SectionRow>
-              <SectionRow
-                label={t("projects:githubIssuesImport.fields.repo")}
-                layout="vertical"
-                required
-              >
+              </label>
+
+              <label className="flex flex-col gap-2 text-sm text-text-2">
+                <span>
+                  {t("projects:githubIssuesImport.fields.repo")}
+                  <span className="text-danger-6" aria-hidden>
+                    *
+                  </span>
+                </span>
                 <Input
                   value={repoInput}
                   onChange={(value) => {
                     setRepoInput(value);
-                    if (parsedRepo) setRepoInputTouched(false);
+                    if (parseGitHubRepo(value)) setRepoInputTouched(false);
                   }}
                   onBlur={() => setRepoInputTouched(true)}
+                  aria-label={t("projects:githubIssuesImport.fields.repo")}
                   placeholder={t(
                     "projects:githubIssuesImport.placeholders.repo"
                   )}
                   errorMessage={repoError}
                   size="default"
+                  required
                 />
-              </SectionRow>
-              <SectionRow
-                label={t("projects:githubIssuesImport.fields.connection")}
-                layout="vertical"
-                required
-              >
+              </label>
+
+              <div className="flex flex-col gap-2 text-sm text-text-2">
+                <span>
+                  {t("projects:githubIssuesImport.fields.connection")}
+                  <span className="text-danger-6" aria-hidden>
+                    *
+                  </span>
+                </span>
                 {connectionsLoading ? (
-                  <div className="flex h-8 items-center gap-2 rounded-lg border border-border-2 px-3 text-[13px] text-text-3">
+                  <div className="flex h-8 items-center gap-2 rounded-lg border border-border-2 px-3 text-sm text-text-3">
                     <HugeiconsIcon
                       icon={Loading03Icon}
                       data-icon="loader-2"
@@ -262,8 +290,13 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
                   <Select
                     value={connectionId}
                     options={connectionOptions}
+                    ariaLabel={t(
+                      "projects:githubIssuesImport.fields.connection"
+                    )}
                     onChange={(value) => {
-                      if (!Array.isArray(value)) setConnectionId(String(value));
+                      if (!Array.isArray(value)) {
+                        setConnectionId(String(value));
+                      }
                     }}
                     placeholder={t(
                       "projects:githubIssuesImport.placeholders.connection"
@@ -279,80 +312,42 @@ const GitHubIssuesImportWizard: React.FC<GitHubIssuesImportWizardProps> = ({
                     {t("projects:githubIssuesImport.noConnectionDescription")}
                   </InlineAlert>
                 )}
-              </SectionRow>
-              <SectionRow showHeader={false}>
-                <div className="flex w-full justify-end gap-2">
-                  <Button
-                    variant="secondary"
-                    size="small"
-                    onClick={handleClear}
-                    disabled={saving}
-                  >
-                    {t("common:actions.clear")}
-                  </Button>
-                  <Button
-                    variant="primary"
-                    size="small"
-                    onClick={() => void handleSubmit()}
-                    loading={saving}
-                    disabled={!canSubmit}
-                  >
-                    {t("projects:githubIssuesImport.importButton")}
-                  </Button>
-                </div>
-              </SectionRow>
-            </SectionContainer>
+              </div>
 
-            {repoName ? (
-              <p
-                className={`${isCenteredComposer ? "mb-auto shrink-0" : ""} text-[12px] text-text-3`}
-              >
-                {t("projects:githubIssuesImport.linkedRepoHint", {
-                  repoName,
-                })}
-              </p>
-            ) : null}
-          </div>
-        </div>
-      </div>
-    </WizardShell>
+              {repoName ? (
+                <p className="text-xs text-text-3">
+                  {t("projects:githubIssuesImport.linkedRepoHint", {
+                    repoName,
+                  })}
+                </p>
+              ) : null}
+            </div>
+          </SpotlightFormBody>
+          <PanelFooter
+            secondaryActions={[
+              {
+                label: t("common:actions.clear"),
+                onClick: handleClear,
+                disabled: saving,
+                htmlType: "button",
+              },
+            ]}
+            primaryAction={{
+              label: t("projects:githubIssuesImport.importButton"),
+              disabled: !canSubmit,
+              loading: saving,
+              htmlType: "submit",
+              dataTestId: "github-issues-import-submit",
+            }}
+          />
+        </SpotlightFormShell>
+      </form>
+    </div>
   );
 };
-
-function parseGitHubRepo(input: string): ParsedGitHubRepo | null {
-  const trimmed = input.trim();
-  if (!trimmed) return null;
-
-  let path = trimmed;
-  try {
-    const url = new URL(trimmed);
-    if (url.hostname !== "github.com") return null;
-    path = url.pathname.replace(/^\/+/, "").replace(/\.git$/, "");
-  } catch {
-    path = trimmed.replace(/^github\.com\//, "").replace(/\.git$/, "");
-  }
-
-  if (!GITHUB_REPO_PATTERN.test(path)) return null;
-  const [owner, repo] = path.split("/");
-  if (!owner || !repo) return null;
-  return { owner, repo };
-}
-
-function createProjectSlug(name: string): string {
-  const slug = name
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-  return slug || "github-issues";
-}
-
-function createWorkItemPrefix(name: string): string {
-  const prefix = name.replace(/[^a-zA-Z0-9]/g, "").toUpperCase();
-  return prefix ? prefix.slice(0, 3).padEnd(3, "X") : "GHI";
-}
 
 function formatErrorMessage(error: unknown): string {
   return error instanceof Error ? error.message : String(error);
 }
 
-export default GitHubIssuesImportWizard;
+export default GitHubIssuesImportForm;
