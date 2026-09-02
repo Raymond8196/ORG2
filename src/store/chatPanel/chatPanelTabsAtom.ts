@@ -74,7 +74,6 @@ export {
   toggleActiveChatPanelMaximizedAtom,
 } from "./chatPanelTabPresentationAtoms";
 export {
-  CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
   isChatPanelTabStationAvailable,
   normalizePersistedChatPanelTabsState,
   resolveChatPanelMaximizedForLayout,

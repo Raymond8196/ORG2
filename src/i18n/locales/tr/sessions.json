@@ -1000,6 +1000,7 @@
     "fullScreenChat": "Chat paneline odaklan (Workstation'i gizle)",
     "maximizeChatPanel": "Chat panelini büyüt",
     "showWorkstation": "Workstation'i göster",
+    "workstationUnavailableForPage": "Workstation bu sayfada kullanılamaz",
     "hideWorkstation": "Workstation'i gizle",
     "restoreSplitView": "Workstation'i göster",
     "shrinkToWorkstation": "Chat panelini küçült (Workstation'i göster)",

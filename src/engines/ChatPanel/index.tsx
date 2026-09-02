@@ -154,8 +154,8 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     });
 
     const handleChatFocusToggle = useCallback(() => {
-      toggleChatFocus(viewportWidth);
-    }, [toggleChatFocus, viewportWidth]);
+      toggleChatFocus();
+    }, [toggleChatFocus]);
 
     const isCliAgentSession = currentSession?.category === "cli_agent";
     const [tuiMode, setTuiMode] = useAtom(tuiModeAtom(currentSessionId ?? ""));
@@ -193,14 +193,10 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
     const tabCount = useAtomValue(chatPanelTabCountAtom);
     const isStandaloneToolTabActive =
       activeTab?.type === "work-management" || activeTab?.type === "runtime";
-    const stationAvailable = isChatPanelTabStationAvailable(
-      activeTab,
-      viewportWidth
-    );
+    const stationAvailable = isChatPanelTabStationAvailable(activeTab);
     const isChatFocus = resolveChatPanelMaximizedForLayout(
       userChatPanelMaximized,
-      activeTab,
-      viewportWidth
+      activeTab
     );
     const [focusedWorkstationMenuHost, setFocusedWorkstationMenuHost] =
       useState<HTMLSpanElement | null>(null);

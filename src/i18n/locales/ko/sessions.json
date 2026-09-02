@@ -999,6 +999,7 @@
     "fullScreenChat": "Chat 패널 포커스 (Workstation 숨기기)",
     "maximizeChatPanel": "Chat 패널 최대화",
     "showWorkstation": "Workstation 표시",
+    "workstationUnavailableForPage": "이 페이지에서는 Workstation을 사용할 수 없습니다",
     "hideWorkstation": "Workstation 숨기기",
     "restoreSplitView": "Workstation 표시",
     "shrinkToWorkstation": "Chat 패널 축소 (Workstation 표시)",
