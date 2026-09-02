@@ -93,7 +93,8 @@ export function WorkstationSections({
                 section.environment.branchName ||
                 section.environment.worktreeBranchName ||
                 section.environment.workItem ||
-                section.environment.owner) && (
+                section.environment.owner ||
+                section.environment.agentHarness) && (
                 <>
                   {section.environment.owner && (
                     <OwnerIdentityRow
@@ -105,6 +106,14 @@ export function WorkstationSections({
                     <EnvironmentKindRow
                       compact={compact}
                       kind={section.environment.environmentKind}
+                    />
+                  )}
+                  {section.environment.agentHarness && (
+                    <WorkspaceContextRow
+                      compact={compact}
+                      icon={section.environment.agentHarness.icon}
+                      label={section.environment.agentHarness.label}
+                      testId="session-environment-agent-harness"
                     />
                   )}
                   {section.environment.repoName && (

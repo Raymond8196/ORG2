@@ -739,6 +739,7 @@ export function FocusedChatWorkstationRail({
   ]);
 
   const hasSessionEnvironment = Boolean(
+    sessionContext?.agentHarness ||
     sessionContext?.repoName ||
     sessionContext?.branchName ||
     sessionContext?.worktreeBranchName ||

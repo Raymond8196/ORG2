@@ -98,6 +98,11 @@ export interface FocusedChatWorkstationRailProps {
 }
 
 export interface FocusedChatSessionContext {
+  /** Agent runtime that executes the session (for example, Codex or ORG2). */
+  agentHarness?: {
+    icon: FocusedChatRailIcon;
+    label: string;
+  };
   branchName?: string;
   /**
    * Where the session's environment runs. Rendered as a passive chevron row

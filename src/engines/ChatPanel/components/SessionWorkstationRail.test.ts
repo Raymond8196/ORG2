@@ -5,6 +5,49 @@ import type { Session } from "@src/store/session";
 import { resolveSessionWorkstationContext } from "./SessionWorkstationRail";
 
 describe("resolveSessionWorkstationContext", () => {
+  it.each([
+    ["codex", "Codex"],
+    ["claude_code", "Claude"],
+    ["opencode", "OpenCode"],
+  ] as const)(
+    "shows the persisted %s CLI as the session harness",
+    (cliAgentType, expectedName) => {
+      const context = resolveSessionWorkstationContext({
+        session_id: `cliagent-${cliAgentType}`,
+        cliAgentType,
+      } as Session);
+
+      expect(context.agentHarness?.name).toBe(expectedName);
+    }
+  );
+
+  it("shows native agent sessions as the ORG2 harness", () => {
+    const context = resolveSessionWorkstationContext({
+      session_id: "sdeagent-native-session",
+      agentDefinitionId: "builtin:sde",
+      model: "claude-sonnet-5",
+    } as Session);
+
+    expect(context.agentHarness?.name).toBe("ORG2");
+  });
+
+  it("uses imported source identity for the original harness", () => {
+    const context = resolveSessionWorkstationContext({
+      session_id: "imported-codex-session",
+      importedFrom: {
+        orgId: "org-1",
+        sourceSessionId: "codexapp-source-session",
+        ownerMemberId: "member-1",
+        epoch: 1,
+        seq: 1,
+        count: 1,
+        externalHistorySource: "codex_app",
+      },
+    } as Session);
+
+    expect(context.agentHarness?.name).toBe("Codex");
+  });
+
   it("moves repository and branch context into the workstation rail", () => {
     expect(
       resolveSessionWorkstationContext({
