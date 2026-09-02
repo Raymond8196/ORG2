@@ -72,7 +72,8 @@ describe("SlashItemRow", () => {
     );
     expect(pinButton?.getAttribute("aria-pressed")).toBe("false");
     expect(pinButton?.classList.contains("button")).toBe(true);
-    expect(pinButton?.className).toContain("hover:shadow-sidebar-pill");
+    expect(pinButton?.className).toContain("enabled:hover:bg-fill-3");
+    expect(pinButton?.className).not.toContain("shadow-sidebar-pill");
 
     act(() => {
       pinButton?.dispatchEvent(

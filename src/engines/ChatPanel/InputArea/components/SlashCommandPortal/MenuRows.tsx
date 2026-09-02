@@ -70,12 +70,12 @@ export const SlashItemRow: React.FC<SlashItemRowProps> = React.memo(
               aria-label={pinLabel}
               aria-pressed={isPinned}
               title={pinLabel}
-              className={`shrink-0 hover:bg-chat-pane/70 hover:shadow-sidebar-pill ${
+              className={`shrink-0 enabled:hover:bg-fill-3 ${
                 isPinned
-                  ? "bg-chat-pane/70 text-primary-6! shadow-sidebar-pill"
+                  ? "bg-fill-3 text-primary-6!"
                   : isActive
-                    ? "text-text-3! opacity-100 hover:text-text-2!"
-                    : "text-text-3! opacity-0 group-hover:opacity-100 hover:text-text-2!"
+                    ? "text-text-3! opacity-100"
+                    : "text-text-3! opacity-0 group-hover:opacity-100"
               }`}
               onMouseDown={(event) => {
                 event.preventDefault();
