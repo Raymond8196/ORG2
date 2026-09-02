@@ -33,7 +33,10 @@ import {
 import { workstationLayoutAtom } from "@src/store/workstation/tabs";
 
 import { FocusedChatWorkstationRail } from ".";
-import type { FocusedChatRailSubagent } from "./types";
+import type {
+  FocusedChatRailSubagent,
+  FocusedChatSessionContext,
+} from "./types";
 
 const gitMocks = vi.hoisted(() => ({
   useWorkingTreeDiffTotals: vi.fn(
@@ -138,7 +141,10 @@ describe.each(["wide rail", "compact menu"])(
       return id;
     }
 
-    async function mount(subagents?: FocusedChatRailSubagent[]) {
+    async function mount(
+      subagents?: FocusedChatRailSubagent[],
+      sessionContext?: FocusedChatSessionContext
+    ) {
       await act(async () => {
         root.render(
           React.createElement(
@@ -153,6 +159,7 @@ describe.each(["wide rail", "compact menu"])(
                 React.createElement(FocusedChatWorkstationRail, {
                   compactMenuHost: menuHost,
                   conversationMinimapHostRef: () => {},
+                  sessionContext,
                   subagents,
                 })
               )
@@ -168,6 +175,31 @@ describe.each(["wide rail", "compact menu"])(
         section.textContent?.includes("Open Tabs")
       );
     }
+
+    it("puts cloud session identity above the local environment", async () => {
+      await mount(undefined, {
+        environmentKind: "cloud",
+        owner: {
+          identityId: "user-alice",
+          displayName: "Alice",
+          avatarUrl: "https://example.com/alice.png",
+        },
+        repoName: "ORGII",
+      });
+
+      const host = view === "wide rail" ? container : menuHost;
+      const text = host.textContent ?? "";
+      expect(text).toContain("Alice");
+      expect(text).not.toContain("@Alice");
+      expect(text.indexOf("Session Env")).toBeLessThan(
+        text.indexOf("Local env")
+      );
+      expect(text.indexOf("Alice")).toBeLessThan(text.indexOf("Cloud"));
+      expect(text.indexOf("Alice")).toBeLessThan(text.indexOf("Local env"));
+      expect(
+        host.querySelector('[data-owner-id="user-alice"] img')
+      ).not.toBeNull();
+    });
 
     if (view === "wide rail") {
       it("shows shortcut tooltips on collapsed icons and disposes them on expansion", async () => {

@@ -742,13 +742,15 @@ export function FocusedChatWorkstationRail({
     sessionContext?.repoName ||
     sessionContext?.branchName ||
     sessionContext?.worktreeBranchName ||
-    sessionContext?.workItem
+    sessionContext?.workItem ||
+    sessionContext?.owner
   );
   const sections = useMemo<FocusedChatRailSection[]>(() => {
     return resolveFocusedChatWorkstationSectionOrder(
       openTabItems.length > 0,
       hasSessionEnvironment,
-      subagentItems.length > 0
+      subagentItems.length > 0,
+      sessionContext?.environmentKind
     ).flatMap((sectionKey): FocusedChatRailSection[] => {
       if (sectionKey === "workspace") return workspaceSections;
       return [
@@ -791,6 +793,25 @@ export function FocusedChatWorkstationRail({
           : section
       ),
     [primaryWorkspaceTitle, sections]
+  );
+  const cloudSessionFirst =
+    hasSessionEnvironment && sessionContext?.environmentKind === "cloud";
+  const wideHeaderSectionKey = cloudSessionFirst ? "session" : "workspace";
+  const wideHeaderTitle = cloudSessionFirst
+    ? environmentLabel
+    : primaryWorkspaceTitle;
+  const wideSections = useMemo<FocusedChatRailSection[]>(
+    () =>
+      cloudSessionFirst
+        ? sections.map((section) =>
+            section.key === "session"
+              ? { ...section, label: null }
+              : section.key === "workspace"
+                ? { ...section, label: primaryWorkspaceTitle }
+                : section
+          )
+        : sections,
+    [cloudSessionFirst, primaryWorkspaceTitle, sections]
   );
   const toggleCollapsed = () => {
     setCollapsed((current) => {
@@ -920,14 +941,18 @@ export function FocusedChatWorkstationRail({
             className={`group/workstation-trail ml-auto flex min-h-0 ${WORKSTATION_TRAIL_WIDTH.surfaceResponsiveClass}`}
           >
             <WorkstationTrailHeader
-              title={primaryWorkspaceTitle}
+              title={wideHeaderTitle}
               collapsed={collapsed}
               // With its own group folded, the next visible line is another
               // section title, so the gap below must match the section rhythm
               // instead of hugging rows that are not there.
-              bodyGap={collapsedGroupKeys.has("workspace") ? "section" : "row"}
-              onTitleToggle={() => toggleGroup("workspace")}
-              titleToggleCollapsed={collapsedGroupKeys.has("workspace")}
+              bodyGap={
+                collapsedGroupKeys.has(wideHeaderSectionKey) ? "section" : "row"
+              }
+              onTitleToggle={() => toggleGroup(wideHeaderSectionKey)}
+              titleToggleCollapsed={collapsedGroupKeys.has(
+                wideHeaderSectionKey
+              )}
               titleToggleLabels={{
                 collapse: t("common:actions.collapse"),
                 expand: t("common:actions.expand"),
@@ -1033,7 +1058,7 @@ export function FocusedChatWorkstationRail({
                   collapsedGroupKeys={collapsedGroupKeys}
                   expandGroupLabel={t("common:actions.expand")}
                   onToggleGroup={toggleGroup}
-                  sections={sections}
+                  sections={wideSections}
                 />
               </WorkstationTrailBody>
             )}

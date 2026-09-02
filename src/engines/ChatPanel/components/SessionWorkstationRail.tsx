@@ -3,7 +3,10 @@ import React, { useCallback, useMemo } from "react";
 
 import { useSubagentSessions } from "@src/engines/Simulator/hooks/useSubagentSessions";
 import { useChannelWorkItem } from "@src/features/DiscussionChannels/ChannelPanelView/useChannelWorkItem";
-import type { CloudSessionEnvironmentIdentity } from "@src/features/Org2Cloud/cloudSessionDownloadControlAtoms";
+import type {
+  CloudSessionEnvironmentIdentity,
+  CloudSessionOwnerIdentity,
+} from "@src/features/Org2Cloud/cloudSessionDownloadControlAtoms";
 import { parseCloudOrgSelectorValue } from "@src/features/Org2Cloud/org2CloudOrgsAtom";
 import {
   useCloudSessionDownloadProgressEntry,
@@ -36,6 +39,7 @@ export interface ResolvedSessionWorkstationContext {
   /** Where the session's environment runs (collab-org sessions are cloud). */
   environmentKind?: "local" | "cloud";
   orgId?: string;
+  owner?: FocusedChatSessionContext["owner"];
   projectSlug?: string;
   repoName?: string;
   /** Locally resolvable session workspace used for session-scoped Git details. */
@@ -47,7 +51,8 @@ export interface ResolvedSessionWorkstationContext {
 
 export function resolveSessionWorkstationContext(
   session: Session | null | undefined,
-  remoteEnvironment?: CloudSessionEnvironmentIdentity
+  remoteEnvironment?: CloudSessionEnvironmentIdentity,
+  remoteOwner?: CloudSessionOwnerIdentity
 ): ResolvedSessionWorkstationContext {
   const repoName = session?.repoPath
     ? basename(session.repoPath)
@@ -86,11 +91,26 @@ export function resolveSessionWorkstationContext(
         ? "cloud"
         : "local"
       : undefined;
+  const importedOwnerId = session?.importedFrom?.ownerMemberId?.trim();
+  const ownerIdentityId = remoteOwner?.identityId ?? importedOwnerId;
+  const ownerDisplayName =
+    remoteOwner?.displayName ?? session?.importedFrom?.ownerDisplayName;
+  const ownerAvatarUrl =
+    remoteOwner?.avatarUrl ?? session?.importedFrom?.ownerAvatarUrl;
+  const owner =
+    environmentKind === "cloud" && ownerIdentityId
+      ? {
+          identityId: ownerIdentityId,
+          ...(ownerDisplayName ? { displayName: ownerDisplayName } : {}),
+          ...(ownerAvatarUrl ? { avatarUrl: ownerAvatarUrl } : {}),
+        }
+      : undefined;
 
   return {
     branchName,
     environmentKind,
     orgId,
+    ...(owner ? { owner } : {}),
     projectSlug: session?.projectSlug ?? undefined,
     repoName,
     repoPath,
@@ -149,6 +169,7 @@ const ConnectedSessionWorkstationRail: React.FC<
   const sessionContext: FocusedChatSessionContext = {
     branchName: context.branchName,
     environmentKind: context.environmentKind,
+    owner: context.owner,
     repoName: context.repoName,
     repoPath: context.repoPath,
     worktreeBranchName: context.worktreeBranchName,
@@ -207,11 +228,13 @@ const SessionWorkstationRail: React.FC<SessionWorkstationRailProps> = ({
   );
   const context = resolveSessionWorkstationContext(
     session,
-    progress?.sessionEnvironment ?? pending?.sessionEnvironment
+    progress?.sessionEnvironment ?? pending?.sessionEnvironment,
+    progress?.sessionOwner ?? pending?.sessionOwner
   );
   const baseSessionContext: FocusedChatSessionContext = {
     branchName: context.branchName,
     environmentKind: context.environmentKind,
+    owner: context.owner,
     repoName: context.repoName,
     repoPath: context.repoPath,
     worktreeBranchName: context.worktreeBranchName,
