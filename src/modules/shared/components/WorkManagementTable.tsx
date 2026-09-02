@@ -9,23 +9,10 @@ import SettingsTable, {
   SETTINGS_TABLE_COL,
   type SettingsTableColumn,
   SettingsTablePagination,
-  type SettingsTableProps,
 } from "@src/components/SettingsTable";
 import { SortIcon } from "@src/components/Table/helpers";
-import {
-  DETAIL_PANEL_WIDTH_TOKENS,
-  ISSUE_PANEL_WIDTH_TOKENS,
-} from "@src/config/detailPanelTokens";
-
-export const WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS = {
-  standard: DETAIL_PANEL_WIDTH_TOKENS.headerWidth,
-  wide: ISSUE_PANEL_WIDTH_TOKENS.headerWidth,
-} as const;
 
 export const WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH = 550;
-
-export type WorkManagementTableMaxWidth =
-  keyof typeof WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS;
 
 export type WorkManagementTableSortColumn = "id" | "updated";
 export type WorkManagementTableSortOrder = "ascend" | "descend";
@@ -86,9 +73,6 @@ export interface WorkManagementTablePagination {
 
 interface WorkManagementTableProps {
   rows: WorkManagementTableRow[];
-  searchBar?: SettingsTableProps<WorkManagementTableRow>["searchBar"];
-  selectFilters?: SettingsTableProps<WorkManagementTableRow>["selectFilters"];
-  selectFiltersExtra?: SettingsTableProps<WorkManagementTableRow>["selectFiltersExtra"];
   loading?: boolean;
   noDataElement?: ReactNode;
   pageSize?: number;
@@ -97,7 +81,6 @@ interface WorkManagementTableProps {
   /** Controlled cross-page sorting for remotely paginated surfaces. */
   sort?: WorkManagementTableSort;
   onSortChange?: (sort: WorkManagementTableSort) => void;
-  maxWidth?: WorkManagementTableMaxWidth;
   testId?: string;
 }
 
@@ -141,9 +124,6 @@ function SortableColumnLabel({
 
 export function WorkManagementTable({
   rows,
-  searchBar,
-  selectFilters,
-  selectFiltersExtra,
   loading = false,
   noDataElement,
   pageSize,
@@ -151,7 +131,6 @@ export function WorkManagementTable({
   pagination,
   sort,
   onSortChange,
-  maxWidth = "standard",
   testId = "work-management-table",
 }: WorkManagementTableProps): ReactNode {
   const { t } = useTranslation("common");
@@ -383,31 +362,22 @@ export function WorkManagementTable({
   ) : undefined;
 
   return (
-    <div
-      className={`${WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS[maxWidth]} h-full min-h-0 px-4 py-4`}
-      data-testid={testId}
-    >
+    <div className="h-full min-h-0 w-full" data-testid={testId}>
       <SettingsTable<WorkManagementTableRow>
         columns={columns}
         rows={rows}
         getRowKey={(row) => row.key}
-        bodySurface="pane"
+        surfaceVariant="transparent"
         fillHeight
         hover
         loading={loading}
         noDataElement={noDataElement}
-        searchBar={searchBar}
-        selectFilters={selectFilters}
-        selectFiltersExtra={selectFiltersExtra}
-        inlineHeaderToolbar={Boolean(
-          searchBar || selectFilters?.length || selectFiltersExtra
-        )}
         pageSize={pageSize}
         pageSizeOptions={pageSizeOptions}
         footer={footer}
         onRowClick={(row) => row.onClick?.()}
         rowClassName="group"
-        className={`[&_.table-fixed-header]:scrollbar-hide [&_.table-row_.table-td:first-child]:align-top! [&_.table-row_.table-td:first-child_.table-td-inner]:items-start! [&_.table-row:not(:last-child)_.table-td]:border-b! [&_.table-row:not(:last-child)_.table-td]:border-border-1! [&_.table-scroll]:scrollbar-hide [&_.table-td]:h-auto! [&_.table-td]:py-2! [&_.table-td-inner]:h-auto! [&_.table-td-inner]:w-full ${
+        className={`table-settings-page-list-hover [&_.table-fixed-header]:scrollbar-hide [&_.table-row_.table-td:first-child]:align-top! [&_.table-row_.table-td:first-child_.table-td-inner]:items-start! [&_.table-row:not(:last-child)_.table-td]:border-b! [&_.table-row:not(:last-child)_.table-td]:border-border-1! [&_.table-scroll]:scrollbar-hide [&_.table-td]:h-auto! [&_.table-td]:py-2! [&_.table-td-inner]:h-auto! [&_.table-td-inner]:w-full ${
           hasSelection
             ? "[&_.table-row_.table-td:nth-child(2)]:align-top! [&_.table-row_.table-td:nth-child(2)_.table-td-inner]:items-start!"
             : ""

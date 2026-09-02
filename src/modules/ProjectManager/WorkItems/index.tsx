@@ -21,7 +21,7 @@ import type { WorkstationTabHeaderHost } from "@src/hooks/tabHost/useWorkstation
 import { DeliveryBox01Icon, HugeiconsIcon } from "@src/icons";
 import type { LinkedRepoOption } from "@src/modules/ProjectManager/shared";
 import type { ProjectManagerBreadcrumbSegment } from "@src/modules/ProjectManager/shared/components/ProjectManagerBreadcrumb";
-import { ContentSearchPalette } from "@src/scaffold/GlobalSpotlight/palettes";
+import { WorkManagementSearchInput } from "@src/modules/shared/components/WorkManagementSearchInput";
 import { reposAtom } from "@src/store/repo";
 import { syncDeepLinkAtom } from "@src/store/sync";
 import { activeWorkspaceRootPathAtom } from "@src/store/workspace";
@@ -231,7 +231,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       onProjectSlugResolved?.(resolvedSlug);
     }
   }, [resolvedSlug, onProjectSlugResolved]);
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [collapseAllSignal, setCollapseAllSignal] = useState(0);
   const [kanbanGroupBy, setKanbanGroupBy] = useState<WorkItemsKanbanGroup>(
     WORK_ITEMS_KANBAN_GROUP.STATUS
@@ -315,14 +314,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
     onBatchDeleteComplete: data.refresh,
     onBeforeDelete: () => confirmWorkItemDelete(),
   });
-
-  const handleOpenSearch = useCallback(() => {
-    setIsSearchOpen(true);
-  }, []);
-
-  const handleCloseSearch = useCallback(() => {
-    setIsSearchOpen(false);
-  }, []);
 
   const handleCollapseAll = useCallback(() => {
     setCollapseAllSignal((currentSignal) => currentSignal + 1);
@@ -420,7 +411,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
     projectName,
     resolvedProjectSlug,
     selectedWorkItem: data.selectedWorkItem,
-    onOpenSearch: handleOpenSearch,
     onToggleProperties: handlers.handleToggleProperties,
     onCreateWorkItem,
     onAddListItem: handlers.handleAddListItem,
@@ -597,6 +587,24 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       workItemsViewTabs,
     ]
   );
+  const workItemsSearchControl = useMemo(
+    () =>
+      isWorkItemsSurface && state.activeTab !== "Settings" ? (
+        <WorkManagementSearchInput
+          value={state.searchQuery}
+          onChange={state.setSearchQuery}
+          placeholder={t("workItems.searchPlaceholder")}
+          dataTestId="project-work-items-search"
+        />
+      ) : null,
+    [
+      isWorkItemsSurface,
+      state.activeTab,
+      state.searchQuery,
+      state.setSearchQuery,
+      t,
+    ]
+  );
 
   const settingsContent = (
     <Suspense fallback={<Placeholder variant="loading" />}>
@@ -638,6 +646,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
           onOpenProjects={onOpenProjects}
           activeTab={state.activeTab}
           leadingControls={projectSurfaceControls}
+          trailingControls={workItemsSearchControl}
           statusFilter={isWorkItemsSurface ? state.statusFilter : undefined}
           onStatusFilterChange={
             isWorkItemsSurface
@@ -675,24 +684,10 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
           }
           onRefresh={isWorkItemsSurface ? data.refresh : undefined}
           refreshLoading={data.loading}
-          onSearch={
-            isWorkItemsSurface && !tabBarActionsInStationTabBar
-              ? handleOpenSearch
-              : undefined
-          }
           publishToWorkstationHeader={tabBarActionsInStationTabBar && isActive}
           workstationHeaderHost={workstationHeaderHost}
         />
       )}
-
-      {/* Content search spotlight */}
-      <ContentSearchPalette
-        isOpen={isSearchOpen}
-        onClose={handleCloseSearch}
-        query={state.searchQuery}
-        onQueryChange={(value) => state.setSearchQuery(value)}
-        placeholder={t("workItems.searchPlaceholder")}
-      />
 
       {/* Content Area */}
       <div className="min-h-0 flex-1 overflow-hidden">

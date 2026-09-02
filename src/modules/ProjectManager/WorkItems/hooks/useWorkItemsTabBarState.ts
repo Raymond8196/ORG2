@@ -26,7 +26,6 @@ interface UseWorkItemsTabBarStateParams {
   projectName: string;
   resolvedProjectSlug: string | null;
   selectedWorkItem?: WorkItemExtended | null;
-  onOpenSearch: () => void;
   onToggleProperties: () => void;
   onCreateWorkItem?: (
     projectId: string,
@@ -56,7 +55,6 @@ export function useWorkItemsTabBarState({
   projectName,
   resolvedProjectSlug,
   selectedWorkItem,
-  onOpenSearch,
   onToggleProperties,
   onCreateWorkItem,
   onAddListItem,
@@ -109,7 +107,7 @@ export function useWorkItemsTabBarState({
     workStationTabId,
     enabled: isActive,
     showPropertiesActive: propertiesActionAvailable ? showProperties : false,
-    onSearch: activeTab !== "Settings" ? onOpenSearch : null,
+    onSearch: null,
     onRefresh: null,
     refreshLoading: false,
     onToggleProperties: propertiesActionAvailable ? onToggleProperties : null,

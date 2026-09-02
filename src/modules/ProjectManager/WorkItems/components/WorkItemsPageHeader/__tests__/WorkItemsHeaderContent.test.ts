@@ -5,6 +5,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { WorkItemsHeaderContent } from "../WorkItemsHeaderContent";
 
+vi.mock("@src/components/KeyboardShortcut/ToolbarTooltip", () => ({
+  ToolbarTooltip: ({ children }: { children: React.ReactNode }) => children,
+}));
+
 describe("WorkItemsHeaderContent", () => {
   it("renders aggregate controls directly without an empty breadcrumb title", () => {
     const markup = renderToStaticMarkup(
@@ -38,5 +42,71 @@ describe("WorkItemsHeaderContent", () => {
     expect(markup).toContain('class="contents"');
     expect(markup).not.toContain('data-icon="chevron-right"');
     expect(markup).not.toContain('data-icon="box"');
+  });
+
+  it("orders the status filter before the inline search", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(WorkItemsHeaderContent, {
+        section: "trailing",
+        activeTab: "List",
+        breadcrumbSegments: [],
+        statusFilter: "all",
+        onStatusFilterChange: vi.fn(),
+        statusFilterKeys: ["all"],
+        statusCounts: {
+          all: 2,
+          backlog: 0,
+          todo: 0,
+          inProgress: 0,
+          inReview: 0,
+          done: 0,
+          cancelled: 0,
+          duplicate: 0,
+          open: 0,
+          closed: 0,
+        },
+        trailingControls: React.createElement(
+          "span",
+          { "data-testid": "inline-search" },
+          "Search"
+        ),
+        onRefreshClick: vi.fn(),
+        t: ((key: string) => key) as unknown as TFunction<"projects">,
+      })
+    );
+
+    expect(markup.indexOf('data-icon="list"')).toBeLessThan(
+      markup.indexOf('data-testid="inline-search"')
+    );
+  });
+
+  it("keeps the create plus to the right of refresh", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(WorkItemsHeaderContent, {
+        section: "trailing",
+        activeTab: "List",
+        breadcrumbSegments: [],
+        statusCounts: {
+          all: 0,
+          backlog: 0,
+          todo: 0,
+          inProgress: 0,
+          inReview: 0,
+          done: 0,
+          cancelled: 0,
+          duplicate: 0,
+          open: 0,
+          closed: 0,
+        },
+        onRefresh: vi.fn(),
+        onAddWorkItem: vi.fn(),
+        onRefreshClick: vi.fn(),
+        t: ((key: string) => key) as unknown as TFunction<"projects">,
+      })
+    );
+
+    expect(markup.indexOf('data-icon="refresh-cw"')).toBeLessThan(
+      markup.indexOf('data-icon="plus"')
+    );
   });
 });

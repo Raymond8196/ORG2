@@ -5,7 +5,6 @@ import { describe, expect, it } from "vitest";
 import { CircleDotIcon, HugeiconsIcon } from "@src/icons";
 
 import {
-  WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS,
   WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH,
   WorkManagementTable,
 } from "./WorkManagementTable";
@@ -23,27 +22,22 @@ describe("WorkManagementTable", () => {
     updated: "1h",
   }));
 
-  it("supports standard and wide shared max-width tokens", () => {
-    expect(WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS.standard).toContain(
-      "max-w-[932px]"
-    );
-    expect(WORK_MANAGEMENT_TABLE_MAX_WIDTH_CLASS.wide).toContain(
-      "max-w-[1232px]"
-    );
+  it("renders as a full-bleed page list without a card container", () => {
     expect(WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH).toBe(550);
 
     const markup = renderToStaticMarkup(
       createElement(WorkManagementTable, {
         rows: rows.slice(0, 1),
-        maxWidth: "wide",
       })
     );
 
     expect(markup).toContain('data-testid="work-management-table"');
-    expect(markup).toContain("max-w-[1232px]");
-    expect(markup).toContain("px-4");
+    expect(markup).toContain('class="h-full min-h-0 w-full"');
     expect(markup).toContain("settings-table-root");
-    expect(markup).toContain("table-settings-pane-body");
+    expect(markup).toContain("settings-table-root-transparent");
+    expect(markup).toContain("table-settings-page-list-hover");
+    expect(markup).not.toContain("rounded-xl");
+    expect(markup).not.toContain("max-w-[1232px]");
     expect(markup).toContain("[&amp;_.table-fixed-header]:scrollbar-hide");
     expect(markup).toContain("[&amp;_.table-scroll]:scrollbar-hide");
     expect(markup).not.toContain("table-settings-header-border");
@@ -69,52 +63,6 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain("Shared row 1");
     expect(markup).toContain(
       "[&amp;_.table-row_.table-td:first-child]:align-top!"
-    );
-  });
-
-  it("renders filters through the native SettingsTable toolbar props", () => {
-    const markup = renderToStaticMarkup(
-      createElement(WorkManagementTable, {
-        rows: rows.slice(0, 1),
-        searchBar: {
-          searchValue: "",
-          searchPlaceholder: "Search",
-          onSearchChange: () => undefined,
-          tabPills: createElement("span", null, "Open or closed"),
-          rightContent: createElement("span", null, "Actions"),
-        },
-        selectFilters: [
-          {
-            key: "status",
-            value: "open",
-            defaultValue: "all",
-            options: [
-              { value: "all", label: "All" },
-              { value: "open", label: "Open" },
-            ],
-            onChange: () => undefined,
-          },
-        ],
-        selectFiltersExtra: createElement("span", null, "Personal filters"),
-      })
-    );
-
-    expect(markup).toContain("settings-table-root");
-    expect(markup).toContain("select-ghost");
-    expect(markup).toContain("select-size-default");
-    expect(markup).toContain('placeholder="Search"');
-    expect(markup).toContain("input-size-default");
-    expect(markup.indexOf("Open</span>")).toBeLessThan(
-      markup.indexOf("Open or closed")
-    );
-    expect(markup.indexOf("Open or closed")).toBeLessThan(
-      markup.indexOf("Personal filters")
-    );
-    expect(markup.indexOf("Personal filters")).toBeLessThan(
-      markup.indexOf('placeholder="Search"')
-    );
-    expect(markup.indexOf('placeholder="Search"')).toBeLessThan(
-      markup.indexOf("Actions")
     );
   });
 

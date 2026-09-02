@@ -5,14 +5,12 @@ import Checkbox from "@src/components/Checkbox";
 import { HeaderSectionSeparator } from "@src/components/HeaderSectionSeparator";
 import IntegrationIcon from "@src/components/IntegrationIcon";
 import { Placeholder } from "@src/components/Placeholder";
-import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
 import TabPill from "@src/components/TabPill";
 import type { TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import { HugeiconsIcon, ListTodoIcon } from "@src/icons";
 import { MultiSelectBar } from "@src/modules/ProjectManager/WorkItems/components/WorkItemsFooterBars";
 import WorkItemsPageHeader from "@src/modules/ProjectManager/WorkItems/components/WorkItemsPageHeader";
-import WorkItemsStatusFilterSelect from "@src/modules/ProjectManager/WorkItems/components/WorkItemsStatusFilterSelect";
 import type {
   StatusCounts,
   StatusFilterType,
@@ -40,6 +38,7 @@ import { useProjectManagerWorkItemsTabBarRegistration } from "@src/modules/Proje
 import { PROJECT_MANAGER_PLACEHOLDER_PLACEMENT } from "@src/modules/ProjectManager/shared/placeholderTokens";
 import { WORKSPACE_SOURCE } from "@src/modules/ProjectManager/workspaceAggregate";
 import { WorkManagementAssigneeCell } from "@src/modules/shared/components/WorkManagementAssigneeCell";
+import { WorkManagementSearchInput } from "@src/modules/shared/components/WorkManagementSearchInput";
 import {
   WorkManagementTable,
   type WorkManagementTableRow,
@@ -416,95 +415,31 @@ export const ProjectWorkItemsTabContent: React.FC<
     workspaceSourceTabs,
   ]);
 
-  const tableSelectFilters = useMemo<SettingsTableSelectFilter[]>(() => {
-    const filters: SettingsTableSelectFilter[] = [
-      {
-        key: "status",
-        value: effectiveStatusFilter,
-        defaultValue: "all",
-        options: statusFilterKeys.map((key) => {
-          const label = t(`workItems.statusFilters.${key}`);
-          return {
-            value: key,
-            label: (
-              <span className="flex items-center gap-2 whitespace-nowrap">
-                <span>{label}</span>
-                <span className="text-text-3 tabular-nums">
-                  {statusCounts[key] ?? 0}
-                </span>
-              </span>
-            ),
-            triggerLabel: label,
-          };
-        }),
-        onChange: (value) => setStatusFilter(value as StatusFilterType),
-        minWidth: 172,
-        appearance: "default",
-      },
-    ];
-    if (allowExternalSources) {
-      filters.push({
-        key: "source",
-        value: workspaceSourceMode,
-        defaultValue: "local_only",
-        options: workspaceSourceTabs.map((tab) => ({
-          value: tab.key,
-          label: tab.label,
-        })),
-        onChange: (value) =>
-          setWorkspaceSourceMode(value as WorkspaceSourceMode),
-        minWidth: 150,
-        appearance: "default",
-      });
-    }
-    return filters;
-  }, [
-    allowExternalSources,
-    setWorkspaceSourceMode,
-    statusCounts,
-    effectiveStatusFilter,
-    statusFilterKeys,
-    t,
-    workspaceSourceMode,
-    workspaceSourceTabs,
-  ]);
-
   const headerLeadingControls = useMemo(
     () => (
       <div className="contents">
-        {activeViewTab === "Kanban" ? (
-          <>
-            <WorkItemsStatusFilterSelect
-              value={effectiveStatusFilter}
-              onChange={setStatusFilter}
-              statusCounts={statusCounts}
-              filterKeys={statusFilterKeys}
-              dropdownAlign="left"
-            />
-            <HeaderSectionSeparator />
-            {orgSurfaceControls}
-            {orgSurfaceControls && <HeaderSectionSeparator />}
-          </>
-        ) : null}
+        {orgSurfaceControls}
+        {orgSurfaceControls && <HeaderSectionSeparator />}
         {workItemsViewSwitch}
         {kanbanGroupSwitch && <HeaderSectionSeparator />}
         {kanbanGroupSwitch}
-        {activeViewTab === "Kanban" && sourceModeSwitch ? (
-          <HeaderSectionSeparator />
-        ) : null}
-        {activeViewTab === "Kanban" ? sourceModeSwitch : null}
       </div>
     ),
-    [
-      activeViewTab,
-      kanbanGroupSwitch,
-      orgSurfaceControls,
-      sourceModeSwitch,
-      statusCounts,
-      effectiveStatusFilter,
-      statusFilterKeys,
-      workItemsViewSwitch,
-    ]
+    [kanbanGroupSwitch, orgSurfaceControls, workItemsViewSwitch]
+  );
+  const headerTrailingControls = useMemo(
+    () => (
+      <div className="flex min-w-0 items-center gap-1 overflow-visible">
+        {sourceModeSwitch}
+        <WorkManagementSearchInput
+          value={searchQuery}
+          onChange={setSearchQuery}
+          placeholder={t("workItems.searchPlaceholder")}
+          dataTestId="workspace-work-items-search"
+        />
+      </div>
+    ),
+    [searchQuery, sourceModeSwitch, t]
   );
 
   useProjectManagerWorkItemsTabBarRegistration({
@@ -518,28 +453,8 @@ export const ProjectWorkItemsTabContent: React.FC<
     onAddWorkItem: onCreateWorkItem ?? null,
   });
 
-  if (loading && !loaded) {
-    return (
-      <Placeholder
-        variant="loading"
-        placement={PROJECT_MANAGER_PLACEHOLDER_PLACEMENT}
-        title={t("projects.loading")}
-        fillParentHeight
-      />
-    );
-  }
-
-  if (error && workItems.length === 0) {
-    return (
-      <Placeholder
-        variant="error"
-        placement={PROJECT_MANAGER_PLACEHOLDER_PLACEMENT}
-        title={error}
-        onRetry={handleRefresh}
-        fillParentHeight
-      />
-    );
-  }
+  const showInitialLoading = loading && !loaded;
+  const showInitialError = error && workItems.length === 0;
 
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
@@ -556,18 +471,39 @@ export const ProjectWorkItemsTabContent: React.FC<
         }
         onOpenProjects={onOpenProjects}
         activeTab={activeViewTab}
+        statusFilter={effectiveStatusFilter}
+        onStatusFilterChange={(value) =>
+          setStatusFilter(value as StatusFilterType)
+        }
         statusCounts={statusCounts}
+        statusFilterKeys={statusFilterKeys}
         onAddProject={onCreateProject}
         onAddWorkItem={onCreateWorkItem}
         onRefresh={handleRefresh}
         refreshLoading={loading}
         leadingControls={headerLeadingControls}
+        trailingControls={headerTrailingControls}
         publishToWorkstationHeader={!!workStationTabId}
         workstationHeaderHost={workstationHeaderHost}
       />
 
       <div className="min-h-0 flex-1 overflow-hidden">
-        {activeViewTab === "Kanban" ? (
+        {showInitialLoading ? (
+          <Placeholder
+            variant="loading"
+            placement={PROJECT_MANAGER_PLACEHOLDER_PLACEMENT}
+            title={t("projects.loading")}
+            fillParentHeight
+          />
+        ) : showInitialError ? (
+          <Placeholder
+            variant="error"
+            placement={PROJECT_MANAGER_PLACEHOLDER_PLACEMENT}
+            title={error ?? ""}
+            onRetry={handleRefresh}
+            fillParentHeight
+          />
+        ) : activeViewTab === "Kanban" ? (
           <div className="h-full min-h-0">
             <React.Suspense
               fallback={<Placeholder variant="loading" fillParentHeight />}
@@ -591,17 +527,8 @@ export const ProjectWorkItemsTabContent: React.FC<
         ) : (
           <WorkManagementTable
             rows={settingsRows}
-            searchBar={{
-              searchValue: searchQuery,
-              searchPlaceholder: t("workItems.searchPlaceholder"),
-              onSearchChange: setSearchQuery,
-              onSearchClear: () => setSearchQuery(""),
-            }}
-            selectFilters={tableSelectFilters}
-            selectFiltersExtra={orgSurfaceControls}
             pageSize={25}
             pageSizeOptions={[10, 25, 50, 100]}
-            maxWidth="wide"
             loading={completedStatusSelected && completedItemsLoading}
             testId="workspace-work-items-table"
             noDataElement={

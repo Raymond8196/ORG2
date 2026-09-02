@@ -2,11 +2,12 @@ import type { ReactNode } from "react";
 
 import Button from "@src/components/Button";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
+import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import {
+  Add01Icon,
   CheckmarkCircle01Icon,
   CircleDotIcon,
   HugeiconsIcon,
-  PencilEdit02Icon,
   Refresh04Icon,
 } from "@src/icons";
 
@@ -29,7 +30,8 @@ export function GitHubWorkItemToolbarActions({
     <>
       <Button
         htmlType="button"
-        variant="secondary"
+        variant="tertiary"
+        size="small"
         icon={
           <HugeiconsIcon
             icon={Refresh04Icon}
@@ -46,12 +48,13 @@ export function GitHubWorkItemToolbarActions({
       {createAction ? (
         <Button
           htmlType="button"
-          variant="secondary"
+          variant="tertiary"
+          size="small"
           icon={
             <HugeiconsIcon
-              icon={PencilEdit02Icon}
-              data-icon="square-pen"
-              size={14}
+              icon={Add01Icon}
+              data-icon="plus"
+              size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />
           }

@@ -55,7 +55,7 @@ import {
   type WorkspaceProject,
   loadWorkspaceLinearProjects,
 } from "@src/modules/ProjectManager/workspaceAggregate";
-import { ContentSearchPalette } from "@src/scaffold/GlobalSpotlight/palettes";
+import { WorkManagementSearchInput } from "@src/modules/shared/components/WorkManagementSearchInput";
 import { projectListRefreshAtom } from "@src/store/project/projectAtom";
 import type { Project } from "@src/types/core/project";
 import { confirmDestructiveAction } from "@src/util/dialogs/confirmDestructiveAction";
@@ -123,7 +123,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
 }) => {
   const { t } = useTranslation("projects");
   const navigate = useNavigate();
-  const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [groupMode, setGroupMode] = useState<ProjectsGroupMode>("status");
   const [collapseAllSignal, setCollapseAllSignal] = useState(0);
@@ -338,16 +337,6 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
     },
     [onOpenLinearProject, onOpenProject, fileProjects, navigate]
   );
-
-  const handleOpenSearch = useCallback(() => {
-    setSearchQuery("");
-    setIsSearchOpen(true);
-  }, []);
-
-  const handleCloseSearch = useCallback(() => {
-    setIsSearchOpen(false);
-    setSearchQuery("");
-  }, []);
 
   const handleRefresh = useCallback(() => {
     loadFileProjects();
@@ -570,6 +559,17 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
     ),
     [groupModeSelect, orgSurfaceControls, sourceModeSwitch]
   );
+  const headerTrailingControls = useMemo(
+    () => (
+      <WorkManagementSearchInput
+        value={searchQuery}
+        onChange={setSearchQuery}
+        placeholder={t("projects.searchPlaceholder")}
+        dataTestId="projects-search"
+      />
+    ),
+    [searchQuery, t]
+  );
 
   const virtualProjectGroups = useMemo(
     () =>
@@ -590,7 +590,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
     workStationTabId,
     enabled: publishToWorkstationHeader,
     showPropertiesActive: false,
-    onSearch: handleOpenSearch,
+    onSearch: null,
     onRefresh: handleRefresh,
     refreshLoading: loading,
     onToggleProperties: null,
@@ -607,23 +607,14 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
       <ProjectsPageHeader
         title={pageTitle}
         breadcrumbSegments={breadcrumbSegments}
-        onSearch={publishToWorkstationHeader ? undefined : handleOpenSearch}
         onCollapseAll={handleCollapseAll}
         onRefresh={handleRefresh}
         onAddProject={onAddProject}
         refreshLoading={loading}
         leadingControls={headerLeadingControls}
+        trailingControls={headerTrailingControls}
         publishToWorkstationHeader={publishToWorkstationHeader}
         workstationHeaderHost={workstationHeaderHost}
-      />
-
-      {/* Content search spotlight */}
-      <ContentSearchPalette
-        isOpen={isSearchOpen}
-        onClose={handleCloseSearch}
-        query={searchQuery}
-        onQueryChange={setSearchQuery}
-        placeholder={t("projects.searchPlaceholder")}
       />
 
       <div className="min-h-0 flex-1 overflow-hidden">

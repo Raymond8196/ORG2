@@ -75,6 +75,9 @@ export function WorkItemsHeaderContent({
     activeTab,
     Boolean(onCollapseAll)
   );
+  const showPrimaryActions = Boolean(
+    showCollapseAll || onRefresh || onAddProject || onAddWorkItem
+  );
   const propertiesLabel = showProperties
     ? t("workItems.hideProperties")
     : t("workItems.showProperties");
@@ -97,10 +100,6 @@ export function WorkItemsHeaderContent({
 
   return (
     <div className="flex shrink-0 items-center gap-px">
-      {trailingControls}
-      {trailingControls && (onSearch || showStatusFilter) && (
-        <HeaderSectionSeparator className="mx-0.5" />
-      )}
       {onSearch && (
         <ToolbarTooltip label={t("common:actions.search")}>
           <Button
@@ -128,8 +127,10 @@ export function WorkItemsHeaderContent({
           filterKeys={statusFilterKeys}
         />
       )}
-      {showStatusFilter && <HeaderSectionSeparator className="mx-1" />}
-      {(showCollapseAll || onRefresh || onAddProject || onAddWorkItem) && (
+      {trailingControls}
+      {(onSearch || showStatusFilter || trailingControls) &&
+        showPrimaryActions && <HeaderSectionSeparator className="mx-1" />}
+      {showPrimaryActions && (
         <div className="flex shrink-0 items-center gap-px">
           {showCollapseAll && (
             <ToolbarTooltip label={t("common:actions.collapseAll")}>

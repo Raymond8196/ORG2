@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { Placeholder } from "@src/components/Placeholder";
 import PrCiStatusIndicator from "@src/components/PrCiStatusIndicator";
 import type { SelectOption } from "@src/components/Select";
-import type { SettingsTableSelectFilter } from "@src/components/SettingsTable";
+import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
 import {
   CheckmarkCircle01Icon,
   CircleDotIcon,
@@ -18,20 +18,15 @@ import {
   WorkManagementTable,
   type WorkManagementTableRow,
 } from "@src/modules/shared/components/WorkManagementTable";
-import { DetailPanelContainer } from "@src/modules/shared/layouts/blocks";
 
 import { CreateIssueModal } from "./CreateIssueModal";
 import {
-  IssuePersonalFilterDropdown,
   ManagedIssueActionsCell,
   ManagedIssueAssigneeCell,
   ManagedIssueContextMeta,
   ManagedPrActionsCell,
 } from "./GitHubWorkItemControls";
-import {
-  GitHubWorkItemStateTabs,
-  GitHubWorkItemToolbarActions,
-} from "./GitHubWorkItemList";
+import { GitHubWorkItemsHeaderControls } from "./GitHubWorkItemsHeaderControls";
 import {
   GITHUB_ITEM_KIND,
   type ManagedGitHubItem,
@@ -226,23 +221,71 @@ export function GitHubWorkItemsView({
     [updateSearchQuery]
   );
 
-  const tableSelectFilters = useMemo<SettingsTableSelectFilter[]>(
-    () => [
-      {
-        key: "repository",
-        value: effectiveSelectedRepo,
-        defaultValue: repoOptions[0]?.key ?? effectiveSelectedRepo,
-        options: repoOptions.map((option) => ({
-          value: option.key,
-          label: option.label,
-        })),
-        onChange: (value) => onRepoSelect(String(value)),
-        minWidth: 190,
-        appearance: "default",
-      },
-    ],
-    [effectiveSelectedRepo, onRepoSelect, repoOptions]
+  const headerTrailing = useMemo(
+    () => (
+      <GitHubWorkItemsHeaderControls
+        repoOptions={repoOptions}
+        selectedRepo={effectiveSelectedRepo}
+        stateTabs={stateTabs}
+        activeState={activeState}
+        searchQuery={searchQuery}
+        searchPlaceholder={t("chat.panels.manageIssues.searchPlaceholder")}
+        personalFilterOptions={
+          scope === GITHUB_QUERY_SCOPE.ISSUE
+            ? issuePersonalFilterOptions
+            : undefined
+        }
+        selectedPersonalFilters={selectedIssuePersonalFilters}
+        personalFilterLabel={t("common:actions.filter")}
+        refreshLabel={t("common:actions.refresh")}
+        refreshing={loading}
+        createAction={
+          scope === GITHUB_QUERY_SCOPE.ISSUE
+            ? {
+                label: t("chat.panels.manageIssues.createIssueTrigger"),
+                disabled: repoSources.length === 0,
+                onClick: () => onSetCreateFormOpen(true),
+              }
+            : undefined
+        }
+        onRepoSelect={onRepoSelect}
+        onStateChange={handleStateChange}
+        onSearchQueryChange={onSearchQueryChange}
+        onPersonalFiltersSelect={onIssuePersonalFiltersSelect}
+        onRefresh={onRefresh}
+      />
+    ),
+    [
+      activeState,
+      effectiveSelectedRepo,
+      handleStateChange,
+      issuePersonalFilterOptions,
+      loading,
+      onIssuePersonalFiltersSelect,
+      onRefresh,
+      onRepoSelect,
+      onSearchQueryChange,
+      onSetCreateFormOpen,
+      repoOptions,
+      repoSources.length,
+      scope,
+      searchQuery,
+      selectedIssuePersonalFilters,
+      stateTabs,
+      t,
+    ]
   );
+  // WorkManagementPage subscribes to this same header slot. Keep the wrapper
+  // stable so publishing it cannot create a render → publish feedback loop.
+  const publishedHeader = useMemo(
+    () => ({ trailing: headerTrailing }),
+    [headerTrailing]
+  );
+
+  usePublishWorkstationTabHeader({
+    host: "workManagement",
+    content: publishedHeader,
+  });
 
   const tableRows = useMemo<ManagedGitHubItem[]>(() => {
     if (scope === GITHUB_QUERY_SCOPE.PR) {
@@ -629,118 +672,69 @@ export function GitHubWorkItemsView({
       className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col overflow-hidden"
       data-testid="work-management-github"
     >
-      <DetailPanelContainer testId="work-management-github-panel">
-        <section
-          className="flex min-h-0 flex-1"
-          data-testid={`work-management-github-${scope}`}
-        >
-          <CreateIssueModal
-            open={createFormOpen}
-            repoSources={repoSources}
-            selectedRepo={selectedRepoSourceForCreate}
-            creating={creatingIssue}
-            labels={{
-              title: t("chat.panels.manageIssues.newIssueTitle"),
-              issueTitlePlaceholder: t(
-                "chat.panels.manageIssues.issueTitlePlaceholder"
-              ),
-              issueBodyPlaceholder: t(
-                "chat.panels.manageIssues.issueBodyPlaceholder"
-              ),
-              repository: t("chat.panels.manageIssues.repositoryLabel"),
-              cancel: t("common:actions.cancel"),
-              create: t("chat.panels.manageIssues.createIssue"),
-              creating: t("chat.panels.manageIssues.creatingIssue"),
-            }}
-            onCreateIssue={onCreateIssue}
-            onCancel={() => onSetCreateFormOpen(false)}
-          />
-          <div className="bg-bg-0 flex min-w-0 flex-1 flex-col">
-            <WorkManagementTable
-              rows={settingsRows}
-              searchBar={{
-                searchValue: searchQuery,
-                searchPlaceholder: t(
-                  "chat.panels.manageIssues.searchPlaceholder"
-                ),
-                onSearchChange: onSearchQueryChange,
-                onSearchClear: () => onSearchQueryChange(""),
-                tabPills: (
-                  <GitHubWorkItemStateTabs
-                    tabs={stateTabs}
-                    activeTab={activeState}
-                    onChange={handleStateChange}
-                  />
-                ),
-                rightContent: (
-                  <GitHubWorkItemToolbarActions
-                    refreshLabel={t("common:actions.refresh")}
-                    refreshing={loading}
-                    createAction={
-                      scope === GITHUB_QUERY_SCOPE.ISSUE
-                        ? {
-                            label: t(
-                              "chat.panels.manageIssues.createIssueTrigger"
-                            ),
-                            disabled: repoSources.length === 0,
-                            onClick: () => onSetCreateFormOpen(true),
-                          }
-                        : undefined
+      <CreateIssueModal
+        open={createFormOpen}
+        repoSources={repoSources}
+        selectedRepo={selectedRepoSourceForCreate}
+        creating={creatingIssue}
+        labels={{
+          title: t("chat.panels.manageIssues.newIssueTitle"),
+          issueTitlePlaceholder: t(
+            "chat.panels.manageIssues.issueTitlePlaceholder"
+          ),
+          issueBodyPlaceholder: t(
+            "chat.panels.manageIssues.issueBodyPlaceholder"
+          ),
+          repository: t("chat.panels.manageIssues.repositoryLabel"),
+          cancel: t("common:actions.cancel"),
+          create: t("chat.panels.manageIssues.createIssue"),
+          creating: t("chat.panels.manageIssues.creatingIssue"),
+        }}
+        onCreateIssue={onCreateIssue}
+        onCancel={() => onSetCreateFormOpen(false)}
+      />
+      <section
+        className="flex min-h-0 flex-1"
+        data-testid={`work-management-github-${scope}`}
+      >
+        <WorkManagementTable
+          rows={settingsRows}
+          loading={loading}
+          noDataElement={tableEmptyState}
+          sort={sort}
+          onSortChange={onSortChange}
+          testId={`github-${scope}-table`}
+          pagination={
+            filteredItems.length > 0
+              ? {
+                  pageIndex: currentPage - 1,
+                  pageSize: GITHUB_WORK_ITEMS_PAGE_SIZE,
+                  total: filteredItems.length,
+                  pageCount: totalLoadedPages,
+                  canPreviousPage: currentPage > 1,
+                  canNextPage:
+                    !loadingMore &&
+                    canAdvanceGitHubWorkItemsPage({
+                      currentPage,
+                      loadedPageCount: totalLoadedPages,
+                      hasMoreRemoteItems: hasMoreFilteredIssues,
+                    }),
+                  onPageChange: (pageIndex) => {
+                    const targetPage = pageIndex + 1;
+                    if (targetPage <= totalLoadedPages) {
+                      onGoToPage(targetPage);
+                    } else if (targetPage > currentPage) {
+                      // Beyond the loaded range: fetch one more remote page
+                      // and advance a single step.
+                      void onNextPage();
                     }
-                    onRefresh={onRefresh}
-                  />
-                ),
-              }}
-              selectFilters={tableSelectFilters}
-              selectFiltersExtra={
-                scope === GITHUB_QUERY_SCOPE.ISSUE ? (
-                  <IssuePersonalFilterDropdown
-                    options={issuePersonalFilterOptions}
-                    selectedFilters={selectedIssuePersonalFilters}
-                    filterLabel={t("common:actions.filter")}
-                    onSelect={onIssuePersonalFiltersSelect}
-                  />
-                ) : undefined
-              }
-              loading={loading}
-              noDataElement={tableEmptyState}
-              sort={sort}
-              onSortChange={onSortChange}
-              maxWidth="wide"
-              testId={`github-${scope}-table`}
-              pagination={
-                filteredItems.length > 0
-                  ? {
-                      pageIndex: currentPage - 1,
-                      pageSize: GITHUB_WORK_ITEMS_PAGE_SIZE,
-                      total: filteredItems.length,
-                      pageCount: totalLoadedPages,
-                      canPreviousPage: currentPage > 1,
-                      canNextPage:
-                        !loadingMore &&
-                        canAdvanceGitHubWorkItemsPage({
-                          currentPage,
-                          loadedPageCount: totalLoadedPages,
-                          hasMoreRemoteItems: hasMoreFilteredIssues,
-                        }),
-                      onPageChange: (pageIndex) => {
-                        const targetPage = pageIndex + 1;
-                        if (targetPage <= totalLoadedPages) {
-                          onGoToPage(targetPage);
-                        } else if (targetPage > currentPage) {
-                          // Beyond the loaded range: fetch one more remote
-                          // page and advance a single step.
-                          void onNextPage();
-                        }
-                      },
-                      openEndedPageCount: hasMoreFilteredIssues,
-                    }
-                  : undefined
-              }
-            />
-          </div>
-        </section>
-      </DetailPanelContainer>
+                  },
+                  openEndedPageCount: hasMoreFilteredIssues,
+                }
+              : undefined
+          }
+        />
+      </section>
     </div>
   );
 }
