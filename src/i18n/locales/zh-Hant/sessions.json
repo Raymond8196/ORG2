@@ -99,12 +99,6 @@
       "openAsFloatingPane": "以浮動面板打開"
     },
     "sessions": "Session",
-    "fileSearch": {
-      "placeholder": "依檔案路徑搜尋 Session",
-      "noResults": "沒有 Session 改動過符合的檔案"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "目前看板",
     "view": {
       "list": "列表",
       "diary": "日誌",
@@ -374,9 +368,6 @@
       "discard": "丟棄",
       "discarding": "丟棄中…",
       "confirmMessage": "丟棄此 Worktree 的所有更改？此操作不可撤銷。"
-    },
-    "replay": {
-      "replaySession": "回放"
     },
     "detailView": {
       "trajectory": "軌跡",

@@ -101,12 +101,6 @@
       "openAsFloatingPane": "以悬浮面板打开"
     },
     "sessions": "Session",
-    "fileSearch": {
-      "placeholder": "按文件路径搜索 Session",
-      "noResults": "没有 Session 改动过匹配的文件"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "当前看板",
     "view": {
       "list": "列表",
       "diary": "日志",
@@ -374,9 +368,6 @@
       "merge": "合并",
       "merging": "合并中…",
       "merged": "已合并"
-    },
-    "replay": {
-      "replaySession": "回放"
     },
     "detailView": {
       "trajectory": "轨迹",

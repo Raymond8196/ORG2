@@ -88,12 +88,6 @@
       "openAsFloatingPane": "Otwórz jako pływający panel"
     },
     "sessions": "Sesje",
-    "fileSearch": {
-      "placeholder": "Szukaj sesji według ścieżki pliku",
-      "noResults": "Żadna sesja nie zmieniła pasującego pliku"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "Bieżący Kanban",
     "view": {
       "list": "Lista",
       "diary": "Dziennik",
@@ -364,9 +358,6 @@
       "discard": "Odrzuć",
       "discarding": "Odrzucanie…",
       "confirmMessage": "Odrzucić wszystkie zmiany w tym Worktree? Tej operacji nie można cofnąć."
-    },
-    "replay": {
-      "replaySession": "Powtórz"
     },
     "diary": {
       "title": "Dziennik",

@@ -88,12 +88,6 @@
       "openAsFloatingPane": "Abrir como panel flotante"
     },
     "sessions": "Session",
-    "fileSearch": {
-      "placeholder": "Buscar sesiones por ruta de archivo",
-      "noResults": "Ninguna sesión modificó un archivo coincidente"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "Kanban actual",
     "view": {
       "list": "Lista",
       "diary": "Diario",
@@ -359,9 +353,6 @@
       "merge": "Fusionar",
       "merging": "Fusionando…",
       "merged": "Fusionado"
-    },
-    "replay": {
-      "replaySession": "Reproducir"
     },
     "discard": {
       "discard": "Descartar",

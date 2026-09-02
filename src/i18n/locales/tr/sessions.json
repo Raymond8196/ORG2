@@ -88,12 +88,6 @@
       "openAsFloatingPane": "Yüzen Panelde Aç"
     },
     "sessions": "Session",
-    "fileSearch": {
-      "placeholder": "Dosya yoluna göre oturum ara",
-      "noResults": "Eşleşen bir dosyayı değiştiren oturum yok"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "Mevcut Kanban",
     "view": {
       "list": "Liste",
       "diary": "Günlük",
@@ -359,9 +353,6 @@
       "merge": "Birleştir",
       "merging": "Birleştiriliyor…",
       "merged": "Birleştirildi"
-    },
-    "replay": {
-      "replaySession": "Oynat"
     },
     "discard": {
       "discard": "Sil",

@@ -101,12 +101,6 @@
       "openAsFloatingPane": "Open as Floating Pane"
     },
     "sessions": "Sessions",
-    "fileSearch": {
-      "placeholder": "Search sessions by file path",
-      "noResults": "No sessions touched a matching file"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "Current Kanban",
     "view": {
       "list": "List",
       "diary": "Diary",
@@ -391,9 +385,6 @@
       "discard": "Discard",
       "discarding": "Discarding…",
       "confirmMessage": "Discard all changes in this worktree? This cannot be undone."
-    },
-    "replay": {
-      "replaySession": "Replay"
     },
     "detailView": {
       "trajectory": "Trajectory",

@@ -88,12 +88,6 @@
       "openAsFloatingPane": "Открыть во всплывающей панели"
     },
     "sessions": "Session",
-    "fileSearch": {
-      "placeholder": "Поиск сессий по пути файла",
-      "noResults": "Нет сессий, изменивших подходящий файл"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "Текущий Kanban",
     "view": {
       "list": "Список",
       "diary": "Дневник",
@@ -361,9 +355,6 @@
       "merge": "Слить",
       "merging": "Слияние…",
       "merged": "Слито"
-    },
-    "replay": {
-      "replaySession": "Воспроизвести"
     },
     "discard": {
       "discard": "Отменить",

@@ -1,6 +1,6 @@
 import type { KanbanTask } from "@src/features/KanbanBoard";
 
-import { resolveKanbanPreviewTask } from "./cloudReplayPreview";
+import { resolveKanbanPreviewTask } from "./cloudSessionPreview";
 
 function task(overrides: Partial<KanbanTask> & { id: string }): KanbanTask {
   return {
@@ -17,7 +17,7 @@ describe("resolveKanbanPreviewTask", () => {
     sessionId: "imported-session-1",
   };
 
-  it("returns the selected task untouched without a replay in flight", () => {
+  it("returns the selected task untouched without an import in flight", () => {
     expect(resolveKanbanPreviewTask(cloudTask, null, [cloudTask])).toBe(
       cloudTask
     );

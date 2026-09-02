@@ -88,12 +88,6 @@
       "openAsFloatingPane": "플로팅 패널로 열기"
     },
     "sessions": "Session",
-    "fileSearch": {
-      "placeholder": "파일 경로로 세션 검색",
-      "noResults": "일치하는 파일을 수정한 세션이 없습니다"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "현재 Kanban",
     "view": {
       "list": "List",
       "diary": "다이어리",
@@ -358,9 +352,6 @@
       "merge": "병합",
       "merging": "병합 중…",
       "merged": "병합됨"
-    },
-    "replay": {
-      "replaySession": "리플레이"
     },
     "discard": {
       "discard": "버리기",

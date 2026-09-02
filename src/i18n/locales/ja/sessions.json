@@ -88,12 +88,6 @@
       "openAsFloatingPane": "フローティングパネルで開く"
     },
     "sessions": "Session",
-    "fileSearch": {
-      "placeholder": "ファイルパスでセッションを検索",
-      "noResults": "一致するファイルを変更したセッションはありません"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "現在のKanban",
     "view": {
       "list": "リスト",
       "diary": "日誌",
@@ -358,9 +352,6 @@
       "merge": "マージ",
       "merging": "マージ中…",
       "merged": "マージ済み"
-    },
-    "replay": {
-      "replaySession": "リプレイ"
     },
     "discard": {
       "discard": "破棄",

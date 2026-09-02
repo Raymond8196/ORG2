@@ -88,12 +88,6 @@
       "openAsFloatingPane": "Abrir como painel flutuante"
     },
     "sessions": "Sessões",
-    "fileSearch": {
-      "placeholder": "Buscar sessões pelo caminho do arquivo",
-      "noResults": "Nenhuma sessão alterou um arquivo correspondente"
-    },
-    "replayBarAriaLabel": "Kanban replay timeline",
-    "followLabel": "Kanban atual",
     "view": {
       "list": "Lista",
       "diary": "Diário",
@@ -364,9 +358,6 @@
       "discard": "Descartar",
       "discarding": "Descartando…",
       "confirmMessage": "Descartar todas as alterações neste Worktree? Esta ação não pode ser desfeita."
-    },
-    "replay": {
-      "replaySession": "Repetir"
     },
     "diary": {
       "title": "Diário",
