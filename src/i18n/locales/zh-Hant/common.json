@@ -1993,6 +1993,10 @@
     "openAgentStation": "前往 Agent 工作站",
     "openKanban": "前往 Kanban",
     "changeLanguage": "變更語言",
+    "changeTheme": "變更主題",
+    "changeSkin": "變更外觀",
+    "searchThemes": "搜尋主題...",
+    "searchSkins": "搜尋外觀...",
     "switchToSystemTheme": "跟隨系統主題",
     "detectUpdate": "檢查更新",
     "recentlyUsed": "最近使用"

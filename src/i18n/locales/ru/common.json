@@ -1986,6 +1986,10 @@
     "openAgentStation": "Перейти в Agent Station",
     "openKanban": "Перейти в Kanban",
     "changeLanguage": "Изменить язык",
+    "changeTheme": "Изменить тему",
+    "changeSkin": "Изменить оформление",
+    "searchThemes": "Поиск тем...",
+    "searchSkins": "Поиск вариантов оформления...",
     "switchToSystemTheme": "Следовать системной теме",
     "detectUpdate": "Проверить обновления",
     "recentlyUsed": "Недавно использованные"

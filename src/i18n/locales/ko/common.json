@@ -1976,6 +1976,10 @@
     "openAgentStation": "Agent Station으로 이동",
     "openKanban": "Kanban로 이동",
     "changeLanguage": "언어 변경",
+    "changeTheme": "테마 변경",
+    "changeSkin": "스킨 변경",
+    "searchThemes": "테마 검색...",
+    "searchSkins": "스킨 검색...",
     "switchToSystemTheme": "시스템 테마 따르기",
     "detectUpdate": "업데이트 확인",
     "recentlyUsed": "최근 사용"

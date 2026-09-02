@@ -1974,6 +1974,10 @@
     "openAgentStation": "Ir para Agent Station",
     "openKanban": "Ir para Kanban",
     "changeLanguage": "Alterar idioma",
+    "changeTheme": "Alterar tema",
+    "changeSkin": "Alterar aparência",
+    "searchThemes": "Pesquisar temas...",
+    "searchSkins": "Pesquisar aparências...",
     "switchToSystemTheme": "Seguir o tema do sistema",
     "detectUpdate": "Procurar atualizações",
     "recentlyUsed": "Usados recentemente"

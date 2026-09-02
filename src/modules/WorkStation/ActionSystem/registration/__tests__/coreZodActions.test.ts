@@ -27,7 +27,6 @@ import {
   STATION_MODE_ACTIONS,
   WORKSPACE_ACTIONS,
   buildChatPanelSettingsActions,
-  buildThemeActions,
   buildViewActions,
 } from "@src/scaffold/GlobalSpotlight/hooks/features/spotlightActionDefinitions";
 
@@ -49,7 +48,6 @@ function getRepresentativeSpotlightActionIds(): Set<string> {
     ...AGENT_SESSION_ACTIONS.map((action) => action.actionId),
     ...WORKSPACE_ACTIONS.map((action) => action.actionId),
     ...ORGANIZATION_ACTIONS.map((action) => action.actionId),
-    ...buildThemeActions("custom-theme").map((action) => action.actionId),
     ...buildChatPanelSettingsActions({
       chatPanelPosition: "left",
       chatTurnPaginationEnabled: true,

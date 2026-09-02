@@ -1979,6 +1979,10 @@
     "openAgentStation": "Agent Station'a git",
     "openKanban": "Kanban'e git",
     "changeLanguage": "Dili değiştir",
+    "changeTheme": "Temayı değiştir",
+    "changeSkin": "Görünümü değiştir",
+    "searchThemes": "Tema ara...",
+    "searchSkins": "Görünüm ara...",
     "switchToSystemTheme": "Sistem temasını izle",
     "detectUpdate": "Güncellemeleri denetle",
     "recentlyUsed": "Son kullanılanlar"

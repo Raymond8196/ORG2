@@ -1911,6 +1911,10 @@
     "openAgentStation": "Go to Agent Station",
     "openKanban": "Go to Kanban",
     "changeLanguage": "Change language",
+    "changeTheme": "Change theme",
+    "changeSkin": "Change skin",
+    "searchThemes": "Search themes...",
+    "searchSkins": "Search skins...",
     "switchToSystemTheme": "Follow system theme",
     "detectUpdate": "Detect update",
     "recentlyUsed": "Recently used"

@@ -318,6 +318,10 @@ const GlobalSpotlightInner: React.FC<
         return t("selectors.spotlight.placeholders.source");
       case "language":
         return t("settings:general.languageSearchPlaceholder");
+      case "theme":
+        return t("common:spotlightActions.searchThemes");
+      case "skin":
+        return t("common:spotlightActions.searchSkins");
       default:
         return t("selectors.spotlight.placeholders.actions");
     }

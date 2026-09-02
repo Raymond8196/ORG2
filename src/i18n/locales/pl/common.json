@@ -1986,6 +1986,10 @@
     "openAgentStation": "Przejdź do Agent Station",
     "openKanban": "Przejdź do Kanban",
     "changeLanguage": "Zmień język",
+    "changeTheme": "Zmień motyw",
+    "changeSkin": "Zmień wygląd",
+    "searchThemes": "Szukaj motywów...",
+    "searchSkins": "Szukaj wyglądów...",
     "switchToSystemTheme": "Zgodnie z motywem systemu",
     "detectUpdate": "Sprawdź aktualizacje",
     "recentlyUsed": "Ostatnio używane"

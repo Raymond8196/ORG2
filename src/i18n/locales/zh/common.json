@@ -1870,6 +1870,10 @@
     "openAgentStation": "前往 Agent 工作站",
     "openKanban": "前往 Kanban",
     "changeLanguage": "更改语言",
+    "changeTheme": "更改主题",
+    "changeSkin": "更改皮肤",
+    "searchThemes": "搜索主题...",
+    "searchSkins": "搜索皮肤...",
     "switchToSystemTheme": "跟随系统主题",
     "detectUpdate": "检查更新",
     "recentlyUsed": "最近使用"

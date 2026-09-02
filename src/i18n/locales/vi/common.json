@@ -1973,6 +1973,10 @@
     "openAgentStation": "Đi tới Agent Station",
     "openKanban": "Đi tới Kanban",
     "changeLanguage": "Thay đổi ngôn ngữ",
+    "changeTheme": "Thay đổi giao diện",
+    "changeSkin": "Thay đổi phong cách",
+    "searchThemes": "Tìm kiếm giao diện...",
+    "searchSkins": "Tìm kiếm phong cách...",
     "switchToSystemTheme": "Theo chủ đề hệ thống",
     "detectUpdate": "Kiểm tra cập nhật",
     "recentlyUsed": "Đã dùng gần đây"
