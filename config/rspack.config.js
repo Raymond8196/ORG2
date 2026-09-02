@@ -1,15 +1,19 @@
-// Rspack dev-server config — the default dev bundler on macOS; other
-// platforms default to config/webpack.config.js (see
+// Rspack dev-server config — the default dev bundler on macOS and Linux;
+// Windows still defaults to config/webpack.config.js (see
 // createFrontendScriptName in scripts/dev/tauri-dev-processes.cjs).
-// Dev-only: production builds stay on webpack. Launch via `pnpm tauri:dev`
-// (macOS), `pnpm tauri:dev:rspack`, or `pnpm dev:frontend:rspack`.
+// Dev-only: production builds stay on webpack. Launch via `pnpm tauri:dev`,
+// `pnpm tauri:dev:rspack`, or `pnpm dev:frontend:rspack`; `pnpm tauri:dev:webpack`
+// (ORGII_RSPACK=false) falls back.
 // Measured vs the webpack dev server (2026-09-01, macOS, footprint method):
 // idle 1.65 GB vs 2.4 GB, warm-start peak 2.1 GB vs 3.6 GB, HMR rebuild
 // ~0.6 s vs ~3 s, cold compile 10.7 s with no persistent cache.
+// Measured on Linux/WebKitGTK 2.50.4 (2026-09-02, same commit, both bundlers
+// cold with no cache, sequential runs): cold compile 3.2 s vs 18.0 s, HMR
+// 0.40-0.45 s vs 1.9-3.1 s, idle RSS 1.41 GiB vs 3.55 GiB, `pnpm tauri:dev`
+// main.js ready 3.7 s (webpack's last recorded run: 27.9 s).
 // Deliberately omits: the production branch and a persistent cache (rspack's
 // is still experimental; default memory cache). The Linux/WebKitGTK
-// eager-App + retry-loader mode is ported from webpack.config.js below, but
-// Linux still defaults to the webpack server (ORGII_RSPACK=true opts in).
+// eager-App + retry-loader mode is ported from webpack.config.js below.
 const path = require("path");
 const rspack = require("@rspack/core");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
