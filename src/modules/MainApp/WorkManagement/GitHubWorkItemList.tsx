@@ -4,12 +4,12 @@ import Button from "@src/components/Button";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import {
-  Add01Icon,
   CheckmarkCircle01Icon,
   CircleDotIcon,
   HugeiconsIcon,
-  Refresh04Icon,
+  PencilEdit02Icon,
 } from "@src/icons";
+import { WorkManagementRefreshButton } from "@src/modules/shared/components/WorkManagementRefreshButton";
 
 export function GitHubWorkItemToolbarActions({
   refreshLabel,
@@ -27,23 +27,11 @@ export function GitHubWorkItemToolbarActions({
   onRefresh: () => void;
 }): ReactNode {
   return (
-    <>
-      <Button
-        htmlType="button"
-        variant="tertiary"
-        size="small"
-        icon={
-          <HugeiconsIcon
-            icon={Refresh04Icon}
-            data-icon="refresh-cw"
-            size={13}
-          />
-        }
-        iconOnly
+    <div className="flex shrink-0 items-center gap-px">
+      <WorkManagementRefreshButton
+        label={refreshLabel}
         loading={refreshing}
-        loadingSpinIcon
-        aria-label={refreshLabel}
-        onClick={onRefresh}
+        onRefresh={onRefresh}
       />
       {createAction ? (
         <Button
@@ -52,8 +40,8 @@ export function GitHubWorkItemToolbarActions({
           size="small"
           icon={
             <HugeiconsIcon
-              icon={Add01Icon}
-              data-icon="plus"
+              icon={PencilEdit02Icon}
+              data-icon="square-pen"
               size={HEADER_ICON_SIZE.md}
               strokeWidth={2}
             />
@@ -64,7 +52,7 @@ export function GitHubWorkItemToolbarActions({
           disabled={createAction.disabled}
         />
       ) : null}
-    </>
+    </div>
   );
 }
 

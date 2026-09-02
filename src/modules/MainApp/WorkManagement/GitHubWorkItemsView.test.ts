@@ -20,6 +20,15 @@ vi.mock("@src/components/IntegrationIcon", () => ({
     React.createElement("span", { "data-integration-icon": type }),
 }));
 
+vi.mock("./GitHubWorkItemDetailPane", () => ({
+  default: ({ onClose }: { onClose: () => void }) =>
+    React.createElement(
+      "button",
+      { "data-testid": "mock-github-detail", onClick: onClose },
+      "Detail"
+    ),
+}));
+
 describe("GitHub issue status accents", () => {
   it("uses purple for close-as-completed while keeping other closed reasons neutral", () => {
     expect(getManagedIssueStatusAccent("closed_completed")).toEqual({
@@ -84,6 +93,7 @@ function createEmptyViewProps(): React.ComponentProps<
     allItemsCount: 0,
     filteredItems: [],
     pagedItems: [],
+    selectedItem: null,
     repoSources: [],
     repoOptions: [{ key: "all", label: "All repositories" }],
     effectiveSelectedRepo: "all",
@@ -105,7 +115,10 @@ function createEmptyViewProps(): React.ComponentProps<
     onRefresh: vi.fn(),
     onGoToPage: vi.fn(),
     onNextPage: vi.fn().mockResolvedValue(undefined),
+    onLoadMore: vi.fn(),
     onSortChange: vi.fn(),
+    onSelectItem: vi.fn(),
+    onCloseItem: vi.fn(),
     onOpenIssue: vi.fn(),
     onOpenIssueInBrowser: vi.fn(),
     onAddIssue: vi.fn(),
@@ -154,6 +167,21 @@ describe("GitHubWorkItemsView pull requests", () => {
       await act(async () => root.render(renderHarness()));
 
       expect(firstContribution).not.toBeNull();
+      const contentMarkup = renderToStaticMarkup(
+        React.createElement(React.Fragment, null, firstContribution?.content)
+      );
+      const trailingMarkup = renderToStaticMarkup(
+        React.createElement(React.Fragment, null, firstContribution?.trailing)
+      );
+      expect(contentMarkup).toContain(
+        'data-testid="github-work-items-repository"'
+      );
+      expect(trailingMarkup).not.toContain(
+        'data-testid="github-work-items-repository"'
+      );
+      expect(trailingMarkup).toContain(
+        'data-testid="github-work-items-state-open"'
+      );
       expect(store.get(workstationTabHeaderAtomByHost.workManagement)).toBe(
         firstContribution
       );
@@ -167,7 +195,7 @@ describe("GitHubWorkItemsView pull requests", () => {
     }
   });
 
-  it("renders one continuous PR list without todo section headers", () => {
+  it("keeps the continuous PR table as the full one-pane view", () => {
     const pullRequests = [
       createPullRequest(1, { reviewRequestedFromViewer: true }),
       createPullRequest(2, { authoredByViewer: true }),
@@ -182,6 +210,7 @@ describe("GitHubWorkItemsView pull requests", () => {
         allItemsCount: pullRequests.length,
         filteredItems: pullRequests,
         pagedItems: pullRequests,
+        selectedItem: null,
         repoSources: [
           {
             repoId: "repo-1",
@@ -217,7 +246,10 @@ describe("GitHubWorkItemsView pull requests", () => {
         onRefresh: vi.fn(),
         onGoToPage: vi.fn(),
         onNextPage: vi.fn().mockResolvedValue(undefined),
+        onLoadMore: vi.fn(),
         onSortChange: vi.fn(),
+        onSelectItem: vi.fn(),
+        onCloseItem: vi.fn(),
         onOpenIssue: vi.fn(),
         onOpenIssueInBrowser: vi.fn(),
         onAddIssue: vi.fn(),
@@ -242,7 +274,11 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).toContain("settings-table-root");
     expect(markup).toContain("settings-table-root-transparent");
     expect(markup).not.toContain("work-management-github-panel");
-    expect(markup).not.toContain("bg-chat-pane");
+    expect(markup).toContain('data-testid="github-pr-list-detail-layout"');
+    expect(markup).toContain('data-layout-mode="single"');
+    expect(markup).not.toContain('data-testid="github-pr-compact-list"');
+    expect(markup).not.toContain('aria-orientation="vertical"');
+    expect(markup).not.toContain("teamInbox.empty.selectTitle");
     expect(markup).toContain("Title / Context");
     expect(markup).toContain(">Status<");
     expect(markup).toContain(">CI<");
@@ -272,6 +308,134 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).not.toContain("github-pr-other-todos");
   });
 
+  it("switches to the Inbox compact list when a PR detail is open", () => {
+    const pullRequests = [createPullRequest(1), createPullRequest(2)];
+    const markup = renderToStaticMarkup(
+      React.createElement(GitHubWorkItemsView, {
+        ...createEmptyViewProps(),
+        scope: "pr",
+        allItemsCount: pullRequests.length,
+        filteredItems: pullRequests,
+        pagedItems: pullRequests,
+        selectedItem: pullRequests[0],
+        searchQuery: "is:pr is:open",
+        parsedSearchQuery: parseGitHubSearchQuery("is:pr is:open"),
+      })
+    );
+
+    expect(markup).toContain('data-layout-mode="split"');
+    expect(markup).toContain('data-testid="github-pr-compact-list"');
+    expect(markup).toContain('data-compact-list-header="true"');
+    expect(markup).toContain('data-testid="github-work-items-search"');
+    expect(markup).toContain("w-full min-w-0");
+    expect(markup).toContain('data-testid="github-compact-row"');
+    expect(markup).toContain('data-list-panel-item="true"');
+    expect(markup).toContain('aria-orientation="vertical"');
+    expect(markup).toContain("bg-chat-pane");
+    expect(markup).not.toContain('data-testid="github-pr-table"');
+  });
+
+  it("keeps repository scope at the top while moving list controls into the left pane", async () => {
+    const actEnvironment = globalThis as typeof globalThis & {
+      IS_REACT_ACT_ENVIRONMENT?: boolean;
+    };
+    const previousActEnvironment = actEnvironment.IS_REACT_ACT_ENVIRONMENT;
+    actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
+    const pullRequest = createPullRequest(7);
+    const store = createStore();
+    const container = document.createElement("div");
+    const root = createRoot(container);
+
+    try {
+      await act(async () => {
+        root.render(
+          React.createElement(
+            Provider,
+            { store },
+            React.createElement(GitHubWorkItemsView, {
+              ...createEmptyViewProps(),
+              scope: "pr",
+              allItemsCount: 1,
+              filteredItems: [pullRequest],
+              pagedItems: [pullRequest],
+              selectedItem: pullRequest,
+              searchQuery: "is:pr is:open",
+              parsedSearchQuery: parseGitHubSearchQuery("is:pr is:open"),
+            })
+          )
+        );
+      });
+
+      const header = store.get(workstationTabHeaderAtomByHost.workManagement);
+      expect(
+        renderToStaticMarkup(
+          React.createElement(React.Fragment, null, header?.content)
+        )
+      ).toContain('data-testid="github-work-items-repository"');
+      expect(header?.trailing).toBeNull();
+      expect(
+        container.querySelector('[data-compact-list-header="true"]')
+      ).not.toBeNull();
+      expect(
+        container.querySelector('[data-testid="github-work-items-search"]')
+      ).not.toBeNull();
+    } finally {
+      await act(async () => root.unmount());
+      if (previousActEnvironment === undefined) {
+        Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
+      } else {
+        actEnvironment.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+      }
+    }
+  });
+
+  it("selects a PR into the adjacent pane instead of opening a tab", async () => {
+    const actEnvironment = globalThis as typeof globalThis & {
+      IS_REACT_ACT_ENVIRONMENT?: boolean;
+    };
+    const previousActEnvironment = actEnvironment.IS_REACT_ACT_ENVIRONMENT;
+    actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
+    const pullRequest = createPullRequest(8);
+    const onSelectItem = vi.fn();
+    const onOpenPr = vi.fn();
+    const container = document.createElement("div");
+    const root = createRoot(container);
+
+    try {
+      await act(async () => {
+        root.render(
+          React.createElement(GitHubWorkItemsView, {
+            ...createEmptyViewProps(),
+            scope: "pr",
+            allItemsCount: 1,
+            filteredItems: [pullRequest],
+            pagedItems: [pullRequest],
+            searchQuery: "is:pr is:open",
+            parsedSearchQuery: parseGitHubSearchQuery("is:pr is:open"),
+            onSelectItem,
+            onOpenPr,
+          })
+        );
+      });
+
+      const titleAction = container.querySelector<HTMLButtonElement>(
+        'button[title="Pull request 8"]'
+      );
+      expect(titleAction).not.toBeNull();
+      await act(async () => titleAction?.click());
+
+      expect(onSelectItem).toHaveBeenCalledWith(pullRequest);
+      expect(onOpenPr).not.toHaveBeenCalled();
+    } finally {
+      await act(async () => root.unmount());
+      if (previousActEnvironment === undefined) {
+        Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
+      } else {
+        actEnvironment.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+      }
+    }
+  });
+
   it("renders draft PR status with neutral text-2 styling", () => {
     const basePr = createPullRequest(4);
     const draftPr = createPullRequest(4, {
@@ -286,6 +450,7 @@ describe("GitHubWorkItemsView pull requests", () => {
         allItemsCount: 1,
         filteredItems: [draftPr],
         pagedItems: [draftPr],
+        selectedItem: null,
         repoSources: [],
         repoOptions: [{ key: "all", label: "All repositories" }],
         effectiveSelectedRepo: "all",
@@ -307,7 +472,10 @@ describe("GitHubWorkItemsView pull requests", () => {
         onRefresh: vi.fn(),
         onGoToPage: vi.fn(),
         onNextPage: vi.fn().mockResolvedValue(undefined),
+        onLoadMore: vi.fn(),
         onSortChange: vi.fn(),
+        onSelectItem: vi.fn(),
+        onCloseItem: vi.fn(),
         onOpenIssue: vi.fn(),
         onOpenIssueInBrowser: vi.fn(),
         onAddIssue: vi.fn(),

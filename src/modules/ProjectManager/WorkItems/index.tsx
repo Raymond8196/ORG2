@@ -38,6 +38,7 @@ import {
   EmbeddedWorkItemDetail,
   MultiSelectBar,
   OverviewPropertiesPanel,
+  WorkItemsHeaderActions,
   WorkItemsPageHeader,
   WorkItemsTabContent,
 } from "./components";
@@ -51,7 +52,11 @@ import {
   type EmbeddedWorkItemDetailState,
   useWorkItemsTabBarState,
 } from "./hooks/useWorkItemsTabBarState";
-import { WORK_ITEMS_DEFAULT_STATUS, type WorkItemsViewTab } from "./types";
+import {
+  type StatusFilterType,
+  WORK_ITEMS_DEFAULT_STATUS,
+  type WorkItemsViewTab,
+} from "./types";
 import {
   WORK_ITEMS_KANBAN_GROUP,
   type WorkItemsKanbanGroup,
@@ -119,8 +124,6 @@ interface WorkItemsPageProps {
     workItemStatus?: string,
     workItem?: WorkItem
   ) => void;
-  /** Notify parent tab system when the embedded work item title changes */
-  onEmbeddedWorkItemNameUpdated?: (workItemName: string) => void;
   /** Open an agent session in a chat tab */
   onOpenChatSession?: (sessionId: string, title?: string) => void;
   /** Report whether this project tab is showing its list or an embedded work item detail. */
@@ -161,7 +164,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   onProjectNameUpdated,
   onOpenRepoSettings,
   onExpandWorkItemToTab,
-  onEmbeddedWorkItemNameUpdated,
   onOpenChatSession,
   onEmbeddedWorkItemDetailStateChange,
   isActive = true,
@@ -281,22 +283,9 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   );
   const handleOpenWorkItem = useCallback(
     (workItemId: string) => {
-      const workItem = data.workItems.find(
-        (candidate) => candidate.session_id === workItemId
-      );
-      if (!workItem || !onExpandWorkItemToTab) {
-        handlers.handleSelect(workItemId);
-        return;
-      }
-      onExpandWorkItemToTab(
-        workItem.session_id,
-        workItem.name || t("common:placeholders.untitled"),
-        undefined,
-        workItem.workItemStatus ?? workItem.status,
-        workItem
-      );
+      handlers.handleSelect(workItemId);
     },
-    [data.workItems, handlers, onExpandWorkItemToTab, t]
+    [handlers]
   );
 
   const {
@@ -400,7 +389,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
 
   const {
     actionsInStationTabBar: tabBarActionsInStationTabBar,
-    isDetailOpen,
     propertiesActionAvailable,
   } = useWorkItemsTabBarState({
     activeTab: state.activeTab,
@@ -417,10 +405,25 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
     onEmbeddedWorkItemDetailStateChange,
   });
 
+  const handleOpenSelectedWorkItemInNewTab = useCallback(() => {
+    const workItem = data.selectedWorkItem;
+    if (!workItem || !onExpandWorkItemToTab) return;
+    onExpandWorkItemToTab(
+      workItem.session_id,
+      workItem.name || t("common:placeholders.untitled"),
+      undefined,
+      workItem.workItemStatus ?? workItem.status,
+      workItem
+    );
+  }, [data.selectedWorkItem, onExpandWorkItemToTab, t]);
+
   const detailContent = (
     <EmbeddedWorkItemDetail
       workItem={data.selectedWorkItem ?? null}
       onClose={handleCloseDetail}
+      onOpenInNewTab={
+        onExpandWorkItemToTab ? handleOpenSelectedWorkItemInNewTab : undefined
+      }
       onNavigate={handlers.handleNavigate}
       hasPrev={data.navigation.hasPrev}
       hasNext={data.navigation.hasNext}
@@ -436,7 +439,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       shortId={selectedShortId}
       onRefreshWorkItem={data.refresh}
       onOpenSession={onOpenChatSession}
-      onWorkItemNameUpdated={onEmbeddedWorkItemNameUpdated}
       breadcrumbSegments={interactiveBreadcrumbSegments}
       breadcrumbProjectName={headerTitle}
       breadcrumbIcon={projectIdentityIcon}
@@ -446,7 +448,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       }
       propertiesOpen={workItemPropertiesOpen}
       onToggleProperties={() => setWorkItemPropertiesOpen((prev) => !prev)}
-      publishHeaderToWorkstation={tabBarActionsInStationTabBar && isActive}
+      publishHeaderToWorkstation={false}
       workstationHeaderHost={workstationHeaderHost}
     />
   );
@@ -486,6 +488,10 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       : PROJECT_DETAIL_SURFACE_VIEW.WORK_ITEMS;
   const isWorkItemsSurface =
     activeProjectView === PROJECT_DETAIL_SURFACE_VIEW.WORK_ITEMS;
+  const detailOpen =
+    isWorkItemsSurface &&
+    state.activeTab !== "Settings" &&
+    Boolean(data.selectedWorkItem);
 
   const handleProjectViewChange = useCallback(
     (nextProjectView: ProjectDetailSurfaceView) => {
@@ -593,7 +599,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
         <WorkManagementSearchInput
           value={state.searchQuery}
           onChange={state.setSearchQuery}
-          placeholder={t("workItems.searchPlaceholder")}
           dataTestId="project-work-items-search"
         />
       ) : null,
@@ -602,7 +607,81 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       state.activeTab,
       state.searchQuery,
       state.setSearchQuery,
+    ]
+  );
+  const workItemsListSearchControl = useMemo(
+    () => (
+      <WorkManagementSearchInput
+        value={state.searchQuery}
+        onChange={state.setSearchQuery}
+        placement="list"
+        dataTestId="project-work-items-search"
+      />
+    ),
+    [state.searchQuery, state.setSearchQuery]
+  );
+  const addListItem = handlers.handleAddListItem;
+  const handleStatusFilterChange = useCallback(
+    (value: string) => setStatusFilter(value as StatusFilterType),
+    [setStatusFilter]
+  );
+  const handleCreateWorkItem = useCallback(() => {
+    if (onCreateWorkItem) {
+      onCreateWorkItem(
+        projectId,
+        projectName,
+        resolvedProjectSlug ?? projectId
+      );
+      return;
+    }
+    void addListItem(WORK_ITEMS_DEFAULT_STATUS);
+  }, [
+    addListItem,
+    onCreateWorkItem,
+    projectId,
+    projectName,
+    resolvedProjectSlug,
+  ]);
+  const addWorkItemAction =
+    state.activeTab !== "Settings" ? handleCreateWorkItem : undefined;
+  const workItemsListHeader = useMemo(
+    () => (
+      <WorkItemsHeaderActions
+        activeTab={state.activeTab}
+        placement="list"
+        trailingControls={workItemsListSearchControl}
+        statusFilter={isWorkItemsSurface ? state.statusFilter : undefined}
+        onStatusFilterChange={
+          isWorkItemsSurface ? handleStatusFilterChange : undefined
+        }
+        statusCounts={data.statusCounts}
+        statusFilterKeys={statusFilterKeys}
+        onCollapseAll={isWorkItemsSurface ? handleCollapseAll : undefined}
+        onRefresh={isWorkItemsSurface ? data.refresh : undefined}
+        onAddProject={
+          isWorkItemsSurface && state.activeTab !== "Settings"
+            ? onCreateProject
+            : undefined
+        }
+        onAddWorkItem={addWorkItemAction}
+        refreshLoading={data.loading}
+        t={t}
+      />
+    ),
+    [
+      addWorkItemAction,
+      data.loading,
+      data.refresh,
+      data.statusCounts,
+      handleCollapseAll,
+      handleStatusFilterChange,
+      isWorkItemsSurface,
+      onCreateProject,
+      state.activeTab,
+      state.statusFilter,
+      statusFilterKeys,
       t,
+      workItemsListSearchControl,
     ]
   );
 
@@ -634,60 +713,45 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   const resolvedProjectDescription =
     displayProject.description ?? projectData.project?.description;
 
-  // When a work item is selected, the detail keeps the page's full parent
-  // hierarchy and appends the item. Otherwise the page header is shown.
+  // The project header stays mounted while the selected work item opens in the
+  // reusable right-hand detail pane.
   return (
     <div className="flex h-full min-h-0 flex-col overflow-hidden">
-      {!isDetailOpen && (
-        <WorkItemsPageHeader
-          projectName={headerTitle}
-          breadcrumbSegments={interactiveBreadcrumbSegments}
-          identityIcon={projectIdentityIcon}
-          onOpenProjects={onOpenProjects}
-          activeTab={state.activeTab}
-          leadingControls={projectSurfaceControls}
-          trailingControls={workItemsSearchControl}
-          statusFilter={isWorkItemsSurface ? state.statusFilter : undefined}
-          onStatusFilterChange={
-            isWorkItemsSurface
-              ? (value) =>
-                  state.setStatusFilter(value as typeof state.statusFilter)
-              : undefined
-          }
-          statusCounts={data.statusCounts}
-          statusFilterKeys={statusFilterKeys}
-          onCollapseAll={isWorkItemsSurface ? handleCollapseAll : undefined}
-          showProperties={
-            propertiesActionAvailable ? state.showProperties : undefined
-          }
-          onToggleProperties={
-            propertiesActionAvailable
-              ? handlers.handleToggleProperties
-              : undefined
-          }
-          onAddProject={
-            isWorkItemsSurface && state.activeTab !== "Settings"
-              ? onCreateProject
-              : undefined
-          }
-          onAddWorkItem={
-            state.activeTab !== "Settings"
-              ? onCreateWorkItem
-                ? () =>
-                    onCreateWorkItem(
-                      projectId,
-                      projectName,
-                      resolvedProjectSlug ?? projectId
-                    )
-                : () => handlers.handleAddListItem(WORK_ITEMS_DEFAULT_STATUS)
-              : undefined
-          }
-          onRefresh={isWorkItemsSurface ? data.refresh : undefined}
-          refreshLoading={data.loading}
-          publishToWorkstationHeader={tabBarActionsInStationTabBar && isActive}
-          workstationHeaderHost={workstationHeaderHost}
-        />
-      )}
+      <WorkItemsPageHeader
+        projectName={headerTitle}
+        breadcrumbSegments={interactiveBreadcrumbSegments}
+        identityIcon={projectIdentityIcon}
+        onOpenProjects={onOpenProjects}
+        activeTab={state.activeTab}
+        leadingControls={projectSurfaceControls}
+        trailingControls={workItemsSearchControl}
+        hideTrailingControls={detailOpen}
+        statusFilter={isWorkItemsSurface ? state.statusFilter : undefined}
+        onStatusFilterChange={
+          isWorkItemsSurface ? handleStatusFilterChange : undefined
+        }
+        statusCounts={data.statusCounts}
+        statusFilterKeys={statusFilterKeys}
+        onCollapseAll={isWorkItemsSurface ? handleCollapseAll : undefined}
+        showProperties={
+          propertiesActionAvailable ? state.showProperties : undefined
+        }
+        onToggleProperties={
+          propertiesActionAvailable
+            ? handlers.handleToggleProperties
+            : undefined
+        }
+        onAddProject={
+          isWorkItemsSurface && state.activeTab !== "Settings"
+            ? onCreateProject
+            : undefined
+        }
+        onAddWorkItem={addWorkItemAction}
+        onRefresh={isWorkItemsSurface ? data.refresh : undefined}
+        refreshLoading={data.loading}
+        publishToWorkstationHeader={tabBarActionsInStationTabBar && isActive}
+        workstationHeaderHost={workstationHeaderHost}
+      />
 
       {/* Content Area */}
       <div className="min-h-0 flex-1 overflow-hidden">
@@ -736,6 +800,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
           kanbanTasks={data.kanbanTasks}
           ganttTasks={data.ganttTasks}
           calendarEvents={data.calendarEvents}
+          listHeader={workItemsListHeader}
           detailContent={detailContent}
           propertiesPanel={propertiesPanel}
           settingsContent={settingsContent}

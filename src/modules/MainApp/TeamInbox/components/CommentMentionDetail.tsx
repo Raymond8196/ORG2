@@ -17,6 +17,7 @@ import TeamInboxDetailLayout from "./TeamInboxDetailLayout";
 
 export interface CommentMentionDetailProps {
   item: CommentMentionItem;
+  onClose?: () => void;
   onNavigate?: (intent: TeamInboxNavigationIntent) => void;
   onMarkRead?: (item: CommentMentionItem) => void;
   onMarkUnread?: (item: CommentMentionItem) => void;
@@ -24,6 +25,7 @@ export interface CommentMentionDetailProps {
 
 const CommentMentionDetail: React.FC<CommentMentionDetailProps> = ({
   item,
+  onClose,
   onNavigate,
   onMarkRead,
   onMarkUnread,
@@ -76,6 +78,7 @@ const CommentMentionDetail: React.FC<CommentMentionDetailProps> = ({
                   })
           : undefined
       }
+      onClose={onClose}
     >
       <div
         className="scrollbar-hide min-h-0 flex-1 overflow-y-auto"

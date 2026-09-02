@@ -20,7 +20,12 @@ describe("AddActionsButton", () => {
       onAddProject: vi.fn(),
       onAddWorkItem: vi.fn(),
     },
-  ])("uses the Launchpad plus icon for the $label", (props) => {
+    {
+      label: "direct Project action",
+      onAddProject: vi.fn(),
+      onAddWorkItem: undefined,
+    },
+  ])("uses the square-pencil icon for the $label", (props) => {
     const markup = renderToStaticMarkup(
       React.createElement(AddActionsButton, {
         ...props,
@@ -29,7 +34,7 @@ describe("AddActionsButton", () => {
       })
     );
 
-    expect(markup).toContain('data-icon="plus"');
-    expect(markup).not.toContain('data-icon="square-pen"');
+    expect(markup).toContain('data-icon="square-pen"');
+    expect(markup).not.toContain('data-icon="plus"');
   });
 });

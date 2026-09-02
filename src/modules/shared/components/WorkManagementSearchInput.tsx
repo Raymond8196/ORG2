@@ -1,14 +1,16 @@
 import { type RefObject, memo, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 
 import { SearchInput } from "@src/components/SearchInput";
 
 interface WorkManagementSearchInputProps {
   value: string;
-  placeholder: string;
+  placeholder?: string;
   onChange: (value: string) => void;
   onClose?: () => void;
   dataTestId?: string;
   inputRef?: RefObject<HTMLInputElement | null>;
+  placement?: "header" | "list";
 }
 
 /** Compact controlled search shared by Work Management page headers. */
@@ -20,11 +22,18 @@ export const WorkManagementSearchInput = memo(
     onClose,
     dataTestId,
     inputRef,
+    placement = "header",
   }: WorkManagementSearchInputProps) => {
+    const { t } = useTranslation("common");
     const clear = useCallback(() => onChange(""), [onChange]);
+    const resolvedPlaceholder =
+      placeholder ?? `${t("actions.search", { defaultValue: "Search" })}...`;
 
     return (
-      <div data-testid={dataTestId}>
+      <div
+        className={placement === "list" ? "min-w-0 flex-1" : undefined}
+        data-testid={dataTestId}
+      >
         <SearchInput
           value={value}
           onChange={onChange}
@@ -32,11 +41,13 @@ export const WorkManagementSearchInput = memo(
           onClose={onClose}
           showClearButton
           hideChevron
-          variant="panel"
+          variant={placement === "list" ? "sidebar" : "panel"}
           surface="pane"
-          className="w-64 max-w-[28vw]"
-          placeholder={placeholder}
-          ariaLabel={placeholder}
+          className={
+            placement === "list" ? "w-full min-w-0" : "w-64 max-w-[28vw]"
+          }
+          placeholder={resolvedPlaceholder}
+          ariaLabel={resolvedPlaceholder}
           inputRef={inputRef}
         />
       </div>
