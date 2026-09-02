@@ -91,6 +91,12 @@
     },
     "profile": {
       "title": "Profillerim",
+      "defaultProfile": "Varsayılan profil",
+      "newProfileName": "Yeni profil",
+      "activeProfile": "Etkin profil",
+      "activeProfileDescription": "Agent'lara gönderilecek profili seçin. Geçiş manuel olarak ve sizin kontrolünüzde yapılır",
+      "addProfile": "Profil ekle",
+      "profileName": "Profil adı",
       "techSavvy": "Teknik düzey",
       "techSavvyDescription": "Agent'ın ne kadar açıkladığını ve neyi varsaydığını ayarlamasına yardımcı olur",
       "techSavvyPlaceholder": "Seviye seç…",

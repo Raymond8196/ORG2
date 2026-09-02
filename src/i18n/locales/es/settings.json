@@ -91,6 +91,12 @@
     },
     "profile": {
       "title": "Mis perfiles",
+      "defaultProfile": "Perfil predeterminado",
+      "newProfileName": "Nuevo perfil",
+      "activeProfile": "Perfil activo",
+      "activeProfileDescription": "Elige qué perfil se envía a los agentes. El cambio es manual y está bajo tu control",
+      "addProfile": "Añadir perfil",
+      "profileName": "Nombre del perfil",
       "techSavvy": "Nivel técnico",
       "techSavvyDescription": "Ayuda al agente a calibrar cuánto explica y qué asume",
       "techSavvyPlaceholder": "Seleccionar un nivel…",

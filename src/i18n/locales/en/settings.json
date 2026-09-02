@@ -91,6 +91,12 @@
     },
     "profile": {
       "title": "My profiles",
+      "defaultProfile": "Default profile",
+      "newProfileName": "New profile",
+      "activeProfile": "Active profile",
+      "activeProfileDescription": "Choose which profile is sent to agents. Switching is manual and under your control",
+      "addProfile": "Add profile",
+      "profileName": "Profile name",
       "techSavvy": "Tech-savvy level",
       "techSavvyDescription": "Helps the agent calibrate how much it explains and assumes",
       "techSavvyPlaceholder": "Select a level…",
