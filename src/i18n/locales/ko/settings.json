@@ -169,7 +169,6 @@
     "sidebarEdgeDepth": "사이드바 경계 깊이",
     "selectedItemTransparency": "선택한 항목 투명도",
     "spotlightPlacement": "Spotlight 위치",
-    "spotlightPlacementDesc": "Spotlight 명령 팔레트가 열릴 위치를 선택합니다",
     "spotlightPlacementOptions": {
       "top": "상단",
       "center": "페이지 중앙"

@@ -169,7 +169,6 @@
     "sidebarEdgeDepth": "Tiefe der Seitenleistenkante",
     "selectedItemTransparency": "Transparenz ausgewählter Elemente",
     "spotlightPlacement": "Spotlight-Position",
-    "spotlightPlacementDesc": "Wählen Sie, wo die Spotlight-Befehlspalette geöffnet wird",
     "spotlightPlacementOptions": {
       "top": "Oben",
       "center": "Seitenmitte"

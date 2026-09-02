@@ -169,7 +169,6 @@
     "sidebarEdgeDepth": "Kenar çubuğu kenar derinliği",
     "selectedItemTransparency": "Seçili öğe şeffaflığı",
     "spotlightPlacement": "Spotlight konumu",
-    "spotlightPlacementDesc": "Spotlight komut paletinin nerede açılacağını seçin",
     "spotlightPlacementOptions": {
       "top": "Üst",
       "center": "Sayfa merkezi"

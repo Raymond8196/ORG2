@@ -63,10 +63,7 @@ const SidebarOpacityRow: React.FC = () => {
   const [config, setConfig] = useAtom(backgroundConfigPersistAtom);
 
   return (
-    <SectionRow
-      label={t("background.sidebarOpacity")}
-      description={t("general.sidebarOpacityDesc")}
-    >
+    <SectionRow label={t("background.sidebarOpacity")}>
       <div className="min-w-0" style={SECTION_CONTROL_STYLE}>
         <Slider
           min={MIN_SIDEBAR_OPACITY}
@@ -181,10 +178,7 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                     dataTestId="unified-skin-select"
                   />
                 </SectionRow>
-                <SectionRow
-                  label={t("general.accent")}
-                  description={t("general.accentDesc")}
-                >
+                <SectionRow label={t("general.accent")}>
                   <Select
                     value={unifiedAccent}
                     onChange={(value) =>
@@ -228,10 +222,7 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
                     dataTestId="dark-skin-select"
                   />
                 </SectionRow>
-                <SectionRow
-                  label={t("general.lightAccent")}
-                  description={t("general.accentDesc")}
-                >
+                <SectionRow label={t("general.lightAccent")}>
                   <Select
                     value={lightAccent}
                     onChange={(value) =>
@@ -320,10 +311,7 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           </SectionContainer>
 
           <SectionContainer title={t("general.sidebar")}>
-            <SectionRow
-              label={t("general.translucentSidebar")}
-              description={t("general.translucentSidebarDesc")}
-            >
+            <SectionRow label={t("general.translucentSidebar")}>
               <Switch
                 checked={translucentSidebar}
                 onCheckedChange={setTranslucentSidebar}
@@ -358,10 +346,7 @@ const AppearanceSection: React.FC<AppearanceSectionProps> = ({
           </SectionContainer>
 
           <SectionContainer title={t("general.spotlight")}>
-            <SectionRow
-              label={t("general.spotlightPlacement")}
-              description={t("general.spotlightPlacementDesc")}
-            >
+            <SectionRow label={t("general.spotlightPlacement")}>
               <Select
                 value={spotlightPlacement}
                 onChange={(value) =>
