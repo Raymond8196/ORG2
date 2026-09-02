@@ -11,7 +11,7 @@ import {
 import {
   PINNED_ACTIONS_VISIBLE_STORAGE_KEY,
   pinnedActionsVisibleAtom,
-} from "@src/store/session/creatorPinnedActionsVisibleAtom";
+} from "@src/store/session/pinnedActionsVisibleAtom";
 
 import { NewChatHeaderActionsMenu } from "./NewChatHeaderActionsMenu";
 

@@ -4,7 +4,7 @@ import { beforeEach, describe, expect, it } from "vitest";
 import {
   PINNED_ACTIONS_VISIBLE_STORAGE_KEY,
   pinnedActionsVisibleAtom,
-} from "../creatorPinnedActionsVisibleAtom";
+} from "../pinnedActionsVisibleAtom";
 
 beforeEach(() => {
   localStorage.removeItem(PINNED_ACTIONS_VISIBLE_STORAGE_KEY);

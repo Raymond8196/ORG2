@@ -46,7 +46,7 @@ vi.mock("@src/store/workstation/tabs", () => ({
   presentedWorkstationWorkspaceKeyAtom: {},
 }));
 
-const { showGitErrorAndHandle } = await import("./useGitErrorDialog");
+const { showGitErrorAndHandle } = await import("./gitErrorDialog");
 
 const BASE_OPTIONS = {
   operation: "pull",

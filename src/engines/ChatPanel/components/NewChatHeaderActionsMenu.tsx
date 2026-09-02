@@ -23,11 +23,11 @@ import { HugeiconsIcon, Layers01Icon, MoreHorizontalIcon } from "@src/icons";
 import { cliUpdateAlertsEnabledAtom } from "@src/store/session/cliUpdateAlertsAtom";
 import { creatorComposerPositionAtom } from "@src/store/session/creatorComposerPositionAtom";
 import { creatorLaunchpadActionsVisibleAtom } from "@src/store/session/creatorLaunchpadActionsVisibleAtom";
-import { pinnedActionsVisibleAtom } from "@src/store/session/creatorPinnedActionsVisibleAtom";
 import {
   changeCreatorComposerPositionAtom,
   creatorRepoChromePositionAtom,
 } from "@src/store/session/creatorRepoChromePositionAtom";
+import { pinnedActionsVisibleAtom } from "@src/store/session/pinnedActionsVisibleAtom";
 
 export function NewChatHeaderActionsMenu(): React.ReactNode {
   const { t } = useTranslation(["sessions", "common"]);

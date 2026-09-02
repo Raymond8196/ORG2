@@ -3,9 +3,6 @@ import { atomWithStorage } from "jotai/utils";
 
 export const PINNED_ACTIONS_VISIBLE_STORAGE_KEY =
   "orgii:sessionCreator:pinnedActionsVisible";
-/** @deprecated Use `PINNED_ACTIONS_VISIBLE_STORAGE_KEY`. */
-export const CREATOR_PINNED_ACTIONS_VISIBLE_STORAGE_KEY =
-  PINNED_ACTIONS_VISIBLE_STORAGE_KEY;
 
 function normalizePinnedActionsVisible(value: unknown): boolean {
   return typeof value === "boolean" ? value : false;
@@ -31,6 +28,3 @@ export const pinnedActionsVisibleAtom = atom(
   (get) => normalizePinnedActionsVisible(get(storedPinnedActionsVisibleAtom)),
   (_get, set, visible: boolean) => set(storedPinnedActionsVisibleAtom, visible)
 );
-
-/** @deprecated Use `pinnedActionsVisibleAtom`. */
-export const creatorPinnedActionsVisibleAtom = pinnedActionsVisibleAtom;
