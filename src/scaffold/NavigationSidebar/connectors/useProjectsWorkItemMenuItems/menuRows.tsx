@@ -93,7 +93,6 @@ export function buildProjectOverviewRow(
     label: t("projects:orgs.management.overview"),
     icon: DeliveryBox01Icon,
     iconName: "box",
-    visualTone: "secondary",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
     dragPayload: {
       path: projectSlug,
@@ -137,7 +136,6 @@ export function buildProjectRow(
     label: projectName,
     icon: DeliveryBox01Icon,
     iconName: "box",
-    visualTone: "secondary",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
     workingIndicator: pendingSync ? pendingSyncIndicator(t) : undefined,
     dragPayload: {
