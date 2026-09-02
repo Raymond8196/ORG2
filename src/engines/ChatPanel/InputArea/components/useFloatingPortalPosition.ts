@@ -4,7 +4,9 @@ import type React from "react";
 import {
   type FloatingPlacementStrategy,
   type FloatingPosition,
+  applyFloatingHorizontalFrame,
   computeFloatingPosition,
+  insetFloatingHorizontalFrame,
 } from "./floatingPlacement";
 
 const MAX_POSITION_RETRY_FRAMES = 4;
@@ -20,6 +22,8 @@ export interface UseFloatingPortalPositionOptions {
   updateKey?: string | number;
   maxWidth?: number;
   maxHeight?: number;
+  /** Equal left/right inset from `containerRef` used to size and center the panel. */
+  horizontalInset?: number;
 }
 
 export interface UseFloatingPortalPositionResult {
@@ -41,6 +45,7 @@ export function useFloatingPortalPosition({
   updateKey,
   maxWidth,
   maxHeight,
+  horizontalInset,
 }: UseFloatingPortalPositionOptions): UseFloatingPortalPositionResult {
   const [portalPosition, setPortalPosition] = useState<FloatingPosition | null>(
     null
@@ -73,14 +78,26 @@ export function useFloatingPortalPosition({
       return;
     }
 
-    const measuredFloatingWidth = floatingWidth ?? anchorRect.width;
+    const horizontalFrameRect =
+      horizontalInset === undefined || !container
+        ? anchorRect
+        : container.getBoundingClientRect();
+    const horizontalFrame =
+      horizontalInset === undefined
+        ? { left: anchorRect.left, width: anchorRect.width }
+        : insetFloatingHorizontalFrame({
+            left: horizontalFrameRect.left,
+            width: horizontalFrameRect.width,
+            inset: horizontalInset,
+          });
+    const measuredFloatingWidth = floatingWidth ?? horizontalFrame.width;
     const resolvedFloatingWidth = maxWidth
       ? Math.min(measuredFloatingWidth, maxWidth)
       : measuredFloatingWidth;
     const floatingHeight =
       floatingRef.current?.getBoundingClientRect().height ?? fallbackHeight;
     const nextPosition = computeFloatingPosition({
-      anchorRect,
+      anchorRect: applyFloatingHorizontalFrame(anchorRect, horizontalFrame),
       floatingWidth: resolvedFloatingWidth,
       floatingHeight,
       placement,
@@ -98,6 +115,7 @@ export function useFloatingPortalPosition({
     fallbackHeight,
     floatingRef,
     floatingWidth,
+    horizontalInset,
     maxHeight,
     maxWidth,
     placement,
