@@ -109,6 +109,8 @@
   --shadow-dropdown: var(--shadow-dropdown);
   /* Half-strength surface shadow shared by inputs, trails, and inline cards. */
   --shadow-dropdown-soft: var(--shadow-dropdown-soft);
+  /* Compact icon-button shadow shared with the My Station sidebar switcher. */
+  --shadow-sidebar-pill: var(--sidebar-tab-pill-selected-shadow);
 }
 
 @theme {

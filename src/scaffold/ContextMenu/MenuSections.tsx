@@ -154,7 +154,7 @@ interface ResultItemRowProps {
   itemRef: (el: HTMLDivElement | null) => void;
 }
 
-const ResultItemRow: React.FC<ResultItemRowProps> = memo(
+export const ResultItemRow: React.FC<ResultItemRowProps> = memo(
   ({ item, index, activeIndex, onSelect, onHover, onHoverEnd, itemRef }) => {
     const displayName = item.name || getFileName(item.path);
     const displayPath = getWorkspaceRelativeDisplayPath(item);
