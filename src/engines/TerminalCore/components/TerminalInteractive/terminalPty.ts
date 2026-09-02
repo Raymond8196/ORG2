@@ -9,6 +9,7 @@ import {
   isTauriReady,
   listenTauri,
 } from "@src/util/platform/tauri/init";
+import { publishPtyOutput } from "@src/util/terminal/ptyOutputBus";
 import { decodePtyOutputFrame } from "@src/util/terminal/ptyOutputFrame";
 import {
   type PtyOutputPayload,
@@ -459,6 +460,10 @@ export async function initPtyConnection({
     ) => {
       const decoded = utf8Decoder.decode(chunk, { stream: true });
       if (decoded) {
+        // Observers (advertised-URL sniffing, status indicators) read the
+        // stream here: the channel transport has a single receiver, so a
+        // second Tauri listener would see nothing.
+        publishPtyOutput(sessionId, decoded);
         scheduleWrite(sessionId, decoded, byteCount, terminalWrite, seq);
       } else {
         // Chunk ended mid-codepoint and decoded to nothing — the bytes
@@ -485,6 +490,7 @@ export async function initPtyConnection({
           // scheduler treats byte_count as a flow-control hint, not an exact
           // invariant, so a cheap over-estimate is correct.
           const encodedLen = estimateByteLength(data);
+          publishPtyOutput(sessionId, data);
           scheduleWrite(sessionId, data, encodedLen, terminalWrite, seq);
         }
       }
