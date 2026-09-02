@@ -169,7 +169,6 @@
     "sidebarEdgeDepth": "Profundidad del borde de la barra lateral",
     "selectedItemTransparency": "Transparencia del elemento seleccionado",
     "spotlightPlacement": "Posición de Spotlight",
-    "spotlightPlacementDesc": "Elige dónde se abre la paleta de comandos Spotlight",
     "spotlightPlacementOptions": {
       "top": "Arriba",
       "center": "Centro de la página"

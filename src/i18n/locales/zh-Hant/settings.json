@@ -169,7 +169,6 @@
     "sidebarEdgeDepth": "側邊欄邊緣層次",
     "selectedItemTransparency": "選取項目透明度",
     "spotlightPlacement": "Spotlight 位置",
-    "spotlightPlacementDesc": "選擇 Spotlight 命令面板開啟的位置",
     "spotlightPlacementOptions": {
       "top": "頂部",
       "center": "頁面置中"

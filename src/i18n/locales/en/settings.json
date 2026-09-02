@@ -168,7 +168,6 @@
     "sidebarEdgeDepth": "Sidebar edge depth",
     "selectedItemTransparency": "Selected item transparency",
     "spotlightPlacement": "Spotlight position",
-    "spotlightPlacementDesc": "Choose where the Spotlight command palette opens",
     "spotlightPlacementOptions": {
       "top": "Top",
       "center": "Page center"
@@ -221,7 +220,6 @@
     "darkSkin": "Dark skin",
     "lightAccent": "Light accent",
     "darkAccent": "Dark accent",
-    "accentDesc": "Match skin uses the accent the selected skin declares",
     "skinGroups": {
       "orgii": "ORGII",
       "codex": "Codex"
@@ -233,8 +231,6 @@
       "monochrome": "Monochrome"
     },
     "translucentSidebar": "Translucent sidebar",
-    "translucentSidebarDesc": "Let the sidebar blur and tint what sits behind it. Turn off for a solid panel",
-    "sidebarOpacityDesc": "How much of the background shows through",
     "skin": "Skin",
     "accent": "Accent",
     "linkSkinVariants": "Link light and dark",
