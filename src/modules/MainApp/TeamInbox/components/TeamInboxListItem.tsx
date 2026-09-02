@@ -93,18 +93,29 @@ const TeamInboxListItem = forwardRef<HTMLButtonElement, TeamInboxListItemProps>(
           </span>
         ) : null}
       </span>
-      {preview ? (
-        <span
-          className="mt-0.5 line-clamp-2 block max-h-10 overflow-hidden pl-7 text-xs leading-5 font-normal text-text-1"
-          title={preview}
-        >
-          {preview}
-        </span>
-      ) : null}
-      {metadata ? (
-        <span className="mt-1 flex min-w-0 items-center gap-1.5 pl-7 text-xs font-normal text-text-2">
-          {metadata}
-        </span>
+      {preview || metadata ? (
+        <div className="mt-0.5 flex h-5 min-w-0 items-center gap-1.5 pl-7 text-xs leading-5 font-normal">
+          {preview ? (
+            <span
+              className="min-w-0 flex-1 truncate text-text-1"
+              title={preview}
+            >
+              {preview}
+            </span>
+          ) : null}
+          {preview && metadata ? (
+            <span className="shrink-0 text-text-3" aria-hidden>
+              ·
+            </span>
+          ) : null}
+          {metadata ? (
+            <span
+              className={`${preview ? "shrink" : "flex-1"} flex min-w-0 items-center gap-1.5 text-text-2`}
+            >
+              {metadata}
+            </span>
+          ) : null}
+        </div>
       ) : null}
     </button>
   )

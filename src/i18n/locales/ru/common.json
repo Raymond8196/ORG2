@@ -13,26 +13,14 @@
     },
     "sections": {
       "reviewRequested": "Запрошено ревью",
-      "authoredByMe": "Созданные мной",
-      "otherTodos": "Другие задачи"
+      "authoredByMe": "Созданные мной"
     },
     "status": {
       "read": "Прочитано",
       "unread": "Не прочитано"
     },
     "row": {
-      "assignedSummary": "{{status}} · {{priority}}",
       "ariaLabel": "{{title}}, {{status}}"
-    },
-    "search": {
-      "placeholder": "Поиск в почтовом ящике",
-      "ariaLabel": "Поиск в почтовом ящике команды"
-    },
-    "groups": {
-      "today": "Сегодня",
-      "yesterday": "Вчера",
-      "thisWeek": "На этой неделе",
-      "earlier": "Ранее"
     },
     "empty": {
       "title": "Здесь пока ничего нет",
@@ -56,20 +44,15 @@
     "drop": {
       "title": "Перетащите сюда, чтобы создать рабочую задачу",
       "subtitle": "Просмотрите снимок сессии, затем создайте или передайте рабочую задачу.",
-      "processing": "Создание рабочей задачи из «{{title}}»…",
       "processingHint": "Чтение сессии и определение участников проекта.",
       "success": "Рабочая задача создана",
       "reused": "Существующая рабочая задача обновлена",
       "failed": "Не удалось создать рабочую задачу",
-      "error": "Невозможно создать рабочую задачу на основе этой сессии.",
-      "open": "Открыть",
       "dismiss": "Скрыть"
     },
     "handoff": {
       "title": "Создать из сессии",
       "createFromSession": "Создать командную рабочую задачу…",
-      "project": "Проект назначения",
-      "chooseProject": "Выбрать проект",
       "recipientSelf": "{{name}} (я)",
       "chooseRecipient": "Выбрать получателя",
       "todoCount_one": "{{count}} задача",
@@ -138,18 +121,7 @@
     "actions": {
       "markRead": "Отметить как прочитанное",
       "markUnread": "Отметить как непрочитанное",
-      "openWorkItem": "Открыть рабочую задачу",
-      "openSession": "Открыть сессию"
-    },
-    "fields": {
-      "status": "Статус",
-      "priority": "Приоритет",
-      "assignee": "Исполнитель",
-      "workItemId": "ID рабочей задачи",
-      "session": "Сессия",
-      "comments": "Комментарии",
-      "threadId": "ID темы",
-      "commentId": "ID комментария"
+      "openWorkItem": "Открыть рабочую задачу"
     },
     "workItemStatus": {
       "backlog": "Бэклог",

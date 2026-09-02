@@ -357,7 +357,6 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
       subtitle={t("teamInbox.detail.assignedSubtitle")}
       icon={ClipboardListIcon}
       headerContent={githubIssueHeader}
-      contentLayout="fill"
       unread={item.readAt === null}
       markReadLabel={t("teamInbox.actions.markRead")}
       markUnreadLabel={t("teamInbox.actions.markUnread")}
@@ -389,7 +388,6 @@ const AssignedWorkItemDetail: React.FC<AssignedWorkItemDetailProps> = ({
             }
           : undefined
       }
-      openPlacement="header"
       onMarkRead={onMarkRead ? () => onMarkRead(item) : undefined}
       onMarkUnread={onMarkUnread ? () => onMarkUnread(item) : undefined}
       onOpen={

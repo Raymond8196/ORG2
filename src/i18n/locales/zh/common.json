@@ -2284,8 +2284,7 @@
     },
     "sections": {
       "reviewRequested": "已请求审查",
-      "authoredByMe": "由我创建",
-      "otherTodos": "其他待办事项"
+      "authoredByMe": "由我创建"
     },
     "status": {
       "read": "已读",
@@ -2299,18 +2298,7 @@
       "multipleBody": "打开团队收件箱查看新的分配和提及。"
     },
     "row": {
-      "assignedSummary": "{{status}} · {{priority}}",
       "ariaLabel": "{{title}}，{{status}}"
-    },
-    "search": {
-      "placeholder": "搜索收件箱",
-      "ariaLabel": "搜索团队收件箱"
-    },
-    "groups": {
-      "today": "今天",
-      "yesterday": "昨天",
-      "thisWeek": "本周",
-      "earlier": "更早"
     },
     "empty": {
       "title": "暂无事项",
@@ -2334,13 +2322,10 @@
     "drop": {
       "title": "拖到这里创建工作项",
       "subtitle": "先确认会话摘要，再创建或交接工作项。",
-      "processing": "正在从「{{title}}」创建工作项…",
       "processingHint": "正在读取会话并解析目标成员。",
       "success": "工作项已创建",
       "reused": "已更新现有工作项",
       "failed": "无法创建工作项",
-      "error": "无法根据该会话创建工作项。",
-      "open": "打开",
       "dismiss": "关闭"
     },
     "handoff": {
@@ -2354,10 +2339,6 @@
       "todoCount": "{{count}} 个待办",
       "workItemTitle": "工作项标题",
       "assignTo": "分配给",
-      "status": "状态",
-      "priority": "优先级",
-      "dueDate": "截止日期",
-      "noDueDate": "无截止日期",
       "note": "交接说明",
       "notePlaceholder": "说明已经完成什么、还有哪些未决事项，以及下一步建议。",
       "selfHint": "分配给自己会创建普通工作项，不会发起交接请求。",
@@ -2422,18 +2403,7 @@
     "actions": {
       "markRead": "标记已读",
       "markUnread": "标记未读",
-      "openWorkItem": "打开工作项",
-      "openSession": "打开会话"
-    },
-    "fields": {
-      "status": "状态",
-      "priority": "优先级",
-      "assignee": "负责人",
-      "workItemId": "工作项 ID",
-      "session": "会话",
-      "comments": "评论数",
-      "threadId": "话题 ID",
-      "commentId": "评论 ID"
+      "openWorkItem": "打开工作项"
     },
     "workItemStatus": {
       "backlog": "待办池",

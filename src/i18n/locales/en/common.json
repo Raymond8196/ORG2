@@ -2351,8 +2351,7 @@
     },
     "sections": {
       "reviewRequested": "Review requested",
-      "authoredByMe": "Authored by me",
-      "otherTodos": "Other todos"
+      "authoredByMe": "Authored by me"
     },
     "status": {
       "read": "Read",
@@ -2366,20 +2365,9 @@
       "multipleBody": "Open Team Inbox to review assignments and mentions."
     },
     "row": {
-      "assignedSummary": "{{status}} · {{priority}}",
       "issueSource": "{{repository}} issue",
       "issueSourceFallback": "Issue",
       "ariaLabel": "{{title}}, {{status}}"
-    },
-    "search": {
-      "placeholder": "Search inbox",
-      "ariaLabel": "Search Team Inbox"
-    },
-    "groups": {
-      "today": "Today",
-      "yesterday": "Yesterday",
-      "thisWeek": "This week",
-      "earlier": "Earlier"
     },
     "empty": {
       "title": "Nothing here yet",
@@ -2403,13 +2391,10 @@
     "drop": {
       "title": "Drop to create a Work Item",
       "subtitle": "Review the Session snapshot, then create or hand off the Work Item.",
-      "processing": "Creating a Work Item from “{{title}}”…",
       "processingHint": "Reading the Session and resolving destination members.",
       "success": "Work Item created",
       "reused": "Existing Work Item updated",
       "failed": "Couldn’t create the Work Item",
-      "error": "Unable to create a Work Item from this Session.",
-      "open": "Open",
       "dismiss": "Dismiss"
     },
     "handoff": {
@@ -2424,10 +2409,6 @@
       "todoCount_other": "{{count}} to-dos",
       "workItemTitle": "Work Item title",
       "assignTo": "Assign to",
-      "status": "Status",
-      "priority": "Priority",
-      "dueDate": "Due date",
-      "noDueDate": "No due date",
       "note": "Handoff note",
       "notePlaceholder": "Share what is ready, what is unresolved, and what should happen next.",
       "selfHint": "Assigning this to yourself creates a normal Work Item without a handoff request.",
@@ -2493,18 +2474,7 @@
     "actions": {
       "markRead": "Mark as read",
       "markUnread": "Mark as unread",
-      "openWorkItem": "Open work item",
-      "openSession": "Open session"
-    },
-    "fields": {
-      "status": "Status",
-      "priority": "Priority",
-      "assignee": "Assignee",
-      "workItemId": "Work item ID",
-      "session": "Session",
-      "comments": "Comments",
-      "threadId": "Thread ID",
-      "commentId": "Comment ID"
+      "openWorkItem": "Open work item"
     },
     "workItemStatus": {
       "backlog": "Backlog",

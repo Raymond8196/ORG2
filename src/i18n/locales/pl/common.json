@@ -13,26 +13,14 @@
     },
     "sections": {
       "reviewRequested": "Prośba o przegląd",
-      "authoredByMe": "Utworzone przeze mnie",
-      "otherTodos": "Inne zadania"
+      "authoredByMe": "Utworzone przeze mnie"
     },
     "status": {
       "read": "Przeczytane",
       "unread": "Nieprzeczytane"
     },
     "row": {
-      "assignedSummary": "{{status}} · {{priority}}",
       "ariaLabel": "{{title}}, {{status}}"
-    },
-    "search": {
-      "placeholder": "Przeszukaj skrzynkę",
-      "ariaLabel": "Przeszukaj skrzynkę zespołu"
-    },
-    "groups": {
-      "today": "Dzisiaj",
-      "yesterday": "Wczoraj",
-      "thisWeek": "W tym tygodniu",
-      "earlier": "Wcześniej"
     },
     "empty": {
       "title": "Nic tu jeszcze nie ma",
@@ -56,20 +44,15 @@
     "drop": {
       "title": "Upuść tutaj, aby utworzyć element pracy",
       "subtitle": "Sprawdź migawkę sesji, a następnie utwórz lub przekaż element pracy.",
-      "processing": "Tworzenie elementu pracy z „{{title}}”…",
       "processingHint": "Odczytywanie sesji i ustalanie członków projektu.",
       "success": "Utworzono element pracy",
       "reused": "Zaktualizowano istniejący element pracy",
       "failed": "Nie udało się utworzyć elementu pracy",
-      "error": "Nie można utworzyć elementu pracy na podstawie tej sesji.",
-      "open": "Otwórz",
       "dismiss": "Odrzuć"
     },
     "handoff": {
       "title": "Utwórz z sesji",
       "createFromSession": "Utwórz zespołowy element pracy…",
-      "project": "Projekt docelowy",
-      "chooseProject": "Wybierz projekt",
       "recipientSelf": "{{name}} (ja)",
       "chooseRecipient": "Wybierz odbiorcę",
       "todoCount_one": "{{count}} zadanie",
@@ -138,18 +121,7 @@
     "actions": {
       "markRead": "Oznacz jako przeczytane",
       "markUnread": "Oznacz jako nieprzeczytane",
-      "openWorkItem": "Otwórz element pracy",
-      "openSession": "Otwórz sesję"
-    },
-    "fields": {
-      "status": "Status",
-      "priority": "Priorytet",
-      "assignee": "Przypisano do",
-      "workItemId": "ID elementu pracy",
-      "session": "Sesja",
-      "comments": "Komentarze",
-      "threadId": "ID wątku",
-      "commentId": "ID komentarza"
+      "openWorkItem": "Otwórz element pracy"
     },
     "workItemStatus": {
       "backlog": "Zaległości",

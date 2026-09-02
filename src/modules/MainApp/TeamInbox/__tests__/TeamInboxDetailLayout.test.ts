@@ -78,7 +78,6 @@ describe("TeamInboxDetailLayout header actions", () => {
             }),
             onClick: onOpenInBrowser,
           },
-          openPlacement: "header",
           onMarkUnread,
           onOpen,
         })
@@ -153,7 +152,6 @@ describe("TeamInboxDetailLayout header actions", () => {
               icon: LinkSquare02Icon,
               "aria-hidden": true,
             }),
-            openPlacement: "header",
             onMarkUnread: vi.fn(),
             onOpen: vi.fn(),
           })
