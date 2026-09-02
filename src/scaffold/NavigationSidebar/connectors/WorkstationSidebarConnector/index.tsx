@@ -3,6 +3,7 @@ import React, { useCallback, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 
+import Message from "@src/components/Message";
 import { ROUTES } from "@src/config/routes";
 import { useAppNavigation } from "@src/hooks/navigation/useAppNavigation";
 import { useSessionView } from "@src/hooks/ui/tabs/useSessionView";
@@ -115,6 +116,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     openOrganizationTab,
     openSessionInNewChatTab,
     openSessionInWorkstation,
+    openSessionInNewWindow,
     openOrReplaceSessionInChatPanelTab,
     activateChatPanelTab,
     openStartPageTab,
@@ -254,9 +256,16 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   const openCloudSessionAtDestination = useCallback(
     (
-      destination: "replace-all" | "new-tab" | "my-station",
+      destination: "replace-all" | "new-tab" | "my-station" | "new-window",
       options: { sessionId: string; title: string }
     ) => {
+      if (destination === "new-window") {
+        void openSessionInNewWindow(options).catch((error) => {
+          Message.error(error instanceof Error ? error.message : String(error));
+        });
+        return;
+      }
+
       setStationMode("my-station");
       setStationChatVisible("my-station", true);
       if (location.pathname !== ROUTES.workStation.code.path) {
@@ -292,6 +301,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
       navigate,
       navigateChatPanel,
       openSessionInNewChatTab,
+      openSessionInNewWindow,
       openSessionInWorkstation,
       openOrReplaceSessionInChatPanelTab,
       closeOtherThanActiveChatPanelTabs,
@@ -407,6 +417,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleTogglePin,
     handleOpenInNewTab,
     handleOpenInMyStation,
+    handleOpenInNewWindow,
     handleOpenLinkedWorkItemSession,
     handleToggleSubagentExpansion,
   } = useWorkstationSidebarSessionInteractionHandlers({
@@ -435,6 +446,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     navigateChatPanel,
     openSessionInNewChatTab,
     openSessionInWorkstation,
+    openSessionInNewWindow,
     setExpandedSubagentParentIds,
   });
 
@@ -453,6 +465,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
       handleMenuItemClick(item.key, item, "new-tab"),
     handleExportMarkdown,
     handleOpenInNewTab,
+    handleOpenInNewWindow,
     handleOpenInMyStation,
     handleTogglePin,
     handleToggleSubagentExpansion,

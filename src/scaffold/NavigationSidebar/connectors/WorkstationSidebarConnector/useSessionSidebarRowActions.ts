@@ -23,6 +23,7 @@ interface UseSessionSidebarRowActionsParams {
   handleOpenDraftInNewTab: ContextMenuParams["handleOpenDraftInNewTab"];
   handleExportMarkdown: ContextMenuParams["handleExportMarkdown"];
   handleOpenInNewTab: ContextMenuParams["handleOpenInNewTab"];
+  handleOpenInNewWindow: ContextMenuParams["handleOpenInNewWindow"];
   handleOpenInMyStation: ContextMenuParams["handleOpenInMyStation"];
   handleTogglePin: ContextMenuParams["handleTogglePin"];
   handleToggleSubagentExpansion: DecorateRowActionsParams["handleToggleSubagentExpansion"];
@@ -46,6 +47,7 @@ export function useSessionSidebarRowActions({
   handleOpenDraftInNewTab,
   handleExportMarkdown,
   handleOpenInNewTab,
+  handleOpenInNewWindow,
   handleOpenInMyStation,
   handleTogglePin,
   handleToggleSubagentExpansion,
@@ -73,6 +75,7 @@ export function useSessionSidebarRowActions({
     handleOpenDraftInNewTab,
     handleExportMarkdown,
     handleOpenInNewTab,
+    handleOpenInNewWindow,
     handleOpenInMyStation,
     handleTogglePin,
     isMoveEligible: moveToOrg.isMoveEligible,

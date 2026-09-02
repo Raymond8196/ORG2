@@ -14,7 +14,10 @@ import type { NativeMenuItemOptions } from "@src/util/platform/tauri/nativeMenuP
 
 import type { SidebarTabDisposition } from "../sidebarTabNavigation";
 
-type CloudSessionOpenDestination = SidebarTabDisposition | "my-station";
+type CloudSessionOpenDestination =
+  | SidebarTabDisposition
+  | "my-station"
+  | "new-window";
 
 interface CloudSessionDestinationOptions {
   sessionId: string;
