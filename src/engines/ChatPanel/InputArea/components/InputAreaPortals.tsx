@@ -21,7 +21,6 @@ interface InputAreaPortalsProps {
   contextMenuKeyboardHandlerRef: React.MutableRefObject<
     ((event: React.KeyboardEvent) => boolean) | null
   >;
-  mentionTreePosition: "left" | "right";
   isEditMode: boolean;
   showSlashMenu: boolean;
   filteredSlashItems: SlashItem[];
@@ -48,7 +47,6 @@ export const InputAreaPortals: React.FC<InputAreaPortalsProps> = ({
   atSearchQuery,
   currentRepoPath,
   contextMenuKeyboardHandlerRef,
-  mentionTreePosition,
   isEditMode,
   showSlashMenu,
   filteredSlashItems,
@@ -85,7 +83,6 @@ export const InputAreaPortals: React.FC<InputAreaPortalsProps> = ({
         includeProjectMode={includeProjectMode}
         repoPath={currentRepoPath || undefined}
         keyboardHandlerRef={contextMenuKeyboardHandlerRef}
-        treePosition={mentionTreePosition}
       />
 
       <SlashCommandPortal

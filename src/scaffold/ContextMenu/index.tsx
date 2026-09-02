@@ -183,9 +183,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     setSecondLayerActiveIndex,
     handleKeyDown,
     handleSelect,
-    goBack,
     reset,
-    drilledProjectName,
   } = useContextMenu({
     repoPath,
     onSelect,
@@ -296,15 +294,9 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
           onSelect={handleSearchResultSelect}
           onHover={handleSecondLayerHover}
           onHoverEnd={resetSecondLayerIndex}
-          onBack={goBack}
           repoPath={repoPath}
           treePosition={treePosition}
           recentFiles={secondLayer === "files" ? recentFiles : undefined}
-          titleOverride={
-            secondLayer === "projects" && drilledProjectName
-              ? drilledProjectName
-              : undefined
-          }
         />
       ) : (
         <div className={DROPDOWN_CLASSES.panel} style={{ width: "100%" }}>
@@ -437,6 +429,7 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
                       isActive={
                         keyboardNavigated && activeIndex === entry.flatIndex
                       }
+                      dataTestId={`context-menu-command-${entry.item.id}`}
                       onClick={() => handleMainItemIndexSelect(entry.flatIndex)}
                       onMouseEnter={() => handleMainItemHover(entry.flatIndex)}
                       onMouseLeave={resetActiveIndex}

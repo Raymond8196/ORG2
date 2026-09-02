@@ -59,6 +59,7 @@ interface ComputeFloatingPositionOptions {
   viewportWidth?: number;
   viewportHeight?: number;
   margin?: number;
+  gap?: number;
   minAvailableHeight?: number;
 }
 
@@ -98,9 +99,9 @@ export function computeFloatingPosition({
   viewportWidth = getViewportSize().width,
   viewportHeight = getViewportSize().height,
   margin = DEFAULT_VIEWPORT_MARGIN,
+  gap = DROPDOWN_PANEL.triggerGap,
   minAvailableHeight = DEFAULT_MIN_AVAILABLE_HEIGHT,
 }: ComputeFloatingPositionOptions): FloatingPosition {
-  const gap = DROPDOWN_PANEL.triggerGap;
   const spaceAbove = anchorRect.top - gap - margin;
   const spaceBelow = viewportHeight - anchorRect.bottom - gap - margin;
   const resolvedPlacement = resolveFloatingPlacement(

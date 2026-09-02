@@ -22,6 +22,8 @@ export interface UseFloatingPortalPositionOptions {
   updateKey?: string | number;
   maxWidth?: number;
   maxHeight?: number;
+  /** Vertical distance between the anchor and floating panel. */
+  gap?: number;
   /** Equal left/right inset from `containerRef` used to size and center the panel. */
   horizontalInset?: number;
 }
@@ -45,6 +47,7 @@ export function useFloatingPortalPosition({
   updateKey,
   maxWidth,
   maxHeight,
+  gap,
   horizontalInset,
 }: UseFloatingPortalPositionOptions): UseFloatingPortalPositionResult {
   const [portalPosition, setPortalPosition] = useState<FloatingPosition | null>(
@@ -101,6 +104,7 @@ export function useFloatingPortalPosition({
       floatingWidth: resolvedFloatingWidth,
       floatingHeight,
       placement,
+      gap,
     });
 
     setPortalPosition(nextPosition);
@@ -115,6 +119,7 @@ export function useFloatingPortalPosition({
     fallbackHeight,
     floatingRef,
     floatingWidth,
+    gap,
     horizontalInset,
     maxHeight,
     maxWidth,

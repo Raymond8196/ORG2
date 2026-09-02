@@ -28,6 +28,7 @@ import {
 } from "@src/store/session/pinnedActionsAtom";
 import type { SlashItem } from "@src/types/extensions";
 
+import { usePathTreePosition } from "../pathTreePosition";
 import { useFloatingPortalPosition } from "../useFloatingPortalPosition";
 import {
   MenuGroupSeparatorRow,
@@ -53,6 +54,7 @@ const SlashCommandMenu: React.FC<SlashCommandPortalProps> = ({
   keyboardHandlerRef,
 }) => {
   const { t } = useTranslation("sessions");
+  const treePosition = usePathTreePosition();
   const portalContainerRef = useRef<HTMLDivElement>(null);
   const listRef = useRef<HTMLDivElement>(null);
   const menuOpenedAtRef = useRef(0);
@@ -206,9 +208,12 @@ const SlashCommandMenu: React.FC<SlashCommandPortalProps> = ({
     >
       {activeSkillItem?.skillPath && (
         <div
-          className="absolute top-0 left-full"
+          className={`absolute top-0 ${treePosition === "left" ? "right-full" : "left-full"}`}
           style={{
-            marginLeft: DROPDOWN_PANEL.submenuGap,
+            marginLeft:
+              treePosition === "right" ? DROPDOWN_PANEL.submenuGap : undefined,
+            marginRight:
+              treePosition === "left" ? DROPDOWN_PANEL.submenuGap : undefined,
             pointerEvents: "auto",
           }}
         >

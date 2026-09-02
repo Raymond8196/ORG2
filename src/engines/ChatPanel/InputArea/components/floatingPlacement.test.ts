@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   applyFloatingHorizontalFrame,
+  computeFloatingPosition,
   insetFloatingHorizontalFrame,
 } from "./floatingPlacement";
 
@@ -26,5 +27,26 @@ describe("applyFloatingHorizontalFrame", () => {
     expect(
       applyFloatingHorizontalFrame(anchorRect, { left: 104, width: 1552 })
     ).toEqual({ top: 120, bottom: 180, left: 104 });
+  });
+});
+
+describe("computeFloatingPosition", () => {
+  it("keeps the configured vertical gap above the input", () => {
+    expect(
+      computeFloatingPosition({
+        anchorRect: { top: 400, bottom: 500, left: 100 },
+        floatingWidth: 600,
+        floatingHeight: 200,
+        placement: "up",
+        viewportWidth: 1000,
+        viewportHeight: 800,
+        margin: 8,
+        gap: 8,
+      })
+    ).toMatchObject({
+      bottom: 408,
+      left: 100,
+      placement: "up",
+    });
   });
 });
