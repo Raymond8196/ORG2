@@ -1,8 +1,10 @@
 import type { TFunction } from "i18next";
+import { Provider, createStore } from "jotai";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import { creatorLaunchpadActionsVisibleAtom } from "@src/store/session/creatorLaunchpadActionsVisibleAtom";
 import { CHAT_PANEL_CREATE_TARGET } from "@src/store/ui/chatPanelAtom";
 
 import { ChatPanelStartPage } from "./ChatPanelStartPage";
@@ -226,6 +228,57 @@ describe("ChatPanelStartPage", () => {
     expect(markup).not.toContain("bg-bg-1");
     expect(markup).toContain("hover:bg-surface-hover");
     expect(markup).not.toContain("group-hover:bg-fill-3");
+  });
+
+  it("hides the complete launchpad quick-action group when disabled", () => {
+    mocks.useAvailableAppUpdate.mockReturnValue({
+      available: true,
+      version: "1.1.20",
+    });
+    const t = ((key: string) => key) as TFunction<
+      ["sessions", "common", "projects", "navigation"]
+    >;
+    const store = createStore();
+    store.set(creatorLaunchpadActionsVisibleAtom, false);
+    let receivedVisibility: boolean | undefined;
+
+    const markup = renderToStaticMarkup(
+      createElement(
+        Provider,
+        { store },
+        createElement(ChatPanelStartPage, {
+          ...createTargetProps,
+          createTarget: CHAT_PANEL_CREATE_TARGET.AGENT_SESSION,
+          sessionLauncher: (heroFooterSlot, launchpadActionsVisible) => {
+            receivedVisibility = launchpadActionsVisible;
+            return createElement(
+              "div",
+              {
+                "data-testid": "session-launcher",
+                "data-quick-actions-visible": String(launchpadActionsVisible),
+              },
+              heroFooterSlot
+            );
+          },
+          t,
+        })
+      )
+    );
+
+    expect(receivedVisibility).toBe(false);
+    expect(markup).toContain('data-quick-actions-visible="false"');
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-install-latest-update"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-import-session"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-add-api-key"'
+    );
+    expect(markup).not.toContain(
+      'data-testid="chat-panel-start-page-show-runtime"'
+    );
   });
 
   it("renders the full work-item creator inside the Work Item tab", () => {

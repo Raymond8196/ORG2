@@ -17,29 +17,29 @@ function hydratedStore(): ReturnType<typeof createStore> {
 }
 
 describe("pinnedActionsVisibleAtom", () => {
-  it("shows pinned actions by default", () => {
-    expect(hydratedStore().get(pinnedActionsVisibleAtom)).toBe(true);
+  it("hides pinned actions by default", () => {
+    expect(hydratedStore().get(pinnedActionsVisibleAtom)).toBe(false);
   });
 
-  it("persists a hidden choice and hydrates it in a new store", () => {
+  it("persists a visible choice and hydrates it in a new store", () => {
     const firstStore = hydratedStore();
-    firstStore.set(pinnedActionsVisibleAtom, false);
+    firstStore.set(pinnedActionsVisibleAtom, true);
 
     expect(
       JSON.parse(
         localStorage.getItem(PINNED_ACTIONS_VISIBLE_STORAGE_KEY) ?? "null"
       )
-    ).toBe(false);
+    ).toBe(true);
 
-    expect(hydratedStore().get(pinnedActionsVisibleAtom)).toBe(false);
+    expect(hydratedStore().get(pinnedActionsVisibleAtom)).toBe(true);
   });
 
-  it("falls back to visible for malformed persisted values", () => {
+  it("falls back to hidden for malformed persisted values", () => {
     localStorage.setItem(
       PINNED_ACTIONS_VISIBLE_STORAGE_KEY,
       JSON.stringify("hidden")
     );
 
-    expect(hydratedStore().get(pinnedActionsVisibleAtom)).toBe(true);
+    expect(hydratedStore().get(pinnedActionsVisibleAtom)).toBe(false);
   });
 });

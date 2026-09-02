@@ -245,7 +245,8 @@ export function ChatPanelEmptyContent({
     className: string,
     layout: "default" | "launchpad" = "default",
     heroFooterSlot?: React.ReactNode,
-    multiRunnerLauncher = false
+    multiRunnerLauncher = false,
+    hideWorkItemAttachmentControl = false
   ) =>
     SessionCreatorSlot ? (
       <SessionCreatorSlot
@@ -254,6 +255,7 @@ export function ChatPanelEmptyContent({
         layout={layout}
         heroFooterSlot={heroFooterSlot}
         hidePresenceButton
+        hideWorkItemAttachmentControl={hideWorkItemAttachmentControl}
         // Only the Parallel-run create target fans out. Every other launcher
         // — Session, work item, project — starts one agent.
         multiRunnerLauncher={multiRunnerLauncher}
@@ -346,8 +348,17 @@ export function ChatPanelEmptyContent({
   );
 
   if (showStartPage) {
-    const sessionLauncher = (heroFooterSlot: React.ReactNode) =>
-      renderSessionLauncher("h-full", "launchpad", heroFooterSlot);
+    const sessionLauncher = (
+      heroFooterSlot: React.ReactNode,
+      launchpadActionsVisible: boolean
+    ) =>
+      renderSessionLauncher(
+        "h-full",
+        "launchpad",
+        heroFooterSlot,
+        false,
+        !launchpadActionsVisible
+      );
     const moreCreateTarget =
       createTarget === CHAT_PANEL_CREATE_TARGET.PROJECT ||
       createTarget === CHAT_PANEL_CREATE_TARGET.PARALLEL_RUN ||

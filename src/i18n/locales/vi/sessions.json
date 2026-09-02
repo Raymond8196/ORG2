@@ -884,6 +884,8 @@
       "positionUp": "Trên",
       "positionDown": "Dưới",
       "uiControls": "Điều khiển giao diện",
+      "showQuickActions": "Hiển thị thao tác nhanh",
+      "showSkills": "Hiển thị Skills",
       "showCliUpdate": "Hiển thị bản cập nhật CLI",
       "title": "Bạn muốn làm gì?",
       "back": "Quay lại trang bắt đầu",

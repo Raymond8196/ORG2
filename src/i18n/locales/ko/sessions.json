@@ -886,6 +886,8 @@
       "positionUp": "위",
       "positionDown": "아래",
       "uiControls": "UI 컨트롤",
+      "showQuickActions": "빠른 작업 표시",
+      "showSkills": "Skills 표시",
       "showCliUpdate": "CLI 업데이트 표시",
       "title": "무엇을 할까요?",
       "back": "시작 페이지로 돌아가기",

@@ -887,6 +887,8 @@
       "positionUp": "Üst",
       "positionDown": "Alt",
       "uiControls": "Arayüz kontrolleri",
+      "showQuickActions": "Hızlı eylemleri göster",
+      "showSkills": "Skills göster",
       "showCliUpdate": "CLI güncellemelerini göster",
       "title": "Ne yapmak istersiniz?",
       "back": "Başlangıç sayfasına dön",

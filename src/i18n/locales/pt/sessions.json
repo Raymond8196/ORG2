@@ -886,6 +886,8 @@
       "positionUp": "Acima",
       "positionDown": "Abaixo",
       "uiControls": "Controles da interface",
+      "showQuickActions": "Mostrar ações rápidas",
+      "showSkills": "Mostrar Skills",
       "showCliUpdate": "Mostrar atualizações da CLI",
       "title": "O que você quer fazer?",
       "back": "Voltar à página inicial",

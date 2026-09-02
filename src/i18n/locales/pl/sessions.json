@@ -888,6 +888,8 @@
       "positionUp": "Góra",
       "positionDown": "Dół",
       "uiControls": "Elementy interfejsu",
+      "showQuickActions": "Pokaż szybkie akcje",
+      "showSkills": "Pokaż Skills",
       "showCliUpdate": "Pokaż aktualizacje CLI",
       "title": "Co chcesz zrobić?",
       "back": "Wróć do strony startowej",

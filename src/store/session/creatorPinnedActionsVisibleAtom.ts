@@ -8,19 +8,20 @@ export const CREATOR_PINNED_ACTIONS_VISIBLE_STORAGE_KEY =
   PINNED_ACTIONS_VISIBLE_STORAGE_KEY;
 
 function normalizePinnedActionsVisible(value: unknown): boolean {
-  return typeof value === "boolean" ? value : true;
+  return typeof value === "boolean" ? value : false;
 }
 
 const storedPinnedActionsVisibleAtom = atomWithStorage<unknown>(
   PINNED_ACTIONS_VISIBLE_STORAGE_KEY,
-  true,
+  false,
   undefined,
   { getOnInit: true }
 );
 
 /**
  * Shared composer preference for showing pinned quick-action pills and their
- * management controls in the Session Creator and active sessions.
+ * management controls in the Session Creator and active sessions. Pinned
+ * actions are hidden by default until the user opts in.
  *
  * The preference does not delete or unpin actions. Compact and hidden-repo
  * creator surfaces ignore it because they do not expose the native menu that

@@ -891,6 +891,8 @@
       "positionUp": "Сверху",
       "positionDown": "Снизу",
       "uiControls": "Элементы интерфейса",
+      "showQuickActions": "Показывать быстрые действия",
+      "showSkills": "Показывать Skills",
       "showCliUpdate": "Показывать обновления CLI",
       "title": "Что вы хотите сделать?",
       "back": "Назад к стартовой странице",
