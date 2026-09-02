@@ -84,7 +84,7 @@ interface ChatPanelEmptyContentProps {
   >;
   handleRegionNoticeChange: (notice: ChatPanelRegionNotice | null) => void;
   handleStartPageAddApiKey: () => void;
-  handleCreateTargetChange: (target: ChatPanelCreateTarget) => void;
+  handleCreateTargetChange: (target: string) => void;
   handleStartPageInstallLatestUpdate: () => void;
   handleStartPageShowRuntime: () => void;
   handleStartPageSessionStart: (info: SessionLaunchSuccessInfo) => void;

@@ -49,7 +49,7 @@ interface ChatPanelStartPageProps {
     creatorModeControl?: React.ReactNode
   ) => React.ReactNode;
   onAddApiKey: () => void;
-  onCreateTarget: (target: ChatPanelCreateTarget) => void;
+  onCreateTarget: (target: string) => void;
   onInstallLatestUpdate: () => void;
   onShowRuntime: () => void;
   onProjectAgentModeChange: (enabled: boolean) => void;
@@ -271,7 +271,7 @@ export function ChatPanelStartPage({
       ) {
         const fallbackTarget = createTargetOptions[0]?.value;
         if (typeof fallbackTarget === "string") {
-          onCreateTarget(fallbackTarget as ChatPanelCreateTarget);
+          onCreateTarget(fallbackTarget);
         }
       }
     },
@@ -331,7 +331,7 @@ export function ChatPanelStartPage({
                 options={createTargetOptions}
                 onChange={(value) => {
                   if (!Array.isArray(value)) {
-                    onCreateTarget(value as ChatPanelCreateTarget);
+                    onCreateTarget(String(value));
                   }
                 }}
                 size="large"

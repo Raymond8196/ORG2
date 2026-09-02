@@ -342,6 +342,9 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
 
     const tabStripPlus = (
       <>
+        {startPageOpen && !isStandaloneToolTabActive && (
+          <NewChatHeaderActionsMenu />
+        )}
         <ChatPanelPlusMenu
           onOpenLaunchpad={handleOpenLaunchpadTab}
           onOpenKanban={handleOpenKanbanTab}
@@ -350,9 +353,6 @@ const ChatPanel: React.FC<ChatPanelProps> = memo(
           onNewWorkItem={openWorkItemCreate}
           onOpenSideChat={handleOpenSideChat}
         />
-        {startPageOpen && !isStandaloneToolTabActive && (
-          <NewChatHeaderActionsMenu />
-        )}
       </>
     );
 
