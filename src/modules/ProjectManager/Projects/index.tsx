@@ -98,6 +98,8 @@ interface ProjectsPageProps {
   workStationTabId?: string;
   /** Host slot used by the global WorkstationTabHeader. */
   workstationHeaderHost?: "project" | "workManagement";
+  /** Disable the shell sidebar toggle when this page has no sidebar. */
+  sidebarToggleDisabled?: boolean;
   /** Org hub surface pills shown after the breadcrumb (Overview / Projects / …). */
   orgSurfaceControls?: React.ReactNode;
 }
@@ -119,6 +121,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
   publishToWorkstationHeader = false,
   workStationTabId,
   workstationHeaderHost = "project",
+  sidebarToggleDisabled = false,
   orgSurfaceControls,
 }) => {
   const { t } = useTranslation("projects");
@@ -564,11 +567,10 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
       <WorkManagementSearchInput
         value={searchQuery}
         onChange={setSearchQuery}
-        placeholder={t("projects.searchPlaceholder")}
         dataTestId="projects-search"
       />
     ),
-    [searchQuery, t]
+    [searchQuery]
   );
 
   const virtualProjectGroups = useMemo(
@@ -615,6 +617,7 @@ const ProjectsPage: React.FC<ProjectsPageProps> = ({
         trailingControls={headerTrailingControls}
         publishToWorkstationHeader={publishToWorkstationHeader}
         workstationHeaderHost={workstationHeaderHost}
+        sidebarToggleDisabled={sidebarToggleDisabled}
       />
 
       <div className="min-h-0 flex-1 overflow-hidden">

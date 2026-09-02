@@ -1,5 +1,6 @@
 const REPOSITORY_LABEL_MAX_LENGTH = 10;
 
+/** Returns the compact repository name used in Inbox-style metadata rows. */
 export function compactRepositoryLabel(
   repository: string | null | undefined
 ): string {

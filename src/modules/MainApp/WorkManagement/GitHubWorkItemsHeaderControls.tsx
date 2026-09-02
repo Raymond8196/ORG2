@@ -13,12 +13,9 @@ import {
 import type { IssueRepoFilter, RepoFilterOption } from "./githubWorkItemsTypes";
 
 interface GitHubWorkItemsHeaderControlsProps {
-  repoOptions: RepoFilterOption[];
-  selectedRepo: IssueRepoFilter;
   stateTabs: Array<{ key: string; label: string }>;
   activeState: string;
   searchQuery: string;
-  searchPlaceholder: string;
   personalFilterOptions?: SelectOption[];
   selectedPersonalFilters?: string[];
   personalFilterLabel?: string;
@@ -29,32 +26,65 @@ interface GitHubWorkItemsHeaderControlsProps {
     disabled: boolean;
     onClick: () => void;
   };
-  onRepoSelect: (repo: IssueRepoFilter) => void;
   onStateChange: (state: string) => void;
   onSearchQueryChange: (query: string) => void;
   onPersonalFiltersSelect?: (values: (string | number)[]) => void;
   onRefresh: () => void;
+  placement?: "header" | "list";
 }
 
-/** Filters and actions published into the shared Work Management page header. */
-export function GitHubWorkItemsHeaderControls({
+interface GitHubWorkItemsRepositorySelectProps {
+  repoOptions: RepoFilterOption[];
+  selectedRepo: IssueRepoFilter;
+  onRepoSelect: (repo: IssueRepoFilter) => void;
+}
+
+/** Repository scope published beside the GitHub PR/issues dataset selector. */
+export function GitHubWorkItemsRepositorySelect({
   repoOptions,
   selectedRepo,
+  onRepoSelect,
+}: GitHubWorkItemsRepositorySelectProps): ReactNode {
+  return (
+    <Select
+      value={selectedRepo}
+      options={repoOptions.map((option) => ({
+        value: option.key,
+        label: option.label,
+        triggerLabel: option.label,
+      }))}
+      onChange={(value) => {
+        if (Array.isArray(value)) return;
+        onRepoSelect(String(value));
+      }}
+      size="small"
+      appearance="ghost"
+      radius="lg"
+      dropdownWidthMode="auto"
+      dropdownMinWidth={190}
+      dropdownAlign="left"
+      className="w-auto"
+      dataTestId="github-work-items-repository"
+    />
+  );
+}
+
+/** Filters and actions published at the trailing end of the shared header. */
+export function GitHubWorkItemsHeaderControls({
   stateTabs,
   activeState,
   searchQuery,
-  searchPlaceholder,
   personalFilterOptions = [],
   selectedPersonalFilters = [],
   personalFilterLabel,
   refreshLabel,
   refreshing,
   createAction,
-  onRepoSelect,
   onStateChange,
   onSearchQueryChange,
   onPersonalFiltersSelect,
   onRefresh,
+  placement = "header",
 }: GitHubWorkItemsHeaderControlsProps): ReactNode {
   const showPersonalFilters =
     personalFilterOptions.length > 0 &&
@@ -63,29 +93,11 @@ export function GitHubWorkItemsHeaderControls({
 
   return (
     <div
-      className="flex min-w-0 items-center gap-1 overflow-visible"
+      className={`flex min-w-0 items-center gap-1 overflow-visible ${
+        placement === "list" ? "flex-1" : ""
+      }`.trim()}
       data-testid="github-work-items-header-controls"
     >
-      <Select
-        value={selectedRepo}
-        options={repoOptions.map((option) => ({
-          value: option.key,
-          label: option.label,
-          triggerLabel: option.label,
-        }))}
-        onChange={(value) => {
-          if (Array.isArray(value)) return;
-          onRepoSelect(String(value));
-        }}
-        size="small"
-        appearance="ghost"
-        radius="lg"
-        dropdownWidthMode="auto"
-        dropdownMinWidth={190}
-        dropdownAlign="right"
-        className="w-auto"
-        dataTestId="github-work-items-repository"
-      />
       <GitHubWorkItemStateTabs
         tabs={stateTabs}
         activeTab={activeState}
@@ -101,8 +113,8 @@ export function GitHubWorkItemsHeaderControls({
       ) : null}
       <WorkManagementSearchInput
         value={searchQuery}
-        placeholder={searchPlaceholder}
         onChange={onSearchQueryChange}
+        placement={placement}
         dataTestId="github-work-items-search"
       />
       <HeaderSectionSeparator className="mx-0.5" />

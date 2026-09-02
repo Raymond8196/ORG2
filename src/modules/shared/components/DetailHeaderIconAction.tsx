@@ -3,15 +3,15 @@ import React from "react";
 import Button from "@src/components/Button";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 
-export interface TeamInboxHeaderIconActionProps {
+export interface DetailHeaderIconActionProps {
   label: string;
   icon: React.ReactNode;
   onClick: () => void;
   testId?: string;
 }
 
-/** Shared icon-only action used by Inbox detail title rows. */
-const TeamInboxHeaderIconAction: React.FC<TeamInboxHeaderIconActionProps> = ({
+/** Shared icon-only action for list/detail pane headers and tab strips. */
+const DetailHeaderIconAction: React.FC<DetailHeaderIconActionProps> = ({
   label,
   icon,
   onClick,
@@ -31,4 +31,4 @@ const TeamInboxHeaderIconAction: React.FC<TeamInboxHeaderIconActionProps> = ({
   </ToolbarTooltip>
 );
 
-export default TeamInboxHeaderIconAction;
+export default DetailHeaderIconAction;

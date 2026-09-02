@@ -69,17 +69,11 @@ export function useWorkItemsTabBarState({
 
   useEffect(() => {
     if (!onEmbeddedWorkItemDetailStateChange || !workStationTabId) return;
-
-    if (selectedWorkItem) {
-      onEmbeddedWorkItemDetailStateChange(workStationTabId, {
-        view: "workItemDetail",
-        workItemName: selectedWorkItem.name,
-      });
-      return;
-    }
-
+    // A selected work item now lives beside its owning project list. Keep the
+    // tab chrome and primary sidebar in project mode instead of presenting the
+    // selection as a full-page takeover.
     onEmbeddedWorkItemDetailStateChange(workStationTabId, { view: "project" });
-  }, [selectedWorkItem, onEmbeddedWorkItemDetailStateChange, workStationTabId]);
+  }, [onEmbeddedWorkItemDetailStateChange, workStationTabId]);
 
   const onAddWorkItemHandler = useMemo(() => {
     if (activeTab === "Settings") return null;

@@ -31,6 +31,7 @@ export function useChatPanelTabDisplayTitle(tab: ChatPanelTab): string {
     channelFallback: t("navigation:cloud.channels.title"),
     workManagement: {
       kanban: t("sessions:simulator.tabs.kanban"),
+      inbox: t("navigation:labels.inbox"),
       work: t("navigation:labels.workItems"),
     },
     sessionFallback: t("sessions:chat.defaultTitle"),

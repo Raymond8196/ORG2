@@ -94,6 +94,9 @@ describe("TeamInboxDetailLayout header actions", () => {
       'button[aria-label="Open in browser"]'
     );
 
+    expect(
+      container.querySelector('[data-detail-pane-layout="true"]')
+    ).not.toBeNull();
     expect(markUnread).not.toBeNull();
     expect(openInBrowser).not.toBeNull();
     expect(open).not.toBeNull();

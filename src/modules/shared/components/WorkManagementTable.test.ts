@@ -53,6 +53,10 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain("maintenance");
     expect(markup).toContain("text-[11px] text-text-1");
     expect(markup).toContain("leading-none font-normal text-text-1");
+    expect(markup).toContain("mt-0.5");
+    expect(markup).toContain("py-px");
+    expect(markup).toContain("[&amp;_.table-td]:py-1.5!");
+    expect(markup).not.toContain("[&amp;_.table-td]:py-2!");
     expect(markup.indexOf("2 links")).toBeLessThan(
       markup.indexOf("maintenance")
     );
@@ -60,6 +64,8 @@ describe("WorkManagementTable", () => {
     expect(markup).toContain('<span class="max-w-40 truncate">ORGII</span>');
     expect(markup).not.toContain('title="ORGII"');
     expect(markup).not.toContain("background-color");
+    expect(markup).not.toContain("border-b!");
+    expect(markup).not.toContain("border-border-1!");
     expect(markup).toContain("Shared row 1");
     expect(markup).toContain(
       "[&amp;_.table-row_.table-td:first-child]:align-top!"
@@ -81,6 +87,19 @@ describe("WorkManagementTable", () => {
     expect(markup).not.toContain(`${title.slice(0, 49)}…`);
   });
 
+  it("exposes clickable row titles as keyboard-accessible actions", () => {
+    const markup = renderToStaticMarkup(
+      createElement(WorkManagementTable, {
+        rows: [{ ...rows[0], onClick: () => undefined }],
+      })
+    );
+
+    expect(markup).toContain(
+      "block w-full truncate text-left font-semibold text-text-1"
+    );
+    expect(markup).toContain('title="Shared row 1"');
+  });
+
   it("renders row selection in a separate leading column", () => {
     const markup = renderToStaticMarkup(
       createElement(WorkManagementTable, {
@@ -98,7 +117,7 @@ describe("WorkManagementTable", () => {
 
     expect(markup).toContain("data-work-management-selection");
     expect(markup).toContain(
-      'class="flex h-7 w-full items-center justify-center"'
+      'class="flex h-6 w-full items-center justify-center"'
     );
     expect(markup).toContain('aria-label="Select WI-1"');
     expect(markup.indexOf('aria-label="Select WI-1"')).toBeLessThan(

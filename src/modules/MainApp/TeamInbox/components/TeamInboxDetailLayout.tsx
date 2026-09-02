@@ -6,14 +6,9 @@ import {
   Mail01Icon,
   Tick01Icon,
 } from "@src/icons";
-import {
-  DETAIL_PANEL_TOKENS,
-  DetailPanelContainer,
-  PanelHeader,
-} from "@src/modules/shared/layouts/blocks";
-
-import TeamInboxHeaderIconAction from "./TeamInboxHeaderIconAction";
-import type { TeamInboxHeaderIconActionProps } from "./TeamInboxHeaderIconAction";
+import DetailHeaderIconAction from "@src/modules/shared/components/DetailHeaderIconAction";
+import type { DetailHeaderIconActionProps } from "@src/modules/shared/components/DetailHeaderIconAction";
+import DetailPaneLayout from "@src/modules/shared/layouts/DetailPaneLayout";
 
 export interface TeamInboxDetailLayoutProps {
   title: string;
@@ -26,10 +21,11 @@ export interface TeamInboxDetailLayoutProps {
   markUnreadLabel?: string;
   openLabel: string;
   openIcon: React.ReactNode;
-  headerAuxiliaryAction?: TeamInboxHeaderIconActionProps;
+  headerAuxiliaryAction?: DetailHeaderIconActionProps;
   onMarkRead?: () => void;
   onMarkUnread?: () => void;
   onOpen?: () => void;
+  onClose?: () => void;
   children?: React.ReactNode;
 }
 
@@ -47,11 +43,12 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
   onMarkRead,
   onMarkUnread,
   onOpen,
+  onClose,
   children,
 }) => {
   const readAction = unread ? (
     onMarkRead ? (
-      <TeamInboxHeaderIconAction
+      <DetailHeaderIconAction
         label={markReadLabel}
         icon={
           <HugeiconsIcon
@@ -66,7 +63,7 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
       />
     ) : null
   ) : onMarkUnread && markUnreadLabel ? (
-    <TeamInboxHeaderIconAction
+    <DetailHeaderIconAction
       label={markUnreadLabel}
       icon={
         <HugeiconsIcon
@@ -81,7 +78,7 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
     />
   ) : null;
   const headerOpenAction = onOpen ? (
-    <TeamInboxHeaderIconAction
+    <DetailHeaderIconAction
       label={openLabel}
       icon={openIcon}
       onClick={onOpen}
@@ -89,18 +86,19 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
     />
   ) : null;
   const auxiliaryAction = headerAuxiliaryAction ? (
-    <TeamInboxHeaderIconAction {...headerAuxiliaryAction} />
+    <DetailHeaderIconAction {...headerAuxiliaryAction} />
   ) : null;
 
   return (
-    <DetailPanelContainer>
-      <PanelHeader
-        title={title}
-        subtitle={subtitle}
-        icon={icon}
-        borderBottom
-        className={DETAIL_PANEL_TOKENS.headerPadding}
-        actions={
+    <DetailPaneLayout
+      onClose={onClose}
+      closeTestId="team-inbox-close-detail"
+      header={{
+        title,
+        subtitle,
+        icon,
+        children: headerContent,
+        actions:
           readAction || auxiliaryAction || headerOpenAction ? (
             <div
               className="flex items-center gap-px"
@@ -110,23 +108,17 @@ const TeamInboxDetailLayout: React.FC<TeamInboxDetailLayoutProps> = ({
               {auxiliaryAction}
               {headerOpenAction}
             </div>
-          ) : undefined
-        }
-      >
-        {headerContent}
-      </PanelHeader>
-
-      <div className="@container flex min-h-0 flex-1 flex-col overflow-hidden">
-        {children}
-      </div>
-    </DetailPanelContainer>
+          ) : undefined,
+      }}
+    >
+      {children}
+    </DetailPaneLayout>
   );
 };
 
 /*
- * Keep the detail shell shared across mention and assigned-item surfaces.
- * The shared shell keeps navigation actions in the header so every Inbox
- * source can give its detail content the full vertical canvas.
+ * This adapter maps Inbox read/open actions into the domain-neutral shared
+ * detail pane; it does not own a second layout implementation.
  */
 
 export default TeamInboxDetailLayout;
