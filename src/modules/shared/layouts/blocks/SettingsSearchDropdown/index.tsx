@@ -215,6 +215,7 @@ function SettingsSearchDropdown<TItem extends SettingsSearchDropdownItem>({
           <Input
             type="search"
             size="small"
+            className="input-sidebar-surface"
             value={searchQuery}
             onChange={handleSearchChange}
             onKeyDown={handleSearchKeyDown}

@@ -301,6 +301,11 @@ describe("SettingsSearchDropdown", () => {
       '[data-testid="settings-navigation-search-input"]'
     );
     expect(input).not.toBeNull();
+    expect(
+      input
+        ?.closest(".input-wrapper")
+        ?.classList.contains("input-sidebar-surface")
+    ).toBe(true);
 
     await act(async () => {
       input?.focus();

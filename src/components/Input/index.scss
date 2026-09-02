@@ -143,6 +143,12 @@
     }
   }
 
+  &.input-sidebar-surface {
+    .input-inner {
+      background: var(--sidebar-selected-row-bg);
+    }
+  }
+
   &.input-field-ghost,
   &.input-field-bare {
     .input-inner {
