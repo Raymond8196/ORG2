@@ -176,7 +176,7 @@ export function WorkManagementTable({
               );
             },
         renderCell: (row) => (
-          <div className="min-w-0 self-start truncate py-1 text-left font-medium text-text-2 tabular-nums">
+          <div className="min-w-0 self-start truncate text-left font-medium text-text-2 tabular-nums">
             {row.id}
           </div>
         ),
@@ -189,23 +189,38 @@ export function WorkManagementTable({
         width: `${WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH}px`,
         renderCell: (row) => (
           <div
-            className="group/title w-full min-w-0 py-1"
+            className="group/title w-full min-w-0"
             style={{ maxWidth: WORK_MANAGEMENT_TITLE_COLUMN_MAX_WIDTH }}
           >
-            <div
-              className={`truncate font-semibold text-text-1 ${
-                row.titleLinkOnRowHover
-                  ? "transition-colors group-hover/title:text-primary-6 group-hover/title:underline group-hover/title:underline-offset-2"
-                  : ""
-              }`}
-              title={row.title}
-            >
-              {row.title}
-            </div>
+            {row.onClick ? (
+              <button
+                type="button"
+                className={`block w-full truncate text-left font-semibold text-text-1 ${
+                  row.titleLinkOnRowHover
+                    ? "transition-colors group-hover/title:text-primary-6 group-hover/title:underline group-hover/title:underline-offset-2"
+                    : ""
+                }`}
+                title={row.title}
+                onClick={row.onClick}
+              >
+                {row.title}
+              </button>
+            ) : (
+              <div
+                className={`truncate font-semibold text-text-1 ${
+                  row.titleLinkOnRowHover
+                    ? "transition-colors group-hover/title:text-primary-6 group-hover/title:underline group-hover/title:underline-offset-2"
+                    : ""
+                }`}
+                title={row.title}
+              >
+                {row.title}
+              </div>
+            )}
             {row.contextLeading ||
             (row.metadata && row.metadata.length > 0) ||
             (row.tags && row.tags.length > 0) ? (
-              <div className="mt-1 flex min-w-0 items-center gap-1 overflow-hidden">
+              <div className="mt-0.5 flex min-w-0 items-center gap-1 overflow-hidden">
                 {row.contextLeading}
                 {row.metadata?.map((item, index) => {
                   const fillsRemaining =
@@ -233,7 +248,7 @@ export function WorkManagementTable({
                 {row.tags?.map((tag, index) => (
                   <span
                     key={`${tag}-${index}`}
-                    className="inline-flex max-w-40 shrink-0 truncate rounded border border-border-1 px-1.5 py-0.5 text-[10px] leading-none font-normal text-text-1"
+                    className="inline-flex max-w-40 shrink-0 truncate rounded border border-border-1 px-1.5 py-px text-[10px] leading-none font-normal text-text-1"
                     title={tag}
                   >
                     {tag}
@@ -253,7 +268,7 @@ export function WorkManagementTable({
         align: "center",
         renderCell: (row) => (
           <div
-            className="flex h-7 w-full items-center justify-center"
+            className="flex h-6 w-full items-center justify-center"
             data-work-management-selection
           >
             {row.selection}
@@ -377,7 +392,7 @@ export function WorkManagementTable({
         footer={footer}
         onRowClick={(row) => row.onClick?.()}
         rowClassName="group"
-        className={`table-settings-page-list-hover [&_.table-fixed-header]:scrollbar-hide [&_.table-row_.table-td:first-child]:align-top! [&_.table-row_.table-td:first-child_.table-td-inner]:items-start! [&_.table-row:not(:last-child)_.table-td]:border-b! [&_.table-row:not(:last-child)_.table-td]:border-border-1! [&_.table-scroll]:scrollbar-hide [&_.table-td]:h-auto! [&_.table-td]:py-2! [&_.table-td-inner]:h-auto! [&_.table-td-inner]:w-full ${
+        className={`table-settings-page-list-hover [&_.table-fixed-header]:scrollbar-hide [&_.table-row_.table-td:first-child]:align-top! [&_.table-row_.table-td:first-child_.table-td-inner]:items-start! [&_.table-scroll]:scrollbar-hide [&_.table-td]:h-auto! [&_.table-td]:py-1.5! [&_.table-td-inner]:h-auto! [&_.table-td-inner]:w-full ${
           hasSelection
             ? "[&_.table-row_.table-td:nth-child(2)]:align-top! [&_.table-row_.table-td:nth-child(2)_.table-td-inner]:items-start!"
             : ""

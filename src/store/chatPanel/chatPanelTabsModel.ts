@@ -203,6 +203,8 @@ export function getWorkManagementFallbackTitle(
   switch (section) {
     case WORK_MANAGEMENT_SECTION.PROJECTS:
       return "Projects";
+    case WORK_MANAGEMENT_SECTION.INBOX:
+      return "Inbox";
     case WORK_MANAGEMENT_SECTION.GITHUB_ISSUES:
       return "GitHub Issues";
     case WORK_MANAGEMENT_SECTION.GITHUB_PRS:

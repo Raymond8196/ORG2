@@ -367,7 +367,13 @@ describe("closeOtherChatPanelTabsAtom", () => {
     await store.set(closeOtherThanActiveChatPanelTabsAtom);
 
     expect(store.get(chatPanelTabsAtom)).toMatchObject({
-      tabs: [{ id: inboxTabId, type: "team-inbox" }],
+      tabs: [
+        {
+          id: inboxTabId,
+          type: "work-management",
+          managementSection: WORK_MANAGEMENT_SECTION.INBOX,
+        },
+      ],
       activeTabId: inboxTabId,
     });
   });
@@ -800,6 +806,45 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     });
   });
 
+  it("projects an already-open legacy Inbox tab through the shared Work surface", async () => {
+    const {
+      activeWorkManagementSectionAtom,
+      chatPanelTabsAtom,
+      setActiveWorkManagementSectionAtom,
+      store,
+      WORK_MANAGEMENT_SECTION,
+    } = await loadChatPanelTabAtoms();
+    const legacyInboxTabId = "chat-team-inbox";
+    store.set(chatPanelTabsAtom, {
+      tabs: [
+        {
+          id: legacyInboxTabId,
+          type: "team-inbox",
+          title: "Inbox",
+        },
+      ],
+      activeTabId: legacyInboxTabId,
+    });
+
+    expect(store.get(activeWorkManagementSectionAtom)).toBe(
+      WORK_MANAGEMENT_SECTION.INBOX
+    );
+
+    store.set(setActiveWorkManagementSectionAtom, {
+      section: WORK_MANAGEMENT_SECTION.GITHUB_PRS,
+      title: "Work Items",
+    });
+
+    expect(store.get(chatPanelTabsAtom).tabs).toEqual([
+      expect.objectContaining({
+        id: legacyInboxTabId,
+        type: "work-management",
+        title: "Work Items",
+        managementSection: WORK_MANAGEMENT_SECTION.GITHUB_PRS,
+      }),
+    ]);
+  });
+
   it("restores the prior docked state after leaving a management tab", async () => {
     const {
       activateChatPanelTabAtom,
@@ -970,33 +1015,44 @@ describe("ChatPanel navigation tabs", () => {
     ).toHaveLength(1);
   });
 
-  it("opens Team Inbox as its own singleton Station-excluded tab", async () => {
+  it("opens Team Inbox through the shared Work list tab", async () => {
     const {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
       openTeamInboxInChatPanelTabAtom,
+      openWorkManagementChatPanelTabAtom,
       store,
+      WORK_MANAGEMENT_SECTION,
     } = await loadChatPanelTabAtoms();
 
+    const workTabId = store.set(openWorkManagementChatPanelTabAtom, {
+      section: WORK_MANAGEMENT_SECTION.PROJECTS,
+      title: "Projects",
+    });
     const teamInboxTabId = store.set(
       openTeamInboxInChatPanelTabAtom,
       "Team Inbox"
     );
     const focusedTabId = store.set(openTeamInboxInChatPanelTabAtom, "Inbox");
 
+    expect(teamInboxTabId).toBe(workTabId);
     expect(focusedTabId).toBe(teamInboxTabId);
     expect(store.get(chatPanelTabsAtom).activeTabId).toBe(teamInboxTabId);
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
     expect(
       store
         .get(chatPanelTabsAtom)
-        .tabs.filter((tab) => tab.type === "team-inbox")
+        .tabs.filter((tab) => tab.type === "work-management")
     ).toEqual([
       expect.objectContaining({
         id: teamInboxTabId,
         title: "Inbox",
+        managementSection: WORK_MANAGEMENT_SECTION.INBOX,
       }),
     ]);
+    expect(
+      store.get(chatPanelTabsAtom).tabs.some((tab) => tab.type === "team-inbox")
+    ).toBe(false);
   });
 
   it("opens org management in its own singleton tab and restores the selected org", async () => {

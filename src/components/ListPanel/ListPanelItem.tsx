@@ -1,13 +1,13 @@
 import { type AriaAttributes, type ReactNode, forwardRef } from "react";
 
-import { getListItemClasses } from "@src/components/ListPanel";
+import { getListItemClasses } from "./tokens";
 
-type TeamInboxDataAttributes = Record<
+type ListPanelItemDataAttributes = Record<
   `data-${string}`,
   boolean | number | string | undefined
 >;
 
-export interface TeamInboxListItemProps {
+export interface ListPanelItemProps {
   id: string;
   selected: boolean;
   title: string;
@@ -22,11 +22,12 @@ export interface TeamInboxListItemProps {
   ariaCurrent?: AriaAttributes["aria-current"];
   role?: "option";
   tabIndex?: number;
-  dataAttributes?: TeamInboxDataAttributes;
+  dataAttributes?: ListPanelItemDataAttributes;
   onClick: () => void;
 }
 
-const TeamInboxListItem = forwardRef<HTMLButtonElement, TeamInboxListItemProps>(
+/** Compact, borderless row shared by Inbox-style list/detail panels. */
+const ListPanelItem = forwardRef<HTMLButtonElement, ListPanelItemProps>(
   (
     {
       id,
@@ -58,8 +59,8 @@ const TeamInboxListItem = forwardRef<HTMLButtonElement, TeamInboxListItemProps>(
       aria-selected={role === "option" ? selected : undefined}
       aria-current={ariaCurrent}
       tabIndex={tabIndex}
-      data-team-inbox-list-item
-      className={`${getListItemClasses(selected)} block! w-full min-w-0 text-left`}
+      data-list-panel-item
+      className={`${getListItemClasses(selected)} block! w-full min-w-0 py-1.5! text-left`}
       onClick={onClick}
     >
       <span className="flex h-4 min-w-0 items-center gap-2">
@@ -121,6 +122,6 @@ const TeamInboxListItem = forwardRef<HTMLButtonElement, TeamInboxListItemProps>(
   )
 );
 
-TeamInboxListItem.displayName = "TeamInboxListItem";
+ListPanelItem.displayName = "ListPanelItem";
 
-export default TeamInboxListItem;
+export default ListPanelItem;

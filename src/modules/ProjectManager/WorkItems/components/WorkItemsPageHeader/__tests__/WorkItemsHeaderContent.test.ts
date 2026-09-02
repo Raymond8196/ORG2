@@ -3,6 +3,7 @@ import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
+import WorkItemsPageHeader from "..";
 import { WorkItemsHeaderContent } from "../WorkItemsHeaderContent";
 
 vi.mock("@src/components/KeyboardShortcut/ToolbarTooltip", () => ({
@@ -33,7 +34,6 @@ describe("WorkItemsHeaderContent", () => {
           open: 0,
           closed: 0,
         },
-        onRefreshClick: vi.fn(),
         t: ((key: string) => key) as unknown as TFunction<"projects">,
       })
     );
@@ -70,7 +70,6 @@ describe("WorkItemsHeaderContent", () => {
           { "data-testid": "inline-search" },
           "Search"
         ),
-        onRefreshClick: vi.fn(),
         t: ((key: string) => key) as unknown as TFunction<"projects">,
       })
     );
@@ -80,7 +79,7 @@ describe("WorkItemsHeaderContent", () => {
     );
   });
 
-  it("keeps the create plus to the right of refresh", () => {
+  it("keeps the create action to the right of refresh", () => {
     const markup = renderToStaticMarkup(
       React.createElement(WorkItemsHeaderContent, {
         section: "trailing",
@@ -100,13 +99,45 @@ describe("WorkItemsHeaderContent", () => {
         },
         onRefresh: vi.fn(),
         onAddWorkItem: vi.fn(),
-        onRefreshClick: vi.fn(),
         t: ((key: string) => key) as unknown as TFunction<"projects">,
       })
     );
 
     expect(markup.indexOf('data-icon="refresh-cw"')).toBeLessThan(
-      markup.indexOf('data-icon="plus"')
+      markup.indexOf('data-icon="square-pen"')
     );
+  });
+
+  it("leaves the page header to selectors when split controls move left", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(WorkItemsPageHeader, {
+        projectName: "Project",
+        activeTab: "List",
+        hideTrailingControls: true,
+        trailingControls: React.createElement(
+          "span",
+          { "data-testid": "inline-search" },
+          "Search"
+        ),
+        onRefresh: vi.fn(),
+        onAddWorkItem: vi.fn(),
+        statusCounts: {
+          all: 0,
+          backlog: 0,
+          todo: 0,
+          inProgress: 0,
+          inReview: 0,
+          done: 0,
+          cancelled: 0,
+          duplicate: 0,
+          open: 0,
+          closed: 0,
+        },
+      })
+    );
+
+    expect(markup).not.toContain('data-testid="inline-search"');
+    expect(markup).not.toContain('data-icon="refresh-cw"');
+    expect(markup).not.toContain('data-icon="square-pen"');
   });
 });
