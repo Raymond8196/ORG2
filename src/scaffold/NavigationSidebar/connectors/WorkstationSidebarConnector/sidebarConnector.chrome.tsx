@@ -26,8 +26,9 @@ type MenuItemRoutingParams = Parameters<
 interface UseWorkstationSidebarChromeParams {
   activeOrgId: SidebarOrgSelectorProps["value"];
   orgSelectorOptions: SidebarOrgSelectorProps["options"];
+  orgSelectorLoading: SidebarOrgSelectorProps["loading"];
   addOrgLabel: string;
-  cloudSignedInIdentity: SidebarOrgSelectorProps["cloudSignedInIdentity"];
+  cloudSignedIn: SidebarOrgSelectorProps["cloudSignedIn"];
   manageOrgLabel: string;
   handleCloudSignIn: SidebarOrgSelectorProps["onCloudSignIn"];
   activeSidebarKey: WorkstationSidebarKey;
@@ -67,8 +68,9 @@ interface UseWorkstationSidebarChromeParams {
 export function useWorkstationSidebarChrome({
   activeOrgId,
   orgSelectorOptions,
+  orgSelectorLoading,
   addOrgLabel,
-  cloudSignedInIdentity,
+  cloudSignedIn,
   manageOrgLabel,
   activeSidebarKey,
   workItemsContentVisible,
@@ -137,8 +139,9 @@ export function useWorkstationSidebarChrome({
     <SidebarOrgSelector
       value={activeOrgId}
       options={orgSelectorOptions}
+      loading={orgSelectorLoading}
       addOrgLabel={addOrgLabel}
-      cloudSignedInIdentity={cloudSignedInIdentity}
+      cloudSignedIn={cloudSignedIn}
       manageLabel={manageOrgLabel}
       onChange={handleOrgSelectorChange}
       onAddOrg={handleAddOrgFromSelector}

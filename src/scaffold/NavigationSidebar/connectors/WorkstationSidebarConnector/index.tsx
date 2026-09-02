@@ -35,7 +35,6 @@ import SidebarGuideButton from "../SidebarGuideButton";
 import { useSessionMenuItems } from "../useSessionMenuItems";
 import { DEFAULT_COLLAPSED_SECTION_IDS } from "../workstationSidebarData";
 import { SidebarDialogs } from "./SidebarDialogs";
-import { WorkItemsSidebarSkeleton } from "./WorkItemsSidebarSkeleton";
 import {
   type WorkstationSidebarViewKey,
   WorkstationSidebarViewSwitcher,
@@ -162,6 +161,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleCloudSessionFilterChange,
     manageableCloudOrg,
     manageableLocalOrg,
+    orgSelectorLoading,
     orgSelectorOptions,
     personalHiddenCloudTaggedIds,
     sessionFilterOrgIds,
@@ -520,8 +520,9 @@ export const WorkstationSidebarConnector: React.FC = () => {
   } = useWorkstationSidebarChrome({
     activeOrgId,
     orgSelectorOptions,
+    orgSelectorLoading,
     addOrgLabel,
-    cloudSignedInIdentity,
+    cloudSignedIn: cloudSignedInIdentity !== null,
     manageOrgLabel,
     handleCloudSignIn,
     activeSidebarKey,
@@ -664,13 +665,6 @@ export const WorkstationSidebarConnector: React.FC = () => {
           />
         }
         isLoading={isLoading}
-        loadingContent={
-          workItemsContentVisible || activeSidebarKey === "projects" ? (
-            <WorkItemsSidebarSkeleton
-              loadingLabel={tCommon("status.loading", "Loading")}
-            />
-          ) : undefined
-        }
         collapsibleSections
         collapsedSectionIds={resolvedCollapsedSectionIds}
         onCollapsedSectionsChange={resolvedOnCollapsedSectionIdsChange}

@@ -13,7 +13,13 @@ import {
   APPEARANCE_MODE,
   type AppearanceMode,
 } from "@src/config/appearance/globalThemes";
-import { HugeiconsIcon, MonitorIcon, MoonIcon, Sun01Icon } from "@src/icons";
+import {
+  ArrowUpRight01Icon,
+  HugeiconsIcon,
+  MonitorIcon,
+  MoonIcon,
+  Sun01Icon,
+} from "@src/icons";
 
 import { PresenceMenuItems } from "./SidebarBottomBar";
 import { SidebarLayoutSettingsSubmenu } from "./SidebarLayoutSettingsSubmenu";
@@ -138,6 +144,15 @@ export function SidebarSettingsMenuSubmenus({
             tabIndex={0}
             onClick={onModifyAppearance}
             role="menuitem"
+            suffix={
+              <HugeiconsIcon
+                icon={ArrowUpRight01Icon}
+                data-icon="arrow-up-right"
+                size={13}
+                strokeWidth={2}
+                className="text-text-3"
+              />
+            }
           >
             {modifyAppearanceLabel}
           </DropdownItem>

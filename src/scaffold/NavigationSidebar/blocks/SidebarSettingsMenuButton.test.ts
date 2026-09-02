@@ -239,6 +239,9 @@ describe("SidebarSettingsMenuButton", () => {
     const signOut = document.querySelector<HTMLButtonElement>(
       '[data-testid="sidebar-menu-sign-out"]'
     );
+    expect(
+      document.querySelector('[data-testid="sidebar-menu-account-identity"]')
+    ).toBeNull();
     expect(signOut?.textContent).toBe("cloud.signOut");
     expect(signOut!.parentElement!.querySelector("button")).toBe(signOut);
     expect(
@@ -383,6 +386,9 @@ describe("SidebarSettingsMenuButton", () => {
     );
 
     expect(modifyAppearance).toBeDefined();
+    expect(
+      modifyAppearance?.querySelector('[data-icon="arrow-up-right"]')
+    ).not.toBeNull();
     await act(async () => modifyAppearance?.click());
 
     expect(mocks.goToSettings).toHaveBeenCalledWith({ section: "appearance" });
