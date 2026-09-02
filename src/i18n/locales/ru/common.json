@@ -2382,7 +2382,7 @@
     "selectRow": "Выбрать {{id}}"
   },
   "clientOrigin": {
-    "officialApp": "Официальное приложение",
+    "officialApp": "Приложение",
     "cli": "CLI",
     "thirdParty": "Сторонний"
   }

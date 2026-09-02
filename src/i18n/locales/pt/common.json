@@ -2368,7 +2368,7 @@
     "selectRow": "Selecionar {{id}}"
   },
   "clientOrigin": {
-    "officialApp": "App oficial",
+    "officialApp": "App",
     "cli": "CLI",
     "thirdParty": "De terceiros"
   }

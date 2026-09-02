@@ -2371,7 +2371,7 @@
     "selectRow": "{{id}} を選択"
   },
   "clientOrigin": {
-    "officialApp": "公式アプリ",
+    "officialApp": "アプリ",
     "cli": "CLI",
     "thirdParty": "サードパーティ"
   }

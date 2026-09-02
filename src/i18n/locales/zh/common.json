@@ -2458,7 +2458,7 @@
     "downloadingAndInstalling": "正在下载并安装更新 (v{{version}})…"
   },
   "clientOrigin": {
-    "officialApp": "官方应用",
+    "officialApp": "应用",
     "cli": "命令行",
     "thirdParty": "第三方"
   }

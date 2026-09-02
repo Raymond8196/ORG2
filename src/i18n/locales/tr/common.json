@@ -2373,7 +2373,7 @@
     "selectRow": "{{id}} öğesini seç"
   },
   "clientOrigin": {
-    "officialApp": "Resmî uygulama",
+    "officialApp": "Uygulama",
     "cli": "CLI",
     "thirdParty": "Üçüncü taraf"
   }

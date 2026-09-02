@@ -2371,7 +2371,7 @@
     "selectRow": "Sélectionner {{id}}"
   },
   "clientOrigin": {
-    "officialApp": "App officielle",
+    "officialApp": "App",
     "cli": "CLI",
     "thirdParty": "Tiers"
   }

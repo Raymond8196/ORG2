@@ -2389,7 +2389,7 @@
     "selectRow": "選擇 {{id}}"
   },
   "clientOrigin": {
-    "officialApp": "官方應用",
+    "officialApp": "應用",
     "cli": "命令列",
     "thirdParty": "第三方"
   }

@@ -2529,7 +2529,7 @@
     "downloadingAndInstalling": "Downloading and installing update (v{{version}})…"
   },
   "clientOrigin": {
-    "officialApp": "Official app",
+    "officialApp": "App",
     "cli": "CLI",
     "thirdParty": "Third party"
   }

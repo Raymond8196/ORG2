@@ -2366,7 +2366,7 @@
     "selectRow": "Chọn {{id}}"
   },
   "clientOrigin": {
-    "officialApp": "Ứng dụng chính thức",
+    "officialApp": "Ứng dụng",
     "cli": "CLI",
     "thirdParty": "Bên thứ ba"
   }
