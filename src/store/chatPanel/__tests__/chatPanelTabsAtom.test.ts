@@ -43,7 +43,6 @@ import {
 } from "@src/util/core/state/instrumentedStore";
 
 import {
-  CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
   activateChatPanelTabAtom,
   activeChatPanelTabAtom,
   activeWorkManagementSectionAtom,
@@ -108,7 +107,6 @@ async function loadChatPanelTabAtoms() {
     activeSessionIdAtom,
     addChatPanelLaunchpadTabAtom,
     CHAT_PANEL_CREATE_TARGET,
-    CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
     CHAT_PANEL_SURFACE_KIND,
     chatPanelTabsAtom,
     isChatPanelTabStationAvailable,
@@ -498,21 +496,20 @@ describe("closeWorkItemChatPanelTabAtom", () => {
     } as never);
 
     expect(
-      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom), 1200)
+      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom))
     ).toBe(false);
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
     expect(
       resolveChatPanelMaximizedForLayout(
         store.get(chatPanelMaximizedAtom),
-        store.get(activeChatPanelTabAtom),
-        1200
+        store.get(activeChatPanelTabAtom)
       )
     ).toBe(true);
 
     store.set(activateChatPanelTabAtom, sessionTabId);
 
     expect(
-      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom), 1200)
+      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom))
     ).toBe(true);
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
   });
@@ -601,7 +598,7 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     vi.useRealTimers();
   });
 
-  it("opens Kanban as a singleton wide-only Station tab", async () => {
+  it("opens Kanban as a singleton Station-excluded tab", async () => {
     const {
       activeChatPanelTabAtom,
       chatPanelMaximizedAtom,
@@ -624,17 +621,16 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     ).toHaveLength(1);
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
     expect(
-      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom), 1200)
+      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom))
     ).toBe(false);
     expect(store.get(activeWorkManagementSectionAtom)).toBe(
       WORK_MANAGEMENT_SECTION.KANBAN
     );
   });
 
-  it("guards the Station toggle until Kanban has a wide viewport", async () => {
+  it("keeps the Station toggle disabled for Kanban", async () => {
     const {
       activeChatPanelTabAtom,
-      CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX,
       chatPanelMaximizedAtom,
       isChatPanelTabStationAvailable,
       openWorkManagementChatPanelTabAtom,
@@ -648,38 +644,24 @@ describe("openWorkManagementChatPanelTabAtom", () => {
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
 
     expect(
-      isChatPanelTabStationAvailable(
-        store.get(activeChatPanelTabAtom),
-        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX - 1
-      )
+      isChatPanelTabStationAvailable(store.get(activeChatPanelTabAtom))
     ).toBe(false);
-    expect(
-      store.set(
-        toggleActiveChatPanelMaximizedAtom,
-        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX - 1
-      )
-    ).toBe(false);
+    expect(store.set(toggleActiveChatPanelMaximizedAtom)).toBe(false);
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
 
     // Reconciliation leaves the user's preference untouched; the effective
-    // layout remains full-screen while the viewport is below the threshold.
+    // layout remains full-screen while Kanban owns the workbench.
     store.set(syncActiveChatPanelTabStateAtom);
     expect(store.get(chatPanelMaximizedAtom)).toBe(false);
     expect(
       resolveChatPanelMaximizedForLayout(
         store.get(chatPanelMaximizedAtom),
-        store.get(activeChatPanelTabAtom),
-        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX - 1
+        store.get(activeChatPanelTabAtom)
       )
     ).toBe(true);
 
-    expect(
-      store.set(
-        toggleActiveChatPanelMaximizedAtom,
-        CHAT_PANEL_STATION_WIDE_VIEWPORT_MIN_PX
-      )
-    ).toBe(true);
-    expect(store.get(chatPanelMaximizedAtom)).toBe(true);
+    expect(store.set(toggleActiveChatPanelMaximizedAtom)).toBe(false);
+    expect(store.get(chatPanelMaximizedAtom)).toBe(false);
   });
 
   it("restores the session's prior full-screen state after leaving Kanban", async () => {
@@ -978,7 +960,7 @@ describe("ChatPanel navigation tabs", () => {
     ).toHaveLength(1);
   });
 
-  it("opens Runtime as its own singleton wide-only Station tab", async () => {
+  it("opens Runtime as its own singleton Station-excluded tab", async () => {
     const {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,
@@ -1004,7 +986,7 @@ describe("ChatPanel navigation tabs", () => {
     ).toHaveLength(1);
   });
 
-  it("opens Team Inbox as its own singleton wide-only Station tab", async () => {
+  it("opens Team Inbox as its own singleton Station-excluded tab", async () => {
     const {
       chatPanelMaximizedAtom,
       chatPanelTabsAtom,

@@ -1001,6 +1001,7 @@
     "fullScreenChat": "Skup panel czatu (ukryj Workstation)",
     "maximizeChatPanel": "Maksymalizuj panel czatu",
     "showWorkstation": "Pokaż Workstation",
+    "workstationUnavailableForPage": "Workstation jest niedostępny na tej stronie",
     "hideWorkstation": "Ukryj Workstation",
     "restoreSplitView": "Pokaż Workstation",
     "shrinkToWorkstation": "Zmniejsz panel czatu (pokaż Workstation)",

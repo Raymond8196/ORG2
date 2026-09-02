@@ -1046,6 +1046,7 @@
     "fullScreenChat": "聚焦聊天面板（隐藏工作站）",
     "maximizeChatPanel": "最大化聊天面板",
     "showWorkstation": "显示工作站",
+    "workstationUnavailableForPage": "此页面不支持使用工作站",
     "hideWorkstation": "隐藏工作站",
     "restoreSplitView": "显示工作站",
     "shrinkToWorkstation": "缩小聊天面板（显示工作站）",

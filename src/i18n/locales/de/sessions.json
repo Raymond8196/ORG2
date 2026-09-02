@@ -998,6 +998,7 @@
     "fullScreenChat": "Chat-Panel fokussieren (Workstation ausblenden)",
     "maximizeChatPanel": "Chat-Panel maximieren",
     "showWorkstation": "Workstation anzeigen",
+    "workstationUnavailableForPage": "Workstation ist auf dieser Seite nicht verfügbar",
     "hideWorkstation": "Workstation ausblenden",
     "restoreSplitView": "Workstation anzeigen",
     "shrinkToWorkstation": "Chat-Panel verkleinern (Workstation anzeigen)",

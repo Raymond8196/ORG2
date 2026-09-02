@@ -997,6 +997,7 @@
     "fullScreenChat": "Tập trung bảng chat (ẩn Workstation)",
     "maximizeChatPanel": "Phóng to bảng chat",
     "showWorkstation": "Hiện Workstation",
+    "workstationUnavailableForPage": "Workstation không khả dụng trên trang này",
     "hideWorkstation": "Ẩn Workstation",
     "restoreSplitView": "Hiện Workstation",
     "shrinkToWorkstation": "Thu nhỏ bảng chat (hiện Workstation)",

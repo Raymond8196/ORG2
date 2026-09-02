@@ -1004,6 +1004,7 @@
     "fullScreenChat": "Фокус на панели чата (скрыть Workstation)",
     "maximizeChatPanel": "Развернуть панель чата",
     "showWorkstation": "Показать Workstation",
+    "workstationUnavailableForPage": "Workstation недоступна на этой странице",
     "hideWorkstation": "Скрыть Workstation",
     "restoreSplitView": "Показать Workstation",
     "shrinkToWorkstation": "Свернуть панель чата (показать Workstation)",

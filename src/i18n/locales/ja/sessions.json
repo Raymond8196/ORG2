@@ -999,6 +999,7 @@
     "fullScreenChat": "Chat パネルにフォーカス（Workstation を非表示）",
     "maximizeChatPanel": "Chat パネルを最大化",
     "showWorkstation": "Workstation を表示",
+    "workstationUnavailableForPage": "このページでは Workstation を利用できません",
     "hideWorkstation": "Workstation を非表示",
     "restoreSplitView": "Workstation を表示",
     "shrinkToWorkstation": "Chat パネルを縮小（Workstation を表示）",

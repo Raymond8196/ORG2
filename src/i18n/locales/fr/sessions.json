@@ -1000,6 +1000,7 @@
     "fullScreenChat": "Mettre le chat au premier plan (masquer le Workstation)",
     "maximizeChatPanel": "Agrandir le panneau de chat",
     "showWorkstation": "Afficher le Workstation",
+    "workstationUnavailableForPage": "Le Workstation n’est pas disponible sur cette page",
     "hideWorkstation": "Masquer le Workstation",
     "restoreSplitView": "Afficher le Workstation",
     "shrinkToWorkstation": "Réduire le chat (afficher le Workstation)",
