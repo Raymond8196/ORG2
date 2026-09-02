@@ -39,6 +39,15 @@ export type FocusedChatRailItem = {
   /** Working-tree +/- shown after the label (the Review row). */
   additions?: number;
   deletions?: number;
+  /**
+   * Resolve live working-tree totals while this row is mounted. Collapsed
+   * workspace groups do not mount their rows, so secondary repositories stay
+   * demand-driven instead of opening background subscriptions eagerly.
+   */
+  workingTreeRepo?: {
+    repoId: string;
+    repoPath: string;
+  };
   external?: boolean;
   status?: {
     label: string;
