@@ -302,9 +302,15 @@ describe("SettingsSearchDropdown", () => {
     );
     expect(input).not.toBeNull();
     expect(
+      input?.closest(".input-wrapper")?.classList.contains("input-size-default")
+    ).toBe(true);
+    expect(input?.closest(".input-inner")?.classList.contains("bg-bg-2")).toBe(
+      true
+    );
+    expect(
       input
         ?.closest(".input-wrapper")
-        ?.classList.contains("input-sidebar-surface")
+        ?.classList.contains("input-sidebar-search")
     ).toBe(true);
 
     await act(async () => {

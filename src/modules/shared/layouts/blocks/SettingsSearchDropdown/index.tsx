@@ -214,8 +214,8 @@ function SettingsSearchDropdown<TItem extends SettingsSearchDropdownItem>({
         {isPersistentSearch ? (
           <Input
             type="search"
-            size="small"
-            className="input-sidebar-surface"
+            size="default"
+            className="input-sidebar-search"
             value={searchQuery}
             onChange={handleSearchChange}
             onKeyDown={handleSearchKeyDown}
