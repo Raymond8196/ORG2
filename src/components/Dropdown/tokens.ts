@@ -459,9 +459,18 @@ export const DROPDOWN_CLASSES = {
     DROPDOWN_PANEL.paddingClass,
   ].join(" "),
 
-  /** Section / group label inside a dropdown (non-interactive). */
-  sectionLabel:
+  /**
+   * Section / group label inside a dropdown (non-interactive). Labels pin to
+   * the top of their nearest scrolling menu until the next section replaces
+   * them, so the current group stays identifiable in long lists.
+   */
+  sectionLabel: [
+    "sticky",
+    "-top-1",
+    "z-10",
+    DROPDOWN_PANEL.bgClass,
     "px-1.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-text-3",
+  ].join(" "),
 
   /** Bordered dropdown section wrapper for grouped controls above/between lists. */
   sectionContainer: [
