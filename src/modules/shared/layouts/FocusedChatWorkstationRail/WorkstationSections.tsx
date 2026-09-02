@@ -14,6 +14,7 @@ import {
 } from "@src/icons";
 
 import { EnvironmentKindRow } from "./EnvironmentKindRow";
+import { OwnerIdentityRow } from "./OwnerIdentityRow";
 import { WorkspaceContextRow } from "./WorkspaceContextRow";
 import { WorkstationItemRow } from "./WorkstationItemRow";
 import type { WorkstationSectionsProps } from "./types";
@@ -91,8 +92,15 @@ export function WorkstationSections({
               (section.environment.repoName ||
                 section.environment.branchName ||
                 section.environment.worktreeBranchName ||
-                section.environment.workItem) && (
+                section.environment.workItem ||
+                section.environment.owner) && (
                 <>
+                  {section.environment.owner && (
+                    <OwnerIdentityRow
+                      compact={compact}
+                      owner={section.environment.owner}
+                    />
+                  )}
                   {section.environment.environmentKind && (
                     <EnvironmentKindRow
                       compact={compact}

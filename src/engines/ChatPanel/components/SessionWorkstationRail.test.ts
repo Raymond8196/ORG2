@@ -93,6 +93,9 @@ describe("resolveSessionWorkstationContext", () => {
           orgId: "org-1",
           sourceSessionId: "remote-session-1",
           sourceEndpointUrl: "https://cloud.example.com",
+          ownerMemberId: "member-alice",
+          ownerDisplayName: "Alice",
+          ownerAvatarUrl: "https://example.com/alice.png",
           epoch: 1,
           seq: 1,
           count: 10,
@@ -105,17 +108,30 @@ describe("resolveSessionWorkstationContext", () => {
       branchName: "feat/cloud-session",
       worktreeBranchName: undefined,
       worktreePath: undefined,
+      owner: {
+        identityId: "member-alice",
+        displayName: "Alice",
+        avatarUrl: "https://example.com/alice.png",
+      },
     });
   });
 
   it("uses safe cloud labels before a non-local session has been downloaded", () => {
     expect(
-      resolveSessionWorkstationContext(null, {
-        repoName: "ORGII",
-        branchName: "develop",
-        baseBranchName: "main",
-        worktreeBranchName: "agent/remote-session",
-      })
+      resolveSessionWorkstationContext(
+        null,
+        {
+          repoName: "ORGII",
+          branchName: "develop",
+          baseBranchName: "main",
+          worktreeBranchName: "agent/remote-session",
+        },
+        {
+          identityId: "user-alice",
+          displayName: "Alice",
+          avatarUrl: "https://example.com/alice.png",
+        }
+      )
     ).toMatchObject({
       environmentKind: "cloud",
       repoName: "ORGII",
@@ -123,6 +139,35 @@ describe("resolveSessionWorkstationContext", () => {
       branchName: "develop",
       worktreeBranchName: "remote-session",
       worktreePath: undefined,
+      owner: {
+        identityId: "user-alice",
+        displayName: "Alice",
+        avatarUrl: "https://example.com/alice.png",
+      },
+    });
+  });
+
+  it("prefers current sidebar owner presentation during a replay refresh", () => {
+    expect(
+      resolveSessionWorkstationContext(
+        {
+          importedFrom: {
+            ownerMemberId: "member-alice",
+            ownerDisplayName: "Old Alice",
+            ownerAvatarUrl: "https://example.com/old-alice.png",
+          },
+        } as Session,
+        { repoName: "ORGII" },
+        {
+          identityId: "user-alice",
+          displayName: "Alice",
+          avatarUrl: "https://example.com/alice.png",
+        }
+      ).owner
+    ).toEqual({
+      identityId: "user-alice",
+      displayName: "Alice",
+      avatarUrl: "https://example.com/alice.png",
     });
   });
 

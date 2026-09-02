@@ -104,6 +104,13 @@ export interface FocusedChatSessionContext {
    * (no switcher wired yet).
    */
   environmentKind?: "local" | "cloud";
+  /** Cloud source owner, projected from the same metadata as sidebar cards. */
+  owner?: {
+    /** User id before import; persisted membership id after import. */
+    identityId: string;
+    displayName?: string;
+    avatarUrl?: string;
+  };
   /** Switcher action on the branch row (chevron affordance + click). */
   branchAction?: {
     /** Switcher popup currently open (row highlights, chevron flips up). */
