@@ -18,6 +18,7 @@ import {
   isChatPanelTuiSessionId,
 } from "@src/util/ui/terminal/chatPanelTuiSessionId";
 
+import type { SidebarTabDisposition } from "../sidebarTabNavigation";
 import { loadUnifiedReadyCategories } from "../useSessionMenuItems/paginationHelpers";
 import { useWorkstationSidebarHandlers } from "../useWorkstationSidebarHandlers";
 import {
@@ -30,7 +31,10 @@ type SidebarHandlersParams = Parameters<
 >[0];
 
 interface UseWorkstationSidebarSessionInteractionHandlersParams {
-  handleCloudSessionItemClick: (item: NavigationMenuItem) => boolean;
+  handleCloudSessionItemClick: (
+    item: NavigationMenuItem,
+    disposition: SidebarTabDisposition
+  ) => boolean;
   cloudMySessionsVisibleCount: number;
   cloudMyPaginationScopeKey: string;
   setCloudMyPagination: (state: {
@@ -101,8 +105,8 @@ export function useWorkstationSidebarSessionInteractionHandlers({
   setExpandedSubagentParentIds,
 }: UseWorkstationSidebarSessionInteractionHandlersParams) {
   const handleCloudSidebarItemClick = useCallback(
-    (item: NavigationMenuItem): boolean => {
-      if (handleCloudSessionItemClick(item)) return true;
+    (item: NavigationMenuItem, disposition: SidebarTabDisposition): boolean => {
+      if (handleCloudSessionItemClick(item, disposition)) return true;
       if (item.id !== CLOUD_MY_SESSIONS_LOAD_MORE_ID) return false;
 
       const nextVisibleCount =

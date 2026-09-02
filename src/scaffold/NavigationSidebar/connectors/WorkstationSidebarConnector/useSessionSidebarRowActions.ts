@@ -20,6 +20,7 @@ interface UseSessionSidebarRowActionsParams {
   rename: ContextMenuParams["rename"];
   handleDeleteSession: ContextMenuParams["handleDeleteSession"];
   deleteSessionCreatorDraft: DecorateRowActionsParams["deleteSessionCreatorDraft"];
+  handleOpenDraftInNewTab: ContextMenuParams["handleOpenDraftInNewTab"];
   handleExportMarkdown: ContextMenuParams["handleExportMarkdown"];
   handleOpenInNewTab: ContextMenuParams["handleOpenInNewTab"];
   handleOpenInMyStation: ContextMenuParams["handleOpenInMyStation"];
@@ -42,6 +43,7 @@ export function useSessionSidebarRowActions({
   rename,
   handleDeleteSession,
   deleteSessionCreatorDraft,
+  handleOpenDraftInNewTab,
   handleExportMarkdown,
   handleOpenInNewTab,
   handleOpenInMyStation,
@@ -68,6 +70,7 @@ export function useSessionSidebarRowActions({
     rename,
     handleDeleteSession,
     handleDeleteDraft: deleteSessionCreatorDraft,
+    handleOpenDraftInNewTab,
     handleExportMarkdown,
     handleOpenInNewTab,
     handleOpenInMyStation,

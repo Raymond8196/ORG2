@@ -121,6 +121,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
     openRuntimeTab,
     openTeamInboxTab,
     closeAndDestroyChatPanelTab,
+    closeOtherThanActiveChatPanelTabs,
   } = useWorkstationSidebarChatPanelAtoms();
 
   const { openSession } = useSessionView();
@@ -253,7 +254,7 @@ export const WorkstationSidebarConnector: React.FC = () => {
 
   const openCloudSessionAtDestination = useCallback(
     (
-      destination: "new-tab" | "my-station",
+      destination: "replace-all" | "new-tab" | "my-station",
       options: { sessionId: string; title: string }
     ) => {
       setStationMode("my-station");
@@ -271,6 +272,16 @@ export const WorkstationSidebarConnector: React.FC = () => {
         return;
       }
 
+      if (destination === "replace-all") {
+        navigateChatPanel({ kind: CHAT_PANEL_SURFACE_KIND.SESSION });
+        openOrReplaceSessionInChatPanelTab({
+          sessionId: options.sessionId,
+          sessionName: options.title,
+        });
+        void closeOtherThanActiveChatPanelTabs();
+        return;
+      }
+
       openSessionInWorkstation({
         sessionId: options.sessionId,
         title: options.title,
@@ -282,6 +293,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
       navigateChatPanel,
       openSessionInNewChatTab,
       openSessionInWorkstation,
+      openOrReplaceSessionInChatPanelTab,
+      closeOtherThanActiveChatPanelTabs,
       setStationChatVisible,
       setStationMode,
     ]
@@ -436,6 +449,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     rename,
     handleDeleteSession,
     deleteSessionCreatorDraft,
+    handleOpenDraftInNewTab: (item) =>
+      handleMenuItemClick(item.key, item, "new-tab"),
     handleExportMarkdown,
     handleOpenInNewTab,
     handleOpenInMyStation,
@@ -549,6 +564,8 @@ export const WorkstationSidebarConnector: React.FC = () => {
     handleMenuItemClick,
     handleProjectsMenuItemClick: workItems.onMenuItemClick,
     handleOpenInNewTab,
+    closeOtherThanActiveChatPanelTabs,
+    tCommon,
   });
 
   const { isLoading, sidebarBottomRightActions, resolvedSelectedMenuItemId } =

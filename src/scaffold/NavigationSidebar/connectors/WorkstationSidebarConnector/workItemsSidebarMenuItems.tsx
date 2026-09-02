@@ -61,6 +61,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       icon: GitPullRequestIcon,
       iconName: "git-pull-request",
       dataTestId: "sidebar-work-items-github-prs",
+      opensChatPanelTab: true,
     },
     {
       id: WORK_ITEMS_GITHUB_ISSUES_MENU_ITEM_ID,
@@ -69,6 +70,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       icon: CircleDotIcon,
       iconName: "circle-dot",
       dataTestId: "sidebar-work-items-github-issues",
+      opensChatPanelTab: true,
     },
     {
       id: WORK_ITEMS_MENU_ITEM_ID,
@@ -77,6 +79,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       icon: ListTodoIcon,
       iconName: "list-todo",
       dataTestId: "sidebar-work-items",
+      opensChatPanelTab: true,
     },
     {
       id: WORK_ITEMS_PROJECTS_MENU_ITEM_ID,
@@ -85,6 +88,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       icon: DeliveryBox01Icon,
       iconName: "box",
       dataTestId: "sidebar-work-items-projects",
+      opensChatPanelTab: true,
     },
     {
       id: WORK_ITEMS_RUNS_MENU_ITEM_ID,
@@ -93,6 +97,7 @@ export function buildWorkItemsSidebarMenuItems(labels: {
       icon: PlayCircleIcon,
       iconName: "play-circle",
       dataTestId: "sidebar-work-items-runs",
+      opensChatPanelTab: true,
     },
   ];
 }

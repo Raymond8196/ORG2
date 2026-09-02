@@ -12,6 +12,7 @@ import {
   activateChatPanelTabAtom,
   activeWorkManagementSectionAtom,
   closeAndDestroyChatPanelTabAtom,
+  closeOtherThanActiveChatPanelTabsAtom,
   openOrFocusChatPanelStartPageTabAtom,
   openOrReplaceSessionInChatPanelTabAtom,
   openOrganizationInChatPanelTabAtom,
@@ -61,6 +62,9 @@ export function useWorkstationSidebarChatPanelAtoms() {
   const closeAndDestroyChatPanelTab = useSetAtom(
     closeAndDestroyChatPanelTabAtom
   );
+  const closeOtherThanActiveChatPanelTabs = useSetAtom(
+    closeOtherThanActiveChatPanelTabsAtom
+  );
 
   return {
     chatPanelContentMode,
@@ -84,5 +88,6 @@ export function useWorkstationSidebarChatPanelAtoms() {
     openRuntimeTab,
     openTeamInboxTab,
     closeAndDestroyChatPanelTab,
+    closeOtherThanActiveChatPanelTabs,
   };
 }

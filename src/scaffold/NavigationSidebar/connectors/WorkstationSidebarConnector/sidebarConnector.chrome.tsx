@@ -12,6 +12,7 @@ import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/compone
 import SidebarOrgSelector from "../SidebarOrgSelector";
 import { useWorkstationSidebarMenuItemRouting } from "./sidebarConnector.menuItemRouting";
 import { useWorkstationSidebarOrgSelectorActions } from "./sidebarConnector.orgSelectorActions";
+import { useSidebarTabContextMenu } from "./sidebarTabContextMenu";
 import type { WorkstationSidebarKey } from "./types";
 import type { useWorkItemsSidebarSurface } from "./useWorkItemsSidebarSurface";
 
@@ -63,6 +64,8 @@ interface UseWorkstationSidebarChromeParams {
   handleMenuItemClick: MenuItemRoutingParams["handleMenuItemClick"];
   handleProjectsMenuItemClick: MenuItemRoutingParams["handleProjectsMenuItemClick"];
   handleOpenInNewTab: MenuItemRoutingParams["handleOpenInNewTab"];
+  closeOtherThanActiveChatPanelTabs: MenuItemRoutingParams["closeOtherThanActiveChatPanelTabs"];
+  tCommon: (key: string, defaultValue?: string) => string;
 }
 
 export function useWorkstationSidebarChrome({
@@ -97,6 +100,8 @@ export function useWorkstationSidebarChrome({
   handleMenuItemClick,
   handleProjectsMenuItemClick,
   handleOpenInNewTab,
+  closeOtherThanActiveChatPanelTabs,
+  tCommon,
 }: UseWorkstationSidebarChromeParams) {
   const {
     handleOpenSpotlight,
@@ -116,7 +121,9 @@ export function useWorkstationSidebarChrome({
   const {
     renderWorkstationMenuItemWrapper,
     handleSessionMenuItemClick,
+    handleSessionMenuItemOpenInNewTab,
     handleProjectsScopeMenuItemClick,
+    handleProjectsScopeMenuItemOpenInNewTab,
   } = useWorkstationSidebarMenuItemRouting({
     sessionMap,
     cloudRemoteRowMap,
@@ -133,6 +140,7 @@ export function useWorkstationSidebarChrome({
     workItemsContentVisible,
     handleProjectsMenuItemClick,
     handleOpenInNewTab,
+    closeOtherThanActiveChatPanelTabs,
   });
 
   const sidebarOrgSelector = (
@@ -155,10 +163,16 @@ export function useWorkstationSidebarChrome({
       ? handleProjectsScopeMenuItemClick
       : handleSessionMenuItemClick;
 
-  const resolvedMenuItemContextMenu =
-    activeSidebarKey === "workstation" && !workItemsContentVisible
-      ? handleMenuItemContextMenu
-      : undefined;
+  const openMenuItemInNewTab =
+    activeSidebarKey === "projects"
+      ? handleProjectsScopeMenuItemOpenInNewTab
+      : handleSessionMenuItemOpenInNewTab;
+  const resolvedMenuItemContextMenu = useSidebarTabContextMenu({
+    sessionMap,
+    fallback: handleMenuItemContextMenu,
+    onOpenInNewTab: openMenuItemInNewTab,
+    openInNewTabLabel: tCommon("actions.openInNewTab", "Open in New Tab"),
+  });
   const resolvedRenderMenuItemWrapper =
     activeSidebarKey === "projects" || workItemsContentVisible
       ? renderProjectsMenuItemWrapper

@@ -27,6 +27,7 @@ interface UseWorkstationSidebarContextMenuParams {
   rename: UseRenameSessionModalResult;
   handleDeleteSession: (sessionId: string) => Promise<void>;
   handleDeleteDraft: (draftId: string) => void;
+  handleOpenDraftInNewTab: (item: NavigationMenuItem) => void;
   handleExportMarkdown: (sessionId: string) => Promise<void>;
   handleOpenInNewTab: (sessionId: string) => void;
   handleOpenInMyStation: (sessionId: string) => void;
@@ -64,6 +65,7 @@ export function useWorkstationSidebarContextMenu({
   rename,
   handleDeleteSession,
   handleDeleteDraft,
+  handleOpenDraftInNewTab,
   handleExportMarkdown,
   handleOpenInNewTab,
   handleOpenInMyStation,
@@ -93,6 +95,10 @@ export function useWorkstationSidebarContextMenu({
         const draftId = getDraftIdFromMenuItemId(item.id);
         if (!draftId) return [];
         return [
+          {
+            text: tCommon("actions.openInNewTab", "Open in New Tab"),
+            action: () => handleOpenDraftInNewTab(item),
+          },
           {
             text: tCommon("sessions:sidebar.removeDraft", "Remove draft"),
             action: () => handleDeleteDraft(draftId),
@@ -195,6 +201,7 @@ export function useWorkstationSidebarContextMenu({
       rename,
       handleDeleteSession,
       handleDeleteDraft,
+      handleOpenDraftInNewTab,
       handleExportMarkdown,
       handleOpenInNewTab,
       handleOpenInMyStation,

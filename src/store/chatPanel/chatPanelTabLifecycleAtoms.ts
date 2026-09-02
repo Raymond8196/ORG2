@@ -461,3 +461,20 @@ export const closeOtherChatPanelTabsAtom = atom(
   }
 );
 closeOtherChatPanelTabsAtom.debugLabel = "closeOtherChatPanelTabs";
+
+/**
+ * Keep whichever chat-panel tab is active and close every sibling.
+ *
+ * Sidebar navigation uses this after opening or focusing its destination so a
+ * plain row click behaves like full-page navigation. Explicit new-tab actions
+ * skip this mutation and preserve the existing strip.
+ */
+export const closeOtherThanActiveChatPanelTabsAtom = atom(
+  null,
+  (get, set): Promise<void> => {
+    const activeTabId = get(chatPanelTabsAtom).activeTabId;
+    return set(closeOtherChatPanelTabsAtom, activeTabId);
+  }
+);
+closeOtherThanActiveChatPanelTabsAtom.debugLabel =
+  "closeOtherThanActiveChatPanelTabs";

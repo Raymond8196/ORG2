@@ -94,6 +94,7 @@ export function buildProjectOverviewRow(
     icon: DeliveryBox01Icon,
     iconName: "box",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
+    opensChatPanelTab: true,
     dragPayload: {
       path: projectSlug,
       name: projectName ?? projectSlug,
@@ -137,6 +138,7 @@ export function buildProjectRow(
     icon: DeliveryBox01Icon,
     iconName: "box",
     dataTestId: `sidebar-project-overview-${projectSlug}`,
+    opensChatPanelTab: true,
     workingIndicator: pendingSync ? pendingSyncIndicator(t) : undefined,
     dragPayload: {
       path: projectSlug,
@@ -182,6 +184,7 @@ export function buildWorkItemRow(
       statusIcon
     ),
     dataTestId: `sidebar-work-item-${workItem.id}`,
+    opensChatPanelTab: true,
     workingIndicator: pendingSync ? pendingSyncIndicator(t) : undefined,
     showMoreActions: Boolean(linkedSessionExpansion),
     rowActions: linkedSessionExpansion

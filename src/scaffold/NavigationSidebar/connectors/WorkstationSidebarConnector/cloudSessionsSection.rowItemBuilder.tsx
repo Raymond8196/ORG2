@@ -323,6 +323,7 @@ export function useCloudSessionRowItemBuilder({
         label: displayTitle,
         searchText: `${displayTitle} ${row.ownerDisplayName}`,
         dataTestId: `sidebar-cloud-session-item-${bareSessionId}`,
+        opensChatPanelTab: true,
         pinned: isPinned,
         // Prefer the source/agent brand used by regular sessions. Cloud
         // scope is context, not the session's icon identity.

@@ -18,15 +18,6 @@ import {
   chatPanelStartPageOpenAtom,
 } from "@src/store/ui/chatPanelAtom";
 import {
-  kanbanReplayBoundsAtom,
-  kanbanReplayCursorAtom,
-  kanbanReplayEventsAtom,
-  kanbanReplayModeAtom,
-  kanbanReplayPlayingAtom,
-  kanbanReplaySpeedAtom,
-} from "@src/store/ui/kanbanReplayAtom";
-import type { KanbanReplayEvent } from "@src/store/ui/kanbanReplayAtom";
-import {
   kanbanDetailPanelVisibleAtom,
   kanbanSelectedTaskIdAtom,
 } from "@src/store/ui/kanbanViewStateAtom";
@@ -51,6 +42,7 @@ import {
   chatPanelTabsAtom,
   closeChatPanelTabAtom,
   closeOtherChatPanelTabsAtom,
+  closeOtherThanActiveChatPanelTabsAtom,
   closeProjectOrgChatPanelTabsAtom,
   closeWorkItemChatPanelTabAtom,
   isChatPanelTabStationAvailable,
@@ -117,16 +109,11 @@ async function loadChatPanelTabAtoms() {
     chatPanelStartPageOpenAtom,
     closeChatPanelTabAtom,
     closeOtherChatPanelTabsAtom,
+    closeOtherThanActiveChatPanelTabsAtom,
     closeProjectOrgChatPanelTabsAtom,
     closeWorkItemChatPanelTabAtom,
     createChatPanelTerminalAtom,
     kanbanDetailPanelVisibleAtom,
-    kanbanReplayBoundsAtom,
-    kanbanReplayCursorAtom,
-    kanbanReplayEventsAtom,
-    kanbanReplayModeAtom,
-    kanbanReplayPlayingAtom,
-    kanbanReplaySpeedAtom,
     kanbanSelectedTaskIdAtom,
     normalizePersistedChatPanelTabsState,
     openOrganizationInChatPanelTabAtom,
@@ -255,12 +242,6 @@ describe("closeChatPanelTabAtom", () => {
       chatPanelTabsAtom,
       closeChatPanelTabAtom,
       kanbanDetailPanelVisibleAtom,
-      kanbanReplayBoundsAtom,
-      kanbanReplayCursorAtom,
-      kanbanReplayEventsAtom,
-      kanbanReplayModeAtom,
-      kanbanReplayPlayingAtom,
-      kanbanReplaySpeedAtom,
       kanbanSelectedTaskIdAtom,
       openWorkManagementChatPanelTabAtom,
       WORK_MANAGEMENT_PROJECTS_VIEW,
@@ -273,10 +254,6 @@ describe("closeChatPanelTabAtom", () => {
       openWorkManagementChatPanelTabAtom,
       {}
     );
-    const retainedEvents = [
-      { id: "session-1:created", ts: 1, kind: "created", task: {} },
-    ] as unknown as KanbanReplayEvent[];
-
     store.set(workManagementCreatorVisibleAtom, true);
     store.set(
       workManagementProjectsViewAtom,
@@ -284,12 +261,6 @@ describe("closeChatPanelTabAtom", () => {
     );
     store.set(kanbanSelectedTaskIdAtom, "session-1");
     store.set(kanbanDetailPanelVisibleAtom, true);
-    store.set(kanbanReplayCursorAtom, 100);
-    store.set(kanbanReplayModeAtom, "replay");
-    store.set(kanbanReplayBoundsAtom, { start: 1, end: 100 });
-    store.set(kanbanReplayEventsAtom, retainedEvents);
-    store.set(kanbanReplayPlayingAtom, true);
-    store.set(kanbanReplaySpeedAtom, 4);
     store.set(workstationTabHeaderAtomByHost.workManagement, {
       trailing: "retained header",
     });
@@ -307,12 +278,6 @@ describe("closeChatPanelTabAtom", () => {
     );
     expect(store.get(kanbanSelectedTaskIdAtom)).toBeNull();
     expect(store.get(kanbanDetailPanelVisibleAtom)).toBe(false);
-    expect(store.get(kanbanReplayCursorAtom)).toBeNull();
-    expect(store.get(kanbanReplayModeAtom)).toBe("follow");
-    expect(store.get(kanbanReplayBoundsAtom)).toEqual({ start: 0, end: 0 });
-    expect(store.get(kanbanReplayEventsAtom)).toEqual([]);
-    expect(store.get(kanbanReplayPlayingAtom)).toBe(false);
-    expect(store.get(kanbanReplaySpeedAtom)).toBe(1);
     expect(store.get(workstationTabHeaderAtomByHost.workManagement)).toBeNull();
   });
 
@@ -386,6 +351,25 @@ describe("closeOtherChatPanelTabsAtom", () => {
         .get(terminalSessionsAtom)
         .some((session) => session.id === terminalSessionId)
     ).toBe(false);
+  });
+
+  it("lets sidebar navigation retain only the newly active destination", async () => {
+    const {
+      chatPanelTabsAtom,
+      closeOtherThanActiveChatPanelTabsAtom,
+      openTeamInboxInChatPanelTabAtom,
+      store,
+    } = await loadChatPanelTabAtoms();
+
+    const inboxTabId = store.set(openTeamInboxInChatPanelTabAtom, "Inbox");
+    expect(store.get(chatPanelTabsAtom).tabs).toHaveLength(2);
+
+    await store.set(closeOtherThanActiveChatPanelTabsAtom);
+
+    expect(store.get(chatPanelTabsAtom)).toMatchObject({
+      tabs: [{ id: inboxTabId, type: "team-inbox" }],
+      activeTabId: inboxTabId,
+    });
   });
 });
 
