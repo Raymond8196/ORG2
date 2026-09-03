@@ -37,10 +37,7 @@ import {
   type WorkManagementDataset,
   resolveWorkManagementDataset,
 } from "./workManagementDataset";
-import {
-  WorkManagementSplitHeaderContext,
-  shouldHideWorkManagementHostHeader,
-} from "./workManagementSplitHeaderContext";
+import { WorkManagementSplitHeaderContext } from "./workManagementSplitHeaderContext";
 
 const TaskKanban = React.lazy(() => import("@src/features/TaskKanban"));
 const GitHubWorkItemsSurface = React.lazy(
@@ -178,10 +175,7 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   // WorkStation embed: publish the pane's controls into the shared 36px bar.
   // Work Management has no shell-owned sidebar, so its content uses the bar's
   // standard left inset without reserving an empty toggle/action gutter.
-  const publishedHeaderHidden = shouldHideWorkManagementHostHeader(
-    hasTabBar,
-    headerSlots?.hidden ?? false
-  );
+  const publishedHeaderHidden = hasTabBar && (headerSlots?.hidden ?? false);
   const embeddedHeaderContent = React.useMemo(
     () => ({
       content: headerPrimaryContent,
@@ -248,10 +242,9 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   const splitHeaderContextValue = React.useMemo(
     () => ({
       hasTabBar,
-      datasetControl: headerLeadingControl,
       splitDatasetControl,
     }),
-    [hasTabBar, headerLeadingControl, splitDatasetControl]
+    [hasTabBar, splitDatasetControl]
   );
 
   return (

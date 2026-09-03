@@ -208,8 +208,7 @@ export function GitHubWorkItemsView({
   onCreateIssue,
 }: GitHubWorkItemsViewProps): React.ReactNode {
   const { t } = useTranslation(["sessions", "common"]);
-  const { hasTabBar, datasetControl, splitDatasetControl } =
-    useWorkManagementSplitHeader();
+  const { hasTabBar, splitDatasetControl } = useWorkManagementSplitHeader();
   const [listFullscreen, setListFullscreen] = useState(false);
   const activeState =
     scope === GITHUB_QUERY_SCOPE.PR &&
@@ -323,15 +322,14 @@ export function GitHubWorkItemsView({
   // A visible tab row lets the split own two compact left-column rows. If the
   // host folds that row away, retain the single published header at the top.
   const useSplitListHeader = hasTabBar && !listFullscreen;
-  const splitHeaderDatasetControl = splitDatasetControl ?? datasetControl;
   const splitListHeader = useMemo(
     () =>
       useSplitListHeader ? (
         <SplitListHeader
           primary={
             <div className="flex min-w-0 flex-1 items-center gap-px">
-              {splitHeaderDatasetControl}
-              {splitHeaderDatasetControl ? (
+              {splitDatasetControl}
+              {splitDatasetControl ? (
                 <HeaderSectionSeparator className="mx-0.5" />
               ) : null}
               {repositoryHeaderContent}
@@ -357,7 +355,7 @@ export function GitHubWorkItemsView({
       listFullscreen,
       repositoryHeaderContent,
       sharedHeaderControlsProps,
-      splitHeaderDatasetControl,
+      splitDatasetControl,
       useSplitListHeader,
     ]
   );

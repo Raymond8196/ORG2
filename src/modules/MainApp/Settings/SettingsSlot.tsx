@@ -184,11 +184,9 @@ const SettingsSlotIntegrationsBody: React.FC = () => {
   const content = hasFullPageDetail ? (
     <SplitViewLayout
       className="settings-page absolute inset-0 overflow-hidden"
-      collapsible={true}
       listWidth={300}
       minListWidth={220}
       maxListWidth={400}
-      resizable={true}
       listContent={<IntegrationsPageListColumn {...listColumnProps} />}
       mainContent={<IntegrationsDetailPanel {...detailPanelProps} />}
     />

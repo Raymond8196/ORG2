@@ -146,7 +146,7 @@ function withTabBarHost(child: React.ReactNode): React.ReactElement {
     {
       value: {
         hasTabBar: true,
-        datasetControl: React.createElement(
+        splitDatasetControl: React.createElement(
           "button",
           { "data-testid": "work-dataset-github" },
           "GitHub"
@@ -407,7 +407,7 @@ describe("GitHubWorkItemsView pull requests", () => {
         {
           value: {
             hasTabBar: true,
-            datasetControl: React.createElement(
+            splitDatasetControl: React.createElement(
               "button",
               { "data-testid": "work-dataset-reviews" },
               "GitHub PRs"
@@ -458,7 +458,7 @@ describe("GitHubWorkItemsView pull requests", () => {
               {
                 value: {
                   hasTabBar: false,
-                  datasetControl: React.createElement("button", null, "GitHub"),
+                  splitDatasetControl: null,
                 },
               },
               React.createElement(GitHubWorkItemsView, {

@@ -85,9 +85,7 @@ const WorkManagementProjectsSurface: React.FC<{
   detailHost: WorkManagementDetailHost;
 }> = memo(({ detailHost }) => {
   const { t } = useTranslation("projects");
-  const { hasTabBar, datasetControl, splitDatasetControl } =
-    useWorkManagementSplitHeader();
-  const splitHeaderDatasetControl = splitDatasetControl ?? datasetControl;
+  const { hasTabBar, splitDatasetControl } = useWorkManagementSplitHeader();
   const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
     workManagementProjectsViewAtom
   );
@@ -288,7 +286,7 @@ const WorkManagementProjectsSurface: React.FC<{
           isActive
           workStationTabId="work-management-projects"
           workstationHeaderHost="workManagement"
-          splitHeaderLeading={hasTabBar ? splitHeaderDatasetControl : undefined}
+          splitHeaderLeading={hasTabBar ? splitDatasetControl : undefined}
           splitListHeaderEnabled={hasTabBar}
           onProjectSlugResolved={setSelectedProjectSlug}
           onOpenProjects={handleOpenProjects}
@@ -337,9 +335,7 @@ const WorkManagementProjectsSurface: React.FC<{
             breadcrumbSegments={[]}
             workStationTabId="work-management-projects"
             workstationHeaderHost="workManagement"
-            splitHeaderLeading={
-              hasTabBar ? splitHeaderDatasetControl : undefined
-            }
+            splitHeaderLeading={hasTabBar ? splitDatasetControl : undefined}
             splitListHeaderEnabled={hasTabBar}
             orgId={scopedOrgId}
             onCreateProject={handleCreateProject}
@@ -393,7 +389,7 @@ const WorkManagementProjectsSurface: React.FC<{
     activeOrgScope,
     hasTabBar,
     scopedOrgId,
-    splitHeaderDatasetControl,
+    splitDatasetControl,
     t,
     view,
   ]);
