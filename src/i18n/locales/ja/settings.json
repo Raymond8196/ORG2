@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "ログイン",
     "tabGeneral": "一般",
+    "tabSelfHosted": "セルフホスト",
     "loginStatus": "ログイン状態",
     "loggedIn": "ログイン済み",
     "notLoggedIn": "未ログイン",

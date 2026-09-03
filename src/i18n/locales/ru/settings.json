@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Вход",
     "tabGeneral": "Общие",
+    "tabSelfHosted": "Самостоятельный хостинг",
     "loginStatus": "Статус входа",
     "loggedIn": "Вход выполнен",
     "notLoggedIn": "Вход не выполнен",

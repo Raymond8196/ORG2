@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Connexion",
     "tabGeneral": "Général",
+    "tabSelfHosted": "Auto-hébergé",
     "loginStatus": "État de connexion",
     "loggedIn": "Connecté",
     "notLoggedIn": "Non connecté",

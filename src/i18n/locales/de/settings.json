@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Anmeldung",
     "tabGeneral": "Allgemein",
+    "tabSelfHosted": "Selbstgehostet",
     "loginStatus": "Anmeldestatus",
     "loggedIn": "Angemeldet",
     "notLoggedIn": "Nicht angemeldet",

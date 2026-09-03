@@ -1,10 +1,12 @@
 /**
  * General Settings Section
  *
- * Hosts three tabs:
- *   - `general` — language/date, input, app behavior, update, settings file
+ * Hosts four tabs:
+ *   - `general` — ORG2 login, language/date, input, app behavior, update,
+ *     settings file
  *   - `notifications` — master toggle + advanced blocks (lazy)
  *   - `shortcuts` — keyboard shortcuts viewer (lazy)
+ *   - `self-hosted` — custom ORG2 Cloud backend endpoint
  *
  * The General tab is rendered eagerly; the heavier Notifications and
  * Shortcuts tabs are code-split so they only load when the user clicks
@@ -42,6 +44,8 @@ import Message from "@src/components/Message";
 import { Placeholder } from "@src/components/Placeholder";
 import Select from "@src/components/Select";
 import Switch from "@src/components/Switch";
+import CloudEndpointCard from "@src/features/Org2Cloud/CloudEndpointCard";
+import { Org2CloudLoginRows } from "@src/features/Org2Cloud/Org2CloudSection";
 import { useTimezoneSelect } from "@src/hooks/geo";
 import {
   LANGUAGE_NAMES,
@@ -78,6 +82,7 @@ export const GENERAL_TAB_KEYS = {
   GENERAL: "general",
   NOTIFICATIONS: "notifications",
   SHORTCUTS: "shortcuts",
+  SELF_HOSTED: "self-hosted",
 } as const;
 
 export type GeneralTabKey =
@@ -111,6 +116,10 @@ const GeneralSection: React.FC<GeneralSectionProps> = ({
         <ShortcutsTab />
       </Suspense>
     );
+  }
+
+  if (activeTab === GENERAL_TAB_KEYS.SELF_HOSTED) {
+    return <CloudEndpointCard />;
   }
 
   return <GeneralTabBody />;
@@ -318,6 +327,9 @@ const GeneralTabBody: React.FC = () => {
 
   return (
     <>
+      <SectionContainer title={t("general.login")}>
+        <Org2CloudLoginRows />
+      </SectionContainer>
       <SectionContainer>
         <SectionRow label={t("common:common.language")}>
           <Select

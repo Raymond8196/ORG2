@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "로그인",
     "tabGeneral": "일반",
+    "tabSelfHosted": "자체 호스팅",
     "loginStatus": "로그인 상태",
     "loggedIn": "로그인됨",
     "notLoggedIn": "로그인되지 않음",
