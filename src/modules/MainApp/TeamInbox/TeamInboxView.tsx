@@ -1,6 +1,7 @@
 import React, { useCallback, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
 
+import { HeaderSectionSeparator } from "@src/components/HeaderSectionSeparator";
 import InlineAlert from "@src/components/InlineAlert";
 import { Placeholder } from "@src/components/Placeholder";
 import { usePublishWorkstationTabHeader } from "@src/hooks/tabHost/useWorkstationTabHeader";
@@ -82,7 +83,8 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   onOpenPullRequestTab,
 }) => {
   const { t } = useTranslation();
-  const { hasTabBar, splitDatasetControl } = useWorkManagementSplitHeader();
+  const { splitDatasetControl, surfaceDatasetControl } =
+    useWorkManagementSplitHeader();
   const issueMessage = useCallback(
     (issue: TeamInboxIssue): string => {
       if (issue.code === "identity_unresolved") {
@@ -233,6 +235,9 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
 
   const handleSelect = useCallback(
     (item: TeamInboxItem) => {
+      // A selected item must reveal its detail even if the user had expanded
+      // the list into its full-width presentation.
+      setListFullscreen(false);
       updateViewState((current) => ({
         ...current,
         filter: focusRequestActive ? "all" : current.filter,
@@ -260,6 +265,8 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
 
   const handleSelectPullRequest = useCallback(
     (pullRequest: ManagedPrItem) => {
+      // PR rows share the same full-list presentation as Inbox items.
+      setListFullscreen(false);
       updateViewState((current) => ({
         ...current,
         detailPaneOpen: true,
@@ -280,10 +287,20 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   }, [focusRequest?.requestId, updateViewState]);
   const detailPaneOpen =
     focusRequestActive || viewState.detailPaneOpen !== false;
-  // With a visible tab row, the split list owns the controls and removes the
-  // redundant shell strip. When that row is folded away, publish one compact
-  // header at the pane top instead.
-  const useSplitListHeader = hasTabBar && detailPaneOpen && !listFullscreen;
+  const isListOnly = !detailPaneOpen || listFullscreen;
+  const handleToggleListPresentation = useCallback(() => {
+    if (!detailPaneOpen) {
+      setListFullscreen(false);
+      updateViewState((current) => ({
+        ...current,
+        detailPaneOpen: true,
+      }));
+      return;
+    }
+    setListFullscreen((current) => !current);
+  }, [detailPaneOpen, updateViewState]);
+  // Every split presentation owns its controls in the left-column header.
+  const useSplitListHeader = detailPaneOpen && !listFullscreen;
 
   const handleWorkItemUpdated = useCallback(
     (sourceItem: TeamInboxItem, workItem: WorkItem) => {
@@ -369,12 +386,10 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
         placement="header"
         fillSearch={useSplitListHeader}
         trailingActions={
-          detailPaneOpen ? (
-            <SplitListFullscreenButton
-              isFullscreen={listFullscreen}
-              onToggle={() => setListFullscreen((current) => !current)}
-            />
-          ) : null
+          <SplitListFullscreenButton
+            isFullscreen={isListOnly}
+            onToggle={handleToggleListPresentation}
+          />
         }
         onQueryChange={handleQueryChange}
         onRefresh={handleRefresh}
@@ -383,14 +398,14 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     ),
     [
       dataSource.markAllRead,
-      detailPaneOpen,
       handleMarkAllRead,
       handleQueryChange,
       handleRefresh,
+      handleToggleListPresentation,
       initialCombinedLoadPending,
+      isListOnly,
       loadState.status,
       loadingMore,
-      listFullscreen,
       pullRequestsLoading,
       unreadCounts,
       useSplitListHeader,
@@ -398,7 +413,6 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
       visibleQuery,
     ]
   );
-  const headerControls = useSplitListHeader ? null : listHeaderControls;
   const splitListHeader = useMemo(
     () =>
       useSplitListHeader ? (
@@ -413,11 +427,29 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
       ) : null,
     [listHeaderControls, splitDatasetControl, useSplitListHeader]
   );
-  const publishedHeader = useMemo(
+  const fullListHeader = useMemo(
     () =>
-      useSplitListHeader ? { hidden: true } : { trailing: headerControls },
-    [headerControls, useSplitListHeader]
+      !useSplitListHeader ? (
+        <SplitListHeader
+          fullWidth
+          primary={
+            <div className="flex min-w-0 flex-1 items-center gap-px">
+              {surfaceDatasetControl}
+              {surfaceDatasetControl ? (
+                <HeaderSectionSeparator className="mx-0.5" />
+              ) : null}
+              <div className="ml-auto flex min-w-0 items-center gap-px">
+                {listHeaderControls}
+              </div>
+            </div>
+          }
+        />
+      ) : null,
+    [listHeaderControls, surfaceDatasetControl, useSplitListHeader]
   );
+  // Keep chat/workstation tab titles in the host row. Inbox controls always
+  // render in their own local 36px surface header.
+  const publishedHeader = useMemo(() => ({ hidden: true }), []);
   usePublishWorkstationTabHeader({
     host: "workManagement",
     content: publishedHeader,
@@ -486,6 +518,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
           detailOpen={detailPaneOpen}
           listFullscreen={detailPaneOpen && listFullscreen}
           listHeader={splitListHeader}
+          fullHeader={fullListHeader}
           fullContent={listSurface}
           listContent={listSurface}
           detailContent={detail}

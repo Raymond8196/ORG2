@@ -2,16 +2,16 @@ import { createContext, useContext } from "react";
 import type { ReactNode } from "react";
 
 export interface WorkManagementSplitHeaderContextValue {
-  /** True while Work Management is hosted beneath either shell's tab bar. */
-  hasTabBar: boolean;
   /** Icon-only dataset switch for a compact, split list header. */
   splitDatasetControl: ReactNode;
+  /** Readable dataset switch for a full-width surface header. */
+  surfaceDatasetControl?: ReactNode;
 }
 
 const DEFAULT_WORK_MANAGEMENT_SPLIT_HEADER_CONTEXT: WorkManagementSplitHeaderContextValue =
   {
-    hasTabBar: false,
     splitDatasetControl: null,
+    surfaceDatasetControl: null,
   };
 
 export const WorkManagementSplitHeaderContext =

@@ -46,7 +46,7 @@ export const WorkManagementSearchInput = memo(
           showClearButton
           hideChevron
           variant={placement === "list" ? "sidebar" : "panel"}
-          surface="pane"
+          surface="ghost"
           className={
             fillsAvailableWidth ? "w-full min-w-0" : "w-64 max-w-[28vw]"
           }

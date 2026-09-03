@@ -41,4 +41,17 @@ describe("WorkManagementSearchInput", () => {
     expect(markup).toContain("w-full min-w-0");
     expect(markup).not.toContain("w-64 max-w-[28vw]");
   });
+
+  it("uses the ghost treatment until the search receives focus", () => {
+    const markup = renderToStaticMarkup(
+      createElement(WorkManagementSearchInput, {
+        value: "is:issue is:open",
+        onChange: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain("border-0!");
+    expect(markup).toContain("focus-within:border-primary-6!");
+    expect(markup).toContain("focus-within:bg-pane-input!");
+  });
 });

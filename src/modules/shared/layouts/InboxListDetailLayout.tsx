@@ -13,6 +13,8 @@ export interface InboxListDetailLayoutProps {
   listContent: React.ReactNode;
   /** Surface-owned rows pinned above the scrolling left list. */
   listHeader?: React.ReactNode;
+  /** Surface-owned row pinned above the full-width presentation. */
+  fullHeader?: React.ReactNode;
   detailContent: React.ReactNode;
   /** Existing full-width table, board, calendar, or list presentation. */
   fullContent?: React.ReactNode;
@@ -38,6 +40,7 @@ export interface InboxListDetailLayoutProps {
 const InboxListDetailLayout: React.FC<InboxListDetailLayoutProps> = ({
   listContent,
   listHeader,
+  fullHeader,
   detailContent,
   fullContent,
   detailOpen = true,
@@ -53,11 +56,14 @@ const InboxListDetailLayout: React.FC<InboxListDetailLayoutProps> = ({
   if (hasFullContent && !showSplit) {
     return (
       <div
-        className={`h-full min-h-0 w-full min-w-0 overflow-hidden ${className}`.trim()}
+        className={`flex h-full min-h-0 w-full min-w-0 flex-col overflow-hidden ${className}`.trim()}
         data-testid={testId}
         data-layout-mode="single"
       >
-        {fullContent}
+        {fullHeader}
+        <div className="min-h-0 min-w-0 flex-1 overflow-hidden">
+          {fullContent}
+        </div>
       </div>
     );
   }
@@ -76,6 +82,7 @@ const InboxListDetailLayout: React.FC<InboxListDetailLayoutProps> = ({
         hideBreadcrumbWhenSidebarCollapsed
         listPanelBackgroundClassName="bg-chat-pane"
         mainContentClassName="bg-chat-pane"
+        showDivider={false}
         listHeader={listHeader}
         listContent={listContent}
         mainContent={detailContent}

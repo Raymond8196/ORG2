@@ -31,6 +31,8 @@ export interface SplitViewLayoutProps {
   listPanelBackgroundClassName?: string;
   /** Hide breadcrumb header when sidebar is collapsed */
   hideBreadcrumbWhenSidebarCollapsed?: boolean;
+  /** Whether the resizable split draws a resting divider line. */
+  showDivider?: boolean;
 }
 
 /** Shared style for CSS containment */
@@ -47,6 +49,7 @@ const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
   mainContentClassName = "bg-bg-2",
   listPanelBackgroundClassName = "bg-bg-2",
   hideBreadcrumbWhenSidebarCollapsed = false,
+  showDivider = true,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
   const isSidebarCollapsed = useAtomValue(sidebarCollapsedAtom);
@@ -106,6 +109,7 @@ const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
             </div>
           }
           className="flex-1"
+          showDivider={showDivider}
         />
       ) : (
         <div className="flex flex-1 overflow-hidden">

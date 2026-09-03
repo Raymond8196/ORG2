@@ -37,7 +37,7 @@ describe("WorkManagementDatasetSwitch", () => {
     expect(markup).not.toContain("rounded-[100px]");
   });
 
-  it("uses the shared Inbox label and keeps Inbox first in the menu", () => {
+  it("uses the shared Inbox label and keeps GitHub datasets first", () => {
     const markup = renderToStaticMarkup(
       createElement(WorkManagementDatasetSwitch, {
         activeDataset: WORK_MANAGEMENT_DATASET.INBOX,
@@ -47,11 +47,11 @@ describe("WorkManagementDatasetSwitch", () => {
 
     expect(markup).toContain("Localized Inbox");
     expect(WORK_MANAGEMENT_DATASET_MENU_ORDER).toEqual([
+      WORK_MANAGEMENT_DATASET.GITHUB_ISSUES,
+      WORK_MANAGEMENT_DATASET.REVIEWS,
       WORK_MANAGEMENT_DATASET.INBOX,
       WORK_MANAGEMENT_DATASET.PROJECTS,
       WORK_MANAGEMENT_DATASET.WORK_ITEMS,
-      WORK_MANAGEMENT_DATASET.GITHUB_ISSUES,
-      WORK_MANAGEMENT_DATASET.REVIEWS,
     ]);
   });
 

@@ -138,12 +138,10 @@ interface WorkItemsPageProps {
    * the Workstation tab bar instead of the page header.
    */
   workStationTabId?: string;
-  /** Target workstation host slot for the published 40px header. */
+  /** Target workstation host slot for the published 36px header. */
   workstationHeaderHost?: WorkstationTabHeaderHost;
   /** Parent-owned context control shown before split-list header content. */
   splitHeaderLeading?: React.ReactNode;
-  /** Whether a surrounding tab bar delegates split controls to the left list. */
-  splitListHeaderEnabled?: boolean;
 }
 
 // ============================================
@@ -174,7 +172,6 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   workStationTabId,
   workstationHeaderHost = "project",
   splitHeaderLeading,
-  splitListHeaderEnabled,
 }) => {
   const { t } = useTranslation("projects");
   const interactiveBreadcrumbSegments = useMemo(
@@ -299,6 +296,8 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
   );
   const handleOpenWorkItem = useCallback(
     (workItemId: string) => {
+      // A selection from the full-width List view must reveal its detail.
+      setListFullscreen(false);
       handlers.handleSelect(workItemId);
     },
     [handlers]
@@ -421,10 +420,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
     onEmbeddedWorkItemDetailStateChange,
   });
   const useSplitListHeader =
-    (splitListHeaderEnabled ?? tabBarActionsInStationTabBar) &&
-    isActive &&
-    state.activeTab === "List" &&
-    !listFullscreen;
+    isActive && state.activeTab === "List" && !listFullscreen;
 
   const handleOpenSelectedWorkItemInNewTab = useCallback(() => {
     const workItem = data.selectedWorkItem;
@@ -624,22 +620,25 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
             fillWidth={useSplitListHeader}
             dataTestId="project-work-items-search"
           />
-          {state.activeTab === "List" ? (
-            <SplitListFullscreenButton
-              isFullscreen={listFullscreen}
-              onToggle={() => setListFullscreen((current) => !current)}
-            />
-          ) : null}
         </div>
       ) : null,
     [
       isWorkItemsSurface,
-      listFullscreen,
       state.activeTab,
       state.searchQuery,
       state.setSearchQuery,
       useSplitListHeader,
     ]
+  );
+  const workItemsEndControl = useMemo(
+    () =>
+      isWorkItemsSurface && state.activeTab === "List" ? (
+        <SplitListFullscreenButton
+          isFullscreen={listFullscreen}
+          onToggle={() => setListFullscreen((current) => !current)}
+        />
+      ) : null,
+    [isWorkItemsSurface, listFullscreen, state.activeTab]
   );
   const addListItem = handlers.handleAddListItem;
   const handleStatusFilterChange = useCallback(
@@ -722,6 +721,7 @@ const WorkItemsPage: React.FC<WorkItemsPageProps> = ({
       onAddWorkItem={addWorkItemAction}
       onRefresh={isWorkItemsSurface ? data.refresh : undefined}
       refreshLoading={data.loading}
+      endControls={workItemsEndControl}
       splitListHeader={useSplitListHeader}
       splitHeaderLeading={splitHeaderLeading}
       publishToWorkstationHeader={tabBarActionsInStationTabBar && isActive}
