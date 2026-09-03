@@ -37,10 +37,10 @@ export function IssuePersonalFilterDropdown({
   filterLabel: string;
   onSelect: (values: (string | number)[]) => void;
 }): React.ReactNode {
-  const accessibleLabel =
-    selectedFilters.length > 0
-      ? `${filterLabel} (${selectedFilters.length})`
-      : filterLabel;
+  const hasSelectedFilters = selectedFilters.length > 0;
+  const accessibleLabel = hasSelectedFilters
+    ? `${filterLabel} (${selectedFilters.length})`
+    : filterLabel;
 
   return (
     <Dropdown
@@ -55,6 +55,7 @@ export function IssuePersonalFilterDropdown({
         htmlType="button"
         variant="tertiary"
         size="small"
+        className={hasSelectedFilters ? "bg-fill-1! text-primary-6!" : ""}
         icon={
           <HugeiconsIcon
             icon={FunnelIcon}
@@ -65,6 +66,7 @@ export function IssuePersonalFilterDropdown({
         }
         iconOnly
         aria-label={accessibleLabel}
+        aria-pressed={hasSelectedFilters}
       />
     </Dropdown>
   );

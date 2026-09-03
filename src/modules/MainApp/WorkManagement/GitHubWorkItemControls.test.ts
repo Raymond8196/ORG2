@@ -268,8 +268,26 @@ describe("GitHub work-item header controls", () => {
 
     expect(markup).toContain('data-icon="funnel"');
     expect(markup).toContain('aria-label="Filter (1)"');
+    expect(markup).toContain('aria-pressed="true"');
+    expect(markup).toContain("bg-fill-1! text-primary-6!");
     expect(markup).not.toContain('data-tooltip-label="Filter (1)"');
     expect(markup).not.toContain(">Filter<");
     expect(markup).toContain("height:28px");
+  });
+
+  it("keeps Filter unhighlighted when no filters are selected", () => {
+    const markup = renderToStaticMarkup(
+      createElement(IssuePersonalFilterDropdown, {
+        options: [{ value: "byMe", label: "Created by me" }],
+        selectedFilters: [],
+        filterLabel: "Filter",
+        onSelect: vi.fn(),
+      })
+    );
+
+    expect(markup).toContain('aria-label="Filter"');
+    expect(markup).toContain('aria-pressed="false"');
+    expect(markup).not.toContain("bg-fill-1! text-primary-6!");
+    expect(markup).not.toContain("data-tooltip-label");
   });
 });
