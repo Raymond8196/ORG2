@@ -1,6 +1,8 @@
 // @vitest-environment jsdom
+import { Provider, createStore } from "jotai";
 import React, { act, createElement } from "react";
 import { type Root, createRoot } from "react-dom/client";
+import { renderToStaticMarkup } from "react-dom/server";
 import {
   afterAll,
   afterEach,
@@ -13,6 +15,8 @@ import {
 } from "vitest";
 
 import { InternetIcon, LinkSquare02Icon } from "@src/icons";
+import { WorkManagementSplitHeaderContext } from "@src/modules/MainApp/WorkManagement/workManagementSplitHeaderContext";
+import { workstationTabHeaderAtomByHost } from "@src/store/workstation";
 import type { WorkItem } from "@src/types/core/workItem";
 
 import type { ManagedPrItem } from "../../WorkManagement/githubManagedItemModel";
@@ -52,6 +56,7 @@ vi.mock("@src/modules/shared/layouts/SplitViewLayout", () => ({
     return createElement(
       "div",
       { "data-testid": "team-inbox-split" },
+      props.listHeader as React.ReactNode,
       props.listContent as React.ReactNode,
       props.mainContent as React.ReactNode
     );
@@ -212,10 +217,11 @@ describe("TeamInboxView split layout", () => {
     expect(splitViewProps.current?.listWidth).toBe(360);
     expect(splitViewProps.current?.minListWidth).toBe(280);
     expect(splitViewProps.current?.maxListWidth).toBe(480);
+    expect(splitViewProps.current?.listFullscreen).toBe(false);
     expect(componentProps.list?.loading).toBe(true);
   });
 
-  it("starts with the empty right pane open and closes back to the full list", async () => {
+  it("starts with a headerless empty right pane", async () => {
     await act(async () => {
       root.render(
         createElement(TeamInboxView, {
@@ -234,22 +240,120 @@ describe("TeamInboxView split layout", () => {
     ).toBe("split");
     expect(
       container.querySelector('[data-compact-list-header="true"]')
-    ).not.toBeNull();
-    const closeButton = container.querySelector<HTMLButtonElement>(
-      '[data-testid="team-inbox-close-detail"]'
-    );
-    expect(closeButton).not.toBeNull();
-
-    await act(async () => closeButton?.click());
-
-    expect(
-      container
-        .querySelector('[data-testid="team-inbox-list-detail-layout"]')
-        ?.getAttribute("data-layout-mode")
-    ).toBe("single");
+    ).toBeNull();
     expect(
       container.querySelector('[data-testid="team-inbox-close-detail"]')
     ).toBeNull();
+    expect(
+      container
+        .querySelector('[data-detail-pane-layout="true"]')
+        ?.querySelector("[data-detail-pane-body]")?.previousElementSibling
+    ).toBeNull();
+  });
+
+  it("keeps compact Inbox controls in one left-column header row", async () => {
+    await act(async () => {
+      root.render(
+        createElement(
+          WorkManagementSplitHeaderContext.Provider,
+          {
+            value: {
+              hasTabBar: true,
+              datasetControl: createElement(
+                "button",
+                { "data-testid": "work-dataset-inbox" },
+                "Inbox"
+              ),
+            },
+          },
+          createElement(TeamInboxView, {
+            dataSource: {
+              listPage: async () => ({ items: [], nextCursor: null }),
+            },
+          })
+        )
+      );
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('[data-split-list-header="true"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelectorAll("[data-split-list-header-row]")
+    ).toHaveLength(1);
+    expect(
+      container.querySelector('[data-testid="work-dataset-inbox"]')
+    ).not.toBeNull();
+    expect(
+      container.querySelector('[data-testid="team-inbox-search"]')
+    ).not.toBeNull();
+    expect(
+      container
+        .querySelector('[data-testid="work-dataset-inbox"]')
+        ?.closest("[data-split-list-header-row]")
+    ).toBe(
+      container
+        .querySelector('[data-testid="team-inbox-search"]')
+        ?.closest("[data-split-list-header-row]")
+    );
+    expect(
+      container
+        .querySelector('[data-testid="team-inbox-search"]')
+        ?.classList.contains("flex-1")
+    ).toBe(true);
+    expect(
+      container
+        .querySelector('[data-testid="team-inbox-search"]')
+        ?.parentElement?.classList.contains("flex-1")
+    ).toBe(true);
+    expect(
+      container.querySelector('[data-testid="split-list-fullscreen-toggle"]')
+    ).not.toBeNull();
+  });
+
+  it("publishes one top header when the Inbox host has no tab bar", async () => {
+    const store = createStore();
+    await act(async () => {
+      root.render(
+        createElement(
+          Provider,
+          { store },
+          createElement(
+            WorkManagementSplitHeaderContext.Provider,
+            {
+              value: {
+                hasTabBar: false,
+                datasetControl: createElement(
+                  "button",
+                  { "data-testid": "work-dataset-inbox" },
+                  "Inbox"
+                ),
+              },
+            },
+            createElement(TeamInboxView, {
+              dataSource: {
+                listPage: async () => ({ items: [], nextCursor: null }),
+              },
+            })
+          )
+        )
+      );
+      await Promise.resolve();
+    });
+
+    expect(
+      container.querySelector('[data-split-list-header="true"]')
+    ).toBeNull();
+    const publishedHeader = store.get(
+      workstationTabHeaderAtomByHost.workManagement
+    );
+    expect(publishedHeader?.hidden).not.toBe(true);
+    expect(
+      renderToStaticMarkup(
+        createElement(React.Fragment, null, publishedHeader?.trailing)
+      )
+    ).toContain('data-testid="team-inbox-search"');
   });
 
   it("keeps the initial gate closed for a source loading snapshot", async () => {

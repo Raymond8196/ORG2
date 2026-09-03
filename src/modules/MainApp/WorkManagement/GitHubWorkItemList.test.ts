@@ -37,7 +37,7 @@ describe("GitHubWorkItemToolbarActions", () => {
 });
 
 describe("GitHubWorkItemStateTabs", () => {
-  it("renders 32px text-and-icon Open and Closed buttons", () => {
+  it("renders a compact, icon-only pill switch for Open and Closed", () => {
     const markup = renderToStaticMarkup(
       createElement(GitHubWorkItemStateTabs, {
         activeTab: "open",
@@ -61,11 +61,16 @@ describe("GitHubWorkItemStateTabs", () => {
     expect(markup).toContain('data-icon="check-circle-2"');
     expect(markup).toContain("text-success-6");
     expect(markup).toContain("text-purple-6");
-    expect(markup).toContain(">Open</span>");
-    expect(markup).toContain(">Closed</span>");
-    expect(markup).not.toContain('class="sr-only">Open</span>');
-    expect(markup).not.toContain('class="sr-only">Closed</span>');
-    expect(markup).toContain("rounded-lg border border-border-2 bg-bg-2 p-0.5");
-    expect(markup).toContain('style="height:32px"');
+    expect(markup).not.toContain(">Open</span>");
+    expect(markup).not.toContain(">Closed</span>");
+    expect(markup).toContain('aria-label="Open"');
+    expect(markup).toContain('aria-label="Closed"');
+    expect(markup).toContain('title="Open"');
+    expect(markup).toContain('title="Closed"');
+    expect(markup).toContain("rounded-[100px]");
+    expect(markup).toContain("bg-fill-1");
+    expect(markup).not.toContain("mt-1 h-1 w-1 rounded-full");
+    expect(markup).not.toContain("rounded-lg border border-border-2 bg-bg-2");
+    expect(markup).toContain('style="height:28px"');
   });
 });

@@ -119,8 +119,9 @@ export function WorkItemsHeaderActions({
         />
       )}
       {trailingControls}
-      {(onSearch || showStatusFilter || trailingControls) &&
-        showPrimaryActions && <HeaderSectionSeparator className="mx-1" />}
+      {(onSearch || showStatusFilter) && showPrimaryActions && (
+        <HeaderSectionSeparator className="mx-0.5" />
+      )}
       {showPrimaryActions && (
         <div className="flex shrink-0 items-center gap-px">
           {showCollapseAll && (

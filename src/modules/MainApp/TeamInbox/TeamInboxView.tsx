@@ -9,10 +9,13 @@ import {
   getManagedPullRequestKey,
 } from "@src/modules/MainApp/WorkManagement/githubManagedItemModel";
 import InboxListDetailLayout from "@src/modules/shared/layouts/InboxListDetailLayout";
+import SplitListFullscreenButton from "@src/modules/shared/layouts/SplitListFullscreenButton";
+import SplitListHeader from "@src/modules/shared/layouts/SplitListHeader";
 import { normalizePrStatus } from "@src/shared/pr/prStatus";
 import type { PrIdentity } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 import type { WorkItem } from "@src/types/core/workItem";
 
+import { useWorkManagementSplitHeader } from "../WorkManagement/workManagementSplitHeaderContext";
 import { TeamInboxList } from "./components";
 import { TeamInboxDetailPane } from "./components/TeamInboxDetailPane";
 import { TeamInboxListControls } from "./components/TeamInboxList";
@@ -79,6 +82,8 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   onOpenPullRequestTab,
 }) => {
   const { t } = useTranslation();
+  const { hasTabBar, datasetControl, splitDatasetControl } =
+    useWorkManagementSplitHeader();
   const issueMessage = useCallback(
     (issue: TeamInboxIssue): string => {
       if (issue.code === "identity_unresolved") {
@@ -131,6 +136,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   const [dismissedLoadNoticeKey, setDismissedLoadNoticeKey] = useState<
     string | null
   >(null);
+  const [listFullscreen, setListFullscreen] = useState(false);
   const initialCombinedLoadPending =
     inboxInitialLoading || pullRequestsInitialLoading;
   const presentedItems = useMemo(
@@ -241,18 +247,6 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     [focusRequest?.requestId, focusRequestActive, updateViewState]
   );
 
-  const handleFilterChange = useCallback(
-    (nextFilter: TeamInboxFilter) => {
-      updateViewState((current) => ({
-        ...current,
-        filter: nextFilter,
-        query: focusRequestActive ? "" : current.query,
-        supersededFocusRequestId: focusRequest?.requestId ?? null,
-      }));
-    },
-    [focusRequest?.requestId, focusRequestActive, updateViewState]
-  );
-
   const handleQueryChange = useCallback(
     (nextQuery: string) => {
       updateViewState((current) => ({
@@ -277,6 +271,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     [focusRequest?.requestId, updateViewState]
   );
   const handleCloseDetail = useCallback(() => {
+    setListFullscreen(false);
     updateViewState((current) => ({
       ...current,
       detailPaneOpen: false,
@@ -286,6 +281,10 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   }, [focusRequest?.requestId, updateViewState]);
   const detailPaneOpen =
     focusRequestActive || viewState.detailPaneOpen !== false;
+  // With a visible tab row, the split list owns the controls and removes the
+  // redundant shell strip. When that row is folded away, publish one compact
+  // header at the pane top instead.
+  const useSplitListHeader = hasTabBar && detailPaneOpen && !listFullscreen;
 
   const handleWorkItemUpdated = useCallback(
     (sourceItem: TeamInboxItem, workItem: WorkItem) => {
@@ -356,7 +355,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
       </InlineAlert>
     ) : null;
 
-  const headerControls = useMemo(
+  const listHeaderControls = useMemo(
     () => (
       <TeamInboxListControls
         filter={visibleFilter}
@@ -369,30 +368,57 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
           loadingMore
         }
         placement="header"
+        fillSearch={useSplitListHeader}
+        trailingActions={
+          detailPaneOpen ? (
+            <SplitListFullscreenButton
+              isFullscreen={listFullscreen}
+              onToggle={() => setListFullscreen((current) => !current)}
+            />
+          ) : null
+        }
         onQueryChange={handleQueryChange}
-        onFilterChange={handleFilterChange}
         onRefresh={handleRefresh}
         onMarkAllRead={dataSource.markAllRead ? handleMarkAllRead : undefined}
       />
     ),
     [
       dataSource.markAllRead,
-      handleFilterChange,
+      detailPaneOpen,
       handleMarkAllRead,
       handleQueryChange,
       handleRefresh,
       initialCombinedLoadPending,
       loadState.status,
       loadingMore,
+      listFullscreen,
       pullRequestsLoading,
       unreadCounts,
+      useSplitListHeader,
       visibleFilter,
       visibleQuery,
     ]
   );
+  const headerControls = useSplitListHeader ? null : listHeaderControls;
+  const splitHeaderDatasetControl = splitDatasetControl ?? datasetControl;
+  const splitListHeader = useMemo(
+    () =>
+      useSplitListHeader ? (
+        <SplitListHeader
+          primary={
+            <div className="flex min-w-0 flex-1 items-center gap-px">
+              {splitHeaderDatasetControl}
+              {listHeaderControls}
+            </div>
+          }
+        />
+      ) : null,
+    [listHeaderControls, splitHeaderDatasetControl, useSplitListHeader]
+  );
   const publishedHeader = useMemo(
-    () => ({ trailing: detailPaneOpen ? null : headerControls }),
-    [detailPaneOpen, headerControls]
+    () =>
+      useSplitListHeader ? { hidden: true } : { trailing: headerControls },
+    [headerControls, useSplitListHeader]
   );
   usePublishWorkstationTabHeader({
     host: "workManagement",
@@ -434,7 +460,6 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
             pullRequestsError={pullRequestsError}
             selectedPullRequestKey={viewState.selectedPullRequestKey}
             onQueryChange={handleQueryChange}
-            onFilterChange={handleFilterChange}
             onSelectItem={handleSelect}
             onSelectPullRequest={handleSelectPullRequest}
             onRefresh={handleRefresh}
@@ -461,27 +486,9 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
           className="min-h-0 flex-1"
           testId="team-inbox-list-detail-layout"
           detailOpen={detailPaneOpen}
+          listFullscreen={detailPaneOpen && listFullscreen}
+          listHeader={splitListHeader}
           fullContent={listSurface}
-          listHeader={
-            <TeamInboxListControls
-              filter={visibleFilter}
-              unreadCounts={unreadCounts}
-              query={visibleQuery}
-              loading={
-                initialCombinedLoadPending ||
-                loadState.status === "loading" ||
-                pullRequestsLoading ||
-                loadingMore
-              }
-              placement="list"
-              onQueryChange={handleQueryChange}
-              onFilterChange={handleFilterChange}
-              onRefresh={handleRefresh}
-              onMarkAllRead={
-                dataSource.markAllRead ? handleMarkAllRead : undefined
-              }
-            />
-          }
           listContent={listSurface}
           detailContent={detail}
         />

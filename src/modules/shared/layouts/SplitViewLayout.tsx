@@ -37,6 +37,8 @@ export interface SplitViewLayoutProps {
   navRightContent?: React.ReactNode;
   /** List panel content */
   listContent: React.ReactNode;
+  /** Surface-owned rows pinned above the scrolling list content. */
+  listHeader?: React.ReactNode;
   /** Main content area */
   mainContent: React.ReactNode;
   /** List panel width in pixels */
@@ -63,6 +65,8 @@ export interface SplitViewLayoutProps {
   alwaysShowBreadcrumb?: boolean;
   /** Trailing content rendered on the right of the list-panel breadcrumb row */
   listHeaderTrailing?: React.ReactNode;
+  /** Temporarily render the existing list panel at full width. */
+  listFullscreen?: boolean;
   /** When set, hides the split and shows a full-width subpage with back header */
   subpage?: SplitViewSubpage | null;
 }
@@ -75,6 +79,7 @@ const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
   navWorkspaceMainPanel,
   navRightContent,
   listContent,
+  listHeader,
   mainContent,
   listWidth = 200,
   minListWidth = 160,
@@ -88,6 +93,7 @@ const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
   hideBreadcrumbWhenSidebarCollapsed = false,
   alwaysShowBreadcrumb = false,
   listHeaderTrailing,
+  listFullscreen = false,
   subpage,
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
@@ -129,6 +135,29 @@ const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
     );
   }
 
+  const listPanel = (
+    <div
+      className={`flex h-full min-w-0 flex-col ${listPanelBackgroundClassName}`}
+      style={containStyle}
+    >
+      {(alwaysShowBreadcrumb ||
+        (isSidebarCollapsed && !hideBreadcrumbWhenSidebarCollapsed)) && (
+        <div className="flex h-[40px] shrink-0 items-center justify-between gap-2 px-3">
+          <PageBreadcrumb />
+          {listHeaderTrailing && (
+            <div className="flex shrink-0 items-center gap-1.5">
+              {listHeaderTrailing}
+            </div>
+          )}
+        </div>
+      )}
+      {listHeader}
+      <div className="scrollbar-overlay min-h-0 flex-1 overflow-y-auto">
+        {listContent}
+      </div>
+    </div>
+  );
+
   return (
     <div
       className={`flex h-full min-h-0 w-full min-w-0 flex-col ${className}`}
@@ -146,33 +175,12 @@ const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
       )}
 
       {/* Main Content Area with Resizable Split */}
-      {resizable && !isCollapsed ? (
+      {resizable && !isCollapsed && !listFullscreen ? (
         <ResizableSplitPanel
           defaultLeftWidth={listWidth}
           minLeftWidth={minListWidth}
           maxLeftWidth={maxListWidth}
-          leftPanel={
-            <div
-              className={`flex h-full min-w-0 flex-col ${listPanelBackgroundClassName}`}
-              style={containStyle}
-            >
-              {(alwaysShowBreadcrumb ||
-                (isSidebarCollapsed &&
-                  !hideBreadcrumbWhenSidebarCollapsed)) && (
-                <div className="flex h-[40px] shrink-0 items-center justify-between gap-2 px-3">
-                  <PageBreadcrumb />
-                  {listHeaderTrailing && (
-                    <div className="flex shrink-0 items-center gap-1.5">
-                      {listHeaderTrailing}
-                    </div>
-                  )}
-                </div>
-              )}
-              <div className="scrollbar-overlay min-h-0 flex-1 overflow-y-auto">
-                {listContent}
-              </div>
-            </div>
-          }
+          leftPanel={listPanel}
           rightPanel={
             <div
               className={`h-full min-w-0 overflow-hidden ${mainContentClassName}`}
@@ -183,6 +191,8 @@ const SplitViewLayout: React.FC<SplitViewLayoutProps> = ({
           }
           className="flex-1"
         />
+      ) : listFullscreen && !isCollapsed ? (
+        <div className="flex flex-1 overflow-hidden">{listPanel}</div>
       ) : isCollapsed ? (
         // Collapsed state - only show main content
         <div className="flex flex-1 overflow-hidden">

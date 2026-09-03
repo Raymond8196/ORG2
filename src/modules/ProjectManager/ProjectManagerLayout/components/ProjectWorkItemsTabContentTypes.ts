@@ -30,6 +30,10 @@ export interface ProjectWorkItemsTabContentProps {
   onOpenWorkItem: (selection: ProjectWorkItemSelection) => void;
   /** Org hub surface pills shown after the breadcrumb (Overview / Projects / …). */
   orgSurfaceControls?: React.ReactNode;
+  /** Parent-owned context control shown before split-list header content. */
+  splitHeaderLeading?: React.ReactNode;
+  /** Whether a surrounding tab bar delegates split controls to the left list. */
+  splitListHeaderEnabled?: boolean;
 }
 
 export interface AggregatedWorkItemProject {

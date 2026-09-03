@@ -246,7 +246,7 @@ describe("GitHub work-item row actions", () => {
 });
 
 describe("GitHub work-item header controls", () => {
-  it("renders Filter as a secondary icon-only button", () => {
+  it("renders Filter as a tertiary icon-only header button", () => {
     const markup = renderToStaticMarkup(
       createElement(IssuePersonalFilterDropdown, {
         options: [{ value: "byMe", label: "Created by me" }],
@@ -259,6 +259,6 @@ describe("GitHub work-item header controls", () => {
     expect(markup).toContain('data-icon="funnel"');
     expect(markup).toContain('aria-label="Filter (1)"');
     expect(markup).not.toContain(">Filter<");
-    expect(markup).toContain("height:32px");
+    expect(markup).toContain("height:28px");
   });
 });

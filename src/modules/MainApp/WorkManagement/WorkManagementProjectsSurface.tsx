@@ -33,6 +33,7 @@ import {
 import type { WorkItem } from "@src/types/core/workItem";
 
 import type { WorkManagementDetailHost } from "./workManagementDetailHost";
+import { useWorkManagementSplitHeader } from "./workManagementSplitHeaderContext";
 
 const LinearProjectsPage = React.lazy(
   () => import("@src/modules/ProjectManager/LinearProjects")
@@ -84,6 +85,9 @@ const WorkManagementProjectsSurface: React.FC<{
   detailHost: WorkManagementDetailHost;
 }> = memo(({ detailHost }) => {
   const { t } = useTranslation("projects");
+  const { hasTabBar, datasetControl, splitDatasetControl } =
+    useWorkManagementSplitHeader();
+  const splitHeaderDatasetControl = splitDatasetControl ?? datasetControl;
   const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
     workManagementProjectsViewAtom
   );
@@ -284,6 +288,8 @@ const WorkManagementProjectsSurface: React.FC<{
           isActive
           workStationTabId="work-management-projects"
           workstationHeaderHost="workManagement"
+          splitHeaderLeading={hasTabBar ? splitHeaderDatasetControl : undefined}
+          splitListHeaderEnabled={hasTabBar}
           onProjectSlugResolved={setSelectedProjectSlug}
           onOpenProjects={handleOpenProjects}
           onCreateProject={handleCreateProject}
@@ -331,6 +337,10 @@ const WorkManagementProjectsSurface: React.FC<{
             breadcrumbSegments={[]}
             workStationTabId="work-management-projects"
             workstationHeaderHost="workManagement"
+            splitHeaderLeading={
+              hasTabBar ? splitHeaderDatasetControl : undefined
+            }
+            splitListHeaderEnabled={hasTabBar}
             orgId={scopedOrgId}
             onCreateProject={handleCreateProject}
             onCreateWorkItem={handleCreateWorkItem}
@@ -381,7 +391,9 @@ const WorkManagementProjectsSurface: React.FC<{
     handleOpenProjectWorkItem,
     selectedProjectSlug,
     activeOrgScope,
+    hasTabBar,
     scopedOrgId,
+    splitHeaderDatasetControl,
     t,
     view,
   ]);

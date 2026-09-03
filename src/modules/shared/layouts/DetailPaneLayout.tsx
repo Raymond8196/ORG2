@@ -21,6 +21,8 @@ export type DetailPaneHeaderProps = Omit<
 export interface DetailPaneLayoutProps {
   /** Domain-owned identity rendered in the standard 40px detail header. */
   header?: DetailPaneHeaderProps;
+  /** Draw a divider beneath the detail header. Defaults to true. */
+  headerBorderBottom?: boolean;
   children?: React.ReactNode;
   className?: string;
   testId?: string;
@@ -76,6 +78,7 @@ DetailPaneCloseAction.displayName = "DetailPaneCloseAction";
 const DetailPaneLayout: React.FC<DetailPaneLayoutProps> = memo(
   ({
     header,
+    headerBorderBottom = true,
     children,
     className = "",
     testId,
@@ -117,7 +120,7 @@ const DetailPaneLayout: React.FC<DetailPaneLayoutProps> = memo(
         {resolvedHeader ? (
           <PanelHeader
             {...resolvedHeader}
-            borderBottom
+            borderBottom={headerBorderBottom}
             background="default"
             className={DETAIL_PANEL_TOKENS.headerPadding}
           />
