@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Đăng nhập",
     "tabGeneral": "Chung",
+    "tabSelfHosted": "Tự lưu trữ",
     "loginStatus": "Trạng thái đăng nhập",
     "loggedIn": "Đã đăng nhập",
     "notLoggedIn": "Chưa đăng nhập",

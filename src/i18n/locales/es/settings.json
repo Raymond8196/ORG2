@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Inicio de sesión",
     "tabGeneral": "General",
+    "tabSelfHosted": "Autoalojado",
     "loginStatus": "Estado de inicio de sesión",
     "loggedIn": "Session iniciada",
     "notLoggedIn": "Sin Session",

@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Entrar",
     "tabGeneral": "Geral",
+    "tabSelfHosted": "Auto-hospedado",
     "loginStatus": "Status do Login",
     "loggedIn": "Conectado",
     "notLoggedIn": "Não conectado",

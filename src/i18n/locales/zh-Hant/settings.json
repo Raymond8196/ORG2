@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "登錄",
     "tabGeneral": "通用",
+    "tabSelfHosted": "自託管",
     "loginStatus": "登錄狀態",
     "loggedIn": "已登錄",
     "notLoggedIn": "未登錄",

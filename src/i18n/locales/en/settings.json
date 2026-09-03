@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Login",
     "tabGeneral": "General",
+    "tabSelfHosted": "Self-hosted",
     "loginStatus": "Login Status",
     "loggedIn": "Logged in",
     "notLoggedIn": "Not logged in",

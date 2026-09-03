@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "登录",
     "tabGeneral": "通用",
+    "tabSelfHosted": "自托管",
     "loginStatus": "登录状态",
     "loggedIn": "已登录",
     "notLoggedIn": "未登录",

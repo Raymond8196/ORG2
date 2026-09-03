@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Giriş",
     "tabGeneral": "Genel",
+    "tabSelfHosted": "Kendi kendine barındırılan",
     "loginStatus": "Giriş Durumu",
     "loggedIn": "Giriş yapıldı",
     "notLoggedIn": "Giriş yapılmadı",

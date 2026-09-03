@@ -113,7 +113,9 @@
     }
   },
   "general": {
+    "login": "Logowanie",
     "tabGeneral": "Ogólne",
+    "tabSelfHosted": "Hostowane samodzielnie",
     "loginStatus": "Status logowania",
     "loggedIn": "Zalogowano",
     "notLoggedIn": "Niezalogowano",
