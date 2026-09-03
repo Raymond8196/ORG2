@@ -15,11 +15,11 @@ import {
 
 export type DetailPaneHeaderProps = Omit<
   PanelHeaderProps,
-  "background" | "borderBottom" | "className" | "variant"
+  "background" | "borderBottom" | "className" | "height" | "variant"
 >;
 
 export interface DetailPaneLayoutProps {
-  /** Domain-owned identity rendered in the standard 40px detail header. */
+  /** Domain-owned identity rendered in the shared 36px detail header. */
   header?: DetailPaneHeaderProps;
   /** Draw a divider beneath the detail header. Defaults to true. */
   headerBorderBottom?: boolean;
@@ -122,6 +122,7 @@ const DetailPaneLayout: React.FC<DetailPaneLayoutProps> = memo(
             {...resolvedHeader}
             borderBottom={headerBorderBottom}
             background="default"
+            height="detail"
             className={DETAIL_PANEL_TOKENS.headerPadding}
           />
         ) : null}
