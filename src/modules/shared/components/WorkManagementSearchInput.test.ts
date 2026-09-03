@@ -24,4 +24,21 @@ describe("WorkManagementSearchInput", () => {
     expect(markup).toContain('data-icon="x"');
     expect(markup).toContain('title="tooltips.closeEsc"');
   });
+
+  it("fills a split-list header row when requested", () => {
+    const markup = renderToStaticMarkup(
+      createElement(WorkManagementSearchInput, {
+        value: "",
+        onChange: vi.fn(),
+        fillWidth: true,
+        dataTestId: "split-work-search",
+      })
+    );
+
+    expect(markup).toContain(
+      'class="min-w-0 flex-1" data-testid="split-work-search"'
+    );
+    expect(markup).toContain("w-full min-w-0");
+    expect(markup).not.toContain("w-64 max-w-[28vw]");
+  });
 });

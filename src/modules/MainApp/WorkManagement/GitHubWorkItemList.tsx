@@ -106,8 +106,9 @@ export function GitHubWorkItemStateTabs({
       variant="pill"
       color="fill"
       fillWidth={false}
-      height={32}
-      buttonStyle
+      size="small"
+      height={28}
+      iconOnly
     />
   );
 }

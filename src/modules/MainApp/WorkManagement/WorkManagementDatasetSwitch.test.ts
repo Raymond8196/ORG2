@@ -54,4 +54,24 @@ describe("WorkManagementDatasetSwitch", () => {
       WORK_MANAGEMENT_DATASET.REVIEWS,
     ]);
   });
+
+  it("uses only the selected icon and chevron in compact split headers", () => {
+    const markup = renderToStaticMarkup(
+      createElement(WorkManagementDatasetSwitch, {
+        activeDataset: WORK_MANAGEMENT_DATASET.GITHUB_ISSUES,
+        onChange: vi.fn(),
+        compact: true,
+      })
+    );
+
+    expect(markup).toContain('data-icon="circle-dot"');
+    expect(markup).toContain('data-icon="chevron-down"');
+    expect(markup).toContain(
+      'aria-label="sessions:kanban.sidebar.githubIssues"'
+    );
+    expect(markup).toContain("[&amp;_.select-value]:gap-0");
+    expect(markup).not.toContain(
+      '<span class="min-w-0 truncate">sessions:kanban.sidebar.githubIssues</span>'
+    );
+  });
 });

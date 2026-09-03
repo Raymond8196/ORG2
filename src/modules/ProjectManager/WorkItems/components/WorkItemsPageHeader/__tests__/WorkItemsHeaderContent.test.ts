@@ -108,12 +108,11 @@ describe("WorkItemsHeaderContent", () => {
     );
   });
 
-  it("leaves the page header to selectors when split controls move left", () => {
+  it("keeps search and actions in the page header during split view", () => {
     const markup = renderToStaticMarkup(
       React.createElement(WorkItemsPageHeader, {
         projectName: "Project",
         activeTab: "List",
-        hideTrailingControls: true,
         trailingControls: React.createElement(
           "span",
           { "data-testid": "inline-search" },
@@ -136,8 +135,49 @@ describe("WorkItemsHeaderContent", () => {
       })
     );
 
-    expect(markup).not.toContain('data-testid="inline-search"');
-    expect(markup).not.toContain('data-icon="refresh-cw"');
-    expect(markup).not.toContain('data-icon="square-pen"');
+    expect(markup).toContain('data-testid="inline-search"');
+    expect(markup).toContain('data-icon="refresh-cw"');
+    expect(markup).toContain('data-icon="square-pen"');
+  });
+
+  it("renders tab-bar split controls as two left-list header rows", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(WorkItemsPageHeader, {
+        projectName: "Project",
+        activeTab: "List",
+        splitListHeader: true,
+        splitHeaderLeading: React.createElement(
+          "span",
+          { "data-testid": "work-dataset-work-items" },
+          "Work Items"
+        ),
+        trailingControls: React.createElement(
+          "span",
+          { "data-testid": "inline-search" },
+          "Search"
+        ),
+        onRefresh: vi.fn(),
+        onAddWorkItem: vi.fn(),
+        statusCounts: {
+          all: 0,
+          backlog: 0,
+          todo: 0,
+          inProgress: 0,
+          inReview: 0,
+          done: 0,
+          cancelled: 0,
+          duplicate: 0,
+          open: 0,
+          closed: 0,
+        },
+      })
+    );
+
+    expect(markup).toContain('data-split-list-header="true"');
+    expect(markup).toContain('data-split-list-header-row="primary"');
+    expect(markup).toContain('data-split-list-header-row="secondary"');
+    expect(markup).toContain('data-testid="work-dataset-work-items"');
+    expect(markup).toContain('data-testid="inline-search"');
+    expect(markup).toContain('class="flex min-w-0 items-center gap-px flex-1"');
   });
 });

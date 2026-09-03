@@ -53,12 +53,13 @@ export function IssuePersonalFilterDropdown({
     >
       <Button
         htmlType="button"
-        variant="secondary"
+        variant="tertiary"
+        size="small"
         icon={
           <HugeiconsIcon
             icon={FunnelIcon}
             data-icon="funnel"
-            size={13}
+            size={14}
             strokeWidth={1.8}
           />
         }
