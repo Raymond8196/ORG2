@@ -1,4 +1,4 @@
-import { createElement } from "react";
+import { type ReactNode, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -6,6 +6,16 @@ import {
   GitHubWorkItemStateTabs,
   GitHubWorkItemToolbarActions,
 } from "./GitHubWorkItemList";
+
+vi.mock("@src/components/KeyboardShortcut/ToolbarTooltip", () => ({
+  ToolbarTooltip: ({
+    children,
+    label,
+  }: {
+    children: ReactNode;
+    label: string;
+  }) => createElement("span", { "data-tooltip-label": label }, children),
+}));
 
 describe("GitHubWorkItemToolbarActions", () => {
   it("renders Refresh before the compact square-pencil action", () => {
@@ -25,6 +35,8 @@ describe("GitHubWorkItemToolbarActions", () => {
     expect(markup.indexOf('aria-label="Refresh"')).toBeLessThan(
       markup.indexOf('aria-label="Create issue"')
     );
+    expect(markup).toContain('data-tooltip-label="Refresh"');
+    expect(markup).toContain('data-tooltip-label="Create issue"');
     expect(markup).toContain('data-icon="square-pen"');
     expect(markup).not.toContain('data-icon="plus"');
     expect(markup).toContain('width="16"');

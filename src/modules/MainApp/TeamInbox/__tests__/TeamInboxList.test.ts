@@ -1,10 +1,20 @@
-import { createElement } from "react";
+import { type ReactNode, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import type { ManagedPrItem } from "../../WorkManagement/githubManagedItemModel";
 import TeamInboxList from "../components/TeamInboxList";
 import type { AssignedWorkItem } from "../domain";
+
+vi.mock("@src/components/KeyboardShortcut/ToolbarTooltip", () => ({
+  ToolbarTooltip: ({
+    children,
+    label,
+  }: {
+    children: ReactNode;
+    label: string;
+  }) => createElement("span", { "data-tooltip-label": label }, children),
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -99,6 +109,7 @@ describe("TeamInboxList pagination", () => {
     const markup = renderEmptyList("");
 
     expect(markup).toContain('data-testid="team-inbox-refresh"');
+    expect(markup).toContain('data-tooltip-label="common:actions.refresh"');
     expect(markup).toContain('data-icon="refresh-cw"');
     expect(markup).toContain("height:28px");
     expect(markup).toContain("width:28px");
@@ -249,7 +260,7 @@ describe("TeamInboxList pagination", () => {
     expect(markup.match(/class="mb-2 last:mb-0"/g)).toHaveLength(3);
     expect(markup).toContain("mb-px h-7");
     expect(markup).toContain(
-      "text-xs font-medium uppercase tracking-wider text-text-2"
+      "order-first min-w-0 truncate text-left text-[11px] font-normal"
     );
     expect(markup).toContain("rounded-lg");
     expect(markup).toContain("hover:bg-surface-hover");

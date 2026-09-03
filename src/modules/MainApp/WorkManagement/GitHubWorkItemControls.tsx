@@ -7,6 +7,7 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
+import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import type { SelectOption } from "@src/components/Select";
 import {
   BubbleChatIcon,
@@ -43,31 +44,32 @@ export function IssuePersonalFilterDropdown({
       : filterLabel;
 
   return (
-    <Dropdown
-      options={options}
-      value={selectedFilters}
-      mode="multiple"
-      position="bottom-end"
-      className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.menuClass}`}
-      onSelect={(value) => onSelect(Array.isArray(value) ? value : [value])}
-    >
-      <Button
-        htmlType="button"
-        variant="tertiary"
-        size="small"
-        icon={
-          <HugeiconsIcon
-            icon={FunnelIcon}
-            data-icon="funnel"
-            size={14}
-            strokeWidth={1.8}
-          />
-        }
-        iconOnly
-        aria-label={accessibleLabel}
-        title={accessibleLabel}
-      />
-    </Dropdown>
+    <ToolbarTooltip label={accessibleLabel}>
+      <Dropdown
+        options={options}
+        value={selectedFilters}
+        mode="multiple"
+        position="bottom-end"
+        className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.menuClass}`}
+        onSelect={(value) => onSelect(Array.isArray(value) ? value : [value])}
+      >
+        <Button
+          htmlType="button"
+          variant="tertiary"
+          size="small"
+          icon={
+            <HugeiconsIcon
+              icon={FunnelIcon}
+              data-icon="funnel"
+              size={14}
+              strokeWidth={1.8}
+            />
+          }
+          iconOnly
+          aria-label={accessibleLabel}
+        />
+      </Dropdown>
+    </ToolbarTooltip>
   );
 }
 

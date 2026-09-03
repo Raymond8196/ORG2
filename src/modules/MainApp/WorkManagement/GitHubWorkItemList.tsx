@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 
 import Button from "@src/components/Button";
+import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import TabPill, { type TabPillItem } from "@src/components/TabPill";
 import { HEADER_ICON_SIZE } from "@src/config/workstation/tokens";
 import {
@@ -34,23 +35,25 @@ export function GitHubWorkItemToolbarActions({
         onRefresh={onRefresh}
       />
       {createAction ? (
-        <Button
-          htmlType="button"
-          variant="tertiary"
-          size="small"
-          icon={
-            <HugeiconsIcon
-              icon={PencilEdit02Icon}
-              data-icon="square-pen"
-              size={HEADER_ICON_SIZE.md}
-              strokeWidth={2}
-            />
-          }
-          iconOnly
-          aria-label={createAction.label}
-          onClick={createAction.onClick}
-          disabled={createAction.disabled}
-        />
+        <ToolbarTooltip label={createAction.label}>
+          <Button
+            htmlType="button"
+            variant="tertiary"
+            size="small"
+            icon={
+              <HugeiconsIcon
+                icon={PencilEdit02Icon}
+                data-icon="square-pen"
+                size={HEADER_ICON_SIZE.md}
+                strokeWidth={2}
+              />
+            }
+            iconOnly
+            aria-label={createAction.label}
+            onClick={createAction.onClick}
+            disabled={createAction.disabled}
+          />
+        </ToolbarTooltip>
       ) : null}
     </div>
   );

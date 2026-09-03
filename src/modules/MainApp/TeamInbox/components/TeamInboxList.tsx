@@ -11,6 +11,7 @@ import AnyIcon from "@src/components/AnyIcon";
 import Avatar from "@src/components/Avatar";
 import Button from "@src/components/Button";
 import InlineAlert from "@src/components/InlineAlert";
+import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { LIST_PANEL_SECTIONS, ListPanelItem } from "@src/components/ListPanel";
 import { Placeholder } from "@src/components/Placeholder";
 import {
@@ -170,25 +171,26 @@ export const TeamInboxListControls: React.FC<TeamInboxListControlsProps> = ({
       trailingActions ? (
         <div className="flex shrink-0 items-center gap-px">
           {activeFilterUnread > 0 && onMarkAllRead ? (
-            <Button
-              htmlType="button"
-              variant="tertiary"
-              size="small"
-              icon={
-                <HugeiconsIcon
-                  icon={TickDouble01Icon}
-                  data-icon="check-check"
-                  size={14}
-                  strokeWidth={2}
-                />
-              }
-              iconOnly
-              className="shrink-0"
-              title={t("inbox.markAllAsRead")}
-              aria-label={t("inbox.markAllAsRead")}
-              data-testid="team-inbox-mark-all-read"
-              onClick={onMarkAllRead}
-            />
+            <ToolbarTooltip label={t("inbox.markAllAsRead")}>
+              <Button
+                htmlType="button"
+                variant="tertiary"
+                size="small"
+                icon={
+                  <HugeiconsIcon
+                    icon={TickDouble01Icon}
+                    data-icon="check-check"
+                    size={14}
+                    strokeWidth={2}
+                  />
+                }
+                iconOnly
+                className="shrink-0"
+                aria-label={t("inbox.markAllAsRead")}
+                data-testid="team-inbox-mark-all-read"
+                onClick={onMarkAllRead}
+              />
+            </ToolbarTooltip>
           ) : null}
           {onRefresh ? (
             <WorkManagementRefreshButton
@@ -225,8 +227,8 @@ function TeamInboxListSection({
         title={title}
         compact
         headerRowClassName="mb-px h-7"
-        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 text-xs font-medium uppercase tracking-wider text-text-2 hover:text-text-1"
-        titleClassName="order-first min-w-0 truncate text-left"
+        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 uppercase tracking-wider text-text-2 hover:text-text-1"
+        titleClassName="order-first min-w-0 truncate text-left text-[11px] font-normal"
         chevronContainerClassName="order-last hidden shrink-0 items-center leading-none group-hover/section-title:inline-flex group-focus-visible/section-title:inline-flex"
         chevronSize={14}
         chevronStrokeWidth={2}
