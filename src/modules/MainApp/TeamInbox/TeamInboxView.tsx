@@ -82,8 +82,7 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
   onOpenPullRequestTab,
 }) => {
   const { t } = useTranslation();
-  const { hasTabBar, datasetControl, splitDatasetControl } =
-    useWorkManagementSplitHeader();
+  const { hasTabBar, splitDatasetControl } = useWorkManagementSplitHeader();
   const issueMessage = useCallback(
     (issue: TeamInboxIssue): string => {
       if (issue.code === "identity_unresolved") {
@@ -400,20 +399,19 @@ const TeamInboxView: React.FC<TeamInboxViewProps> = ({
     ]
   );
   const headerControls = useSplitListHeader ? null : listHeaderControls;
-  const splitHeaderDatasetControl = splitDatasetControl ?? datasetControl;
   const splitListHeader = useMemo(
     () =>
       useSplitListHeader ? (
         <SplitListHeader
           primary={
             <div className="flex min-w-0 flex-1 items-center gap-px">
-              {splitHeaderDatasetControl}
+              {splitDatasetControl}
               {listHeaderControls}
             </div>
           }
         />
       ) : null,
-    [listHeaderControls, splitHeaderDatasetControl, useSplitListHeader]
+    [listHeaderControls, splitDatasetControl, useSplitListHeader]
   );
   const publishedHeader = useMemo(
     () =>

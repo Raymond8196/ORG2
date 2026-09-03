@@ -206,7 +206,6 @@ describe("TeamInboxView split layout", () => {
       );
     });
 
-    expect(splitViewProps.current?.alwaysShowBreadcrumb).toBeUndefined();
     expect(splitViewProps.current?.hideBreadcrumbWhenSidebarCollapsed).toBe(
       true
     );
@@ -217,7 +216,6 @@ describe("TeamInboxView split layout", () => {
     expect(splitViewProps.current?.listWidth).toBe(360);
     expect(splitViewProps.current?.minListWidth).toBe(280);
     expect(splitViewProps.current?.maxListWidth).toBe(480);
-    expect(splitViewProps.current?.listFullscreen).toBe(false);
     expect(componentProps.list?.loading).toBe(true);
   });
 
@@ -259,7 +257,7 @@ describe("TeamInboxView split layout", () => {
           {
             value: {
               hasTabBar: true,
-              datasetControl: createElement(
+              splitDatasetControl: createElement(
                 "button",
                 { "data-testid": "work-dataset-inbox" },
                 "Inbox"
@@ -324,11 +322,7 @@ describe("TeamInboxView split layout", () => {
             {
               value: {
                 hasTabBar: false,
-                datasetControl: createElement(
-                  "button",
-                  { "data-testid": "work-dataset-inbox" },
-                  "Inbox"
-                ),
+                splitDatasetControl: null,
               },
             },
             createElement(TeamInboxView, {

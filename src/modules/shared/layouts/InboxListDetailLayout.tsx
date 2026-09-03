@@ -73,10 +73,7 @@ const InboxListDetailLayout: React.FC<InboxListDetailLayoutProps> = ({
         listWidth={INBOX_LIST_DETAIL_WIDTH.default}
         minListWidth={INBOX_LIST_DETAIL_WIDTH.min}
         maxListWidth={INBOX_LIST_DETAIL_WIDTH.max}
-        resizable
-        collapsible
         hideBreadcrumbWhenSidebarCollapsed
-        listFullscreen={listFullscreen}
         listPanelBackgroundClassName="bg-chat-pane"
         mainContentClassName="bg-chat-pane"
         listHeader={listHeader}

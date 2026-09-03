@@ -1,8 +1,18 @@
-import { createElement } from "react";
+import { type ReactNode, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
 import SplitListFullscreenButton from "./SplitListFullscreenButton";
+
+vi.mock("@src/components/KeyboardShortcut/ToolbarTooltip", () => ({
+  ToolbarTooltip: ({
+    children,
+    label,
+  }: {
+    children: ReactNode;
+    label: string;
+  }) => createElement("span", { "data-tooltip-label": label }, children),
+}));
 
 vi.mock("react-i18next", () => ({
   useTranslation: () => ({
@@ -26,9 +36,17 @@ describe("SplitListFullscreenButton", () => {
     );
 
     expect(maximized).toContain('data-testid="split-list-fullscreen-toggle"');
-    expect(maximized).toContain('aria-label="actions.maximizeRestore"');
+    expect(maximized).toContain(
+      'aria-label="windowChrome.items.maximizeRestore"'
+    );
+    expect(maximized).toContain(
+      'data-tooltip-label="windowChrome.items.maximizeRestore"'
+    );
+    expect(maximized).not.toContain('title="');
     expect(maximized).toContain('data-icon="maximize-2"');
-    expect(restored).toContain('aria-label="actions.maximizeRestore"');
+    expect(restored).toContain(
+      'aria-label="windowChrome.items.maximizeRestore"'
+    );
     expect(restored).toContain('data-icon="minimize-2"');
   });
 });

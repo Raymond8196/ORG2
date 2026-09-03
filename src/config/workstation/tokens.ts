@@ -24,14 +24,14 @@ export const WORK_STATION_PLACEHOLDER_PAGE_BG_CLASS = "bg-pane-raised";
  * section rhythm cannot drift from the focused-chat environment trail.
  */
 const WORKSTATION_TRAIL_ROW_HORIZONTAL_PADDING = "pl-2 pr-1.5";
-const WORKSTATION_TRAIL_SECTION_LABEL_BASE =
+export const WORKSTATION_TRAIL_SECTION_LABEL =
   "text-left text-[11px] font-medium uppercase tracking-wide text-text-3";
 
 export const WORKSTATION_TRAIL_CONTENT = {
   sectionList: "space-y-3",
   section: "space-y-1",
-  sectionLabel: `px-2 ${WORKSTATION_TRAIL_SECTION_LABEL_BASE}`,
-  sectionLabelInline: `pl-2 pr-1 ${WORKSTATION_TRAIL_SECTION_LABEL_BASE}`,
+  sectionLabel: `px-2 ${WORKSTATION_TRAIL_SECTION_LABEL}`,
+  sectionLabelInline: `pl-2 pr-1 ${WORKSTATION_TRAIL_SECTION_LABEL}`,
   rows: "space-y-1",
   row: "flex h-7 min-w-0 items-center rounded-lg",
   rowHorizontalPadding: WORKSTATION_TRAIL_ROW_HORIZONTAL_PADDING,

@@ -1,4 +1,4 @@
-import { createElement } from "react";
+import { type ReactNode, createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it, vi } from "vitest";
 
@@ -15,6 +15,16 @@ import {
   type ManagedIssueItem,
   type ManagedPrItem,
 } from "./githubManagedItemModel";
+
+vi.mock("@src/components/KeyboardShortcut/ToolbarTooltip", () => ({
+  ToolbarTooltip: ({
+    children,
+    label,
+  }: {
+    children: ReactNode;
+    label: string;
+  }) => createElement("span", { "data-tooltip-label": label }, children),
+}));
 
 const linkedIssue: ManagedIssueItem = {
   kind: GITHUB_ITEM_KIND.ISSUE,
@@ -258,6 +268,7 @@ describe("GitHub work-item header controls", () => {
 
     expect(markup).toContain('data-icon="funnel"');
     expect(markup).toContain('aria-label="Filter (1)"');
+    expect(markup).toContain('data-tooltip-label="Filter (1)"');
     expect(markup).not.toContain(">Filter<");
     expect(markup).toContain("height:28px");
   });
