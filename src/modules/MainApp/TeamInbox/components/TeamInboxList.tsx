@@ -14,6 +14,7 @@ import InlineAlert from "@src/components/InlineAlert";
 import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import { LIST_PANEL_SECTIONS, ListPanelItem } from "@src/components/ListPanel";
 import { Placeholder } from "@src/components/Placeholder";
+import { WORKSTATION_TRAIL_SECTION_LABEL } from "@src/config/workstation/tokens";
 import {
   GitMergeIcon,
   GitPullRequestClosedIcon,
@@ -227,8 +228,8 @@ function TeamInboxListSection({
         title={title}
         compact
         headerRowClassName="mb-px h-7"
-        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 uppercase tracking-wider text-text-2 hover:text-text-1"
-        titleClassName="order-first min-w-0 truncate text-left text-[11px] font-normal"
+        titleButtonClassName="group/section-title h-7 w-full gap-2 pl-2 hover:text-text-1"
+        titleClassName={`order-first min-w-0 truncate ${WORKSTATION_TRAIL_SECTION_LABEL}`}
         chevronContainerClassName="order-last hidden shrink-0 items-center leading-none group-hover/section-title:inline-flex group-focus-visible/section-title:inline-flex"
         chevronSize={14}
         chevronStrokeWidth={2}
