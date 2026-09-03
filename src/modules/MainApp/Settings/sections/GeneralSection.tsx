@@ -228,6 +228,8 @@ const GeneralTabBody: React.FC = () => {
   }, [micPermissionStatus, t]);
 
   useEffect(() => {
+    if (!devModeEnabled) return;
+
     let cancelled = false;
     invoke<string>("settings_get_path").then((path) => {
       if (!cancelled && path) {
@@ -237,7 +239,7 @@ const GeneralTabBody: React.FC = () => {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [devModeEnabled]);
 
   const handleLanguageChange = useCallback(
     (value: string | number | (string | number)[]) => {
@@ -442,20 +444,22 @@ const GeneralTabBody: React.FC = () => {
         </SectionRow>
       </SectionContainer>
 
-      <SectionContainer>
-        <PathCopyOpenRow
-          label={t("general.settingsFile")}
-          path={settingsFilePath}
-          onCopy={() => {
-            void copyText(settingsFilePath).then(() => {
-              Message.success(t("storage.copiedPath"));
-            });
-          }}
-          onOpen={() => invoke("show_in_folder", { path: settingsFilePath })}
-          copyTitle={t("common:actions.copy")}
-          openTitle={t("storage.openFolder")}
-        />
-      </SectionContainer>
+      {devModeEnabled && (
+        <SectionContainer>
+          <PathCopyOpenRow
+            label={t("general.settingsFile")}
+            path={settingsFilePath}
+            onCopy={() => {
+              void copyText(settingsFilePath).then(() => {
+                Message.success(t("storage.copiedPath"));
+              });
+            }}
+            onOpen={() => invoke("show_in_folder", { path: settingsFilePath })}
+            copyTitle={t("common:actions.copy")}
+            openTitle={t("storage.openFolder")}
+          />
+        </SectionContainer>
+      )}
     </>
   );
 };
