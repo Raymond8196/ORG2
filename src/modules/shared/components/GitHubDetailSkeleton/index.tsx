@@ -7,6 +7,7 @@ import {
   TimelineCard,
   TimelineLoadingSkeleton,
 } from "@src/modules/shared/components/ActivityTimeline";
+import { DETAIL_FLOW_HEADER_TOKENS } from "@src/modules/shared/components/DetailFlowHeader";
 import WorkstationTrailSurface, {
   WORKSTATION_TRAIL_RAIL_PADDING_CLASS,
   WORKSTATION_TRAIL_WIDTH,
@@ -17,16 +18,19 @@ import WorkstationTrailSurface, {
 import type { PrDetailTab } from "@src/store/workstation/codeEditor/workstationSelectedPrAtom";
 
 import GitHubPrDetailTabs from "../GitHubPrDetailTabs";
+import ThreadDetailTabs, { type ThreadDetailTab } from "../ThreadDetailTabs";
 
 interface GitHubDetailSkeletonProps {
   kind: "issue" | "pr";
   /** Match hosts that publish the detail title into a shell-owned header. */
   showHeader?: boolean;
-  /** Show PR navigation when the tabs are owned by this surface. */
+  /** Show detail navigation when the tabs are owned by this surface. */
   showTabs?: boolean;
   /** Live navigation supplied by a host whose code is already loaded. */
   tabs?: React.ReactNode;
-  activeTab?: PrDetailTab;
+  activeTab?: PrDetailTab | ThreadDetailTab;
+  /** Hide the flow title when the owning header already contains the title. */
+  showFlowHeader?: boolean;
   /** Render the known selection title without waiting for the detail request. */
   title?: string;
   number?: number;
@@ -41,14 +45,19 @@ function SkeletonBar({ className }: { className: string }): React.ReactNode {
   );
 }
 
+// The detail metadata pills and workstation-trail rows are both 26px tall.
+// Keep their placeholders at that height so loading does not make either
+// Work Item or PR detail surface look vertically compressed.
+const SKELETON_CONTROL_HEIGHT = "h-[26px]";
+
 function SkeletonFlowHeader({
   title,
   number,
 }: Pick<GitHubDetailSkeletonProps, "title" | "number">): React.ReactNode {
   return (
-    <div className="flex min-w-0 flex-col gap-2">
+    <div className={DETAIL_FLOW_HEADER_TOKENS.container}>
       {title ? (
-        <h2 className="min-w-0 text-[20px] leading-7 font-semibold text-text-1 select-text">
+        <h2 className={DETAIL_FLOW_HEADER_TOKENS.title}>
           {title}{" "}
           {number !== undefined ? (
             <span className="font-normal whitespace-nowrap text-text-3">
@@ -59,8 +68,10 @@ function SkeletonFlowHeader({
       ) : (
         <SkeletonBar className="h-7 w-full max-w-96" />
       )}
-      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
-        <SkeletonBar className="h-5 w-16 rounded-full" />
+      <div className={DETAIL_FLOW_HEADER_TOKENS.metadataRow}>
+        <SkeletonBar
+          className={`${SKELETON_CONTROL_HEIGHT} w-16 rounded-full`}
+        />
         <SkeletonBar className="h-4 w-full max-w-72" />
       </div>
     </div>
@@ -88,20 +99,26 @@ function SkeletonDescriptionCard(): React.ReactNode {
   );
 }
 
-function PrSkeletonContent({
+function FlowSkeletonContent({
   title,
   number,
   loadingLabel,
+  showFlowHeader,
 }: Pick<GitHubDetailSkeletonProps, "title" | "number"> & {
   loadingLabel: string;
+  showFlowHeader: boolean;
 }): React.ReactNode {
   return (
     <>
-      <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 pt-5`}>
-        <SkeletonFlowHeader title={title} number={number} />
-      </div>
+      {showFlowHeader ? (
+        <div
+          className={`${DETAIL_PANEL_TOKENS.headerWidth} ${DETAIL_PANEL_TOKENS.flowHeaderPadding}`}
+        >
+          <SkeletonFlowHeader title={title} number={number} />
+        </div>
+      ) : null}
       <div
-        className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col gap-3 px-4 py-4`}
+        className={`${DETAIL_PANEL_TOKENS.headerWidth} ${DETAIL_PANEL_TOKENS.threadContentPadding} flex flex-col gap-3`}
       >
         <SkeletonDescriptionCard />
         <TimelineLoadingSkeleton label={loadingLabel} />
@@ -122,6 +139,7 @@ const GitHubDetailSkeleton: React.FC<GitHubDetailSkeletonProps> = memo(
     showTabs = true,
     tabs,
     activeTab = "conversation",
+    showFlowHeader = true,
     title,
     number,
   }) => {
@@ -149,15 +167,28 @@ const GitHubDetailSkeleton: React.FC<GitHubDetailSkeletonProps> = memo(
           {t("status.loading")}
         </span>
         {showHeader ? (
-          <div className="flex h-10 shrink-0 items-center gap-3 px-4">
+          <div
+            className={`flex ${DETAIL_PANEL_TOKENS.headerHeight} shrink-0 items-center gap-3 px-4`}
+            data-testid={`github-${kind}-detail-skeleton-header`}
+          >
             <SkeletonBar className="h-5 w-5 rounded-full" />
             <SkeletonBar className="h-3 w-16" />
             <SkeletonBar className="h-4 w-2/5" />
           </div>
         ) : null}
 
-        {kind === "pr" && showTabs
-          ? (tabs ?? <GitHubPrDetailTabs activeTab={activeTab} />)
+        {showTabs
+          ? (tabs ??
+            (kind === "pr" ? (
+              <GitHubPrDetailTabs activeTab={activeTab as PrDetailTab} />
+            ) : (
+              <ThreadDetailTabs
+                activeTab={activeTab as ThreadDetailTab}
+                conversationCountLoading
+                linkedCountLoading
+                idPrefix="issue-detail"
+              />
+            )))
           : null}
 
         <div
@@ -166,28 +197,21 @@ const GitHubDetailSkeleton: React.FC<GitHubDetailSkeletonProps> = memo(
           className="flex min-h-0 flex-1 overflow-hidden"
         >
           <div
-            role={kind === "pr" ? "tabpanel" : undefined}
-            id={kind === "pr" ? `pr-detail-tabpanel-${activeTab}` : undefined}
-            aria-labelledby={
-              kind === "pr" ? `pr-detail-tab-${activeTab}` : undefined
-            }
+            role="tabpanel"
+            id={`${kind === "pr" ? "pr-detail" : "issue-detail"}-tabpanel-${activeTab}`}
+            aria-labelledby={`${kind === "pr" ? "pr-detail" : "issue-detail"}-tab-${activeTab}`}
             className="scrollbar-hide min-h-0 min-w-0 flex-1 overflow-y-auto"
           >
-            {kind === "pr" ? (
-              <PrSkeletonContent
-                title={title}
-                number={number}
-                loadingLabel={t("git.pr.loadingConversation", "Loading…")}
-              />
-            ) : (
-              <div className="mx-auto flex w-full max-w-[920px] flex-col gap-3 px-5 py-5 pb-24">
-                <SkeletonFlowHeader title={title} number={number} />
-                <SkeletonDescriptionCard />
-                <TimelineLoadingSkeleton
-                  label={t("git.issues.loadingTimeline", "Loading activity…")}
-                />
-              </div>
-            )}
+            <FlowSkeletonContent
+              title={title}
+              number={number}
+              loadingLabel={
+                kind === "pr"
+                  ? t("git.pr.loadingConversation", "Loading…")
+                  : t("git.issues.loadingTimeline", "Loading activity…")
+              }
+              showFlowHeader={showFlowHeader}
+            />
           </div>
           <div
             className={`box-border flex h-full shrink-0 flex-col ${WORKSTATION_TRAIL_RAIL_PADDING_CLASS}`}
@@ -208,8 +232,10 @@ const GitHubDetailSkeleton: React.FC<GitHubDetailSkeletonProps> = memo(
               >
                 {sidebarSections.map((label) => (
                   <WorkstationTrailSection key={label} title={label}>
-                    <div className="px-2 py-1">
-                      <SkeletonBar className="h-5 w-24" />
+                    <div className="px-2">
+                      <SkeletonBar
+                        className={`${SKELETON_CONTROL_HEIGHT} w-24 rounded-lg`}
+                      />
                     </div>
                   </WorkstationTrailSection>
                 ))}

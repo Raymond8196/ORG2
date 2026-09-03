@@ -20,6 +20,13 @@ describe.each(["issue", "pr"] as const)(
         `data-testid="github-${kind}-detail-skeleton-sidebar"`
       );
       expect(markup).toContain(`width:${WORKSTATION_TRAIL_WIDTH.expandedPx}px`);
+      expect(markup).toContain("h-[26px] w-16 rounded-full");
+      expect(markup).toContain("h-[26px] w-24 rounded-lg");
+      expect(markup).toMatch(
+        new RegExp(
+          `class="[^"]*\\bh-9\\b[^"]*" data-testid="github-${kind}-detail-skeleton-header"`
+        )
+      );
       for (const label of kind === "pr"
         ? ["Reviewers", "Assignees", "Labels", "Actions"]
         : ["Work Item Properties", "Status", "Labels", "Assignment"]) {
@@ -65,6 +72,8 @@ describe("GitHubDetailSkeleton PR tabs", () => {
     );
 
     expect(markup).not.toContain('role="tablist"');
+    expect(markup).toContain('role="tabpanel"');
+    expect(markup).toContain('id="pr-detail-tabpanel-conversation"');
   });
 
   it("matches the loaded PR flow and timeline spacing", () => {
@@ -85,5 +94,29 @@ describe("GitHubDetailSkeleton PR tabs", () => {
     expect(markup).toContain('data-testid="timeline-loading-skeleton"');
     expect(markup).not.toContain("px-1 py-2");
     expect(markup).not.toContain("max-w-[920px]");
+  });
+});
+
+describe("GitHubDetailSkeleton issue tabs", () => {
+  it("uses the same tab, content-width, padding, and timeline loading primitives", () => {
+    const markup = renderToStaticMarkup(
+      createElement(GitHubDetailSkeleton, {
+        kind: "issue",
+        title: "Match pull request formatting",
+        number: 42,
+      })
+    );
+
+    expect(markup).toContain('id="issue-detail-tab-conversation"');
+    expect(markup).toContain('id="issue-detail-tab-linked"');
+    expect(
+      markup.match(/data-testid="detail-tab-count-skeleton"/g)
+    ).toHaveLength(2);
+    expect(markup).toContain("mx-auto w-full max-w-[932px]");
+    expect(markup).toContain("px-4 pt-5");
+    expect(markup).toContain("px-4 py-4");
+    expect(markup).toContain('data-testid="timeline-loading-skeleton"');
+    expect(markup).not.toContain("max-w-[920px]");
+    expect(markup).not.toContain("px-5 py-5");
   });
 });
