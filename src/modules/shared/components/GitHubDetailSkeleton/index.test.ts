@@ -14,7 +14,7 @@ describe.each(["issue", "pr"] as const)(
         createElement(GitHubDetailSkeleton, { kind })
       );
 
-      expect(markup).toContain("scrollbar-overlay");
+      expect(markup).toContain("scrollbar-hide");
       expect(markup).toContain("overflow-y-auto");
       expect(markup).toContain(
         `data-testid="github-${kind}-detail-skeleton-sidebar"`
@@ -65,5 +65,25 @@ describe("GitHubDetailSkeleton PR tabs", () => {
     );
 
     expect(markup).not.toContain('role="tablist"');
+  });
+
+  it("matches the loaded PR flow and timeline spacing", () => {
+    const markup = renderToStaticMarkup(
+      createElement(GitHubDetailSkeleton, {
+        kind: "pr",
+        title: "Keep the known title visible",
+        number: 725,
+      })
+    );
+
+    expect(markup).toContain("mx-auto w-full max-w-[932px]");
+    expect(markup).toContain("px-4 pt-5");
+    expect(markup).toContain("px-4 py-4");
+    expect(markup).toContain("Keep the known title visible");
+    expect(markup).toContain(">#725</span>");
+    expect(markup).toContain("bg-chat-pane");
+    expect(markup).toContain('data-testid="timeline-loading-skeleton"');
+    expect(markup).not.toContain("px-1 py-2");
+    expect(markup).not.toContain("max-w-[920px]");
   });
 });

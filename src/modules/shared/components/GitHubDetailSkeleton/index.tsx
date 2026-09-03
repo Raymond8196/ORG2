@@ -1,7 +1,12 @@
 import React, { memo } from "react";
 import { useTranslation } from "react-i18next";
 
+import { DETAIL_PANEL_TOKENS } from "@src/config/detailPanelTokens";
 import { WORKSTATION_TRAIL_CONTENT } from "@src/config/workstation/tokens";
+import {
+  TimelineCard,
+  TimelineLoadingSkeleton,
+} from "@src/modules/shared/components/ActivityTimeline";
 import WorkstationTrailSurface, {
   WORKSTATION_TRAIL_RAIL_PADDING_CLASS,
   WORKSTATION_TRAIL_WIDTH,
@@ -33,6 +38,75 @@ function SkeletonBar({ className }: { className: string }): React.ReactNode {
       aria-hidden
       className={`animate-pulse rounded bg-fill-2 motion-reduce:animate-none ${className}`}
     />
+  );
+}
+
+function SkeletonFlowHeader({
+  title,
+  number,
+}: Pick<GitHubDetailSkeletonProps, "title" | "number">): React.ReactNode {
+  return (
+    <div className="flex min-w-0 flex-col gap-2">
+      {title ? (
+        <h2 className="min-w-0 text-[20px] leading-7 font-semibold text-text-1 select-text">
+          {title}{" "}
+          {number !== undefined ? (
+            <span className="font-normal whitespace-nowrap text-text-3">
+              #{number}
+            </span>
+          ) : null}
+        </h2>
+      ) : (
+        <SkeletonBar className="h-7 w-full max-w-96" />
+      )}
+      <div className="flex min-w-0 flex-wrap items-center gap-x-2 gap-y-1.5">
+        <SkeletonBar className="h-5 w-16 rounded-full" />
+        <SkeletonBar className="h-4 w-full max-w-72" />
+      </div>
+    </div>
+  );
+}
+
+function SkeletonDescriptionCard(): React.ReactNode {
+  return (
+    <TimelineCard
+      header={
+        <span className="flex min-w-0 items-center gap-2">
+          <SkeletonBar className="size-5 rounded-full" />
+          <SkeletonBar className="h-3 w-28" />
+          <SkeletonBar className="h-3 w-16" />
+        </span>
+      }
+    >
+      <div className="space-y-2.5">
+        <SkeletonBar className="block h-3 w-full" />
+        <SkeletonBar className="block h-3 w-11/12" />
+        <SkeletonBar className="block h-3 w-4/5" />
+        <SkeletonBar className="block h-3 w-2/3" />
+      </div>
+    </TimelineCard>
+  );
+}
+
+function PrSkeletonContent({
+  title,
+  number,
+  loadingLabel,
+}: Pick<GitHubDetailSkeletonProps, "title" | "number"> & {
+  loadingLabel: string;
+}): React.ReactNode {
+  return (
+    <>
+      <div className={`${DETAIL_PANEL_TOKENS.headerWidth} px-4 pt-5`}>
+        <SkeletonFlowHeader title={title} number={number} />
+      </div>
+      <div
+        className={`${DETAIL_PANEL_TOKENS.headerWidth} flex flex-col gap-3 px-4 py-4`}
+      >
+        <SkeletonDescriptionCard />
+        <TimelineLoadingSkeleton label={loadingLabel} />
+      </div>
+    </>
   );
 }
 
@@ -97,73 +171,23 @@ const GitHubDetailSkeleton: React.FC<GitHubDetailSkeletonProps> = memo(
             aria-labelledby={
               kind === "pr" ? `pr-detail-tab-${activeTab}` : undefined
             }
-            className="scrollbar-overlay min-h-0 min-w-0 flex-1 overflow-y-auto"
+            className="scrollbar-hide min-h-0 min-w-0 flex-1 overflow-y-auto"
           >
-            <div className="mx-auto flex w-full max-w-[920px] flex-col gap-3 px-5 py-5">
-              {kind === "issue" ? (
-                <div className="flex flex-wrap items-center gap-2">
-                  <SkeletonBar className="h-7 w-20 rounded-full" />
-                  <SkeletonBar className="h-7 w-24 rounded-full" />
-                  <SkeletonBar className="h-7 w-32 rounded-full" />
-                </div>
-              ) : (
-                <div className="flex flex-col gap-3 px-1 py-2">
-                  {title ? (
-                    <h2 className="min-w-0 text-[20px] leading-7 font-semibold text-text-1 select-text">
-                      {title}{" "}
-                      {number !== undefined ? (
-                        <span className="font-normal whitespace-nowrap text-text-3">
-                          #{number}
-                        </span>
-                      ) : null}
-                    </h2>
-                  ) : (
-                    <SkeletonBar className="h-6 w-full max-w-96" />
-                  )}
-                  <div className="flex flex-wrap items-center gap-2">
-                    <SkeletonBar className="h-6 w-20 rounded-full" />
-                    <SkeletonBar className="h-4 w-full max-w-72" />
-                  </div>
-                </div>
-              )}
-
-              <section className="overflow-hidden rounded-xl border border-border-1 bg-primary-container">
-                <div className="flex h-10 items-center gap-2 border-b border-border-1 px-3">
-                  <SkeletonBar className="h-4 w-4 rounded-full" />
-                  <SkeletonBar className="h-3 w-28" />
-                </div>
-                <div className="space-y-3 px-4 py-4">
-                  <SkeletonBar className="h-3 w-full" />
-                  <SkeletonBar className="h-3 w-11/12" />
-                  <SkeletonBar className="h-3 w-4/5" />
-                  <SkeletonBar className="h-3 w-2/3" />
-                </div>
-              </section>
-
-              <section className="overflow-hidden rounded-xl border border-border-1 bg-primary-container">
-                <div className="flex h-10 items-center gap-2 border-b border-border-1 px-3">
-                  <SkeletonBar className="h-4 w-4 rounded-full" />
-                  <SkeletonBar className="h-3 w-24" />
-                </div>
-                <div className="space-y-4 px-4 py-4">
-                  <div className="flex gap-3">
-                    <SkeletonBar className="h-8 w-8 shrink-0 rounded-full" />
-                    <div className="flex min-w-0 flex-1 flex-col gap-2">
-                      <SkeletonBar className="h-3 w-32" />
-                      <SkeletonBar className="h-3 w-full" />
-                      <SkeletonBar className="h-3 w-3/4" />
-                    </div>
-                  </div>
-                  <div className="flex gap-3">
-                    <SkeletonBar className="h-8 w-8 shrink-0 rounded-full" />
-                    <div className="flex min-w-0 flex-1 flex-col gap-2">
-                      <SkeletonBar className="h-3 w-24" />
-                      <SkeletonBar className="h-3 w-5/6" />
-                    </div>
-                  </div>
-                </div>
-              </section>
-            </div>
+            {kind === "pr" ? (
+              <PrSkeletonContent
+                title={title}
+                number={number}
+                loadingLabel={t("git.pr.loadingConversation", "Loading…")}
+              />
+            ) : (
+              <div className="mx-auto flex w-full max-w-[920px] flex-col gap-3 px-5 py-5 pb-24">
+                <SkeletonFlowHeader title={title} number={number} />
+                <SkeletonDescriptionCard />
+                <TimelineLoadingSkeleton
+                  label={t("git.issues.loadingTimeline", "Loading activity…")}
+                />
+              </div>
+            )}
           </div>
           <div
             className={`box-border flex h-full shrink-0 flex-col ${WORKSTATION_TRAIL_RAIL_PADDING_CLASS}`}
