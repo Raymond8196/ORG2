@@ -208,8 +208,18 @@ export function GitHubWorkItemsView({
   onCreateIssue,
 }: GitHubWorkItemsViewProps): React.ReactNode {
   const { t } = useTranslation(["sessions", "common"]);
-  const { hasTabBar, splitDatasetControl } = useWorkManagementSplitHeader();
+  const { splitDatasetControl, surfaceDatasetControl } =
+    useWorkManagementSplitHeader();
   const [listFullscreen, setListFullscreen] = useState(false);
+  const handleSelectItem = useCallback(
+    (item: ManagedGitHubItem) => {
+      // Selecting from the full-width table always returns to split so the
+      // newly selected detail is visible immediately.
+      setListFullscreen(false);
+      onSelectItem(item);
+    },
+    [onSelectItem]
+  );
   const activeState =
     scope === GITHUB_QUERY_SCOPE.PR &&
     parsedSearchQuery.state === GITHUB_QUERY_STATE.MERGED
@@ -297,16 +307,6 @@ export function GitHubWorkItemsView({
     ),
     [effectiveSelectedRepo, onRepoSelect, repoOptions]
   );
-  const fullHeaderContent = useMemo(
-    () => (
-      <div className="flex min-w-0 items-center gap-px">
-        {repositoryHeaderContent}
-        <HeaderSectionSeparator className="mx-0.5" />
-        <GitHubWorkItemsFilterControls {...sharedHeaderControlsProps} />
-      </div>
-    ),
-    [repositoryHeaderContent, sharedHeaderControlsProps]
-  );
   const headerTrailing = useMemo(
     () => (
       <div className="flex min-w-0 items-center gap-px">
@@ -319,9 +319,8 @@ export function GitHubWorkItemsView({
     ),
     [listFullscreen, sharedHeaderControlsProps]
   );
-  // A visible tab row lets the split own two compact left-column rows. If the
-  // host folds that row away, retain the single published header at the top.
-  const useSplitListHeader = hasTabBar && !listFullscreen;
+  // Every split presentation owns its controls in the left-column header.
+  const useSplitListHeader = !listFullscreen;
   const splitListHeader = useMemo(
     () =>
       useSplitListHeader ? (
@@ -359,15 +358,38 @@ export function GitHubWorkItemsView({
       useSplitListHeader,
     ]
   );
-  // WorkManagementPage subscribes to this same header slot. Keep the wrapper
-  // stable so publishing it cannot create a render → publish feedback loop.
-  const publishedHeader = useMemo(
+  const fullListHeader = useMemo(
     () =>
-      useSplitListHeader
-        ? { hidden: true }
-        : { content: fullHeaderContent, trailing: headerTrailing },
-    [fullHeaderContent, headerTrailing, useSplitListHeader]
+      !useSplitListHeader ? (
+        <SplitListHeader
+          fullWidth
+          primary={
+            <div className="flex min-w-0 flex-1 items-center gap-px">
+              {surfaceDatasetControl}
+              {surfaceDatasetControl ? (
+                <HeaderSectionSeparator className="mx-0.5" />
+              ) : null}
+              {repositoryHeaderContent}
+              <HeaderSectionSeparator className="mx-0.5" />
+              <GitHubWorkItemsFilterControls {...sharedHeaderControlsProps} />
+              <div className="ml-auto flex min-w-0 items-center gap-px">
+                {headerTrailing}
+              </div>
+            </div>
+          }
+        />
+      ) : null,
+    [
+      headerTrailing,
+      repositoryHeaderContent,
+      sharedHeaderControlsProps,
+      surfaceDatasetControl,
+      useSplitListHeader,
+    ]
   );
+  // Let the host keep its tab/title row; each layout mode owns its controls in
+  // a local 36px surface row below it.
+  const publishedHeader = useMemo(() => ({ hidden: true }), []);
 
   usePublishWorkstationTabHeader({
     host: "workManagement",
@@ -533,7 +555,7 @@ export function GitHubWorkItemsView({
                 onAddPr={onAddPr}
               />
             ),
-            onClick: () => onSelectItem(item),
+            onClick: () => handleSelectItem(item),
           };
         }
         const issueStatusValue: ManagedIssueStatusValue =
@@ -664,7 +686,7 @@ export function GitHubWorkItemsView({
               onAddIssue={onAddIssue}
             />
           ),
-          onClick: () => onSelectItem(item),
+          onClick: () => handleSelectItem(item),
         };
       }),
     [
@@ -675,7 +697,7 @@ export function GitHubWorkItemsView({
       onIssueStatusChange,
       onLoadIssueAssignees,
       onOpenIssueInBrowser,
-      onSelectItem,
+      handleSelectItem,
       onPrStatusChange,
       readonlyReason,
       repoSources,
@@ -788,6 +810,7 @@ export function GitHubWorkItemsView({
           defaultSplit
           listFullscreen={listFullscreen}
           listHeader={splitListHeader}
+          fullHeader={fullListHeader}
           listContent={
             <GitHubWorkItemsCompactList
               scope={scope}
@@ -796,7 +819,7 @@ export function GitHubWorkItemsView({
               loading={loading}
               loadingMore={loadingMore}
               hasMore={hasMoreFilteredIssues}
-              onSelectItem={onSelectItem}
+              onSelectItem={handleSelectItem}
               onLoadMore={onLoadMore}
             />
           }

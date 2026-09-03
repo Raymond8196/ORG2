@@ -132,9 +132,8 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
     return null;
   }, [activeDataset, handleDatasetChange, showViewSwitch]);
 
-  // A split list owns its own compact header. Keep its dataset switch to the
-  // selected icon and chevron while the shell header retains the readable
-  // dataset title for non-split presentations.
+  // A split list uses an icon-only dataset switch; a full-width surface keeps
+  // the readable dataset title in its own row beneath the host tab bar.
   const splitDatasetControl = React.useMemo(() => {
     if (!activeDataset || showViewSwitch) return null;
     return (
@@ -163,6 +162,7 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   }, [headerLeadingControl, showViewSwitch]);
 
   const headerPrimaryContent = React.useMemo(() => {
+    if (headerSlots?.hidden) return null;
     if (!headerLeading && !headerSlots?.content) return null;
     return (
       <div className="flex min-w-0 flex-1 items-center gap-2">
@@ -170,21 +170,30 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
         {headerSlots?.content}
       </div>
     );
-  }, [headerLeading, headerSlots?.content]);
+  }, [headerLeading, headerSlots?.content, headerSlots?.hidden]);
 
   // WorkStation embed: publish the pane's controls into the shared 36px bar.
   // Work Management has no shell-owned sidebar, so its content uses the bar's
   // standard left inset without reserving an empty toggle/action gutter.
-  const publishedHeaderHidden = hasTabBar && (headerSlots?.hidden ?? false);
+  const splitOwnsSurfaceHeader = headerSlots?.hidden ?? false;
+  const publishedHeaderHidden = hasTabBar && splitOwnsSurfaceHeader;
+  const publishedHeaderTrailing = splitOwnsSurfaceHeader
+    ? null
+    : (headerSlots?.trailing ?? null);
   const embeddedHeaderContent = React.useMemo(
     () => ({
       content: headerPrimaryContent,
-      trailing: headerSlots?.trailing ?? null,
+      trailing: publishedHeaderTrailing,
       shellLeadingChromeHidden: true,
       joinWithFollowingRow: headerSlots?.joinWithFollowingRow ?? false,
       hidden: publishedHeaderHidden,
     }),
-    [headerPrimaryContent, headerSlots, publishedHeaderHidden]
+    [
+      headerPrimaryContent,
+      headerSlots,
+      publishedHeaderHidden,
+      publishedHeaderTrailing,
+    ]
   );
   usePublishWorkstationTabHeader({
     host: "code",
@@ -195,11 +204,16 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
   const chatHeaderContent = React.useMemo(
     () => ({
       content: headerPrimaryContent,
-      trailing: headerSlots?.trailing ?? null,
+      trailing: publishedHeaderTrailing,
       joinWithFollowingRow: headerSlots?.joinWithFollowingRow ?? false,
       hidden: publishedHeaderHidden,
     }),
-    [headerPrimaryContent, headerSlots, publishedHeaderHidden]
+    [
+      headerPrimaryContent,
+      headerSlots,
+      publishedHeaderHidden,
+      publishedHeaderTrailing,
+    ]
   );
   usePublishChatPanelHeader({
     content: chatHeaderContent,
@@ -241,10 +255,10 @@ const WorkManagementPage: React.FC<WorkManagementPageProps> = ({
 
   const splitHeaderContextValue = React.useMemo(
     () => ({
-      hasTabBar,
       splitDatasetControl,
+      surfaceDatasetControl: headerLeadingControl,
     }),
-    [hasTabBar, splitDatasetControl]
+    [headerLeadingControl, splitDatasetControl]
   );
 
   return (

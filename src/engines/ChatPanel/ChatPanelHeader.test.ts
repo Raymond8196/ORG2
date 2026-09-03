@@ -150,7 +150,7 @@ describe("ChatPanelHeader tab row collapse", () => {
     expect(markup).toContain('style="height:44px"');
   });
 
-  it("drops the tab row and rehomes its controls onto the 40px row", () => {
+  it("drops the tab row and rehomes its controls onto the 36px row", () => {
     const markup = render({ tabRowCollapsed: true });
 
     expect(markup).not.toContain('data-testid="chat-panel-header"');
@@ -194,7 +194,7 @@ describe("ChatPanelHeader tab row collapse", () => {
       shouldOffsetHeaderForCollapsedSidebar: true,
     });
 
-    // The 40px row is now the pane's top edge, so it owns the reservation for
+    // The 36px row is now the pane's top edge, so it owns the reservation for
     // the host window controls (macOS traffic lights) the tab row used to hold.
     expect(collapsed).toContain('data-collapsed-sidebar="true"');
     // The published row is z-40 and spans the button's reserved left inset.

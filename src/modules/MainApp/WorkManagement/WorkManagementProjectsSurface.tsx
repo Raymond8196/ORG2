@@ -85,7 +85,8 @@ const WorkManagementProjectsSurface: React.FC<{
   detailHost: WorkManagementDetailHost;
 }> = memo(({ detailHost }) => {
   const { t } = useTranslation("projects");
-  const { hasTabBar, splitDatasetControl } = useWorkManagementSplitHeader();
+  const { splitDatasetControl, surfaceDatasetControl } =
+    useWorkManagementSplitHeader();
   const [workManagementProjectsView, setWorkManagementProjectsView] = useAtom(
     workManagementProjectsViewAtom
   );
@@ -286,8 +287,7 @@ const WorkManagementProjectsSurface: React.FC<{
           isActive
           workStationTabId="work-management-projects"
           workstationHeaderHost="workManagement"
-          splitHeaderLeading={hasTabBar ? splitDatasetControl : undefined}
-          splitListHeaderEnabled={hasTabBar}
+          splitHeaderLeading={splitDatasetControl}
           onProjectSlugResolved={setSelectedProjectSlug}
           onOpenProjects={handleOpenProjects}
           onCreateProject={handleCreateProject}
@@ -325,6 +325,8 @@ const WorkManagementProjectsSurface: React.FC<{
             onOpenLinearProject={handleOpenLinearProjects}
             allowExternalSources={activeOrgScope === STORY_ORG_SCOPE.ALL}
             publishToWorkstationHeader
+            surfaceOwnedHeader
+            surfaceHeaderLeading={surfaceDatasetControl}
             workStationTabId="work-management-projects"
             workstationHeaderHost="workManagement"
           />
@@ -335,8 +337,7 @@ const WorkManagementProjectsSurface: React.FC<{
             breadcrumbSegments={[]}
             workStationTabId="work-management-projects"
             workstationHeaderHost="workManagement"
-            splitHeaderLeading={hasTabBar ? splitDatasetControl : undefined}
-            splitListHeaderEnabled={hasTabBar}
+            splitHeaderLeading={splitDatasetControl}
             orgId={scopedOrgId}
             onCreateProject={handleCreateProject}
             onCreateWorkItem={handleCreateWorkItem}
@@ -387,9 +388,9 @@ const WorkManagementProjectsSurface: React.FC<{
     handleOpenProjectWorkItem,
     selectedProjectSlug,
     activeOrgScope,
-    hasTabBar,
     scopedOrgId,
     splitDatasetControl,
+    surfaceDatasetControl,
     t,
     view,
   ]);

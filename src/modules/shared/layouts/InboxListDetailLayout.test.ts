@@ -22,6 +22,11 @@ describe("InboxListDetailLayout", () => {
       listFullscreen = false
     ) =>
       React.createElement(InboxListDetailLayout, {
+        fullHeader: React.createElement(
+          "div",
+          { "data-testid": "full-list-header" },
+          "Controls"
+        ),
         fullContent: React.createElement("div", null, "Full"),
         listContent: React.createElement("div", null, "Compact"),
         detailContent: React.createElement("div", null, "Detail"),
@@ -36,6 +41,9 @@ describe("InboxListDetailLayout", () => {
         container.firstElementChild?.getAttribute("data-layout-mode")
       ).toBe("single");
       expect(
+        container.querySelector('[data-testid="full-list-header"]')
+      ).not.toBeNull();
+      expect(
         add.mock.calls.filter(([eventName]) => eventName === "keydown")
       ).toHaveLength(0);
 
@@ -43,6 +51,9 @@ describe("InboxListDetailLayout", () => {
       expect(
         container.firstElementChild?.getAttribute("data-layout-mode")
       ).toBe("split");
+      expect(
+        container.querySelector('[data-testid="full-list-header"]')
+      ).toBeNull();
       expect(
         container.querySelector('[data-compact-list-header="true"]')
       ).toBeNull();
@@ -58,6 +69,7 @@ describe("InboxListDetailLayout", () => {
       ).toBe("single");
       expect(container.textContent).toContain("Full");
       expect(container.textContent).not.toContain("Compact");
+      expect(container.textContent).toContain("Controls");
 
       await act(async () => root.render(renderLayout(false)));
       expect(remove).toHaveBeenCalledWith("keydown", keydownListener);

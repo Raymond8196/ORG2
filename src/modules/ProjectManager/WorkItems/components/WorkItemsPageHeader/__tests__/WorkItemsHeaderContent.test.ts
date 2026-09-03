@@ -108,6 +108,52 @@ describe("WorkItemsHeaderContent", () => {
     );
   });
 
+  it("keeps presentation controls last without a decorative separator", () => {
+    const markup = renderToStaticMarkup(
+      React.createElement(WorkItemsHeaderContent, {
+        section: "trailing",
+        activeTab: "List",
+        breadcrumbSegments: [],
+        trailingControls: React.createElement(
+          "span",
+          { "data-testid": "inline-search" },
+          "Search"
+        ),
+        endControls: React.createElement(
+          "span",
+          { "data-testid": "maximize" },
+          "Maximize"
+        ),
+        onRefresh: vi.fn(),
+        onAddWorkItem: vi.fn(),
+        statusCounts: {
+          all: 0,
+          backlog: 0,
+          todo: 0,
+          inProgress: 0,
+          inReview: 0,
+          done: 0,
+          cancelled: 0,
+          duplicate: 0,
+          open: 0,
+          closed: 0,
+        },
+        t: ((key: string) => key) as unknown as TFunction<"projects">,
+      })
+    );
+
+    expect(markup.indexOf('data-testid="inline-search"')).toBeLessThan(
+      markup.indexOf('data-icon="refresh-cw"')
+    );
+    expect(markup.indexOf('data-icon="refresh-cw"')).toBeLessThan(
+      markup.indexOf('data-icon="square-pen"')
+    );
+    expect(markup.indexOf('data-icon="square-pen"')).toBeLessThan(
+      markup.indexOf('data-testid="maximize"')
+    );
+    expect(markup).not.toContain("bg-border-2");
+  });
+
   it("keeps search and actions in the page header during split view", () => {
     const markup = renderToStaticMarkup(
       React.createElement(WorkItemsPageHeader, {
@@ -138,6 +184,8 @@ describe("WorkItemsHeaderContent", () => {
     expect(markup).toContain('data-testid="inline-search"');
     expect(markup).toContain('data-icon="refresh-cw"');
     expect(markup).toContain('data-icon="square-pen"');
+    expect(markup).toContain("h-9");
+    expect(markup).not.toContain("h-[40px]");
   });
 
   it("renders tab-bar split controls as two left-list header rows", () => {

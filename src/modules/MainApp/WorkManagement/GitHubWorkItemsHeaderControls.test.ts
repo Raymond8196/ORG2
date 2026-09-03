@@ -57,6 +57,9 @@ describe("GitHubWorkItemsHeaderControls", () => {
     expect(markup).toContain("gap-1");
     expect(markup).toContain('class="flex min-w-0 items-center gap-1 flex-1"');
     expect(markup).toContain("w-full min-w-0");
+    expect(markup).toContain("border-0!");
+    expect(markup).toContain("focus-within:border-primary-6!");
+    expect(markup).toContain("focus-within:bg-pane-input!");
     expect(markup).toContain('data-icon="refresh-cw"');
   });
 });

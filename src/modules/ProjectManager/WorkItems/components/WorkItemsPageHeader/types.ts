@@ -34,6 +34,8 @@ export interface WorkItemsPageHeaderProps {
   visibleTabs?: readonly WorkItemsViewTab[];
   leadingControls?: React.ReactNode;
   trailingControls?: React.ReactNode;
+  /** Presentation actions that stay at the far end of the header row. */
+  endControls?: React.ReactNode;
   /** Render the existing header controls as rows pinned in a split list. */
   splitListHeader?: boolean;
   /** Optional parent-owned context control before the first split-header row. */

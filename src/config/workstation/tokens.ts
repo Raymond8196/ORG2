@@ -209,11 +209,11 @@ export const SPLIT_BUTTON = {
 // Header Class Strings
 // ============================================
 
-/** Shared left inset aligning 40px header content with the first tab icon. */
+/** Shared left inset aligning header content with the first tab icon. */
 export const HEADER_CONTENT_LEFT_PADDING_CLASS = "pl-[15px]";
-/** Shared right inset for content inside My Station's 40px header bars. */
+/** Shared right inset for content inside My Station header bars. */
 export const HEADER_CONTENT_RIGHT_PADDING_CLASS = "pr-2";
-/** Shared tab-aligned left and compact right insets for 40px header bars. */
+/** Shared tab-aligned left and compact right insets for header bars. */
 export const HEADER_CONTENT_HORIZONTAL_PADDING_CLASS = `${HEADER_CONTENT_LEFT_PADDING_CLASS} ${HEADER_CONTENT_RIGHT_PADDING_CLASS}`;
 
 /** Shared 40px file-bar row geometry (used by FileHeader + search rows). */
@@ -232,9 +232,9 @@ export const HEADER_CLASSES = {
    * Page-level header (bordered, with background).
    * Used by: ProjectsPageHeader, WorkItemsPageHeader
    *
-   * Height: 40px, bottom border, tab-aligned left inset.
+   * Height: 36px, bottom border, tab-aligned left inset.
    */
-  pageHeader: `flex h-[40px] shrink-0 items-center gap-2 border-b border-border-2 ${HEADER_CONTENT_HORIZONTAL_PADDING_CLASS}`,
+  pageHeader: `flex h-9 shrink-0 items-center gap-2 border-b border-border-2 ${HEADER_CONTENT_HORIZONTAL_PADDING_CLASS}`,
 
   /**
    * Section title header (inline title for property groups, no border/bg).

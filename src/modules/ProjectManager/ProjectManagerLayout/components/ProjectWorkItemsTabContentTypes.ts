@@ -32,8 +32,6 @@ export interface ProjectWorkItemsTabContentProps {
   orgSurfaceControls?: React.ReactNode;
   /** Parent-owned context control shown before split-list header content. */
   splitHeaderLeading?: React.ReactNode;
-  /** Whether a surrounding tab bar delegates split controls to the left list. */
-  splitListHeaderEnabled?: boolean;
 }
 
 export interface AggregatedWorkItemProject {

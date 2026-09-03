@@ -19,4 +19,19 @@ describe("SplitViewLayout", () => {
     expect(markup).toContain("List content");
     expect(markup).toContain("Detail content");
   });
+
+  it("can preserve resizing without drawing a resting divider", () => {
+    const markup = renderToStaticMarkup(
+      createElement(SplitViewLayout, {
+        listContent: createElement("div", null, "List content"),
+        mainContent: createElement("div", null, "Detail content"),
+        listWidth: 240,
+        showDivider: false,
+      })
+    );
+
+    expect(markup).toContain('role="separator"');
+    expect(markup).toContain("bg-transparent");
+    expect(markup).not.toContain("bg-border-2");
+  });
 });

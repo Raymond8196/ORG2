@@ -90,7 +90,6 @@ export const ProjectWorkItemsTabContent: React.FC<
   onOpenWorkItem,
   orgSurfaceControls,
   splitHeaderLeading,
-  splitListHeaderEnabled,
 }) => {
   const { t } = useTranslation("projects");
   const [activeViewTab, setActiveViewTab] =
@@ -101,10 +100,7 @@ export const ProjectWorkItemsTabContent: React.FC<
     null
   );
   const [listFullscreen, setListFullscreen] = useState(false);
-  const useSplitListHeader =
-    (splitListHeaderEnabled ?? Boolean(workStationTabId)) &&
-    activeViewTab === "List" &&
-    !listFullscreen;
+  const useSplitListHeader = activeViewTab === "List" && !listFullscreen;
   const [kanbanGroupBy, setKanbanGroupBy] = useState<WorkItemsKanbanGroup>(
     WORK_ITEMS_KANBAN_GROUP.STATUS
   );
@@ -207,6 +203,14 @@ export const ProjectWorkItemsTabContent: React.FC<
     onCreateWorkItem,
     t,
   });
+  const handleSelectWorkItemAndShowDetail = useCallback(
+    (workItemId: string) => {
+      // Selecting from the expanded List must restore the adjacent detail.
+      setListFullscreen(false);
+      handleSelectWorkItem(workItemId);
+    },
+    [handleSelectWorkItem]
+  );
 
   const selectedWorkItem = useMemo(
     () =>
@@ -372,12 +376,12 @@ export const ProjectWorkItemsTabContent: React.FC<
               {formatRelativeTime(workItem.updated_time, "nano") || "—"}
             </span>
           ),
-          onClick: () => handleSelectWorkItem(workItem.session_id),
+          onClick: () => handleSelectWorkItemAndShowDetail(workItem.session_id),
         };
       }),
     [
       handleCheckedChange,
-      handleSelectWorkItem,
+      handleSelectWorkItemAndShowDetail,
       handleUpdateWorkItem,
       selectedWorkItemIds,
       t,
@@ -519,15 +523,19 @@ export const ProjectWorkItemsTabContent: React.FC<
           fillWidth={useSplitListHeader}
           dataTestId="workspace-work-items-search"
         />
-        {activeViewTab === "List" ? (
-          <SplitListFullscreenButton
-            isFullscreen={listFullscreen}
-            onToggle={() => setListFullscreen((current) => !current)}
-          />
-        ) : null}
       </div>
     ),
-    [activeViewTab, listFullscreen, searchQuery, useSplitListHeader]
+    [searchQuery, useSplitListHeader]
+  );
+  const headerEndControls = useMemo(
+    () =>
+      activeViewTab === "List" ? (
+        <SplitListFullscreenButton
+          isFullscreen={listFullscreen}
+          onToggle={() => setListFullscreen((current) => !current)}
+        />
+      ) : null,
+    [activeViewTab, listFullscreen]
   );
   const handleStatusFilterChange = useCallback(
     (value: string) => setStatusFilter(value as StatusFilterType),
@@ -711,6 +719,7 @@ export const ProjectWorkItemsTabContent: React.FC<
       refreshLoading={loading}
       leadingControls={headerLeadingControls}
       trailingControls={headerTrailingControls}
+      endControls={headerEndControls}
       splitListHeader={useSplitListHeader}
       splitHeaderLeading={splitHeaderLeading}
       publishToWorkstationHeader={!!workStationTabId}
@@ -734,7 +743,7 @@ export const ProjectWorkItemsTabContent: React.FC<
             <WorkItemsCompactList
               items={visibleWorkItems}
               selectedWorkItemId={selectedWorkItemId}
-              onSelectWorkItem={handleSelectWorkItem}
+              onSelectWorkItem={handleSelectWorkItemAndShowDetail}
               title={t("projects.columns.workItems")}
               loading={loading || completedItemsLoading}
               testId="workspace-work-items-compact-list"

@@ -13,7 +13,7 @@ interface WorkManagementRefreshButtonProps {
   dataTestId?: string;
 }
 
-/** Shared refresh action for every Work Management 40px header. */
+/** Shared refresh action for every Work Management 36px header. */
 export const WorkManagementRefreshButton = memo(
   ({
     label,

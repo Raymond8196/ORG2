@@ -140,12 +140,11 @@ function createEmptyViewProps(): React.ComponentProps<
   };
 }
 
-function withTabBarHost(child: React.ReactNode): React.ReactElement {
+function withSplitHeaderHost(child: React.ReactNode): React.ReactElement {
   return React.createElement(
     WorkManagementSplitHeaderContext.Provider,
     {
       value: {
-        hasTabBar: true,
         splitDatasetControl: React.createElement(
           "button",
           { "data-testid": "work-dataset-github" },
@@ -171,7 +170,9 @@ describe("GitHubWorkItemsView pull requests", () => {
 
     const Harness = () => {
       useAtomValue(workstationTabHeaderAtomByHost.workManagement);
-      return withTabBarHost(React.createElement(GitHubWorkItemsView, props));
+      return withSplitHeaderHost(
+        React.createElement(GitHubWorkItemsView, props)
+      );
     };
     const renderHarness = () =>
       React.createElement(Provider, { store }, React.createElement(Harness));
@@ -217,7 +218,7 @@ describe("GitHubWorkItemsView pull requests", () => {
       createPullRequest(3),
     ];
     const markup = renderToStaticMarkup(
-      withTabBarHost(
+      withSplitHeaderHost(
         React.createElement(GitHubWorkItemsView, {
           scope: "pr",
           loading: false,
@@ -317,7 +318,7 @@ describe("GitHubWorkItemsView pull requests", () => {
   it("switches to the Inbox compact list when a PR detail is open", () => {
     const pullRequests = [createPullRequest(1), createPullRequest(2)];
     const markup = renderToStaticMarkup(
-      withTabBarHost(
+      withSplitHeaderHost(
         React.createElement(GitHubWorkItemsView, {
           ...createEmptyViewProps(),
           scope: "pr",
@@ -360,7 +361,7 @@ describe("GitHubWorkItemsView pull requests", () => {
           React.createElement(
             Provider,
             { store },
-            withTabBarHost(
+            withSplitHeaderHost(
               React.createElement(GitHubWorkItemsView, {
                 ...createEmptyViewProps(),
                 scope: "pr",
@@ -400,13 +401,115 @@ describe("GitHubWorkItemsView pull requests", () => {
     }
   });
 
-  it("moves tab-bar split controls into the left-column header rows", () => {
+  it("keeps full-width GitHub controls in a dedicated 36px row", async () => {
+    const actEnvironment = globalThis as typeof globalThis & {
+      IS_REACT_ACT_ENVIRONMENT?: boolean;
+    };
+    const previousActEnvironment = actEnvironment.IS_REACT_ACT_ENVIRONMENT;
+    actEnvironment.IS_REACT_ACT_ENVIRONMENT = true;
+    const store = createStore();
+    const container = document.createElement("div");
+    const root = createRoot(container);
+    const pullRequest = createPullRequest(12);
+    const onSelectItem = vi.fn();
+
+    try {
+      await act(async () => {
+        root.render(
+          React.createElement(
+            Provider,
+            { store },
+            React.createElement(
+              WorkManagementSplitHeaderContext.Provider,
+              {
+                value: {
+                  splitDatasetControl: React.createElement(
+                    "button",
+                    { "data-testid": "work-dataset-github-compact" },
+                    "GitHub"
+                  ),
+                  surfaceDatasetControl: React.createElement(
+                    "button",
+                    { "data-testid": "work-dataset-github-full" },
+                    "GitHub pull requests"
+                  ),
+                },
+              },
+              React.createElement(GitHubWorkItemsView, {
+                ...createEmptyViewProps(),
+                scope: "pr",
+                allItemsCount: 1,
+                filteredItems: [pullRequest],
+                pagedItems: [pullRequest],
+                searchQuery: "is:pr is:open",
+                parsedSearchQuery: parseGitHubSearchQuery("is:pr is:open"),
+                onSelectItem,
+              })
+            )
+          )
+        );
+      });
+
+      await act(async () =>
+        container
+          .querySelector<HTMLButtonElement>(
+            '[data-testid="split-list-fullscreen-toggle"]'
+          )
+          ?.click()
+      );
+
+      expect(
+        container
+          .querySelector('[data-testid="github-pr-list-detail-layout"]')
+          ?.getAttribute("data-layout-mode")
+      ).toBe("single");
+      const fullHeaderRow = container.querySelector(
+        '[data-split-list-header-row="primary"]'
+      );
+      expect(fullHeaderRow).not.toBeNull();
+      expect(fullHeaderRow?.classList.contains("h-9")).toBe(true);
+      expect(
+        container.querySelector('[data-testid="work-dataset-github-full"]')
+      ).not.toBeNull();
+      expect(
+        container.querySelector('[data-testid="github-work-items-repository"]')
+      ).not.toBeNull();
+      expect(
+        container.querySelector('[data-testid="github-work-items-search"]')
+      ).not.toBeNull();
+      expect(container.innerHTML).toContain('data-icon="minimize-2"');
+      expect(store.get(workstationTabHeaderAtomByHost.workManagement)).toEqual({
+        hidden: true,
+      });
+
+      await act(async () =>
+        container
+          .querySelector<HTMLButtonElement>('[title="Pull request 12"]')
+          ?.click()
+      );
+
+      expect(onSelectItem).toHaveBeenCalledWith(pullRequest);
+      expect(
+        container
+          .querySelector('[data-testid="github-pr-list-detail-layout"]')
+          ?.getAttribute("data-layout-mode")
+      ).toBe("split");
+    } finally {
+      await act(async () => root.unmount());
+      if (previousActEnvironment === undefined) {
+        Reflect.deleteProperty(actEnvironment, "IS_REACT_ACT_ENVIRONMENT");
+      } else {
+        actEnvironment.IS_REACT_ACT_ENVIRONMENT = previousActEnvironment;
+      }
+    }
+  });
+
+  it("keeps split controls in the left-column header rows", () => {
     const markup = renderToStaticMarkup(
       React.createElement(
         WorkManagementSplitHeaderContext.Provider,
         {
           value: {
-            hasTabBar: true,
             splitDatasetControl: React.createElement(
               "button",
               { "data-testid": "work-dataset-reviews" },
@@ -437,7 +540,7 @@ describe("GitHubWorkItemsView pull requests", () => {
     expect(markup).not.toContain('data-compact-list-header="true"');
   });
 
-  it("publishes one top header without a tab-bar host", async () => {
+  it("keeps split controls local without a tab-bar dependency", async () => {
     const actEnvironment = globalThis as typeof globalThis & {
       IS_REACT_ACT_ENVIRONMENT?: boolean;
     };
@@ -457,7 +560,6 @@ describe("GitHubWorkItemsView pull requests", () => {
               WorkManagementSplitHeaderContext.Provider,
               {
                 value: {
-                  hasTabBar: false,
                   splitDatasetControl: null,
                 },
               },
@@ -472,19 +574,12 @@ describe("GitHubWorkItemsView pull requests", () => {
 
       expect(
         container.querySelector('[data-split-list-header="true"]')
-      ).toBeNull();
+      ).not.toBeNull();
+      expect(
+        container.querySelector('[data-testid="github-work-items-search"]')
+      ).not.toBeNull();
       const header = store.get(workstationTabHeaderAtomByHost.workManagement);
-      expect(header?.hidden).not.toBe(true);
-      expect(
-        renderToStaticMarkup(
-          React.createElement(React.Fragment, null, header?.content)
-        )
-      ).toContain('data-testid="github-work-items-repository"');
-      expect(
-        renderToStaticMarkup(
-          React.createElement(React.Fragment, null, header?.trailing)
-        )
-      ).toContain('data-testid="github-work-items-search"');
+      expect(header).toEqual({ hidden: true });
     } finally {
       await act(async () => root.unmount());
       if (previousActEnvironment === undefined) {

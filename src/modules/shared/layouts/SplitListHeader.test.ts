@@ -17,4 +17,17 @@ describe("SplitListHeader", () => {
     expect(markup).not.toContain("border-b");
     expect(markup).not.toContain("border-border-2");
   });
+
+  it("uses the host inset for a full-width surface row", () => {
+    const markup = renderToStaticMarkup(
+      createElement(SplitListHeader, {
+        fullWidth: true,
+        primary: createElement("span", null, "Controls"),
+      })
+    );
+
+    expect(markup).toContain("h-9");
+    expect(markup).toContain("pl-[15px]");
+    expect(markup).toContain("pr-[7px]");
+  });
 });

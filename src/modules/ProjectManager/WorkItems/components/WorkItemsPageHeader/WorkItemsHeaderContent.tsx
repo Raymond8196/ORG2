@@ -23,6 +23,7 @@ export interface WorkItemsHeaderActionsProps extends Pick<
   WorkItemsPageHeaderProps,
   | "activeTab"
   | "trailingControls"
+  | "endControls"
   | "onSearch"
   | "statusFilter"
   | "onStatusFilterChange"
@@ -54,6 +55,7 @@ interface WorkItemsHeaderContentProps
 export function WorkItemsHeaderActions({
   activeTab,
   trailingControls,
+  endControls,
   onSearch,
   statusFilter,
   onStatusFilterChange,
@@ -119,9 +121,6 @@ export function WorkItemsHeaderActions({
         />
       )}
       {trailingControls}
-      {(onSearch || showStatusFilter) && showPrimaryActions && (
-        <HeaderSectionSeparator className="mx-0.5" />
-      )}
       {showPrimaryActions && (
         <div className="flex shrink-0 items-center gap-px">
           {showCollapseAll && (
@@ -183,6 +182,7 @@ export function WorkItemsHeaderActions({
           </ToolbarTooltip>
         </>
       )}
+      {endControls}
     </div>
   );
 }
