@@ -21,7 +21,10 @@ import {
   openTeamInboxInChatPanelTabAtom,
   openWorkManagementChatPanelTabAtom,
 } from "@src/store/chatPanel/chatPanelTabsAtom";
-import { openSessionInWorkstationAtom } from "@src/store/session/sessionTabPlacementAtom";
+import {
+  openSessionInNewWindowAtom,
+  openSessionInWorkstationAtom,
+} from "@src/store/session/sessionTabPlacementAtom";
 import {
   activeStationChatVisibleAtom,
   chatPanelContentModeAtom,
@@ -52,6 +55,7 @@ export function useWorkstationSidebarChatPanelAtoms() {
   const openOrganizationTab = useSetAtom(openOrganizationInChatPanelTabAtom);
   const openSessionInNewChatTab = useSetAtom(openSessionInNewChatTabAtom);
   const openSessionInWorkstation = useSetAtom(openSessionInWorkstationAtom);
+  const openSessionInNewWindow = useSetAtom(openSessionInNewWindowAtom);
   const openOrReplaceSessionInChatPanelTab = useSetAtom(
     openOrReplaceSessionInChatPanelTabAtom
   );
@@ -82,6 +86,7 @@ export function useWorkstationSidebarChatPanelAtoms() {
     openOrganizationTab,
     openSessionInNewChatTab,
     openSessionInWorkstation,
+    openSessionInNewWindow,
     openOrReplaceSessionInChatPanelTab,
     activateChatPanelTab,
     openStartPageTab,

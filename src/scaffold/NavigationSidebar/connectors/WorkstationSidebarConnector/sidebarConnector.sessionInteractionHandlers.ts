@@ -7,6 +7,7 @@
  */
 import { useCallback } from "react";
 
+import Message from "@src/components/Message";
 import type { NavigationMenuItem } from "@src/scaffold/NavigationSidebar/components/NavigationMenu/config";
 import { loadMoreCategory } from "@src/store/session";
 import {
@@ -71,6 +72,10 @@ interface UseWorkstationSidebarSessionInteractionHandlersParams {
     sessionId: string;
     title?: string;
   }) => void;
+  openSessionInNewWindow: (options: {
+    sessionId: string;
+    title?: string;
+  }) => Promise<boolean>;
   setExpandedSubagentParentIds: (
     updater: (previousIds: Set<string>) => Set<string>
   ) => void;
@@ -102,6 +107,7 @@ export function useWorkstationSidebarSessionInteractionHandlers({
   navigateChatPanel,
   openSessionInNewChatTab,
   openSessionInWorkstation,
+  openSessionInNewWindow,
   setExpandedSubagentParentIds,
 }: UseWorkstationSidebarSessionInteractionHandlersParams) {
   const handleCloudSidebarItemClick = useCallback(
@@ -196,6 +202,18 @@ export function useWorkstationSidebarSessionInteractionHandlers({
       sessionMap,
     ]
   );
+  const handleOpenInNewWindow = useCallback(
+    (sessionId: string) => {
+      const session = sessionMap.get(sessionId);
+      void openSessionInNewWindow({
+        sessionId,
+        title: session?.name,
+      }).catch((error) => {
+        Message.error(error instanceof Error ? error.message : String(error));
+      });
+    },
+    [openSessionInNewWindow, sessionMap]
+  );
 
   const handleOpenLinkedWorkItemSession = useCallback(
     (item: NavigationMenuItem) => {
@@ -239,6 +257,7 @@ export function useWorkstationSidebarSessionInteractionHandlers({
     handleTogglePin,
     handleOpenInNewTab,
     handleOpenInMyStation,
+    handleOpenInNewWindow,
     handleOpenLinkedWorkItemSession,
     handleToggleSubagentExpansion,
   };

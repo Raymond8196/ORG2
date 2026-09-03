@@ -363,7 +363,7 @@ export function useCloudSessionsSection({
   const openTeamSessionAtDestination = useCallback(
     (
       row: RemoteTeammateSessionMetadata,
-      destination: SidebarTabDisposition | "my-station"
+      destination: SidebarTabDisposition | "my-station" | "new-window"
     ) => {
       const openLocalSession = (sessionId: string) => {
         openSessionAtDestination(destination, {
@@ -592,6 +592,10 @@ export function useCloudSessionsSection({
       return buildCloudSessionNativeMenuItems({
         labels: {
           openInNewTab: tCommon("actions.openInNewTab", "Open in New Tab"),
+          openInNewWindow: tCommon(
+            "actions.openInNewWindow",
+            "Open in New Window"
+          ),
           openInMyStation: tSessions(
             "controlTower.sidebar.openInMyStation",
             "Open in My Station"
@@ -603,6 +607,8 @@ export function useCloudSessionsSection({
           remove: tCommon("actions.remove", "Remove"),
         },
         onOpenInNewTab: () => openTeamSessionAtDestination(row, "new-tab"),
+        onOpenInNewWindow: () =>
+          openTeamSessionAtDestination(row, "new-window"),
         onOpenInMyStation: () =>
           openTeamSessionAtDestination(row, "my-station"),
         onCopyUrl: () => {
