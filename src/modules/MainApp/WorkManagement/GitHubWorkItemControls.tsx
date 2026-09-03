@@ -7,7 +7,6 @@ import {
   DROPDOWN_CLASSES,
   DROPDOWN_WIDTHS,
 } from "@src/components/Dropdown/tokens";
-import { ToolbarTooltip } from "@src/components/KeyboardShortcut/ToolbarTooltip";
 import type { SelectOption } from "@src/components/Select";
 import {
   BubbleChatIcon,
@@ -38,38 +37,38 @@ export function IssuePersonalFilterDropdown({
   filterLabel: string;
   onSelect: (values: (string | number)[]) => void;
 }): React.ReactNode {
-  const accessibleLabel =
-    selectedFilters.length > 0
-      ? `${filterLabel} (${selectedFilters.length})`
-      : filterLabel;
+  const hasSelectedFilters = selectedFilters.length > 0;
+  const accessibleLabel = hasSelectedFilters
+    ? `${filterLabel} (${selectedFilters.length})`
+    : filterLabel;
 
   return (
-    <ToolbarTooltip label={accessibleLabel}>
-      <Dropdown
-        options={options}
-        value={selectedFilters}
-        mode="multiple"
-        position="bottom-end"
-        className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.menuClass}`}
-        onSelect={(value) => onSelect(Array.isArray(value) ? value : [value])}
-      >
-        <Button
-          htmlType="button"
-          variant="tertiary"
-          size="small"
-          icon={
-            <HugeiconsIcon
-              icon={FunnelIcon}
-              data-icon="funnel"
-              size={14}
-              strokeWidth={1.8}
-            />
-          }
-          iconOnly
-          aria-label={accessibleLabel}
-        />
-      </Dropdown>
-    </ToolbarTooltip>
+    <Dropdown
+      options={options}
+      value={selectedFilters}
+      mode="multiple"
+      position="bottom-end"
+      className={`${DROPDOWN_CLASSES.panelAnimated} ${DROPDOWN_WIDTHS.menuClass}`}
+      onSelect={(value) => onSelect(Array.isArray(value) ? value : [value])}
+    >
+      <Button
+        htmlType="button"
+        variant="tertiary"
+        size="small"
+        className={hasSelectedFilters ? "bg-fill-1! text-primary-6!" : ""}
+        icon={
+          <HugeiconsIcon
+            icon={FunnelIcon}
+            data-icon="funnel"
+            size={14}
+            strokeWidth={1.8}
+          />
+        }
+        iconOnly
+        aria-label={accessibleLabel}
+        aria-pressed={hasSelectedFilters}
+      />
+    </Dropdown>
   );
 }
 
