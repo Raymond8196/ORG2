@@ -16,6 +16,9 @@ import { invoke } from "@tauri-apps/api/core";
 import { useEffect } from "react";
 
 import { createLogger } from "@src/hooks/logger";
+import { isWindows } from "@src/util/platform/tauri";
+
+import { installWindowsTextEntryFocusRestoration } from "./windowsFocusRestoration";
 
 const log = createLogger("WindowFocus");
 
@@ -42,6 +45,9 @@ export function reflectWindowFocusState(
 export function useWindowFocusTracking() {
   useEffect(() => {
     let lastReportedFocus: boolean | null = null;
+    const stopRestoringTextEntryFocus = isWindows()
+      ? installWindowsTextEntryFocusRestoration()
+      : undefined;
     async function syncFocusState() {
       const focused = reflectWindowFocusState();
       if (focused === lastReportedFocus) return;
@@ -64,6 +70,7 @@ export function useWindowFocusTracking() {
       window.removeEventListener("focus", syncFocusState);
       window.removeEventListener("blur", syncFocusState);
       document.removeEventListener("visibilitychange", syncFocusState);
+      stopRestoringTextEntryFocus?.();
     };
   }, []);
 }
