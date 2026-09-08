@@ -14,6 +14,12 @@ pub(crate) fn initialize(app: &mut tauri::App) -> Result<(), Box<dyn std::error:
     // Python sidecar removed — all backend logic now in Rust.
 
     let runtime_profile = window::init_runtime_profile_and_window(app)?;
+
+    // Raw WM_ACTIVATE trigger for the Alt+Tab focus forwarder; must run on
+    // the window-owning thread that the setup hook executes on.
+    #[cfg(target_os = "windows")]
+    crate::app::lifecycle::install_windows_alt_tab_focus_subclass(app.handle());
+
     services::start_backend_services(app, runtime_profile);
     state::init_core_state(app);
     background::spawn_background_workers(app);

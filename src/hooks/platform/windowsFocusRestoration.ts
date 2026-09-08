@@ -4,6 +4,9 @@
  * that owned focus before Alt+Tab. Keep a per-window bookmark so text-entry
  * surfaces (including ComposerInput and xterm's helper textarea) can recover.
  */
+import { createLogger } from "@src/hooks/logger";
+
+const log = createLogger("WinFocusRestore");
 
 type ContentEditableBookmark = {
   kind: "contenteditable";
@@ -175,17 +178,33 @@ export function installWindowsTextEntryFocusRestoration(
   let lastFocusedElement: HTMLElement | null = null;
   let lastFocusBookmark: FocusBookmark = null;
   let restoreFrame: number | null = null;
+  let restoreTimer: number | null = null;
   let nativeWindowBlurred = false;
+  let disposed = false;
+  let nativeUnlisten: (() => void) | null = null;
+
+  const isRestorePending = () => restoreFrame !== null || restoreTimer !== null;
 
   const cancelPendingRestore = () => {
-    if (restoreFrame === null) return;
-    focusWindow.cancelAnimationFrame(restoreFrame);
-    restoreFrame = null;
+    if (restoreFrame !== null) {
+      focusWindow.cancelAnimationFrame(restoreFrame);
+      restoreFrame = null;
+    }
+    if (restoreTimer !== null) {
+      focusWindow.clearTimeout(restoreTimer);
+      restoreTimer = null;
+    }
   };
 
   const rememberTarget = (event: FocusEvent) => {
     const target = event.target;
     if (!(target instanceof HTMLElement) || !isRestorableTextEntry(target)) {
+      return;
+    }
+    // A focusin on the very element a pending restore targets is the
+    // window-activation refocus, not an explicit user choice: keep the
+    // pending restore AND its original bookmark so the caret is re-applied.
+    if (isRestorePending() && target === lastFocusedElement) {
       return;
     }
     cancelPendingRestore();
@@ -208,15 +227,26 @@ export function installWindowsTextEntryFocusRestoration(
       return;
     }
 
-    // A pointer activation is an explicit focus choice. In particular, this
-    // prevents a restore queued by `window.focus` from winning over the click
-    // that activated the native window.
-    cancelPendingRestore();
+    // WebView2 synthesizes a pointerdown right after Alt+Tab activation
+    // (observed 3-4ms after the activation event, with no physical button).
+    // Keep the pending restore; performRestore's activeElement guard still
+    // honors whatever focus a REAL click settles on.
+    if (isRestorePending()) {
+      return;
+    }
+
+    // A pointer activation while no restore is pending is an explicit focus
+    // choice: forget the bookmark so a later window reactivation does not
+    // yank focus back to the old text surface.
     lastFocusedElement = null;
     lastFocusBookmark = null;
   };
 
-  const handleWindowBlur = () => {
+  // WebView2's DOM window blur/focus events are unreliable across Alt+Tab
+  // (observed missed entirely or delivered out of order), so the native
+  // Tauri window events are the primary activation signal; the DOM events
+  // stay wired as a secondary path and are idempotent with the guards above.
+  const markDeactivated = (_source: string) => {
     nativeWindowBlurred = true;
     cancelPendingRestore();
     if (lastFocusedElement) {
@@ -227,39 +257,69 @@ export function installWindowsTextEntryFocusRestoration(
     }
   };
 
-  const handleWindowFocus = () => {
-    if (!nativeWindowBlurred || restoreFrame !== null) return;
+  const performRestore = (target: HTMLElement, bookmark: FocusBookmark) => {
+    // OS-level MoveFocus is owned by the Rust activation forwarder
+    // (src-tauri/src/app/lifecycle.rs); a second setFocus from the renderer
+    // fed the activation echo loop and caused a focus ping-pong storm.
+    // A modal, click, or keyboard action may already have focused another
+    // control during native activation. Never replace that explicit choice.
+    const activeElement = focusDocument.activeElement;
+    if (
+      activeElement &&
+      activeElement !== focusDocument.body &&
+      activeElement !== focusDocument.documentElement &&
+      activeElement !== target
+    ) {
+      return;
+    }
+    if (!isAvailableFocusTarget(focusWindow, focusDocument, target)) {
+      if (lastFocusedElement === target) {
+        lastFocusedElement = null;
+        lastFocusBookmark = null;
+      }
+      return;
+    }
+
+    target.focus({ preventScroll: true });
+    restoreFocusBookmark(focusDocument, target, bookmark);
+  };
+
+  const handleActivated = (_source: string) => {
+    if (!nativeWindowBlurred || isRestorePending()) {
+      return;
+    }
     nativeWindowBlurred = false;
     const target = lastFocusedElement;
     const bookmark = lastFocusBookmark;
-    if (!target) return;
+    if (!target) {
+      return;
+    }
 
+    // After a long deactivation the renderer is suspended and the first
+    // animation frame can lag ~500ms; race rAF against a 0ms timer so the
+    // restore lands as soon as the event loop turns. First path wins.
+    restoreTimer = focusWindow.setTimeout(() => {
+      if (restoreTimer === null) return;
+      restoreTimer = null;
+      if (restoreFrame !== null) {
+        focusWindow.cancelAnimationFrame(restoreFrame);
+        restoreFrame = null;
+      }
+      performRestore(target, bookmark);
+    }, 0);
     restoreFrame = focusWindow.requestAnimationFrame(() => {
+      if (restoreFrame === null) return;
       restoreFrame = null;
-
-      // A modal, click, or keyboard action may already have focused another
-      // control during native activation. Never replace that explicit choice.
-      const activeElement = focusDocument.activeElement;
-      if (
-        activeElement &&
-        activeElement !== focusDocument.body &&
-        activeElement !== focusDocument.documentElement &&
-        activeElement !== target
-      ) {
-        return;
+      if (restoreTimer !== null) {
+        focusWindow.clearTimeout(restoreTimer);
+        restoreTimer = null;
       }
-      if (!isAvailableFocusTarget(focusWindow, focusDocument, target)) {
-        if (lastFocusedElement === target) {
-          lastFocusedElement = null;
-          lastFocusBookmark = null;
-        }
-        return;
-      }
-
-      target.focus({ preventScroll: true });
-      restoreFocusBookmark(focusDocument, target, bookmark);
+      performRestore(target, bookmark);
     });
   };
+
+  const handleWindowBlur = () => markDeactivated("dom-blur");
+  const handleWindowFocus = () => handleActivated("dom-focus");
 
   const initiallyActiveElement = focusDocument.activeElement;
   if (
@@ -279,7 +339,32 @@ export function installWindowsTextEntryFocusRestoration(
   focusWindow.addEventListener("blur", handleWindowBlur);
   focusWindow.addEventListener("focus", handleWindowFocus);
 
+  // Primary activation signal: Tauri native window focus events, delivered
+  // from the OS window manager via IPC. Never throws at import time; a
+  // non-Tauri host (tests, browser mode) rejects and falls back to DOM only.
+  void (async () => {
+    try {
+      const { getCurrentWindow } = await import("@tauri-apps/api/window");
+      const unlisten = await getCurrentWindow().onFocusChanged(
+        ({ payload: focused }) => {
+          if (disposed) return;
+          if (focused) handleActivated("native");
+          else markDeactivated("native");
+        }
+      );
+      if (disposed) {
+        void unlisten();
+        return;
+      }
+      nativeUnlisten = unlisten;
+    } catch {
+      log.warn("native focus channel unavailable; DOM events only");
+    }
+  })();
+
   return () => {
+    disposed = true;
+    nativeUnlisten?.();
     cancelPendingRestore();
     focusDocument.removeEventListener("focusin", rememberTarget);
     focusDocument.removeEventListener("focusout", captureDepartingSelection);

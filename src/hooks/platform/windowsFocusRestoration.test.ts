@@ -87,18 +87,43 @@ describe("installWindowsTextEntryFocusRestoration", () => {
     const frames = installFrameQueue();
     const composer = document.createElement("div");
     composer.setAttribute("contenteditable", "true");
+    const transcriptButton = document.createElement("button");
+    document.body.append(composer, transcriptButton);
+
+    const cleanup = installWindowsTextEntryFocusRestoration();
+    composer.focus();
+    leaveAndReturnToWindow(composer);
+    // A real click on a focusable control settles focus before the queued
+    // restore runs; the restore must honor that explicit choice.
+    transcriptButton.dispatchEvent(
+      new PointerEvent("pointerdown", { bubbles: true })
+    );
+    transcriptButton.focus();
+    frames.flush();
+
+    expect(document.activeElement).toBe(transcriptButton);
+    cleanup();
+  });
+
+  it("keeps the restore when WebView2 synthesizes a pointerdown on activation", () => {
+    const frames = installFrameQueue();
+    const composer = document.createElement("div");
+    composer.setAttribute("contenteditable", "true");
     const transcript = document.createElement("div");
     document.body.append(composer, transcript);
 
     const cleanup = installWindowsTextEntryFocusRestoration();
     composer.focus();
     leaveAndReturnToWindow(composer);
+    // Alt+Tab activation delivers a synthesized pointerdown on a plain
+    // (non-focusable) surface milliseconds after focus; the restore must
+    // survive it — clicking a non-focusable area never moves focus anyway.
     transcript.dispatchEvent(
       new PointerEvent("pointerdown", { bubbles: true })
     );
     frames.flush();
 
-    expect(document.activeElement).toBe(document.body);
+    expect(document.activeElement).toBe(composer);
     cleanup();
   });
 

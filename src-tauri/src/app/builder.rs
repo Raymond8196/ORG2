@@ -28,6 +28,7 @@ pub(crate) fn run() {
     let initial_webview_observation = perf_utils::begin_webview_ownership_observation("main");
     let application = builder
         .on_window_event(lifecycle::sync_traffic_lights_on_window_event)
+        .on_window_event(lifecycle::forward_focus_to_webview_on_window_activation)
         .invoke_handler(include!(concat!(
             env!("OUT_DIR"),
             "/tauri_invoke_handler_expr.rs"
